@@ -142,6 +142,7 @@ const SecretKeyDrawer: FC<Props> = ({ isOpen, onOpenChange }) => {
 		},
 		onSuccess: () => {
 			refetchQueries(['secret-keys']);
+			setShowApiKey(false);
 			setIsModalOpen(true);
 			onOpenChange(false);
 		},
@@ -294,7 +295,12 @@ const SecretKeyDrawer: FC<Props> = ({ isOpen, onOpenChange }) => {
 				</div>
 			</Sheet>
 
-			<Modal isOpen={isModalOpen} onOpenChange={setIsModalOpen}>
+			<Modal
+				isOpen={isModalOpen}
+				onOpenChange={(open) => {
+					setIsModalOpen(open);
+					!open && setShowApiKey(false);
+				}}>
 				<div className='space-y-4 bg-white card p-5 max-w-md mx-auto'>
 					<h1 className='text-xl font-semibold mb-4'>{t('developers:secretKeyDrawer.modal.title')}</h1>
 
