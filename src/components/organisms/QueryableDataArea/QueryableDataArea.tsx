@@ -280,7 +280,6 @@ const QueryableDataArea = <T = any,>({
 		initialSorts: queryConfig.initialSorts ?? [],
 		debounceTime: queryConfig.debounceTime ?? 300,
 		persistenceKey: queryConfig.filterPersistenceKey ?? dataConfig.queryKey,
-		resetPageKey: paginationConfig?.prefix ? `${paginationConfig.prefix}_page` : 'page',
 	});
 
 	// Generate query key for tracking changes
@@ -339,6 +338,10 @@ const QueryableDataArea = <T = any,>({
 	useLayoutEffect(() => {
 		onMainDataChangeRef.current?.(data);
 	}, [data]);
+
+	useEffect(()=>{
+		reset();
+	},[filters, sorts])
 
 	// Consolidated effect: detect query changes and manage loading states
 	useEffect(() => {

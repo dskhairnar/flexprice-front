@@ -21,8 +21,7 @@ interface Props {
 	onSortChange?: (sorts: SortOption[]) => void;
 	/** When set, filters/sorts are persisted to URL and session storage using this key */
 	persistenceKey?: string;
-	/** Query param to reset to page 1 when persisted filters/sorts change */
-	resetPageKey?: string;
+
 }
 
 /**
@@ -70,7 +69,6 @@ const useFilterSortingWithPersistence = ({
 	onFilterChange,
 	onSortChange,
 	persistenceKey,
-	resetPageKey,
 }: Props) => {
 	const [searchParams, setSearchParams] = useSearchParams();
 
@@ -97,12 +95,11 @@ const useFilterSortingWithPersistence = ({
 				else next.delete(fKey);
 				if (sorts.length) next.set(sKey, serializeSorts(sorts));
 				else next.delete(sKey);
-				if (resetPageKey) next.set(resetPageKey, '1');
 				return next;
 			});
 			writeFiltersAndSortsToSession(key, filters, sorts);
 		},
-		[setSearchParams, resetPageKey],
+		[setSearchParams],
 	);
 
 	const result = useFilterSorting({
