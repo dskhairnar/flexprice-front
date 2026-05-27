@@ -120,6 +120,7 @@ const CustomerOverviewTab = () => {
 		initialSorts: initialSubscriptionSorts,
 		debounceTime: 300,
 		persistenceKey: 'customerSubscriptions',
+		resetPageKey: `${PAGINATION_PREFIX.CUSTOMER_SUBSCRIPTIONS}_page`,
 	});
 
 	const { limit, offset, reset } = usePagination({
