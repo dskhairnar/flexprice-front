@@ -187,3 +187,21 @@ describe('config object', () => {
 		expect(Array.isArray(config.allowedLocales)).toBe(true);
 	});
 });
+
+describe('parseTypographyConfig', () => {
+	it('uses Thmanyah Sans by default for the Tirdad brand', async () => {
+		const { parseTypographyConfig } = await import('./config');
+		const result = parseTypographyConfig(undefined, 'Tirdad');
+
+		expect(result.primaryFont).toBe('thmanyah Sans');
+		expect(result.fontFamily).toBe("'thmanyah Sans', sans-serif");
+	});
+
+	it('allows explicit font config to override Tirdad defaults', async () => {
+		const { parseTypographyConfig } = await import('./config');
+		const result = parseTypographyConfig('{"primary":"Inter","fallback":"system-ui"}', 'Tirdad');
+
+		expect(result.primaryFont).toBe('Inter');
+		expect(result.fontFamily).toBe('Inter, system-ui');
+	});
+});
