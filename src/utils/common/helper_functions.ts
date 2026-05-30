@@ -1,17 +1,12 @@
 import { BILLING_PERIOD } from '@/constants/constants';
+import { getCurrencySymbol as getCurrencyDisplaySymbol } from '@/constants/common';
 import { BILLING_MODEL, Price, PRICE_TYPE } from '@/models/Price';
 import { getAllISOCodes } from 'iso-country-currency';
 import { v4 as uuidv4 } from 'uuid';
 import toast from 'react-hot-toast';
 
 export function getCurrencySymbol(currency: string): string {
-	try {
-		const info = getAllISOCodes().filter((code) => code.currency === currency.toUpperCase());
-		return info[0]?.symbol || currency;
-	} catch (error) {
-		console.error('Error getting currency symbol', error);
-		return currency;
-	}
+	return getCurrencyDisplaySymbol(currency);
 }
 
 export function getCurrencyName(currency: string): string {

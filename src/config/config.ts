@@ -78,6 +78,7 @@ export interface TypographyConfig {
 
 const DEFAULT_FONT_PRIMARY = 'Geist';
 const DEFAULT_FONT_FALLBACK = 'sans-serif';
+const TIRDAD_FONT_PRIMARY = 'thmanyah Sans';
 
 /** Wrap family name in quotes when needed for valid CSS `font-family`. */
 function cssFontFamilyToken(name: string): string {
@@ -93,9 +94,10 @@ interface FontConfigJson {
 	fallback?: string;
 }
 
-function parseTypographyConfig(): TypographyConfig {
-	const raw = import.meta.env.VITE_FONT_CONFIG?.trim();
-	let primary = DEFAULT_FONT_PRIMARY;
+export function parseTypographyConfig(rawFontConfig?: string, brandName?: string): TypographyConfig {
+	const raw = rawFontConfig?.trim();
+	const isTirdad = brandName?.trim().toLowerCase() === 'tirdad';
+	let primary = isTirdad ? TIRDAD_FONT_PRIMARY : DEFAULT_FONT_PRIMARY;
 	let fallback = DEFAULT_FONT_FALLBACK;
 	if (raw) {
 		try {
@@ -110,7 +112,7 @@ function parseTypographyConfig(): TypographyConfig {
 	return { primaryFont: primary, fallbackFont: fallback, fontFamily };
 }
 
-const typographyConfig = parseTypographyConfig();
+const typographyConfig = parseTypographyConfig(import.meta.env.VITE_FONT_CONFIG, brandConfig.name);
 
 export interface Config {
 	app: AppConfig;

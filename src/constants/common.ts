@@ -6,16 +6,30 @@
 // CURRENCY FORMATTERS
 // =============================================================================
 
+const CURRENCY_SYMBOL_OVERRIDES: Record<string, string> = {
+	SAR: '\u20c1',
+};
+
+const getCurrencySymbolOverride = (currency: string): string | undefined => CURRENCY_SYMBOL_OVERRIDES[currency.toUpperCase()];
+
 export const formatCurrency = (amount: number | string, currency: string): string => {
 	const numAmount = typeof amount === 'string' ? parseFloat(amount) : amount;
 	if (isNaN(numAmount)) return `${getCurrencySymbol(currency)}0.00`;
 
-	return new Intl.NumberFormat('en-US', {
+	const formatter = new Intl.NumberFormat('en-US', {
 		style: 'currency',
 		currency: currency,
 		minimumFractionDigits: 2,
 		maximumFractionDigits: 2,
-	}).format(numAmount);
+	});
+	const symbolOverride = getCurrencySymbolOverride(currency);
+
+	if (!symbolOverride) return formatter.format(numAmount);
+
+	return formatter
+		.formatToParts(numAmount)
+		.map((part) => (part.type === 'currency' ? symbolOverride : part.value))
+		.join('');
 };
 
 export const formatAmount = (amount: number | string, currency?: string): string => {
@@ -30,6 +44,9 @@ export const formatAmount = (amount: number | string, currency?: string): string
 };
 
 export const getCurrencySymbol = (currency: string): string => {
+	const symbolOverride = getCurrencySymbolOverride(currency);
+	if (symbolOverride) return symbolOverride;
+
 	try {
 		return (
 			new Intl.NumberFormat('en-US', {
