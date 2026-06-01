@@ -9,7 +9,7 @@ import { EyeOff, Pencil } from 'lucide-react';
 import { refetchQueries } from '@/core/services/tanstack/ReactQueryProvider';
 import { useTranslation } from 'react-i18next';
 
-interface EditActionConfig {
+export interface EditActionConfig {
 	enabled?: boolean;
 	path?: string;
 	onClick?: () => void;
@@ -17,20 +17,20 @@ interface EditActionConfig {
 	icon?: React.ReactNode;
 }
 
-interface ArchiveActionConfig {
+export interface ArchiveActionConfig {
 	enabled?: boolean;
 	text?: string;
 	icon?: React.ReactNode;
 }
 
-interface CustomAction {
+export interface CustomAction {
 	text: string;
 	icon?: React.ReactNode;
 	onClick: () => void;
 	enabled?: boolean;
 }
 
-interface ActionProps {
+export interface ActionProps {
 	id: string;
 	deleteMutationFn: (id: string) => Promise<void>;
 	refetchQueryKey: string;

@@ -22,7 +22,7 @@ const ShadcnCheckbox = React.forwardRef<
 ));
 ShadcnCheckbox.displayName = CheckboxPrimitive.Root.displayName;
 
-interface Props {
+export interface CheckboxProps {
 	id?: string;
 	checked?: boolean;
 	onCheckedChange?: (checked: boolean) => void;
@@ -30,7 +30,7 @@ interface Props {
 	description?: string;
 }
 
-const Checkbox: React.FC<Props> = ({ checked, label, onCheckedChange, description, id }) => {
+const Checkbox: React.FC<CheckboxProps> = ({ checked, label, onCheckedChange, description, id }) => {
 	return (
 		<div className='items-top flex space-x-2'>
 			<ShadcnCheckbox checked={checked} onCheckedChange={onCheckedChange} id={id} />

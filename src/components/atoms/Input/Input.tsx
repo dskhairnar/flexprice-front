@@ -5,7 +5,7 @@ import { sizes, SizeVariant } from '@/lib/sizing';
 
 type InputVariant = 'text' | 'number' | 'formatted-number' | 'integer';
 
-interface NumberFormatOptions {
+export interface NumberFormatOptions {
 	allowNegative?: boolean;
 	allowDecimals?: boolean;
 	thousandSeparator: string;
@@ -74,7 +74,7 @@ const getInputPattern = (variant: InputVariant, options: NumberFormatOptions = D
 	}
 };
 
-interface InputProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'onChange' | 'size'> {
+export interface InputProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'onChange' | 'size'> {
 	label?: string;
 	description?: React.ReactNode;
 	error?: string;

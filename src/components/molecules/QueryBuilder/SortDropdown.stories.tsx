@@ -4,7 +4,7 @@ import SortDropdown from './SortDropdown';
 import { SortOption, SortDirection } from '@/types/common/QueryBuilder';
 
 const meta: Meta<typeof SortDropdown> = {
-	title: 'Molecules/QueryBuilder/SortDropdown',
+	title: 'Flexprice/Molecules/QueryBuilder/SortDropdown',
 	component: SortDropdown,
 	parameters: {
 		layout: 'centered',

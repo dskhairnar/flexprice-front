@@ -89,6 +89,13 @@ export default tseslint.config(
 		rules: { 'i18next/no-literal-string': 'off' },
 	},
 	{
+		files: ['**/*.{stories,story}.{ts,tsx}'],
+		rules: {
+			'i18next/no-literal-string': 'off',
+			'react-hooks/rules-of-hooks': 'off',
+		},
+	},
+	{
 		files: ['**/*Demo.{ts,tsx}'],
 		rules: { 'i18next/no-literal-string': 'off' },
 	},

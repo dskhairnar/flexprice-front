@@ -2,7 +2,7 @@ import { getTypographyClass } from '@/lib/typography';
 import { cn } from '@/lib/utils';
 import React from 'react';
 
-interface CardProps extends React.HTMLAttributes<HTMLDivElement> {
+export interface CardProps extends React.HTMLAttributes<HTMLDivElement> {
 	variant?: 'default' | 'notched' | 'bordered' | 'elevated' | 'warning';
 	notchColor?: string;
 	notchPosition?: 'left' | 'right';

@@ -2,11 +2,11 @@ import { cn } from '@/lib/utils';
 import React, { FC } from 'react';
 import { IoCheckmarkCircleSharp } from 'react-icons/io5';
 
-interface Step {
+export interface Step {
 	label: string;
 }
 
-interface StepperProps {
+export interface StepperProps {
 	steps: Step[];
 	activeStep: number; // Current active step (0-based index)
 }

@@ -2,7 +2,7 @@ import React, { ReactNode } from 'react';
 import { Tooltip as TooltipRoot, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
 
-interface TooltipProps {
+export interface TooltipProps {
 	/** The element that triggers the tooltip */
 	children: ReactNode;
 	/** The content to display in the tooltip */

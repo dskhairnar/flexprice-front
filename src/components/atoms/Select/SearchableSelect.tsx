@@ -15,7 +15,7 @@ export interface SelectOption {
 	disabled?: boolean;
 }
 
-interface SearchableSelectProps {
+export interface SearchableSelectProps {
 	options: SelectOption[];
 	value?: string;
 	defaultOpen?: boolean;
