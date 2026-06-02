@@ -16,7 +16,7 @@ import { formatRbacRole } from '@/i18n/display/apiEnums';
 
 const ServiceAccountsPage = () => {
 	const { t } = useTranslation(['developers', 'common']);
-	const { page } = usePagination();
+	const { page, limit, offset } = usePagination();
 	const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 	const [selectedAccount, setSelectedAccount] = useState<User | null>(null);
 
@@ -26,7 +26,7 @@ const ServiceAccountsPage = () => {
 		isError: isServiceAccountsError,
 	} = useQuery({
 		queryKey: ['service-accounts', page],
-		queryFn: async () => UserApi.getServiceAccounts(),
+		queryFn: async () => UserApi.getServiceAccounts({ limit, offset }),
 	});
 
 	const handleAdd = () => {
@@ -54,7 +54,7 @@ const ServiceAccountsPage = () => {
 							) : (
 								<code className='px-2 py-0.5 text-sm bg-gray-100 rounded font-mono text-gray-500'>{maskedId}</code>
 							)}
-							<span className='opacity-0 group-hover:opacity-100 transition-opacity'>
+							<span className='opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity'>
 								<CopyIdButton id={row.id} entityType='Service Account' />
 							</span>
 						</div>
