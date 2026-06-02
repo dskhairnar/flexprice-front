@@ -18,6 +18,7 @@ import toast from 'react-hot-toast';
 import { useNavigate } from 'react-router';
 import { RouteNames } from '@/core/routes/Routes';
 import { BILLING_PERIOD } from '@/constants/constants';
+import { formatBillingPeriodForDisplay } from '@/utils';
 import { ChargeValueCell } from '@/components/molecules';
 import { Dialog } from '@/components/ui';
 import { DeletePriceRequest } from '@/types/dto';
@@ -116,27 +117,6 @@ const PriceDropdown: FC<PriceDropdownProps> = ({ row, hasEndDate, onEditPrice, o
 			/>
 		</div>
 	);
-};
-
-const formatBillingPeriod = (billingPeriod: string) => {
-	switch (billingPeriod.toUpperCase()) {
-		case BILLING_PERIOD.DAILY:
-			return 'Daily';
-		case BILLING_PERIOD.WEEKLY:
-			return 'Weekly';
-		case BILLING_PERIOD.MONTHLY:
-			return 'Monthly';
-		case BILLING_PERIOD.ANNUAL:
-			return 'Yearly';
-		case BILLING_PERIOD.QUARTERLY:
-			return 'Quarterly';
-		case BILLING_PERIOD.HALF_YEARLY:
-			return 'Half Yearly';
-		case BILLING_PERIOD.ONETIME:
-			return 'One-time';
-		default:
-			return '--';
-	}
 };
 
 const getPriceStatus = (price: Price): PRICE_STATUS => {
@@ -439,7 +419,7 @@ const PlanPriceTable: FC<PlanChargesTableProps> = ({ plan, onPriceUpdate }) => {
 			},
 			{
 				title: 'Billing Period',
-				render: (row) => <span>{formatBillingPeriod(row.billing_period as string)}</span>,
+				render: (row) => <span>{formatBillingPeriodForDisplay(row.billing_period as string, t)}</span>,
 			},
 			{
 				title: 'Status',

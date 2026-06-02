@@ -2,7 +2,7 @@ import { FC } from 'react';
 import { ActionButton, Chip } from '@/components/atoms';
 import FlexpriceTable, { ColumnData } from '../Table';
 import formatDate from '@/utils/common/format_date';
-import formatChips from '@/utils/common/format_chips';
+import { formatEntityStatus } from '@/utils/common/format_chips';
 import Customer from '@/models/Customer';
 import CustomerApi from '@/api/CustomerApi';
 import { useNavigate } from 'react-router';
@@ -59,7 +59,7 @@ const CustomerTable: FC<Props> = ({ data, onEdit }) => {
 			title: t('list.columns.status'),
 
 			render: (row) => {
-				const label = formatChips(row.status);
+				const label = formatEntityStatus(row.status, t);
 				return <Chip variant={label === 'Active' ? 'success' : 'default'} label={label} />;
 			},
 		},

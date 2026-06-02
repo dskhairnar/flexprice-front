@@ -327,7 +327,8 @@
 			"organizationIdRequired": "Organization ID is required",
 			"accountsServerRequired": "Accounts server is required",
 			"clientIdRequired": "Client ID is required",
-			"redirectUrlInvalid": "Must be a valid URL starting with http:// or https://"
+			"redirectUrlInvalid": "Must be a valid URL starting with http:// or https://",
+			"companyIdRequired": "Company ID is required"
 		},
 		"toast": {
 			"created": "{{provider}} connection created successfully",

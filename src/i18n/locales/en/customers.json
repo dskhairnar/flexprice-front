@@ -148,6 +148,9 @@
 		"typePostpaidDesc": "Credits are applied to invoices at the end of the billing cycle.",
 		"labelPrePaid": "Pre-Paid",
 		"labelPostPaid": "Post-Paid",
+		"nameLabel": "Wallet Name",
+		"statusLabel": "Status",
+		"creditRateFormat": "1 Credit = {{amount}}{{currencySymbol}}",
 		"addTopupRate": "Top-up Rate",
 		"addFreeCredits": "Free Credits",
 		"saveWallet": "Save Wallet",
@@ -279,7 +282,8 @@
 	"tabPanels": {
 		"common": {
 			"metadata": "Metadata",
-			"unknown": "Unknown"
+			"unknown": "Unknown",
+			"noMetadataAvailable": "No metadata available."
 		},
 		"analytics": {
 			"heading": "Analytics",

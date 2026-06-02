@@ -100,8 +100,8 @@ function buildOverrideRows(
 		rows.push({
 			variant: 'simple',
 			text: t('priceTooltip.billingModelChange', {
-				from: getBillingModelLabel(original.billingModel),
-				to: getBillingModelLabel(overridden.billingModel),
+				from: getBillingModelLabel(original.billingModel, t),
+				to: getBillingModelLabel(overridden.billingModel, t),
 			}),
 		});
 	}
@@ -110,8 +110,8 @@ function buildOverrideRows(
 		rows.push({
 			variant: 'simple',
 			text: t('priceTooltip.tierModeChange', {
-				from: getTierModeLabel(original.tierMode),
-				to: getTierModeLabel(overridden.tierMode),
+				from: getTierModeLabel(original.tierMode, t),
+				to: getTierModeLabel(overridden.tierMode, t),
 			}),
 		});
 	}

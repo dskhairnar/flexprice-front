@@ -465,11 +465,11 @@ const SubscriptionLineItemTable: FC<Props> = ({
 				: []),
 			{
 				title: 'Price Type',
-				render: (row) => <span>{getPriceTypeLabel(row.price_type)}</span>,
+				render: (row) => <span>{getPriceTypeLabel(row.price_type, t)}</span>,
 			},
 			{
 				title: 'Billing Period',
-				render: (row) => formatBillingPeriodForDisplay(row.billing_period),
+				render: (row) => formatBillingPeriodForDisplay(row.billing_period, t),
 			},
 			...(hasMultipleEntityTypes
 				? [

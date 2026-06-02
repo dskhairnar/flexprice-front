@@ -12,7 +12,7 @@ import { RouteNames } from '@/core/routes/Routes';
 import { refetchQueries } from '@/core/services/tanstack/ReactQueryProvider';
 import usePagination, { PAGINATION_PREFIX } from '@/hooks/usePagination';
 import type { HttpRejectedError } from '@/core/axios/types';
-import { toSentenceCase } from '@/utils/common/helper_functions';
+import { formatRbacRole } from '@/i18n/display/apiEnums';
 
 const MEMBERS_QUERY_KEY = ['settings-team-members'];
 const MEMBERS_PAGE_SIZE = 10;
@@ -176,7 +176,7 @@ function MembersSection() {
 	const getRoleDisplay = (row: User) => {
 		const r = row.roles?.[0];
 		if (!r) return t('members.roleAdmin');
-		return toSentenceCase(r);
+		return formatRbacRole(r, t);
 	};
 
 	const members: User[] = data?.items ?? [];

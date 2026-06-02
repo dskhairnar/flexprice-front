@@ -65,7 +65,7 @@ const RecurringChargePreview: FC<Props> = ({ charge, onEditClicked, onDeleteClic
 					{isFlatFee ? (
 						<span>
 							{displayInfo.symbol}
-							{formatAmount(displayInfo.amount)} / {formatBillingPeriodForPrice(charge.billing_period || '')}
+							{formatAmount(displayInfo.amount)} / {formatBillingPeriodForPrice(charge.billing_period || '', t)}
 						</span>
 					) : (
 						<ChargeValueCell data={{ ...charge, currency: charge.currency } as any} />

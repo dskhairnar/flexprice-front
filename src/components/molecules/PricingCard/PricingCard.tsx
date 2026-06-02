@@ -110,7 +110,7 @@ const formatEntitlementValue = ({
 			return (
 				<>
 					{formatAmount(value.toString())} {feature}
-					{usage_reset_period ? t('pricingCard.perBillingPeriod', { period: formatBillingPeriodForPrice(usage_reset_period) }) : ''}
+					{usage_reset_period ? t('pricingCard.perBillingPeriod', { period: formatBillingPeriodForPrice(usage_reset_period, t) }) : ''}
 				</>
 			);
 		default:
@@ -169,7 +169,7 @@ function getEntitlementVisual(type: string, name: string): { Icon: LucideIcon; i
 }
 
 function formatEntitlementPreviewLine(ent: PricingCardProps['entitlements'][0], t: TFunction<'common'>): string {
-	const period = ent.usage_reset_period ? `/${formatBillingPeriodForPrice(ent.usage_reset_period)}` : '';
+	const period = ent.usage_reset_period ? `/${formatBillingPeriodForPrice(ent.usage_reset_period, t)}` : '';
 	switch (ent.type) {
 		case 'STATIC':
 			return `${ent.value} ${ent.name}`;
@@ -306,7 +306,7 @@ const PricingCard: React.FC<PricingCardProps> = ({
 						</span>
 						{config.showBillingPeriod && (
 							<span className={cn('ms-2 text-gray-500', visualModern ? 'text-xs' : 'text-sm text3')}>
-								/{formatBillingPeriodForPrice(price.billingPeriod || '')}
+								/{formatBillingPeriodForPrice(price.billingPeriod || '', t)}
 								{config.subtext && (!visualModern || isSetupPreview) && (
 									<span className={cn('ms-1', visualModern ? 'text-[11px] font-semibold text-indigo-600' : 'font-medium text-lg')}>
 										{config.subtext}

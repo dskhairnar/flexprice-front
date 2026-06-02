@@ -15,7 +15,7 @@ import { API_DOCS_TAGS } from '@/constants/apiDocsTags';
 import type { AutoTopupConfig } from '@/components/molecules/WalletAutoTopup/WalletAutoTopup';
 import { Dialog, Skeleton, Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui';
 import usePagination from '@/hooks/usePagination';
-import { Wallet, WALLET_TYPE } from '@/models/Wallet';
+import { Wallet, WALLET_STATUS, WALLET_TYPE } from '@/models/Wallet';
 import WalletApi from '@/api/WalletApi';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { useEffect, useMemo, useState } from 'react';
@@ -32,26 +32,15 @@ import { logger } from '@/utils/common/Logger';
 import { PremiumFeatureIcon } from '@/components/molecules/PremiumFeature/PremiumFeature';
 import { useTranslation } from 'react-i18next';
 
-const formatWalletStatus = (status?: string) => {
-	const statusMap: Record<string, string> = {
-		active: 'Active',
-		frozen: 'Frozen',
-		closed: 'Closed',
-	};
-	return status ? statusMap[status.toLowerCase()] || 'Unknown' : 'Unknown';
-};
-
 enum WALLET_BALANCE_TYPE {
 	CURRENT = 'current',
 	ONGOING = 'ongoing',
 }
-const formatWalletType = (walletType?: WALLET_TYPE) => {
-	if (!walletType) return 'Unknown';
-	const typeMap: Record<WALLET_TYPE, string> = {
-		[WALLET_TYPE.PRE_PAID]: 'Pre-Paid',
-		[WALLET_TYPE.POST_PAID]: 'Post-Paid',
-	};
-	return typeMap[walletType] || walletType;
+
+const WALLET_STATUS_I18N_KEYS: Record<WALLET_STATUS, string> = {
+	[WALLET_STATUS.ACTIVE]: 'active',
+	[WALLET_STATUS.FROZEN]: 'frozen',
+	[WALLET_STATUS.CLOSED]: 'closed',
 };
 
 const filterStringMetadata = (meta: Record<string, unknown> | undefined): Record<string, string> => {
@@ -60,8 +49,9 @@ const filterStringMetadata = (meta: Record<string, unknown> | undefined): Record
 };
 
 const CustomerWalletTab = () => {
-	const { t } = useTranslation('customers');
+	const { t } = useTranslation(['customers', 'customer-portal', 'common']);
 	const { id: customerId } = useParams();
+	const emptyValue = t('common:labels.na');
 
 	const { limit, offset } = usePagination();
 
@@ -355,33 +345,60 @@ const CustomerWalletTab = () => {
 								variant='stacked'
 								title={t('tabPanels.wallet.detailsTitle')}
 								data={[
-									{ label: 'Wallet Name', value: activeWallet?.name || 'Prepaid wallet' },
 									{
-										label: 'Wallet Type',
+										label: t('wallet.nameLabel'),
+										value: activeWallet?.name || emptyValue,
+									},
+									{
+										label: t('wallet.typeLabel'),
 										value: (
 											<Chip
 												variant={activeWallet?.wallet_type === WALLET_TYPE.PRE_PAID ? 'default' : 'info'}
-												label={formatWalletType(activeWallet?.wallet_type)}
+												label={
+													activeWallet?.wallet_type === WALLET_TYPE.PRE_PAID
+														? t('wallet.labelPrePaid')
+														: activeWallet?.wallet_type === WALLET_TYPE.POST_PAID
+															? t('wallet.labelPostPaid')
+															: t('tabPanels.common.unknown')
+												}
 											/>
 										),
 									},
 									{
-										label: 'Status',
+										label: t('wallet.statusLabel'),
 										value: (
 											<Chip
-												variant={formatWalletStatus(activeWallet?.wallet_status) === 'Active' ? 'success' : 'default'}
-												label={formatWalletStatus(activeWallet?.wallet_status)}
+												variant={activeWallet?.wallet_status?.toLowerCase() === WALLET_STATUS.ACTIVE ? 'success' : 'default'}
+												label={
+													activeWallet?.wallet_status && WALLET_STATUS_I18N_KEYS[activeWallet.wallet_status.toLowerCase() as WALLET_STATUS]
+														? t(
+																`customer-portal:walletStatus.${WALLET_STATUS_I18N_KEYS[activeWallet.wallet_status.toLowerCase() as WALLET_STATUS]}`,
+															)
+														: t('tabPanels.common.unknown')
+												}
 											/>
 										),
 									},
 									{
-										label: 'Conversion Rate',
-										value: <span>{`1 Credit = ${activeWallet?.conversion_rate}${getCurrencySymbol(activeWallet?.currency ?? '')}`}</span>,
+										label: t('wallet.conversionRate'),
+										value: (
+											<span>
+												{t('wallet.creditRateFormat', {
+													amount: activeWallet?.conversion_rate ?? '',
+													currencySymbol: getCurrencySymbol(activeWallet?.currency ?? ''),
+												})}
+											</span>
+										),
 									},
 									{
-										label: 'Top-up Rate',
+										label: t('wallet.addTopupRate'),
 										value: (
-											<span>{`1 Credit = ${activeWallet?.topup_conversion_rate}${getCurrencySymbol(activeWallet?.currency ?? '')}`}</span>
+											<span>
+												{t('wallet.creditRateFormat', {
+													amount: activeWallet?.topup_conversion_rate ?? '',
+													currencySymbol: getCurrencySymbol(activeWallet?.currency ?? ''),
+												})}
+											</span>
 										),
 									},
 								]}
@@ -490,11 +507,7 @@ const CustomerWalletTab = () => {
 								{metadata && Object.keys(metadata).length > 0 ? (
 									<DetailsCard
 										variant='stacked'
-										data={
-											metadata && Object.keys(metadata).length > 0
-												? Object.entries(metadata).map(([key, value]) => ({ label: key, value }))
-												: [{ label: 'No metadata available.', value: '' }]
-										}
+										data={Object.entries(metadata).map(([key, value]) => ({ label: key, value }))}
 										cardStyle='borderless'
 									/>
 								) : (

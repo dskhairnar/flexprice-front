@@ -11,9 +11,9 @@ import { Price, PRICE_STATUS, PRICE_TYPE, PRICE_ENTITY_TYPE } from '@/models';
 import { PriceUnit } from '@/models/PriceUnit';
 import Feature, { FEATURE_TYPE } from '@/models/Feature';
 import { GROUP_ENTITY_TYPE } from '@/models/Group';
-import { formatInvoiceCadence } from '@/pages';
-import { formatBillingPeriodForDisplay, getPriceTypeLabel } from '@/utils/common/helper_functions';
-import formatChips from '@/utils/common/format_chips';
+import { formatBillingPeriodForDisplay, formatInvoiceCadence, getPriceTypeLabel } from '@/utils/common/helper_functions';
+import { formatEntityStatus } from '@/utils/common/format_chips';
+import { ENTITY_STATUS } from '@/models';
 import formatDate from '@/utils/common/format_date';
 import { formatDateTimeWithSecondsAndTimezone } from '@/utils/common/format_date';
 import { RouteNames } from '@/core/routes/Routes';
@@ -32,7 +32,6 @@ import {
 	SortOption,
 	FilterCondition,
 } from '@/types/common/QueryBuilder';
-import { ENTITY_STATUS } from '@/models';
 import useFilterSorting from '@/hooks/useFilterSorting';
 import usePagination, { PAGINATION_PREFIX } from '@/hooks/usePagination';
 import { sanitizeFilterConditions, sanitizeSortConditions } from '@/types/formatters/QueryBuilder';
@@ -396,9 +395,9 @@ const GroupOverviewTab = () => {
 					return url ? <RedirectCell redirectUrl={url}>{label}</RedirectCell> : <span>{label}</span>;
 				},
 			},
-			{ title: 'Charge Type', render: (row) => <span>{getPriceTypeLabel(row.type)}</span> },
-			{ title: 'Billing Timing', render: (row) => <span>{formatInvoiceCadence(row.invoice_cadence as string)}</span> },
-			{ title: 'Billing Period', render: (row) => <span>{formatBillingPeriodForDisplay(row.billing_period as string)}</span> },
+			{ title: 'Charge Type', render: (row) => <span>{getPriceTypeLabel(row.type, t)}</span> },
+			{ title: 'Billing Timing', render: (row) => <span>{formatInvoiceCadence(row.invoice_cadence as string, t)}</span> },
+			{ title: 'Billing Period', render: (row) => <span>{formatBillingPeriodForDisplay(row.billing_period as string, t)}</span> },
 			{
 				title: 'Status',
 				render: (row) => {
@@ -443,11 +442,16 @@ const GroupOverviewTab = () => {
 			{ title: 'Type', render: (row) => getFeatureTypeChips(row?.type ?? '', true) },
 			{
 				title: 'Status',
-				render: (row) => <Chip variant={formatChips(row?.status) === 'Active' ? 'success' : 'default'} label={formatChips(row?.status)} />,
+				render: (row) => (
+					<Chip
+						variant={row?.status === ENTITY_STATUS.PUBLISHED ? 'success' : 'default'}
+						label={formatEntityStatus(row?.status ?? '', t)}
+					/>
+				),
 			},
 			{ title: 'Updated At', render: (row) => formatDate(row?.updated_at) },
 		],
-		[],
+		[t],
 	);
 
 	if (isLoading) {

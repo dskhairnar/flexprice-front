@@ -67,8 +67,8 @@ const OverrideTooltip: FC<{
 	if (overridden.billingModel !== original.billingModel) {
 		changes.push(
 			t('catalog:chargeValue.override.billingModelLine', {
-				from: getBillingModelLabel(original.billingModel),
-				to: getBillingModelLabel(overridden.billingModel),
+				from: getBillingModelLabel(original.billingModel, t),
+				to: getBillingModelLabel(overridden.billingModel, t),
 			}),
 		);
 	}
@@ -76,8 +76,8 @@ const OverrideTooltip: FC<{
 	if (overridden.tierMode !== original.tierMode) {
 		changes.push(
 			t('catalog:chargeValue.override.tierModeLine', {
-				from: getTierModeLabel(original.tierMode),
-				to: getTierModeLabel(overridden.tierMode),
+				from: getTierModeLabel(original.tierMode, t),
+				to: getTierModeLabel(overridden.tierMode, t),
 			}),
 		);
 	}
