@@ -9,7 +9,7 @@ export interface UsageTableProps {
 }
 
 const UsageTable: FC<UsageTableProps> = ({ data }) => {
-	const { t } = useTranslation('customers');
+	const { t } = useTranslation(['customers', 'common']);
 	const mappedData = (data?.charges ?? []).map((usage) => ({
 		name: usage.meter_display_name,
 		quantity: usage.quantity,
@@ -19,15 +19,15 @@ const UsageTable: FC<UsageTableProps> = ({ data }) => {
 	const columns: ColumnData[] = [
 		{
 			fieldName: 'name',
-			title: 'Feature Name',
+			title: t('common:tableColumns.featureName'),
 		},
 		{
 			fieldName: 'quantity',
-			title: 'Quantity',
+			title: t('common:tableColumns.quantity'),
 		},
 		{
 			fieldName: 'amount',
-			title: 'Amount',
+			title: t('common:tableColumns.amount'),
 		},
 	];
 

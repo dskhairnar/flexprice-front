@@ -193,7 +193,7 @@ const IntegrationMappingCard: FC<IntegrationMappingCardProps> = ({
 	const integrationColumns: ColumnData<IntegrationRow>[] = useMemo(
 		() => [
 			{
-				title: 'Integration',
+				title: t('tableColumns.integration'),
 				render: (row: IntegrationRow) => {
 					const logo = getProviderLogo(row.provider_type);
 					return (
@@ -209,13 +209,13 @@ const IntegrationMappingCard: FC<IntegrationMappingCardProps> = ({
 				render: (row: IntegrationRow) => <span className='text-muted-foreground'>{row.mapping?.provider_entity_id || '—'}</span>,
 			},
 			{
-				title: 'Created At',
+				title: t('tableColumns.createdAt'),
 				render: (row: IntegrationRow) => (
 					<span className='text-muted-foreground'>{row.mapping?.created_at ? formatDate(row.mapping.created_at) : '—'}</span>
 				),
 			},
 			{
-				title: 'Updated At',
+				title: t('tableColumns.updatedAt'),
 				render: (row: IntegrationRow) => (
 					<span className='text-muted-foreground'>{row.mapping?.updated_at ? formatDate(row.mapping.updated_at) : '—'}</span>
 				),

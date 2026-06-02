@@ -281,11 +281,11 @@ const SubscriptionAddonsSection: FC<SubscriptionAddonsSectionProps> = ({
 	const columns: ColumnData<AddonAssociationWithStatus>[] = useMemo(
 		() => [
 			{
-				title: 'Name',
+				title: t('tableColumns.name'),
 				render: (row) => <span>{row.addon?.name || row.addon_id}</span>,
 			},
 			{
-				title: 'Status',
+				title: t('tableColumns.status'),
 				render: (row) => (
 					<Tooltip
 						content={row.tooltipContent}
@@ -299,7 +299,7 @@ const SubscriptionAddonsSection: FC<SubscriptionAddonsSectionProps> = ({
 				),
 			},
 			{
-				title: 'Charges',
+				title: t('tableColumns.charges'),
 				render: (row) => {
 					const prices = row.addon?.prices || [];
 					return <span>{formatAddonCharges(prices)}</span>;

@@ -60,7 +60,7 @@ export const formatSubscriptionStatus = (status: string, t: TFunction) => {
 };
 
 const SubscriptionTable: FC<SubscriptionTableProps> = ({ data, onRowClick, allowRedirect = true, subscriptionOverrides }): JSX.Element => {
-	const { t } = useTranslation(['common', 'customers']);
+	const { t } = useTranslation(['common', 'customers', 'billing']);
 	const showHierarchyColumn = data.some((row) => subscriptionHierarchyKind(row) !== null);
 
 	const columns: ColumnData<Subscription>[] = useMemo(() => {
@@ -141,7 +141,7 @@ const SubscriptionTable: FC<SubscriptionTableProps> = ({ data, onRowClick, allow
 
 		return [
 			{
-				title: 'Plan Name',
+				title: t('customers:organisms.subscriptionTable.columns.planName'),
 				render: (row) => {
 					const hasOverride = subscriptionOverrides?.get(row.id);
 					const planName = row.plan?.name || row.plan_id || t('common:labels.na');
@@ -166,19 +166,19 @@ const SubscriptionTable: FC<SubscriptionTableProps> = ({ data, onRowClick, allow
 			},
 			...(showHierarchyColumn ? [hierarchyColumn] : []),
 			{
-				title: 'Billing Period',
+				title: t('customers:organisms.subscriptionTable.columns.billingPeriod'),
 				render: (row) => <span>{formatBillingPeriodForDisplay(row.billing_period, t)}</span>,
 			},
 			{
-				title: 'Status',
+				title: t('customers:organisms.subscriptionTable.columns.status'),
 				render: (row) => getSubscriptionStatus(row.subscription_status, t),
 			},
 			{
-				title: 'Start Date',
+				title: t('customers:organisms.subscriptionTable.columns.startDate'),
 				render: (row) => <span>{formatDate(row.start_date)}</span>,
 			},
 			{
-				title: 'Renewal Date',
+				title: t('customers:organisms.subscriptionTable.columns.renewalDate'),
 				render: (row) => <span>{formatDate(row.current_period_end)}</span>,
 			},
 			...(allowRedirect
