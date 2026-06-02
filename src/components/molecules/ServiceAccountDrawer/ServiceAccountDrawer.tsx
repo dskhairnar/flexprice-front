@@ -1,5 +1,5 @@
 import { FC, useEffect, useState, useMemo } from 'react';
-import { Sheet, Spacer, Button, Checkbox } from '@/components/atoms';
+import { Sheet, Button, Checkbox, Dialog, Input } from '@/components/atoms';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { UserApi } from '@/api/UserApi';
 import RbacApi, { RbacRole } from '@/api/RbacApi';
@@ -8,16 +8,25 @@ import { AlertTriangle, Info } from 'lucide-react';
 import { refetchQueries } from '@/core/services/tanstack/ReactQueryProvider';
 import { useTranslation } from 'react-i18next';
 import { formatRbacRole } from '@/i18n/display/apiEnums';
+import { User } from '@/models';
 
 interface Props {
 	isOpen: boolean;
 	onOpenChange: (value: boolean) => void;
+	/** When provided, the drawer is in edit mode */
+	data?: User | null;
 }
 
-const ServiceAccountDrawer: FC<Props> = ({ isOpen, onOpenChange }) => {
+const ServiceAccountDrawer: FC<Props> = ({ isOpen, onOpenChange, data }) => {
 	const { t } = useTranslation(['developers', 'common']);
-	const [selectedRoles, setSelectedRoles] = useState<string[]>([]);
+	const isEditMode = !!data;
 	const queryClient = useQueryClient();
+
+	// Shared state
+	const [name, setName] = useState('');
+
+	// Create mode state
+	const [selectedRoles, setSelectedRoles] = useState<string[]>([]);
 
 	const {
 		data: roles,
@@ -26,7 +35,7 @@ const ServiceAccountDrawer: FC<Props> = ({ isOpen, onOpenChange }) => {
 	} = useQuery<RbacRole[]>({
 		queryKey: ['rbac-roles'],
 		queryFn: () => RbacApi.getAllRoles(),
-		enabled: isOpen,
+		enabled: isOpen && !isEditMode,
 		retry: false,
 	});
 
@@ -42,28 +51,25 @@ const ServiceAccountDrawer: FC<Props> = ({ isOpen, onOpenChange }) => {
 
 	useEffect(() => {
 		if (isOpen) {
-			setSelectedRoles([]);
+			if (isEditMode && data) {
+				setName(data.name || '');
+			} else {
+				setName('');
+				setSelectedRoles([]);
+			}
 		}
-	}, [isOpen]);
+	}, [isOpen, data, isEditMode]);
 
 	const toggleRole = (roleValue: string) => {
-		setSelectedRoles((prev) => {
-			if (prev.includes(roleValue)) {
-				return prev.filter((r) => r !== roleValue);
-			}
-			return [...prev, roleValue];
-		});
+		setSelectedRoles((prev) =>
+			prev.includes(roleValue) ? prev.filter((r) => r !== roleValue) : [...prev, roleValue],
+		);
 	};
 
-	const { mutate: createServiceAccount, isPending } = useMutation({
-		mutationFn: async () => {
-			const payload = {
-				type: 'service_account' as const,
-				roles: selectedRoles,
-			};
-
-			return UserApi.createServiceAccount(payload);
-		},
+	// --- Create mutation ---
+	const { mutate: createServiceAccount, isPending: isCreating } = useMutation({
+		mutationFn: async () =>
+			UserApi.createServiceAccount({ type: 'service_account' as const, roles: selectedRoles, name: name.trim() || undefined }),
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: ['service-accounts'] });
 			refetchQueries(['secret-keys']);
@@ -75,20 +81,57 @@ const ServiceAccountDrawer: FC<Props> = ({ isOpen, onOpenChange }) => {
 		},
 	});
 
-	const isFormValid = useMemo(() => selectedRoles.length > 0, [selectedRoles]);
+	// --- Update mutation ---
+	const { mutate: updateServiceAccount, isPending: isUpdating } = useMutation({
+		mutationFn: async () =>
+			UserApi.updateServiceAccount(data!.id, { name: name.trim() || undefined }),
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: ['service-accounts'] });
+			toast.success(t('developers:serviceAccountDrawer.updateSuccess'));
+			onOpenChange(false);
+		},
+		onError: (error: Error) => {
+			toast.error(error.message || t('developers:serviceAccountDrawer.updateFailed'));
+		},
+	});
 
+	const isCreateFormValid = selectedRoles.length > 0;
+	const isPending = isCreating || isUpdating;
+
+	// --- Edit mode: centered dialog ---
+	if (isEditMode) {
+		return (
+			<Dialog
+				isOpen={isOpen}
+				onOpenChange={onOpenChange}
+				title={t('developers:serviceAccountDrawer.editTitle')}
+				description={t('developers:serviceAccountDrawer.editDescription')}>
+				<div className='flex flex-col gap-6'>
+					<Input
+						label={t('developers:labels.name')}
+						placeholder={t('developers:serviceAccountDrawer.namePlaceholder')}
+						value={name}
+						onChange={setName}
+					/>
+					<Button isLoading={isPending} disabled={isPending} onClick={() => updateServiceAccount()}>
+						{t('developers:serviceAccountDrawer.saveButton')}
+					</Button>
+				</div>
+			</Dialog>
+		);
+	}
+
+	// --- Create mode: side sheet ---
 	return (
 		<Sheet
 			isOpen={isOpen}
 			onOpenChange={onOpenChange}
 			title={t('developers:serviceAccountDrawer.title')}
 			description={t('developers:serviceAccountDrawer.description')}>
-			<div className='space-y-4'>
-				<Spacer className='!h-4' />
-
+			<div className='flex flex-col gap-5 mt-2'>
 				<div className='bg-blue-50 border border-blue-200 rounded-md p-3'>
 					<div className='flex items-start gap-2'>
-						<Info className='w-4 h-4 text-blue-600 flex-shrink-0 mt-0.5' />
+						<Info className='w-4 h-4 text-blue-600 shrink-0 mt-0.5' />
 						<div className='text-sm text-blue-800'>
 							<p className='font-medium mb-1'>{t('developers:serviceAccountDrawer.intro.title')}</p>
 							<p>{t('developers:serviceAccountDrawer.intro.body')}</p>
@@ -96,10 +139,17 @@ const ServiceAccountDrawer: FC<Props> = ({ isOpen, onOpenChange }) => {
 					</div>
 				</div>
 
+				<Input
+					label={t('developers:labels.name')}
+					placeholder={t('developers:serviceAccountDrawer.namePlaceholder')}
+					value={name}
+					onChange={setName}
+				/>
+
 				{isRolesError ? (
 					<div className='bg-amber-50 border border-amber-200 rounded-md p-3'>
 						<div className='flex items-start gap-2'>
-							<AlertTriangle className='w-4 h-4 text-amber-500 flex-shrink-0 mt-0.5' />
+							<AlertTriangle className='w-4 h-4 text-amber-500 shrink-0 mt-0.5' />
 							<div className='text-sm text-amber-800'>
 								<p className='font-medium mb-1'>{t('developers:serviceAccountDrawer.rolesUnavailable.title')}</p>
 								<p>{t('developers:serviceAccountDrawer.rolesUnavailable.body')}</p>
@@ -107,12 +157,12 @@ const ServiceAccountDrawer: FC<Props> = ({ isOpen, onOpenChange }) => {
 						</div>
 					</div>
 				) : (
-					<div className='space-y-2'>
+					<div className='flex flex-col gap-2'>
 						<label className='block text-sm font-medium text-gray-700'>
 							{t('developers:labels.roleRequiredHint')} <span className='text-red-500'>*</span>
 						</label>
-						<p className='text-sm text-gray-500 mb-2'>{t('developers:serviceAccountDrawer.rolesHint')}</p>
-						<div className='border rounded-md p-4 space-y-3 bg-white'>
+						<p className='text-sm text-gray-500'>{t('developers:serviceAccountDrawer.rolesHint')}</p>
+						<div className='border rounded-md p-4 flex flex-col gap-3 bg-white'>
 							{isLoadingRoles ? (
 								<p className='text-sm text-gray-500'>{t('developers:serviceAccountDrawer.loadingRoles')}</p>
 							) : roleOptions.length === 0 ? (
@@ -127,7 +177,7 @@ const ServiceAccountDrawer: FC<Props> = ({ isOpen, onOpenChange }) => {
 										/>
 										<label
 											htmlFor={`role-${role.value}`}
-											className='text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer'>
+											className='text-sm font-medium leading-none cursor-pointer peer-disabled:cursor-not-allowed peer-disabled:opacity-70'>
 											{role.label}
 										</label>
 									</div>
@@ -138,7 +188,7 @@ const ServiceAccountDrawer: FC<Props> = ({ isOpen, onOpenChange }) => {
 				)}
 
 				{selectedRoles.length > 0 && (
-					<div className='space-y-2'>
+					<div className='flex flex-col gap-1.5'>
 						<label className='block text-sm font-medium text-gray-700'>{t('developers:labels.selectedRoles')}</label>
 						<div className='flex flex-wrap gap-1'>
 							{selectedRoles.map((role) => (
@@ -150,8 +200,7 @@ const ServiceAccountDrawer: FC<Props> = ({ isOpen, onOpenChange }) => {
 					</div>
 				)}
 
-				<Spacer className='!h-0' />
-				<Button isLoading={isPending} disabled={!isFormValid || isRolesError} onClick={() => createServiceAccount()}>
+				<Button isLoading={isPending} disabled={!isCreateFormValid || isRolesError} onClick={() => createServiceAccount()}>
 					{t('developers:serviceAccountDrawer.submit')}
 				</Button>
 			</div>
