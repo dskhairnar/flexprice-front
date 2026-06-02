@@ -99,7 +99,7 @@ const SubscriptionCreditGrantTable: React.FC<Props> = ({
 		},
 		{
 			title: 'Period',
-			render: (row) => (row.period ? `${row.period_count || 1} ${formatBillingPeriodForPrice(row.period)}` : '--'),
+			render: (row) => (row.period ? `${row.period_count || 1} ${formatBillingPeriodForPrice(row.period, t)}` : '--'),
 		},
 		{
 			title: 'Expiration',

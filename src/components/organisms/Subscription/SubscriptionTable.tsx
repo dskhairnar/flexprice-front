@@ -167,7 +167,7 @@ const SubscriptionTable: FC<SubscriptionTableProps> = ({ data, onRowClick, allow
 			...(showHierarchyColumn ? [hierarchyColumn] : []),
 			{
 				title: 'Billing Period',
-				render: (row) => <span>{formatBillingPeriodForDisplay(row.billing_period)}</span>,
+				render: (row) => <span>{formatBillingPeriodForDisplay(row.billing_period, t)}</span>,
 			},
 			{
 				title: 'Status',

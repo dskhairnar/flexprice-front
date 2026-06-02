@@ -1,4 +1,7 @@
-const formatDate = (date: string | Date, locale: string = 'en-US', options?: Intl.DateTimeFormatOptions): string => {
+import { getIntlLocale } from '@/i18n/display/intlLocale';
+
+const formatDate = (date: string | Date, locale?: string, options?: Intl.DateTimeFormatOptions): string => {
+	const intlLocale = locale ?? getIntlLocale();
 	const parsedDate = new Date(date);
 
 	if (isNaN(parsedDate.getTime())) {
@@ -11,7 +14,7 @@ const formatDate = (date: string | Date, locale: string = 'en-US', options?: Int
 		day: '2-digit',
 	};
 
-	return parsedDate.toLocaleDateString(locale, { ...defaultOptions, ...options });
+	return parsedDate.toLocaleDateString(intlLocale, { ...defaultOptions, ...options });
 };
 
 export default formatDate;
@@ -33,7 +36,7 @@ export const formatDateTime = (dateString: string): string => {
 		hour12: true,
 	};
 
-	return date.toLocaleString('en-US', options);
+	return date.toLocaleString(getIntlLocale(), options);
 };
 
 export const formatDateWithMilliseconds = (dateString: string): string => {
@@ -53,7 +56,7 @@ export const formatDateWithMilliseconds = (dateString: string): string => {
 		hour12: true,
 	};
 
-	const formattedDate = date.toLocaleString('en-US', options);
+	const formattedDate = date.toLocaleString(getIntlLocale(), options);
 	// const milliseconds = date.getMilliseconds().toString().padStart(3, '0');
 
 	return `${formattedDate}`;
@@ -122,10 +125,11 @@ export function formatDateInZone(date: Date, zone: DateTimezone): string {
 		month: 'short',
 		day: '2-digit',
 	};
+	const intlLocale = getIntlLocale();
 	if (zone === 'utc') {
-		return date.toLocaleDateString('en-US', { ...options, timeZone: 'UTC' });
+		return date.toLocaleDateString(intlLocale, { ...options, timeZone: 'UTC' });
 	}
-	return date.toLocaleDateString('en-US', options);
+	return date.toLocaleDateString(intlLocale, options);
 }
 
 /** Format a date and time for display in the given timezone. */
@@ -139,10 +143,11 @@ export function formatDateTimeInZone(date: Date, zone: DateTimezone): string {
 		minute: '2-digit',
 		hour12: true,
 	};
+	const intlLocale = getIntlLocale();
 	if (zone === 'utc') {
-		return date.toLocaleString('en-US', { ...options, timeZone: 'UTC' });
+		return date.toLocaleString(intlLocale, { ...options, timeZone: 'UTC' });
 	}
-	return date.toLocaleString('en-US', options);
+	return date.toLocaleString(intlLocale, options);
 }
 
 /**
@@ -199,7 +204,7 @@ export function formatBillingPeriodDate(date: string | Date): string {
 	const dateObj = typeof date === 'string' ? new Date(date) : date;
 	if (isNaN(dateObj.getTime())) return 'Invalid Date';
 	const day = dateObj.getUTCDate();
-	const month = dateObj.toLocaleDateString('en-US', { month: 'short', timeZone: 'UTC' });
+	const month = dateObj.toLocaleDateString(getIntlLocale(), { month: 'short', timeZone: 'UTC' });
 	return `${day} ${month}`;
 }
 

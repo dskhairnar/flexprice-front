@@ -9,7 +9,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { RouteNames } from '@/core/routes/Routes';
 import FeatureApi from '@/api/FeatureApi';
 import EntitlementApi from '@/api/EntitlementApi';
-import formatChips from '@/utils/common/format_chips';
+import { formatEntityStatus } from '@/utils/common/format_chips';
 
 // Store
 import { useBreadcrumbsStore } from '@/store/useBreadcrumbsStore';
@@ -42,9 +42,9 @@ import { EntitlementResponse } from '@/types/dto';
 import { METER_AGGREGATION_TYPE } from '@/models/Meter';
 import { ENTITLEMENT_ENTITY_TYPE, PRICE_ENTITY_TYPE } from '@/models';
 import { PriceApi } from '@/api/PriceApi';
-import { formatBillingPeriodForDisplay } from '@/utils/common/helper_functions';
+import { formatBillingPeriodForDisplay, formatInvoiceCadence } from '@/utils/common/helper_functions';
 import { ChargeValueCell } from '@/components/molecules';
-import { formatInvoiceCadence } from '@/pages/product-catalog/plans/PlanDetailsPage';
+import type { TFunction } from 'i18next';
 import { AlertSettings } from '@/models/Feature';
 import { generateExpandQueryParams } from '@/utils/common/api_helper';
 import { EXPAND } from '@/models/expand';
@@ -65,7 +65,7 @@ export const formatAggregationType = (data: string): string => {
 	return aggregationTypeMap[data] || data;
 };
 
-const priceColumns: ColumnData<GetPriceResponse>[] = [
+const getPriceColumns = (t: TFunction): ColumnData<GetPriceResponse>[] => [
 	{
 		title: 'Plan/Addon',
 		render: (row: GetPriceResponse) => {
@@ -82,13 +82,13 @@ const priceColumns: ColumnData<GetPriceResponse>[] = [
 	{
 		title: 'Billing timing ',
 		render(rowData) {
-			return <span>{formatInvoiceCadence(rowData.invoice_cadence as string)}</span>;
+			return <span>{formatInvoiceCadence(rowData.invoice_cadence as string, t)}</span>;
 		},
 	},
 	{
 		title: 'Billing Period',
 		render(rowData) {
-			return <span>{formatBillingPeriodForDisplay(rowData.billing_period as string)}</span>;
+			return <span>{formatBillingPeriodForDisplay(rowData.billing_period as string, t)}</span>;
 		},
 	},
 	{
@@ -221,7 +221,7 @@ const FeatureDetails = () => {
 				title: 'Status',
 				render: (rowData) => {
 					const rawStatus = rowData.entity_type === ENTITLEMENT_ENTITY_TYPE.ADDON ? rowData.addon?.status : rowData.plan?.status;
-					const label = formatChips(rawStatus || '');
+					const label = formatEntityStatus(rawStatus || '', t);
 					return <Chip variant={label === 'Active' ? 'success' : 'default'} label={label} />;
 				},
 			},
@@ -355,7 +355,7 @@ const FeatureDetails = () => {
 						{linkedPrices?.items?.length && linkedPrices?.items?.length > 0 ? (
 							<Card variant='notched'>
 								<CardHeader title={t('catalog:features.details.charges')} />
-								<FlexpriceTable showEmptyRow columns={priceColumns} data={linkedPrices?.items ?? []} variant='no-bordered' />
+								<FlexpriceTable showEmptyRow columns={getPriceColumns(t)} data={linkedPrices?.items ?? []} variant='no-bordered' />
 							</Card>
 						) : (
 							<NoDataCard title={t('catalog:features.details.charges')} subtitle='No charges linked to the feature yet' />

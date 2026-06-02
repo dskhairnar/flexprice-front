@@ -7,6 +7,7 @@ import { toast } from 'react-hot-toast';
 import { AlertTriangle, Info } from 'lucide-react';
 import { refetchQueries } from '@/core/services/tanstack/ReactQueryProvider';
 import { useTranslation } from 'react-i18next';
+import { formatRbacRole } from '@/i18n/display/apiEnums';
 
 interface Props {
 	isOpen: boolean;
@@ -34,10 +35,10 @@ const ServiceAccountDrawer: FC<Props> = ({ isOpen, onOpenChange }) => {
 			return [];
 		}
 		return roles.map((role) => ({
-			label: role.name,
+			label: formatRbacRole(role.name, t),
 			value: role.id,
 		}));
-	}, [roles]);
+	}, [roles, t]);
 
 	useEffect(() => {
 		if (isOpen) {

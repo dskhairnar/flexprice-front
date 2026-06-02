@@ -402,7 +402,8 @@
 		"information": {
 			"loading": "Loading plan details...",
 			"planDetails": "Plan Details",
-			"metadata": "Metadata"
+			"metadata": "Metadata",
+			"noMetadataAvailable": "No metadata available."
 		},
 		"pricing": {
 			"noWidget": "No Pricing Widget Exists",

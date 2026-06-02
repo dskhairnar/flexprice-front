@@ -14,7 +14,9 @@ import { Price } from '@/models/Price';
 import { useBreadcrumbsStore } from '@/store/useBreadcrumbsStore';
 import AddonApi from '@/api/AddonApi';
 import EntitlementApi from '@/api/EntitlementApi';
-import { getPriceTypeLabel } from '@/utils/common/helper_functions';
+import { formatBillingPeriodForDisplay, formatInvoiceCadence, getPriceTypeLabel } from '@/utils/common/helper_functions';
+import { formatEntityStatus } from '@/utils/common/format_chips';
+import type { TFunction } from 'i18next';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { EyeOff, Plus, Pencil, Trash2 } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
@@ -22,9 +24,7 @@ import toast from 'react-hot-toast';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useParams } from 'react-router';
 import { Card } from '@/components/atoms';
-import formatChips from '@/utils/common/format_chips';
 import { ChargeValueCell } from '@/components/molecules';
-import { BILLING_PERIOD } from '@/constants/constants';
 import { FEATURE_TYPE } from '@/models/Feature';
 import { getFeatureTypeChips } from '@/components/molecules/CustomerUsageTable/CustomerUsageTable';
 import { formatAmount } from '@/components/atoms/Input/Input';
@@ -33,41 +33,11 @@ import { ENTITY_STATUS } from '@/models';
 import { ENTITLEMENT_ENTITY_TYPE } from '@/models/Entitlement';
 import { EntitlementResponse } from '@/types/dto';
 
-const formatBillingPeriod = (billingPeriod: string) => {
-	switch (billingPeriod.toUpperCase()) {
-		case BILLING_PERIOD.DAILY:
-			return 'Daily';
-		case BILLING_PERIOD.WEEKLY:
-			return 'Weekly';
-		case BILLING_PERIOD.MONTHLY:
-			return 'Monthly';
-		case BILLING_PERIOD.ANNUAL:
-			return 'Yearly';
-		case BILLING_PERIOD.QUARTERLY:
-			return 'Quarterly';
-		case BILLING_PERIOD.HALF_YEARLY:
-			return 'Half Yearly';
-		default:
-			return '--';
-	}
-};
-
-const formatInvoiceCadence = (cadence: string): string => {
-	switch (cadence.toUpperCase()) {
-		case 'ADVANCE':
-			return 'Advance';
-		case 'ARREAR':
-			return 'Arrear';
-		default:
-			return '';
-	}
-};
-
 type Params = {
 	id: string;
 };
 
-const getChargeColumns = (naLabel: string): ColumnData<Price>[] => [
+const getChargeColumns = (naLabel: string, t: TFunction): ColumnData<Price>[] => [
 	{
 		title: 'Display Name',
 		render(rowData) {
@@ -77,19 +47,19 @@ const getChargeColumns = (naLabel: string): ColumnData<Price>[] => [
 	{
 		title: 'Charge Type',
 		render: (row) => {
-			return <span>{getPriceTypeLabel(row.type)}</span>;
+			return <span>{getPriceTypeLabel(row.type, t)}</span>;
 		},
 	},
 	{
 		title: 'Billing Timing',
 		render(rowData) {
-			return <span>{formatInvoiceCadence(rowData.invoice_cadence as string)}</span>;
+			return <span>{formatInvoiceCadence(rowData.invoice_cadence as string, t)}</span>;
 		},
 	},
 	{
 		title: 'Billing Period',
 		render(rowData) {
-			return <span>{formatBillingPeriod(rowData.billing_period as string)}</span>;
+			return <span>{formatBillingPeriodForDisplay(rowData.billing_period as string, t)}</span>;
 		},
 	},
 	{
@@ -213,7 +183,7 @@ const AddonDetails = () => {
 		}
 	}, [addonData, updateBreadcrumb]);
 
-	const chargeColumns = useMemo(() => getChargeColumns(t('common:labels.na')), [t]);
+	const chargeColumns = useMemo(() => getChargeColumns(t('common:labels.na'), t), [t]);
 
 	if (isLoading) {
 		return <Loader />;
@@ -235,7 +205,10 @@ const AddonDetails = () => {
 		{
 			label: 'Status',
 			value: (
-				<Chip label={formatChips(addonData?.status)} variant={addonData?.status === ENTITY_STATUS.PUBLISHED ? 'success' : 'default'} />
+				<Chip
+					label={formatEntityStatus(addonData?.status ?? '', t)}
+					variant={addonData?.status === ENTITY_STATUS.PUBLISHED ? 'success' : 'default'}
+				/>
 			),
 		},
 		{ label: 'Description', value: addonData?.description || '--' },

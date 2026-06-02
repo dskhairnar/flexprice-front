@@ -44,7 +44,7 @@ const SubscriptionEditDetailsHeader: FC<SubscriptionEditDetailsHeaderProps> = ({
 			},
 			{
 				label: t('subscriptions.editDetailsHeader.subscriptionType'),
-				value: formatSubscriptionTypeDisplayLabel(subscription?.subscription_type),
+				value: formatSubscriptionTypeDisplayLabel(subscription?.subscription_type, t),
 			},
 			{ label: t('subscriptions.editDetailsHeader.billingCycle'), value: subscription?.billing_cycle || t('common:labels.na') },
 			{ label: t('subscriptions.editDetailsHeader.startDate'), value: formatDate(subscription?.start_date ?? '') },

@@ -7,6 +7,7 @@ import { formatCompactNumber } from '@/utils';
 import { GetUsageAnalyticsResponse } from '@/types/dto';
 import { UsageAnalyticItem } from '@/models/Analytics';
 import { useTranslation } from 'react-i18next';
+import { getIntlLocale } from '@/i18n/display/intlLocale';
 
 // Configuration constants - adjust these values as needed
 const MAX_LEGEND_ITEMS = 5;
@@ -290,7 +291,7 @@ export const CustomerUsageChart: React.FC<CustomerUsageChartProps> = ({ data, ti
 									domain={[zoomState.left, zoomState.right]}
 									tickFormatter={(value) => {
 										const date = new Date(value);
-										return date.toLocaleDateString('en-US', {
+										return date.toLocaleDateString(getIntlLocale(), {
 											month: 'short',
 											day: 'numeric',
 										});
@@ -343,7 +344,7 @@ export const CustomerUsageChart: React.FC<CustomerUsageChartProps> = ({ data, ti
 															fontSize: '12px',
 															letterSpacing: '0.025em',
 														}}>
-														{new Date(label).toLocaleDateString('en-US', {
+														{new Date(label).toLocaleDateString(getIntlLocale(), {
 															month: 'short',
 															day: 'numeric',
 															year: 'numeric',
@@ -355,7 +356,7 @@ export const CustomerUsageChart: React.FC<CustomerUsageChartProps> = ({ data, ti
 															fontSize: '11px',
 															marginTop: '2px',
 														}}>
-														{new Date(label).toLocaleTimeString('en-US', {
+														{new Date(label).toLocaleTimeString(getIntlLocale(), {
 															hour: '2-digit',
 															minute: '2-digit',
 														})}
@@ -422,7 +423,7 @@ export const CustomerUsageChart: React.FC<CustomerUsageChartProps> = ({ data, ti
 									y={330} // Position at the bottom of the chart, below the data lines
 									tickFormatter={(value) => {
 										const date = new Date(value);
-										return date.toLocaleDateString('en-US', {
+										return date.toLocaleDateString(getIntlLocale(), {
 											month: 'short',
 											day: 'numeric',
 										});

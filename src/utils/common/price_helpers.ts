@@ -1,3 +1,5 @@
+import type { TFunction } from 'i18next';
+import { ApiEnum, translateApiEnum } from '@/i18n/display/apiEnums';
 import { Price, PRICE_UNIT_TYPE } from '@/models/Price';
 import { BILLING_MODEL, PRICE_TYPE, TIER_MODE, CreatePriceTier, TransformQuantity } from '@/models/Price';
 import { PriceUnit } from '@/models/PriceUnit';
@@ -157,37 +159,11 @@ export const formatPriceDisplay = (normalized: NormalizedPriceDisplay): string =
 	}
 };
 
-/**
- * Get human-readable label for billing model
- */
-export const getBillingModelLabel = (model: BILLING_MODEL | 'SLAB_TIERED'): string => {
-	switch (model) {
-		case BILLING_MODEL.FLAT_FEE:
-			return 'Flat Fee';
-		case BILLING_MODEL.PACKAGE:
-			return 'Package';
-		case BILLING_MODEL.TIERED:
-			return 'Volume Tiered';
-		case 'SLAB_TIERED':
-			return 'Slab Tiered';
-		default:
-			return model;
-	}
-};
+export const getBillingModelLabel = (model: BILLING_MODEL | 'SLAB_TIERED', t: TFunction): string =>
+	translateApiEnum(t, ApiEnum.billingModel, String(model), { fallback: String(model) });
 
-/**
- * Get human-readable label for tier mode
- */
-export const getTierModeLabel = (mode: TIER_MODE): string => {
-	switch (mode) {
-		case TIER_MODE.VOLUME:
-			return 'Volume';
-		case TIER_MODE.SLAB:
-			return 'Slab';
-		default:
-			return mode;
-	}
-};
+export const getTierModeLabel = (mode: TIER_MODE, t: TFunction): string =>
+	translateApiEnum(t, ApiEnum.tierMode, String(mode), { fallback: String(mode) });
 
 export const getPriceTableCharge = (price: Price & { pricing_unit?: PriceUnit }, normalizedPrice: boolean = true) => {
 	const displaySymbol = getDisplaySymbol(price);

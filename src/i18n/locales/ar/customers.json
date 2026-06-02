@@ -143,6 +143,9 @@
 		"typePostpaidDesc": "تُطبّق الائتمانات على الفواتير في نهاية دورة الفوترة.",
 		"labelPrePaid": "مسبقة الدفع",
 		"labelPostPaid": "آجلة الدفع",
+		"nameLabel": "اسم المحفظة",
+		"statusLabel": "الحالة",
+		"creditRateFormat": "1 رصيد = {{amount}}{{currencySymbol}}",
 		"addTopupRate": "سعر إعادة الشحن",
 		"addFreeCredits": "ائتمانات مجانية",
 		"saveWallet": "حفظ المحفظة",
@@ -269,7 +272,8 @@
 	"tabPanels": {
 		"common": {
 			"metadata": "البيانات الوصفية",
-			"unknown": "غير معروف"
+			"unknown": "غير معروف",
+			"noMetadataAvailable": "لا توجد بيانات وصفية متاحة."
 		},
 		"analytics": {
 			"heading": "التحليلات",

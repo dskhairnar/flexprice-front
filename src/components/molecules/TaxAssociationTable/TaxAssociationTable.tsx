@@ -5,7 +5,7 @@ import { TaxAssociationResponse } from '@/types/dto/tax';
 import { Chip, ActionButton } from '@/components/atoms';
 import { formatDateShort } from '@/utils/common/helper_functions';
 import TaxApi from '@/api/TaxApi';
-import formatChips from '@/utils/common/format_chips';
+import { formatEntityStatus } from '@/utils/common/format_chips';
 import { RouteNames } from '@/core/routes/Routes';
 
 interface Props {
@@ -38,7 +38,7 @@ const TaxAssociationTable: FC<Props> = ({ data, onEdit, showDelete = true }) => 
 		{
 			title: 'Status',
 			render: (row) => {
-				const label = formatChips(row?.status);
+				const label = formatEntityStatus(row?.status ?? '', t);
 				return <Chip variant={label === 'Active' ? 'success' : 'default'} label={label} />;
 			},
 		},
