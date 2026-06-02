@@ -64,25 +64,25 @@ const TaxAssociationTable: FC<Props> = ({ data, onAdd, showDelete = true, refetc
 
 	const columns: ColumnData<TaxAssociationResponse>[] = [
 		{
-			title: 'Tax ID',
+			title: t('tableColumns.taxId'),
 			render: (row) => (
 				<RedirectCell redirectUrl={`${RouteNames.taxes}/${row.tax_rate_id}`}>{row.tax_rate?.name || row.tax_rate_id}</RedirectCell>
 			),
 		},
 		{
-			title: 'Priority',
+			title: t('tableColumns.priority'),
 			render: (row) => row.priority,
 		},
 		{
-			title: 'Auto Apply',
+			title: t('tableColumns.autoApply'),
 			render: (row) => <Chip variant={row.auto_apply ? 'success' : 'default'} label={row.auto_apply ? t('labels.yes') : t('labels.no')} />,
 		},
 		{
-			title: 'Valid From',
+			title: t('tableColumns.validFrom', 'Valid From'),
 			render: (row) => (row.valid_from ? formatDateShort(row.valid_from) : '—'),
 		},
 		{
-			title: 'Valid To',
+			title: t('tableColumns.validTo', 'Valid To'),
 			render: (row) => (row.valid_to ? formatDateShort(row.valid_to) : 'Forever'),
 		},
 		{

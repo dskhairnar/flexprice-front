@@ -388,18 +388,24 @@ const GroupOverviewTab = () => {
 	const chargeColumns: ColumnData<Price>[] = useMemo(
 		() => [
 			{
-				title: 'Display Name',
+				title: t('catalog:shared.chargeColumns.displayName'),
 				render: (row) => {
 					const url = getPriceRedirectUrl(row);
 					const label = row.display_name ?? t('common:labels.na');
 					return url ? <RedirectCell redirectUrl={url}>{label}</RedirectCell> : <span>{label}</span>;
 				},
 			},
-			{ title: 'Charge Type', render: (row) => <span>{getPriceTypeLabel(row.type, t)}</span> },
-			{ title: 'Billing Timing', render: (row) => <span>{formatInvoiceCadence(row.invoice_cadence as string, t)}</span> },
-			{ title: 'Billing Period', render: (row) => <span>{formatBillingPeriodForDisplay(row.billing_period as string, t)}</span> },
+			{ title: t('catalog:shared.chargeColumns.chargeType'), render: (row) => <span>{getPriceTypeLabel(row.type, t)}</span> },
 			{
-				title: 'Status',
+				title: t('catalog:shared.chargeColumns.billingTiming'),
+				render: (row) => <span>{formatInvoiceCadence(row.invoice_cadence as string, t)}</span>,
+			},
+			{
+				title: t('catalog:shared.chargeColumns.billingPeriod'),
+				render: (row) => <span>{formatBillingPeriodForDisplay(row.billing_period as string, t)}</span>,
+			},
+			{
+				title: t('catalog:shared.chargeColumns.status'),
 				render: (row) => {
 					const status = getPriceStatus(row);
 					const variant = getStatusChipVariant(status);
@@ -419,7 +425,7 @@ const GroupOverviewTab = () => {
 				},
 			},
 			{
-				title: 'Value',
+				title: t('catalog:shared.chargeColumns.value'),
 				render: (row) => <ChargeValueCell data={row as Price & { pricing_unit?: PriceUnit }} />,
 			},
 		],
@@ -431,17 +437,17 @@ const GroupOverviewTab = () => {
 	const featureColumns: ColumnData<Feature>[] = useMemo(
 		() => [
 			{
-				title: 'Feature Name',
+				title: t('catalog:shared.entitlementColumns.featureName'),
 				render: (row) =>
 					row?.id ? (
-						<RedirectCell redirectUrl={`${RouteNames.featureDetails}/${row.id}`}>{row.name ?? '—'}</RedirectCell>
+						<RedirectCell redirectUrl={`${RouteNames.featureDetails}/${row.id}`}>{row.name ?? t('common:labels.na')}</RedirectCell>
 					) : (
-						<span>{row?.name ?? '—'}</span>
+						<span>{row?.name ?? t('common:labels.na')}</span>
 					),
 			},
-			{ title: 'Type', render: (row) => getFeatureTypeChips(row?.type ?? '', true) },
+			{ title: t('catalog:shared.entitlementColumns.type'), render: (row) => getFeatureTypeChips(row?.type ?? '', true) },
 			{
-				title: 'Status',
+				title: t('catalog:shared.chargeColumns.status'),
 				render: (row) => (
 					<Chip
 						variant={row?.status === ENTITY_STATUS.PUBLISHED ? 'success' : 'default'}
@@ -449,7 +455,7 @@ const GroupOverviewTab = () => {
 					/>
 				),
 			},
-			{ title: 'Updated At', render: (row) => formatDate(row?.updated_at) },
+			{ title: t('catalog:shared.chargeColumns.updatedAt'), render: (row) => formatDate(row?.updated_at) },
 		],
 		[t],
 	);

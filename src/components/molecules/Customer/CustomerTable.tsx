@@ -60,7 +60,7 @@ const CustomerTable: FC<Props> = ({ data, onEdit }) => {
 
 			render: (row) => {
 				const label = formatEntityStatus(row.status, t);
-				return <Chip variant={label === 'Active' ? 'success' : 'default'} label={label} />;
+				return <Chip variant={row.status === ENTITY_STATUS.PUBLISHED ? 'success' : 'default'} label={label} />;
 			},
 		},
 		{

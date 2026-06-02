@@ -67,43 +67,43 @@ const AppliedTaxesTable: FC<Props> = ({ data }) => {
 
 	const columns: ColumnData<TaxApplied>[] = [
 		{
-			title: 'Tax Name',
+			title: t('tableColumns.taxName'),
 			render: (row) => {
 				const taxRate = taxRatesMap.get(row.tax_rate_id);
 				return <RedirectCell redirectUrl={`${RouteNames.taxes}/${row.tax_rate_id}`}>{taxRate?.name || row.tax_rate_id}</RedirectCell>;
 			},
 		},
 		{
-			title: 'Code',
+			title: t('tableColumns.code'),
 			render: (row) => {
 				const taxRate = taxRatesMap.get(row.tax_rate_id);
 				return <TooltipCell tooltipContent={taxRate?.code || '--'} tooltipText={taxRate?.code || '--'} />;
 			},
 		},
 		{
-			title: 'Type',
+			title: t('tableColumns.type'),
 			render: (row) => {
 				const taxRate = taxRatesMap.get(row.tax_rate_id);
 				return getTaxTypeLabel(taxRate?.tax_rate_type || TAX_RATE_TYPE.PERCENTAGE);
 			},
 		},
 		{
-			title: 'Rate',
+			title: t('tableColumns.rate'),
 			render: (row) => {
 				const taxRate = taxRatesMap.get(row.tax_rate_id);
 				return formatTaxValue(taxRate);
 			},
 		},
 		{
-			title: 'Taxable Amount',
+			title: t('tableColumns.taxableAmount'),
 			render: (row) => formatAmount(Number(row.taxable_amount), row.currency),
 		},
 		{
-			title: 'Tax Amount',
+			title: t('tableColumns.taxAmount'),
 			render: (row) => formatAmount(Number(row.tax_amount), row.currency),
 		},
 		{
-			title: 'Applied At',
+			title: t('tableColumns.appliedAt'),
 			render: (row) => formatDateShort(row.applied_at),
 		},
 	];

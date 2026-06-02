@@ -320,7 +320,19 @@
 		"overview": {
 			"subscriptionsCardTitle": "الاشتراكات",
 			"subscriptionsPaginationUnit": "الاشتراكات",
-			"entitlementsCardTitle": "الاستحقاقات"
+			"entitlementsCardTitle": "الاستحقاقات",
+			"subscriptionFilters": {
+				"plan": "الخطة",
+				"status": "الحالة",
+				"billingCadence": "إيقاع الفوترة",
+				"billingPeriod": "فترة الفوترة"
+			},
+			"subscriptionSorts": {
+				"createdAt": "تاريخ الإنشاء",
+				"updatedAt": "تاريخ التحديث",
+				"startDate": "تاريخ البدء",
+				"endDate": "تاريخ الانتهاء"
+			}
 		},
 		"tax": {
 			"emptyTitle": "الضريبة",
@@ -499,6 +511,13 @@
 			"deleteAdded": "حذف"
 		},
 		"subscriptionTable": {
+			"columns": {
+				"planName": "اسم الخطة",
+				"billingPeriod": "فترة الفوترة",
+				"status": "الحالة",
+				"startDate": "تاريخ البدء",
+				"renewalDate": "تاريخ التجديد"
+			},
 			"planModifiedAria": "تم تعديل الخطة",
 			"hierarchyColumn": "التسلسل",
 			"inheritedTitle": "اشتراك موروث",

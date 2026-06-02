@@ -321,7 +321,19 @@
 		"overview": {
 			"subscriptionsCardTitle": "Subscriptions",
 			"subscriptionsPaginationUnit": "Subscriptions",
-			"entitlementsCardTitle": "Entitlements"
+			"entitlementsCardTitle": "Entitlements",
+			"subscriptionFilters": {
+				"plan": "Plan",
+				"status": "Status",
+				"billingCadence": "Billing Cadence",
+				"billingPeriod": "Billing Period"
+			},
+			"subscriptionSorts": {
+				"createdAt": "Created At",
+				"updatedAt": "Updated At",
+				"startDate": "Start Date",
+				"endDate": "End Date"
+			}
 		},
 		"tax": {
 			"emptyTitle": "Tax",
@@ -477,6 +489,13 @@
 			"deleteAdded": "Delete"
 		},
 		"subscriptionTable": {
+			"columns": {
+				"planName": "Plan Name",
+				"billingPeriod": "Billing Period",
+				"status": "Status",
+				"startDate": "Start Date",
+				"renewalDate": "Renewal Date"
+			},
 			"planModifiedAria": "Plan modified",
 			"hierarchyColumn": "Hierarchy",
 			"inheritedTitle": "Inherited subscription",

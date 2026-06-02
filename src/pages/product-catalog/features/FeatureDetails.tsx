@@ -51,23 +51,26 @@ import { EXPAND } from '@/models/expand';
 import { GetPriceResponse } from '@/types/dto/Price';
 import { useTranslation } from 'react-i18next';
 
-export const formatAggregationType = (data: string): string => {
-	const aggregationTypeMap: Record<string, string> = {
-		[METER_AGGREGATION_TYPE.SUM]: 'Sum',
-		[METER_AGGREGATION_TYPE.COUNT]: 'Count',
-		[METER_AGGREGATION_TYPE.COUNT_UNIQUE]: 'Count Unique',
-		[METER_AGGREGATION_TYPE.LATEST]: 'Latest',
-		[METER_AGGREGATION_TYPE.SUM_WITH_MULTIPLIER]: 'Sum with Multiplier',
-		[METER_AGGREGATION_TYPE.MAX]: 'Max',
-		[METER_AGGREGATION_TYPE.WEIGHTED_SUM]: 'Weighted Sum',
-		[METER_AGGREGATION_TYPE.AVG]: 'Average',
-	};
-	return aggregationTypeMap[data] || data;
+const AGGREGATION_TYPE_I18N_KEY: Record<METER_AGGREGATION_TYPE, string> = {
+	[METER_AGGREGATION_TYPE.SUM]: 'sum',
+	[METER_AGGREGATION_TYPE.COUNT]: 'count',
+	[METER_AGGREGATION_TYPE.COUNT_UNIQUE]: 'countUnique',
+	[METER_AGGREGATION_TYPE.LATEST]: 'latest',
+	[METER_AGGREGATION_TYPE.SUM_WITH_MULTIPLIER]: 'sumWithMultiplier',
+	[METER_AGGREGATION_TYPE.MAX]: 'max',
+	[METER_AGGREGATION_TYPE.WEIGHTED_SUM]: 'weightedSum',
+	[METER_AGGREGATION_TYPE.AVG]: 'avg',
 };
 
-const getPriceColumns = (t: TFunction): ColumnData<GetPriceResponse>[] => [
+export const formatAggregationType = (data: string, t: TFunction<'catalog'>): string => {
+	const segment = AGGREGATION_TYPE_I18N_KEY[data as METER_AGGREGATION_TYPE];
+	if (segment) return t(`features.details.aggregationTypes.${segment}`);
+	return data;
+};
+
+const getPriceColumns = (t: TFunction<'catalog'>): ColumnData<GetPriceResponse>[] => [
 	{
-		title: 'Plan/Addon',
+		title: t('features.details.columns.planAddon'),
 		render: (row: GetPriceResponse) => {
 			return (
 				<RedirectCell
@@ -80,19 +83,19 @@ const getPriceColumns = (t: TFunction): ColumnData<GetPriceResponse>[] => [
 		},
 	},
 	{
-		title: 'Billing timing ',
+		title: t('features.details.columns.billingTiming'),
 		render(rowData) {
 			return <span>{formatInvoiceCadence(rowData.invoice_cadence as string, t)}</span>;
 		},
 	},
 	{
-		title: 'Billing Period',
+		title: t('features.details.columns.billingPeriod'),
 		render(rowData) {
 			return <span>{formatBillingPeriodForDisplay(rowData.billing_period as string, t)}</span>;
 		},
 	},
 	{
-		title: 'Value',
+		title: t('features.details.columns.value'),
 		render(rowData) {
 			return <ChargeValueCell data={rowData} />;
 		},
@@ -101,7 +104,7 @@ const getPriceColumns = (t: TFunction): ColumnData<GetPriceResponse>[] => [
 
 const FeatureDetails = () => {
 	const { id: featureId } = useParams() as { id: string };
-	const { t } = useTranslation(['catalog', 'common']);
+	const { t } = useTranslation(['catalog', 'common', 'billing']);
 	const { updateBreadcrumb } = useBreadcrumbsStore();
 	const [showAlertDialog, setShowAlertDialog] = useState(false);
 	const [isDrawerOpen, setIsDrawerOpen] = useState(false);
@@ -176,32 +179,32 @@ const FeatureDetails = () => {
 	});
 
 	useEffect(() => {
-		updateBreadcrumb(1, 'Features', RouteNames.features);
+		updateBreadcrumb(1, t('common:sidebar.nav.features'), RouteNames.features);
 		if (data?.name) {
-			updateBreadcrumb(2, data?.name, RouteNames.featureDetails + featureId);
+			updateBreadcrumb(2, data.name, `${RouteNames.featureDetails}/${featureId}`);
 		}
-	}, [data, featureId, updateBreadcrumb]);
+	}, [data, featureId, updateBreadcrumb, t]);
 
 	const dropdownOptions: DropdownMenuOption[] = useMemo(
 		() => [
 			{
 				icon: <Pencil />,
-				label: 'Edit',
+				label: t('common:actions.edit'),
 				onSelect: () => setIsDrawerOpen(true),
 			},
 			{
 				icon: <Bell />,
-				label: 'Alert Settings',
+				label: t('catalog:features.details.alertSettingsMenu'),
 				onSelect: () => setShowAlertDialog(true),
 			},
 		],
-		[],
+		[t],
 	);
 
 	const columns: ColumnData<EntitlementResponse>[] = useMemo(
 		() => [
 			{
-				title: 'Plan / Addon',
+				title: t('catalog:features.details.columns.planAddonEntitlement'),
 				render: (rowData) => {
 					if (rowData.entity_type === ENTITLEMENT_ENTITY_TYPE.ADDON) {
 						return (
@@ -218,15 +221,15 @@ const FeatureDetails = () => {
 				},
 			},
 			{
-				title: 'Status',
+				title: t('catalog:features.details.columns.status'),
 				render: (rowData) => {
 					const rawStatus = rowData.entity_type === ENTITLEMENT_ENTITY_TYPE.ADDON ? rowData.addon?.status : rowData.plan?.status;
 					const label = formatEntityStatus(rawStatus || '', t);
-					return <Chip variant={label === 'Active' ? 'success' : 'default'} label={label} />;
+					return <Chip variant={rawStatus === ENTITY_STATUS.PUBLISHED ? 'success' : 'default'} label={label} />;
 				},
 			},
 			{
-				title: 'Value',
+				title: t('catalog:features.details.columns.value'),
 				align: 'right',
 				render: (rowData) => {
 					if (rowData.feature_type === FEATURE_TYPE.BOOLEAN) {
@@ -358,7 +361,7 @@ const FeatureDetails = () => {
 								<FlexpriceTable showEmptyRow columns={getPriceColumns(t)} data={linkedPrices?.items ?? []} variant='no-bordered' />
 							</Card>
 						) : (
-							<NoDataCard title={t('catalog:features.details.charges')} subtitle='No charges linked to the feature yet' />
+							<NoDataCard title={t('catalog:features.details.charges')} subtitle={t('catalog:features.details.noChargesLinked')} />
 						)}
 					</div>
 				)}
@@ -369,7 +372,7 @@ const FeatureDetails = () => {
 						<FlexpriceTable showEmptyRow columns={columns} data={planOrAddonEntitlements} variant='no-bordered' />
 					</Card>
 				) : (
-					<NoDataCard title={t('catalog:features.details.entitlements')} subtitle='No entitlements linked to the feature yet' />
+					<NoDataCard title={t('catalog:features.details.entitlements')} subtitle={t('catalog:features.details.noEntitlementsLinked')} />
 				)}
 
 				{data?.type === FEATURE_TYPE.METERED && (
@@ -418,7 +421,7 @@ const FeatureDetails = () => {
 									<div className='grid grid-cols-[200px_1fr] items-center'>
 										<span className='text-gray-500 text-sm'>{t('catalog:features.details.type')}</span>
 										<span className='text-gray-800 text-sm'>
-											{formatAggregationType(data?.meter?.aggregation.type || t('common:labels.na'))}
+											{data?.meter?.aggregation.type ? formatAggregationType(data.meter.aggregation.type, t) : t('common:labels.na')}
 										</span>
 									</div>
 									<div className='grid grid-cols-[200px_1fr] items-center'>

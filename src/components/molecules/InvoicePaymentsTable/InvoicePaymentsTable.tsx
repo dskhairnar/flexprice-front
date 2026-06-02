@@ -118,12 +118,12 @@ const InvoicePaymentsTable: FC<Props> = ({ data }) => {
 	const columns = useMemo(
 		(): ColumnData<Payment>[] => [
 			{
-				title: 'Ref ID',
+				title: t('tableColumns.refId'),
 				width: 200,
 				render: (rowData) => <TooltipCell tooltipContent={rowData.idempotency_key} tooltipText={rowData.idempotency_key} />,
 			},
 			{
-				title: 'Invoice ID',
+				title: t('tableColumns.invoiceId'),
 				render: (payment) => {
 					if (payment.destination_type.toUpperCase() === 'INVOICE') {
 						return (
@@ -136,18 +136,18 @@ const InvoicePaymentsTable: FC<Props> = ({ data }) => {
 				},
 			},
 			{
-				title: 'Date',
+				title: t('tableColumns.date'),
 				render: (payment) => formatDateShort(payment.created_at),
 			},
 			{
-				title: 'Status',
+				title: t('tableColumns.status'),
 				render: (payment) => {
 					const variant = getPaymentStatusVariant(payment.payment_status);
 					return <Chip label={toSentenceCase(payment.payment_status)} variant={variant} />;
 				},
 			},
 			{
-				title: 'Payment Method',
+				title: t('tableColumns.paymentMethod'),
 				render: (payment) => (
 					<div className='flex items-center gap-2'>
 						{getPaymentMethodIcon(payment.payment_method_type)}
@@ -156,7 +156,7 @@ const InvoicePaymentsTable: FC<Props> = ({ data }) => {
 				),
 			},
 			{
-				title: 'Amount',
+				title: t('tableColumns.amount'),
 				render: (payment) => `${getCurrencySymbol(payment.currency)} ${payment.amount}`,
 			},
 			{
@@ -166,14 +166,14 @@ const InvoicePaymentsTable: FC<Props> = ({ data }) => {
 				render: (payment) => <PaymentTableMenu payment={payment} />,
 			},
 		],
-		[getPaymentMethodIcon, getPaymentMethodLabel, getPaymentStatusVariant],
+		[getPaymentMethodIcon, getPaymentMethodLabel, getPaymentStatusVariant, t],
 	);
 
 	// Early return for empty data
 	if (!data?.length) {
 		return (
 			<div className='my-6'>
-				<NoDataCard title={t('labels.payments')} subtitle='No payments found' />
+				<NoDataCard title={t('labels.payments')} subtitle={t('tableColumns.noPaymentsFound')} />
 			</div>
 		);
 	}

@@ -417,7 +417,7 @@ const SubscriptionLineItemTable: FC<Props> = ({
 	const columns: ColumnData<LineItemWithStatus>[] = useMemo(
 		() => [
 			{
-				title: 'Display Name',
+				title: t('tableColumns.displayName'),
 				render: (row: LineItemWithStatus) => {
 					const displayName = row.display_name?.trim() || '--';
 					return (
@@ -454,7 +454,7 @@ const SubscriptionLineItemTable: FC<Props> = ({
 			...(phaseLabelsById && Object.keys(phaseLabelsById).length > 0
 				? [
 						{
-							title: 'Phase',
+							title: t('tableColumns.phase'),
 							render: (row: LineItemWithStatus) => (
 								<span className='text-sm text-gray-700'>
 									{(row.subscription_phase_id && phaseLabelsById[row.subscription_phase_id]) ?? '—'}
@@ -464,17 +464,32 @@ const SubscriptionLineItemTable: FC<Props> = ({
 					]
 				: []),
 			{
-				title: 'Price Type',
+				title: t('tableColumns.priceType'),
 				render: (row) => <span>{getPriceTypeLabel(row.price_type, t)}</span>,
 			},
 			{
-				title: 'Billing Period',
+				title: t('tableColumns.billingPeriod'),
 				render: (row) => formatBillingPeriodForDisplay(row.billing_period, t),
+			},
+			{
+				title: t('tableColumns.quantity'),
+				render: (row) => {
+					if (row.price_type === PRICE_TYPE.USAGE) {
+						return <span className='text-gray-500'>{t('labels.na')}</span>;
+					}
+
+					const q = row.quantity;
+					if (q == null || !Number.isFinite(Number(q))) return <span className='text-gray-500'>{t('labels.na')}</span>;
+					const n = Number(q);
+					return (
+						<span className='tabular-nums'>{Number.isInteger(n) ? n : n.toLocaleString(undefined, { maximumFractionDigits: 6 })}</span>
+					);
+				},
 			},
 			...(hasMultipleEntityTypes
 				? [
 						{
-							title: 'Source',
+							title: t('tableColumns.source'),
 							render: (row: LineItemWithStatus) => (
 								<Chip label={getEntityLabel(row.entity_type)} variant={getEntityChipVariant(row.entity_type)} />
 							),
@@ -482,7 +497,7 @@ const SubscriptionLineItemTable: FC<Props> = ({
 					]
 				: []),
 			{
-				title: 'Status',
+				title: t('tableColumns.status'),
 				render(rowData) {
 					return (
 						<Tooltip
@@ -498,7 +513,7 @@ const SubscriptionLineItemTable: FC<Props> = ({
 				},
 			},
 			{
-				title: 'Charge',
+				title: t('tableColumns.charge'),
 				render: (row) => {
 					if (!row.price) return '--';
 					const isSubscriptionOverride =

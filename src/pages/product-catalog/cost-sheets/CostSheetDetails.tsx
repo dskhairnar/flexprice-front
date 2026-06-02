@@ -28,31 +28,31 @@ type Params = {
 
 const getChargeColumns = (naLabel: string, t: TFunction): ColumnData<Price>[] => [
 	{
-		title: 'Charge Type',
+		title: t('catalog:shared.chargeColumns.chargeType'),
 		render: (row) => {
 			return <span>{getPriceTypeLabel(row.type, t)}</span>;
 		},
 	},
 	{
-		title: 'Feature',
+		title: t('catalog:shared.chargeColumns.feature'),
 		render(rowData) {
 			return <span>{rowData.meter?.name ?? naLabel}</span>;
 		},
 	},
 	{
-		title: 'Billing Timing',
+		title: t('catalog:shared.chargeColumns.billingTiming'),
 		render(rowData) {
 			return <span>{formatInvoiceCadence(rowData.invoice_cadence as string, t)}</span>;
 		},
 	},
 	{
-		title: 'Billing Period',
+		title: t('catalog:shared.chargeColumns.billingPeriod'),
 		render(rowData) {
 			return <span>{formatBillingPeriodForDisplay(rowData.billing_period as string, t)}</span>;
 		},
 	},
 	{
-		title: 'Value',
+		title: t('catalog:shared.chargeColumns.value'),
 		render(rowData) {
 			return <ChargeValueCell data={rowData} />;
 		},

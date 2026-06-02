@@ -79,30 +79,30 @@ const SubscriptionCreditGrantTable: React.FC<Props> = ({
 
 	const columns: ColumnData<InternalCreditGrantRequest>[] = [
 		{
-			title: 'Name',
+			title: t('tableColumns.name'),
 			fieldName: 'name',
 		},
 		{
-			title: 'Credits',
+			title: t('tableColumns.credits'),
 			render: (row) => `${row.credits}`,
 		},
 		{
-			title: 'Priority',
+			title: t('tableColumns.priority'),
 			render: (row) => row.priority?.toString() || '--',
 		},
 		{
-			title: 'Cadence',
+			title: t('tableColumns.cadence'),
 			render: (row) => {
 				const cadence = row.cadence.toLowerCase().replace('_', ' ');
 				return cadence.charAt(0).toUpperCase() + cadence.slice(1);
 			},
 		},
 		{
-			title: 'Period',
+			title: t('tableColumns.period'),
 			render: (row) => (row.period ? `${row.period_count || 1} ${formatBillingPeriodForPrice(row.period, t)}` : '--'),
 		},
 		{
-			title: 'Expiration',
+			title: t('tableColumns.expiration'),
 			render: (row) => formatExpirationPeriod(row as CreditGrant),
 		},
 		{
