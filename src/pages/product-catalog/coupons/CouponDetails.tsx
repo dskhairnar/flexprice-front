@@ -12,6 +12,7 @@ import toast from 'react-hot-toast';
 import formatCadenceChip from '@/utils/common/format_cadence_chip';
 import { getCurrencySymbol } from '@/utils/common/helper_functions';
 import { useTranslation } from 'react-i18next';
+import { useMemo } from 'react';
 
 const CouponDetails = () => {
 	const { t } = useTranslation(['catalog', 'common']);
@@ -26,6 +27,65 @@ const CouponDetails = () => {
 		queryFn: () => CouponApi.getCouponById(id!),
 		enabled: !!id,
 	});
+
+	const notSet = t('common:labels.notSet');
+
+	const details: Detail[] = useMemo(() => {
+		if (!coupon) return [];
+		const fields = 'catalog:coupons.details.fields' as const;
+		return [
+			{
+				label: t(`${fields}.type`),
+				value: (
+					<Chip
+						variant='default'
+						label={coupon.type === COUPON_TYPE.FIXED ? t('catalog:coupons.drawer.fixedAmount') : t('catalog:coupons.drawer.percentage')}
+					/>
+				),
+			},
+			{
+				label: t(`${fields}.discount`),
+				value:
+					coupon.type === COUPON_TYPE.FIXED
+						? `${getCurrencySymbol(coupon.currency)} ${coupon.amount_off || '0.00'}`
+						: `${coupon.percentage_off || '0'}%`,
+			},
+			{
+				label: t(`${fields}.cadence`),
+				value: coupon.cadence ? <Chip variant='default' label={formatCadenceChip(coupon.cadence, t)} /> : notSet,
+			},
+			{
+				label: t(`${fields}.status`),
+				value: (
+					<Chip variant={coupon.status === ENTITY_STATUS.PUBLISHED ? 'success' : 'default'} label={formatEntityStatus(coupon.status, t)} />
+				),
+			},
+			{
+				label: t(`${fields}.redemptions`),
+				value: `${coupon.total_redemptions}/${coupon.max_redemptions || '∞'}`,
+			},
+			{
+				label: t(`${fields}.durationInPeriods`),
+				value: coupon.duration_in_periods?.toString() || notSet,
+			},
+			{
+				label: t(`${fields}.redeemAfter`),
+				value: coupon.redeem_after ? formatDate(coupon.redeem_after) : notSet,
+			},
+			{
+				label: t(`${fields}.redeemBefore`),
+				value: coupon.redeem_before ? formatDate(coupon.redeem_before) : notSet,
+			},
+			{
+				label: t(`${fields}.createdAt`),
+				value: formatDate(coupon.created_at),
+			},
+			{
+				label: t(`${fields}.updatedAt`),
+				value: formatDate(coupon.updated_at),
+			},
+		];
+	}, [coupon, notSet, t]);
 
 	if (isLoading) {
 		return <Loader />;
@@ -42,62 +102,10 @@ const CouponDetails = () => {
 		);
 	}
 
-	const details: Detail[] = [
-		{
-			label: 'Type',
-			value: (
-				<Chip
-					variant='default'
-					label={coupon.type === COUPON_TYPE.FIXED ? t('catalog:coupons.drawer.fixedAmount') : t('catalog:coupons.drawer.percentage')}
-				/>
-			),
-		},
-		{
-			label: 'Discount',
-			value:
-				coupon.type === COUPON_TYPE.FIXED
-					? `${getCurrencySymbol(coupon.currency)} ${coupon.amount_off || '0.00'}`
-					: `${coupon.percentage_off || '0'}%`,
-		},
-		{
-			label: 'Cadence',
-			value: coupon.cadence ? <Chip variant='default' label={formatCadenceChip(coupon.cadence)} /> : 'Not set',
-		},
-		{
-			label: 'Status',
-			value: (
-				<Chip variant={coupon.status === ENTITY_STATUS.PUBLISHED ? 'success' : 'default'} label={formatEntityStatus(coupon.status, t)} />
-			),
-		},
-		{
-			label: 'Redemptions',
-			value: `${coupon.total_redemptions}/${coupon.max_redemptions || '∞'}`,
-		},
-		{
-			label: 'Duration in Periods',
-			value: coupon.duration_in_periods?.toString() || 'Not set',
-		},
-		{
-			label: 'Redeem After',
-			value: coupon.redeem_after ? formatDate(coupon.redeem_after) : 'Not set',
-		},
-		{
-			label: 'Redeem Before',
-			value: coupon.redeem_before ? formatDate(coupon.redeem_before) : 'Not set',
-		},
-		{
-			label: 'Created At',
-			value: formatDate(coupon.created_at),
-		},
-		{
-			label: 'Updated At',
-			value: formatDate(coupon.updated_at),
-		},
-	];
-
+	const displayDetails = [...details];
 	if (coupon.metadata && Object.keys(coupon.metadata).length > 0) {
-		details.push({
-			label: 'Metadata',
+		displayDetails.push({
+			label: t('catalog:coupons.details.fields.metadata'),
 			value: <pre className='text-sm bg-muted p-3 rounded-md overflow-auto max-h-32'>{JSON.stringify(coupon.metadata, null, 2)}</pre>,
 		});
 	}
@@ -114,7 +122,7 @@ const CouponDetails = () => {
 					<div className='p-6'>
 						<div className='grid grid-cols-1 md:grid-cols-2 gap-6'>
 							<div className='space-y-4'>
-								{details.slice(0, Math.ceil(details.length / 2)).map((detail, index) => (
+								{displayDetails.slice(0, Math.ceil(displayDetails.length / 2)).map((detail, index) => (
 									<div key={index} className='flex flex-col space-y-1'>
 										<span className='text-sm font-medium text-muted-foreground'>{detail.label}</span>
 										<div className='text-sm'>{detail.value}</div>
@@ -122,7 +130,7 @@ const CouponDetails = () => {
 								))}
 							</div>
 							<div className='space-y-4'>
-								{details.slice(Math.ceil(details.length / 2)).map((detail, index) => (
+								{displayDetails.slice(Math.ceil(displayDetails.length / 2)).map((detail, index) => (
 									<div key={index} className='flex flex-col space-y-1'>
 										<span className='text-sm font-medium text-muted-foreground'>{detail.label}</span>
 										<div className='text-sm'>{detail.value}</div>

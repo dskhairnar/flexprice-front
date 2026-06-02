@@ -1,5 +1,23 @@
 {
 	"shared": {
+		"chargeColumns": {
+			"displayName": "Display Name",
+			"chargeType": "Charge Type",
+			"billingTiming": "Billing Timing",
+			"billingPeriod": "Billing Period",
+			"value": "Value",
+			"feature": "Feature",
+			"featureName": "Feature Name",
+			"type": "Type",
+			"status": "Status",
+			"updatedAt": "Updated At"
+		},
+		"entitlementColumns": {
+			"featureName": "Feature Name",
+			"type": "Type",
+			"usageReset": "Usage Reset",
+			"value": "Value"
+		},
 		"description": "Description",
 		"lookupKey": "Lookup Key",
 		"lookupKeyDescription": "A system identifier used for API calls and integrations.",
@@ -51,7 +69,9 @@
 			"title": "Addon Details",
 			"charges": "Charges",
 			"entitlements": "Entitlements",
-			"metadata": "Metadata"
+			"metadata": "Metadata",
+			"noChargesLinked": "No charges added to the addon yet",
+			"noEntitlementsLinked": "No entitlements added to the addon yet"
 		},
 		"subscriptionSheet": {
 			"editTitle": "Edit Addon",
@@ -255,7 +275,20 @@
 		},
 		"details": {
 			"loadError": "Failed to load coupon details",
-			"detailsTitle": "Details"
+			"detailsTitle": "Details",
+			"fields": {
+				"type": "Type",
+				"discount": "Discount",
+				"cadence": "Cadence",
+				"status": "Status",
+				"redemptions": "Redemptions",
+				"durationInPeriods": "Duration in Periods",
+				"redeemAfter": "Redeem After",
+				"redeemBefore": "Redeem Before",
+				"createdAt": "Created At",
+				"updatedAt": "Updated At",
+				"metadata": "Metadata"
+			}
 		}
 	},
 	"groups": {
@@ -743,7 +776,28 @@
 			"displayUnitName": "Display Unit Name",
 			"usageReset": "Usage Reset ",
 			"bucketSize": "Bucket Size",
-			"groupBy": "Group by"
+			"groupBy": "Group by",
+			"noChargesLinked": "No charges linked to the feature yet",
+			"noEntitlementsLinked": "No entitlements linked to the feature yet",
+			"alertSettingsMenu": "Alert Settings",
+			"columns": {
+				"planAddon": "Plan/Addon",
+				"billingTiming": "Billing timing",
+				"billingPeriod": "Billing Period",
+				"value": "Value",
+				"planAddonEntitlement": "Plan / Addon",
+				"status": "Status"
+			},
+			"aggregationTypes": {
+				"sum": "Sum",
+				"count": "Count",
+				"countUnique": "Count Unique",
+				"latest": "Latest",
+				"sumWithMultiplier": "Sum with Multiplier",
+				"max": "Max",
+				"weightedSum": "Weighted Sum",
+				"avg": "Average"
+			}
 		}
 	},
 	"entityChargesPage": {

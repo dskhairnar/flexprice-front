@@ -364,23 +364,23 @@ const PlanPriceTable: FC<PlanChargesTableProps> = ({ plan, onPriceUpdate }) => {
 	const chargeColumns: ColumnData<Price>[] = useMemo(
 		() => [
 			{
-				title: 'Display Name',
+				title: t('catalog:shared.chargeColumns.displayName'),
 				render: (row) => <span>{row.display_name ?? t('catalog:plans.organisms.planPriceTable.fallbackName')}</span>,
 			},
 			{
-				title: 'Charge Type',
+				title: t('catalog:shared.chargeColumns.chargeType'),
 				render: (row) => <span>{getPriceTypeLabel(row.type, t)}</span>,
 			},
 			{
-				title: 'Billing Timing',
+				title: t('catalog:shared.chargeColumns.billingTiming'),
 				render: (row) => <span>{formatInvoiceCadence(row.invoice_cadence as string, t)}</span>,
 			},
 			{
-				title: 'Billing Period',
+				title: t('catalog:shared.chargeColumns.billingPeriod'),
 				render: (row) => <span>{formatBillingPeriodForDisplay(row.billing_period as string, t)}</span>,
 			},
 			{
-				title: 'Status',
+				title: t('catalog:shared.chargeColumns.status'),
 				render: (row) => {
 					const status = getPriceStatus(row);
 					const variant = getStatusChipVariant(status);
@@ -400,7 +400,7 @@ const PlanPriceTable: FC<PlanChargesTableProps> = ({ plan, onPriceUpdate }) => {
 				},
 			},
 			{
-				title: 'Value',
+				title: t('catalog:shared.chargeColumns.value'),
 				render: (row) => {
 					const priceWithPricingUnit = row as Price & { pricing_unit?: PriceUnit };
 					return <ChargeValueCell data={priceWithPricingUnit} />;
