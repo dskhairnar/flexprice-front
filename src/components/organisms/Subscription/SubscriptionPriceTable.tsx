@@ -21,6 +21,7 @@ import { formatBillingPeriodForPrice } from '@/utils/common/helper_functions';
 import { formatAmount } from '@/components/atoms/Input/Input';
 import { BILLING_PERIOD } from '@/constants/constants';
 import { isOneTimePlanPrice } from '@/utils/subscription/planPricesForSubscriptionUi';
+import type { TFunction } from 'i18next';
 import { useTranslation } from 'react-i18next';
 
 const DEFAULT_ROW_LIMIT = 5;
@@ -204,7 +205,7 @@ export interface Props {
 	onEditAddedCharge?: (item: AddedSubscriptionLineItem) => void;
 }
 
-function formatAddedLineItemPrice(item: AddedSubscriptionLineItem, fallbackCurrency?: string): string {
+function formatAddedLineItemPrice(item: AddedSubscriptionLineItem, t: TFunction, fallbackCurrency?: string): string {
 	const p = item.price;
 	if (!p) return '--';
 	const currency =
@@ -213,7 +214,7 @@ function formatAddedLineItemPrice(item: AddedSubscriptionLineItem, fallbackCurre
 			: ((p as { currency?: string }).currency ?? fallbackCurrency);
 	const symbol = currency ? getCurrencySymbol(currency) : '';
 	const amount = p.amount ?? p.price_unit_config?.amount ?? '0';
-	const period = p.billing_period ? formatBillingPeriodForPrice(p.billing_period) : '';
+	const period = p.billing_period ? formatBillingPeriodForPrice(p.billing_period, t) : '';
 	return `${symbol}${formatAmount(amount)}${period ? ` / ${period}` : ''}`;
 }
 
@@ -363,7 +364,7 @@ const SubscriptionPriceTable: FC<Props> = ({
 				</div>
 			),
 			quantity: <span>{item.quantity ?? 1}</span>,
-			price: <span>{formatAddedLineItemPrice(item, currency)}</span>,
+			price: <span>{formatAddedLineItemPrice(item, t, currency)}</span>,
 			invoice_cadence: item.price?.invoice_cadence ?? '--',
 			actions:
 				onRemoveAddedCharge || onEditAddedCharge ? (

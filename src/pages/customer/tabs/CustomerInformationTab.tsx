@@ -34,7 +34,7 @@ const filterStringMetadata = (meta: Record<string, unknown> | undefined): Record
 };
 
 const CustomerInformationTab = () => {
-	const { t } = useTranslation('customers');
+	const { t } = useTranslation(['customers', 'common']);
 	const { id: customerId } = useParams();
 	const navigate = useNavigate();
 	const { isArchived } = useOutletContext<ContextType>();
@@ -100,15 +100,17 @@ const CustomerInformationTab = () => {
 		}));
 	}, [subscribersCustomersData?.items, subscriptionCountBySubscriberId]);
 
+	const emptyValue = t('common:labels.na');
+
 	const invoicedSubscribersColumns: ColumnData<InvoicedSubscriberRow>[] = useMemo(
 		() => [
 			{
-				title: 'Name',
-				render: (row) => <span className='font-medium text-foreground'>{row.name || '—'}</span>,
+				title: t('form.drawer.nameLabel'),
+				render: (row) => <span className='font-medium text-foreground'>{row.name || emptyValue}</span>,
 			},
 			{
-				title: 'External ID',
-				render: (row) => <span className='text-muted-foreground'>{row.external_id || '—'}</span>,
+				title: t('form.drawer.externalIdLabel'),
+				render: (row) => <span className='text-muted-foreground'>{row.external_id || emptyValue}</span>,
 			},
 			// {
 			// 	title: 'Subscriptions',
@@ -116,7 +118,7 @@ const CustomerInformationTab = () => {
 			// 	render: (row) => <span className='text-foreground'>{row.subscriptionCount}</span>,
 			// },
 		],
-		[],
+		[t, emptyValue],
 	);
 
 	const [showMetadataModal, setShowMetadataModal] = useState(false);
@@ -139,52 +141,58 @@ const CustomerInformationTab = () => {
 		setMetadata(filterStringMetadata(customer?.metadata));
 	}, [customer]);
 
-	const billingDetails: Detail[] = [
-		{
-			label: 'Name',
-			value: customer?.name || '--',
-		},
-		{
-			label: 'External ID',
-			value: customer?.external_id || '--',
-		},
-		{
-			label: 'Email',
-			value: customer?.email || '--',
-		},
-		{
-			variant: 'divider',
-		},
-		{
-			variant: 'heading',
-			label: 'Billing Details',
-			className: getTypographyClass('card-header') + '!text-[16px]',
-		},
-		{
-			label: 'Address Line 1',
-			value: customer?.address_line1 || '--',
-		},
-		{
-			label: 'Country',
-			value: customer?.address_country ? Country.getCountryByCode(customer.address_country)?.name : '--',
-		},
-		{
-			label: 'Address Line 2',
-			value: customer?.address_line2 || '--',
-		},
-		{
-			label: 'State',
-			value: customer?.address_state || '--',
-		},
-		{
-			label: 'City',
-			value: customer?.address_city || '--',
-		},
-		{
-			label: 'Postal Code',
-			value: customer?.address_postal_code || '--',
-		},
-	];
+	const billingDetails: Detail[] = useMemo(() => {
+		const countryDisplay = customer?.address_country
+			? (Country.getCountryByCode(customer.address_country)?.name ?? customer.address_country)
+			: emptyValue;
+
+		return [
+			{
+				label: t('form.drawer.nameLabel'),
+				value: customer?.name || emptyValue,
+			},
+			{
+				label: t('form.drawer.externalIdLabel'),
+				value: customer?.external_id || emptyValue,
+			},
+			{
+				label: t('overview.labels.email'),
+				value: customer?.email || emptyValue,
+			},
+			{
+				variant: 'divider',
+			},
+			{
+				variant: 'heading',
+				label: t('overview.labels.billingDetailsHeading'),
+				className: getTypographyClass('card-header') + '!text-[16px]',
+			},
+			{
+				label: t('form.billingFields.addressLine1'),
+				value: customer?.address_line1 || emptyValue,
+			},
+			{
+				label: t('form.billingFields.country'),
+				value: countryDisplay,
+			},
+			{
+				label: t('form.billingFields.addressLine2'),
+				value: customer?.address_line2 || emptyValue,
+			},
+			{
+				label: t('form.billingFields.state'),
+				value: customer?.address_state || emptyValue,
+			},
+			{
+				label: t('form.billingFields.city'),
+				value: customer?.address_city || emptyValue,
+			},
+			{
+				label: t('form.billingFields.postalCode'),
+				value: customer?.address_postal_code || emptyValue,
+			},
+		];
+	}, [customer, t, emptyValue]);
 
 	if (isLoading) {
 		return (
@@ -196,7 +204,7 @@ const CustomerInformationTab = () => {
 
 	return (
 		<div>
-			{billingDetails.filter((detail) => detail.value !== '--').length > 0 && (
+			{billingDetails.filter((detail) => detail.value !== emptyValue).length > 0 && (
 				<div>
 					<Spacer className='!h-4' />
 					<div className='flex justify-between items-center'>
@@ -246,7 +254,7 @@ const CustomerInformationTab = () => {
 							data={
 								metadata && Object.keys(metadata).length > 0
 									? Object.entries(metadata).map(([key, value]) => ({ label: key, value }))
-									: [{ label: 'No metadata available.', value: '' }]
+									: [{ label: t('tabPanels.common.noMetadataAvailable'), value: '' }]
 							}
 							cardStyle='borderless'
 						/>

@@ -8,6 +8,7 @@ import { AlertTriangle, Info } from 'lucide-react';
 import { refetchQueries } from '@/core/services/tanstack/ReactQueryProvider';
 import { useTranslation } from 'react-i18next';
 import { User } from '@/models';
+import { formatRbacRole } from '@/i18n/display/apiEnums';
 
 interface Props {
 	isOpen: boolean;
@@ -40,8 +41,11 @@ const ServiceAccountDrawer: FC<Props> = ({ isOpen, onOpenChange, data }) => {
 
 	const roleOptions = useMemo(() => {
 		if (!roles || !Array.isArray(roles)) return [];
-		return roles.map((role) => ({ label: role.name, value: role.id }));
-	}, [roles]);
+		return roles.map((role) => ({
+			label: formatRbacRole(role.name, t),
+			value: role.id,
+		}));
+	}, [roles, t]);
 
 	useEffect(() => {
 		if (isOpen) {

@@ -104,7 +104,7 @@ const SubscriptionPreviewLineItemTable: FC<Props> = ({
 									<td className='py-4 px-0 text-sm text-gray-900'>{item.display_name ?? t('common:labels.na')}</td>
 									{invoiceType === INVOICE_TYPE.SUBSCRIPTION && (
 										<td className='py-4 px-4 text-sm text-gray-600'>
-											{item.price_type ? getPriceTypeLabel(item.price_type) : t('common:labels.na')}
+											{item.price_type ? getPriceTypeLabel(item.price_type, t) : t('common:labels.na')}
 										</td>
 									)}
 									{invoiceType === INVOICE_TYPE.SUBSCRIPTION && (

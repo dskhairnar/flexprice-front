@@ -71,7 +71,7 @@ const SubscriptionEditCreditGrantsSection: FC<SubscriptionEditCreditGrantsSectio
 			},
 			{
 				title: 'Period',
-				render: (row) => (row.period ? `${row.period_count || 1} ${formatBillingPeriodForPrice(row.period)}` : '--'),
+				render: (row) => (row.period ? `${row.period_count || 1} ${formatBillingPeriodForPrice(row.period, t)}` : '--'),
 			},
 			{
 				title: 'Expiration Config',
@@ -100,7 +100,7 @@ const SubscriptionEditCreditGrantsSection: FC<SubscriptionEditCreditGrantsSectio
 				),
 			},
 		],
-		[onRequestCancel, readOnly],
+		[onRequestCancel, readOnly, t],
 	);
 
 	return (

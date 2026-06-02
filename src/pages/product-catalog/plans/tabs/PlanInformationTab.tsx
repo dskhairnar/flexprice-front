@@ -5,7 +5,7 @@ import { Pencil } from 'lucide-react';
 import { MetadataModal, DetailsCard, PlanDrawer } from '@/components/molecules';
 import { ENTITY_STATUS, Plan } from '@/models';
 import formatDate from '@/utils/common/format_date';
-import formatChips from '@/utils/common/format_chips';
+import { formatEntityStatus } from '@/utils/common/format_chips';
 import { getTypographyClass } from '@/lib/typography';
 import { refetchQueries } from '@/core/services/tanstack/ReactQueryProvider';
 import { PlanApi } from '@/api';
@@ -15,7 +15,7 @@ import toast from 'react-hot-toast';
 import { useTranslation } from 'react-i18next';
 
 const PlanInformationTab = () => {
-	const { t } = useTranslation(['catalog']);
+	const { t } = useTranslation(['catalog', 'common']);
 	const { planId } = useParams<{ planId: string }>();
 	const [showMetadataModal, setShowMetadataModal] = useState(false);
 	const [planDrawerOpen, setPlanDrawerOpen] = useState(false);
@@ -50,7 +50,10 @@ const PlanInformationTab = () => {
 		{
 			label: 'Status',
 			value: (
-				<Chip label={formatChips(planData?.status || '')} variant={planData?.status === ENTITY_STATUS.PUBLISHED ? 'success' : 'default'} />
+				<Chip
+					label={formatEntityStatus(planData?.status || '', t)}
+					variant={planData?.status === ENTITY_STATUS.PUBLISHED ? 'success' : 'default'}
+				/>
 			),
 		},
 	];
@@ -126,7 +129,7 @@ const PlanInformationTab = () => {
 							data={
 								localMetadata && Object.keys(localMetadata).length > 0
 									? Object.entries(localMetadata).map(([key, value]) => ({ label: key, value }))
-									: [{ label: 'No metadata available.', value: '' }]
+									: [{ label: t('catalog:plans.information.noMetadataAvailable'), value: '' }]
 							}
 							cardStyle='borderless'
 						/>

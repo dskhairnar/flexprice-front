@@ -29,6 +29,7 @@ import formatDate from '@/utils/common/format_date';
 import { BILLING_PERIOD } from '@/constants/constants';
 import { ExternalLink } from 'lucide-react';
 import { formatSubscriptionTypeDisplayLabel } from '@/utils/subscription/formatSubscriptionTypeDisplay';
+import { getIntlLocale } from '@/i18n/display/intlLocale';
 
 const DATE_NO_YEAR_FORMAT: Intl.DateTimeFormatOptions = { month: 'short', day: 'numeric' };
 
@@ -212,7 +213,7 @@ const CustomerSubscriptionDetailsPage: FC = () => {
 					const chip = getSubscriptionTypeChipProps(row.subscription_type);
 					return (
 						<Chip
-							label={formatSubscriptionTypeDisplayLabel(row.subscription_type)}
+							label={formatSubscriptionTypeDisplayLabel(row.subscription_type, t)}
 							className='shrink-0'
 							{...('variant' in chip
 								? { variant: chip.variant }
@@ -312,7 +313,7 @@ const CustomerSubscriptionDetailsPage: FC = () => {
 	const formatDateNoYear = (dateString: string | Date) => {
 		const d = new Date(dateString);
 		if (isNaN(d.getTime())) return t('usageTable.featureTypes.dash');
-		return d.toLocaleDateString('en-US', DATE_NO_YEAR_FORMAT);
+		return d.toLocaleDateString(getIntlLocale(), DATE_NO_YEAR_FORMAT);
 	};
 
 	return (

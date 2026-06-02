@@ -151,7 +151,6 @@ const WhopConnectionDrawer: FC<WhopConnectionDrawerProps> = ({ isOpen, onOpenCha
 
 	const handleSave = () => {
 		if (!validateForm()) return;
-
 		if (connection) {
 			updateConnection();
 		} else {

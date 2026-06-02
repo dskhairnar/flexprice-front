@@ -4,6 +4,8 @@ export {
 	getCurrencyName,
 	formatDateShort,
 	formatBillingPeriodForPrice,
+	formatBillingPeriodForDisplay,
+	formatInvoiceCadence,
 	getPriceTypeLabel,
 	copyToClipboard,
 } from './helper_functions';
