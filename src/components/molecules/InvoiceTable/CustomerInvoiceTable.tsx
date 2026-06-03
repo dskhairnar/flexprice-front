@@ -1,6 +1,6 @@
 import { FC, useMemo } from 'react';
 import FlexpriceTable, { ColumnData, RedirectCell } from '../Table';
-import { getCurrencySymbol } from '@/utils/common/helper_functions';
+import { formatLocalizedCurrency } from '@/utils/common/helper_functions';
 import { formatBillingPeriod } from '@/utils/common/format_date';
 import { Invoice, INVOICE_STATUS, INVOICE_TYPE } from '@/models/Invoice';
 import { getPaymentStatusChip, getStatusChip } from './InvoiceTable';
@@ -81,11 +81,11 @@ const CustomerInvoiceTable: FC<Props> = ({ data, onRowClick }) => {
 			},
 			{
 				title: t('invoices.customerTable.total'),
-				render: (row) => <>{`${getCurrencySymbol(row.currency)} ${row.total}`}</>,
+				render: (row) => <>{formatLocalizedCurrency(row.total, row.currency)}</>,
 			},
 			{
 				title: t('invoices.list.sort.amountDue'),
-				render: (row) => <>{`${getCurrencySymbol(row.currency)} ${row.amount_due}`}</>,
+				render: (row) => <>{formatLocalizedCurrency(row.amount_due, row.currency)}</>,
 			},
 			{
 				fieldVariant: 'interactive',

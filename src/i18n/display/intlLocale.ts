@@ -16,6 +16,7 @@ export function getIntlLocale(language: string = i18n.language ?? 'en'): string 
 	const base = normalized.split('-')[0];
 	return INTL_LOCALE_BY_LANG[base] ?? 'en-US';
 }
+
 const ARABIC_DIGIT_LANGUAGES = new Set(['ar', 'fa', 'ur']);
 
 function baseLanguage(language: string): string {

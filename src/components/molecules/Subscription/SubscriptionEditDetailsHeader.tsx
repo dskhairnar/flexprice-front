@@ -2,7 +2,7 @@ import { FC, useMemo } from 'react';
 import { Spacer, Button, Tooltip } from '@/components/atoms';
 import { DetailsCard, UpdateSubscriptionDrawer } from '@/components/molecules';
 import { getSubscriptionStatus } from '@/components/organisms/Subscription/SubscriptionTable';
-import { getCurrencySymbol } from '@/utils/common/helper_functions';
+import { formatLocalizedCurrency, formatLocalizedNumber, resolveCurrencyCode } from '@/utils/common/helper_functions';
 import formatDate from '@/utils/common/format_date';
 import { RouteNames } from '@/core/routes/Routes';
 import { getTypographyClass } from '@/lib/typography';
@@ -53,12 +53,17 @@ const SubscriptionEditDetailsHeader: FC<SubscriptionEditDetailsHeaderProps> = ({
 				? [
 						{
 							label: t('subscriptions.editDetailsHeader.commitmentAmount'),
-							value: `${getCurrencySymbol(subscription?.currency || '')} ${subscription?.commitment_amount}`,
+							value: formatLocalizedCurrency(subscription?.commitment_amount ?? 0, resolveCurrencyCode(subscription?.currency)),
 						},
 					]
 				: []),
 			...(subscription?.overage_factor && subscription?.overage_factor > 1
-				? [{ label: t('subscriptions.editDetailsHeader.overageFactor'), value: subscription?.overage_factor.toString() }]
+				? [
+						{
+							label: t('subscriptions.editDetailsHeader.overageFactor'),
+							value: formatLocalizedNumber(subscription?.overage_factor ?? 0),
+						},
+					]
 				: []),
 			{
 				label: t('subscriptions.editDetailsHeader.parentSubscription'),

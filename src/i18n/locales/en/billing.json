@@ -71,6 +71,27 @@
 				"billingEntity": "Billing Entity",
 				"paymentStatus": "Payment Status",
 				"dueDate": "Due Date"
+			},
+			"tableMenu": {
+				"downloadInvoice": "Download Invoice",
+				"sendCommunication": "Send Communication",
+				"recordPayment": "Record Payment",
+				"updateInvoiceStatus": "Update Invoice Status",
+				"updatePaymentStatus": "Update Payment Status",
+				"issueCreditNote": "Issue a Credit Note",
+				"recalculateInvoice": "Recalculate Invoice",
+				"viewCustomer": "View Customer",
+				"viewSubscription": "View Subscription",
+				"toast": {
+					"communicationTriggered": "Communication triggered",
+					"communicationFailed": "Unable to trigger communication",
+					"invoiceDownloaded": "Invoice downloaded",
+					"downloadFailed": "Unable to download invoice",
+					"recalculateTriggered": "Invoice recalculation has been triggered. The replacement invoice will be available once the process completes.",
+					"recalculateFailed": "Unable to recalculate invoice",
+					"noLineItemsToExport": "No billable line items to export",
+					"csvDownloaded": "Invoice CSV downloaded"
+				}
 			}
 		},
 		"details": {

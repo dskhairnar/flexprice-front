@@ -9,7 +9,7 @@ import CouponApi from '@/api/CouponApi';
 import { useNavigate } from 'react-router';
 import CouponDrawer from '../CouponDrawer';
 import { RouteNames } from '@/core/routes/Routes';
-import { getCurrencySymbol } from '@/utils/common/helper_functions';
+import { formatLocalizedCurrency } from '@/utils/common/helper_functions';
 import { useTranslation } from 'react-i18next';
 
 export interface CouponTableProps {
@@ -49,7 +49,7 @@ const CouponTable: FC<CouponTableProps> = ({ data, onEdit }) => {
 			title: t('coupons.table.discount'),
 			render: (row) => {
 				if (row.type === COUPON_TYPE.FIXED) {
-					return row.amount_off ? `${getCurrencySymbol(row.currency)} ${row.amount_off}` : '—';
+					return row.amount_off ? formatLocalizedCurrency(row.amount_off, row.currency) : '—';
 				} else {
 					return row.percentage_off ? `${row.percentage_off}%` : '—';
 				}

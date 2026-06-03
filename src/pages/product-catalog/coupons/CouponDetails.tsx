@@ -10,7 +10,7 @@ import { formatEntityStatus } from '@/utils/common/format_chips';
 import formatDate from '@/utils/common/format_date';
 import toast from 'react-hot-toast';
 import formatCadenceChip from '@/utils/common/format_cadence_chip';
-import { getCurrencySymbol } from '@/utils/common/helper_functions';
+import { formatLocalizedCurrency, formatLocalizedNumber } from '@/utils/common/helper_functions';
 import { useTranslation } from 'react-i18next';
 import { useMemo } from 'react';
 
@@ -47,8 +47,8 @@ const CouponDetails = () => {
 				label: t(`${fields}.discount`),
 				value:
 					coupon.type === COUPON_TYPE.FIXED
-						? `${getCurrencySymbol(coupon.currency)} ${coupon.amount_off || '0.00'}`
-						: `${coupon.percentage_off || '0'}%`,
+						? formatLocalizedCurrency(coupon.amount_off ?? 0, coupon.currency)
+						: `${formatLocalizedNumber(coupon.percentage_off ?? 0, { maximumFractionDigits: 2 })}%`,
 			},
 			{
 				label: t(`${fields}.cadence`),

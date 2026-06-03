@@ -21,6 +21,7 @@ import {
 	getPrimarySourceLabel,
 	getEffectiveStaticValue,
 } from '@/utils/subscription/subscriptionEntitlementHelpers';
+import { formatLocalizedNumber } from '@/utils/common/helper_functions';
 
 interface SubscriptionEntitlementsSectionProps {
 	subscriptionId: string;
@@ -202,7 +203,7 @@ const SubscriptionEntitlementsSection: FC<SubscriptionEntitlementsSectionProps> 
 			const resetPeriod = entitlementData?.usage_reset_period;
 			const valueText =
 				limit !== null && limit !== undefined
-					? `${limit.toLocaleString()}${resetPeriod ? ` / ${resetPeriod.toLowerCase()}` : ''}`
+					? `${formatLocalizedNumber(limit, { maximumFractionDigits: 0 })}${resetPeriod ? ` / ${resetPeriod.toLowerCase()}` : ''}`
 					: tc('labels.unlimited');
 
 			const hasChangedValue = row.isOverrideOfParent && limit !== originalLimit;

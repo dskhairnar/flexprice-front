@@ -8,7 +8,7 @@ import { CustomerUsageChart } from '@/components/molecules';
 import { WindowSize } from '@/models';
 import { WALLET_STATUS } from '@/models/Wallet';
 import { DashboardAnalyticsRequest } from '@/types';
-import { formatAmount } from '@/components/atoms/Input/Input';
+import { formatLocalizedCurrency, formatLocalizedNumber, resolveCurrencyCode } from '@/utils/common/helper_functions';
 import { getCurrencySymbol } from '@/utils/common/helper_functions';
 import { Wallet as WalletIcon } from 'lucide-react';
 import SubscriptionsSection from './SubscriptionsSection';
@@ -135,7 +135,7 @@ const OverviewTab = () => {
 
 	const subscriptions = subscriptionsData?.items || [];
 	const usage = usageData?.features || [];
-	const currencySymbol = getCurrencySymbol(firstWallet?.currency ?? 'USD');
+	const currencySymbol = getCurrencySymbol(resolveCurrencyCode(firstWallet?.currency));
 	return (
 		<div className='space-y-6'>
 			{/* Wallet Balance */}
@@ -152,12 +152,14 @@ const OverviewTab = () => {
 					<div>
 						<span className='text-sm text-zinc-500 block mb-1.5'>{t('wallet.balance')}</span>
 						<div className='flex items-baseline gap-2'>
-							<span className='text-4xl font-semibold text-zinc-950'>{formatAmount(firstWallet.credit_balance?.toString() ?? '0')}</span>
+							<span className='text-4xl font-semibold text-zinc-950 tabular-nums'>
+								{formatLocalizedNumber(firstWallet.credit_balance ?? 0, { maximumFractionDigits: 2 })}
+							</span>
 							<span className='text-base font-normal text-zinc-500'>{t('wallet.credits')}</span>
 						</div>
 						<p className='text-sm text-zinc-500 mt-1.5'>
 							{currencySymbol}
-							{formatAmount(firstWallet.balance?.toString() ?? '0')} {t('wallet.valueSuffix')}
+							{formatLocalizedCurrency(firstWallet.balance ?? 0, resolveCurrencyCode(firstWallet.currency))} {t('wallet.valueSuffix')}
 						</p>
 					</div>
 				</Card>

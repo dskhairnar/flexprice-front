@@ -1,5 +1,5 @@
 import { Invoice, INVOICE_STATUS, INVOICE_TYPE } from '@/models/Invoice';
-import { FC, useState } from 'react';
+import { FC, useState, useMemo } from 'react';
 import { DropdownMenu, RecordPaymentTopup } from '..';
 import InvoiceDownloadFormatDialog from '../InvoiceDownloadFormatDialog/InvoiceDownloadFormatDialog';
 import { DropdownMenuOption } from '../DropdownMenu/DropdownMenu';
@@ -13,6 +13,7 @@ import { refetchQueries } from '@/core/services/tanstack/ReactQueryProvider';
 import { PAYMENT_DESTINATION_TYPE } from '@/models/Payment';
 import { PAYMENT_STATUS } from '@/constants';
 import { RouteNames } from '@/core/routes/Routes';
+import { useTranslation } from 'react-i18next';
 
 interface Props {
 	data: Invoice;
@@ -20,19 +21,20 @@ interface Props {
 
 const InvoiceTableMenu: FC<Props> = ({ data }) => {
 	const navigate = useNavigate();
+	const { t } = useTranslation(['billing', 'common']);
 
 	const { mutate: triggerCommunication } = useMutation({
 		mutationFn: async (invoice_id: string) => {
 			return await InvoiceApi.triggerCommunication(invoice_id);
 		},
 		onSuccess: () => {
-			toast.success('Communication triggered');
+			toast.success(t('billing:invoices.list.tableMenu.toast.communicationTriggered'));
 			refetchQueries(['fetchInvoice', data.id]);
 			refetchQueries(['fetchInvoices']);
 			refetchQueries(['invoice', data.customer_id]);
 		},
 		onError: (error: Error) => {
-			toast.error(error.message || 'Unable to trigger communication');
+			toast.error(error.message || t('billing:invoices.list.tableMenu.toast.communicationFailed'));
 		},
 	});
 
@@ -41,10 +43,10 @@ const InvoiceTableMenu: FC<Props> = ({ data }) => {
 			return await InvoiceApi.downloadInvoicePdf(invoice_id);
 		},
 		onSuccess: () => {
-			toast.success('Invoice downloaded');
+			toast.success(t('billing:invoices.list.tableMenu.toast.invoiceDownloaded'));
 		},
 		onError: (error: Error) => {
-			toast.error(error.message || 'Unable to download invoice');
+			toast.error(error.message || t('billing:invoices.list.tableMenu.toast.downloadFailed'));
 		},
 	});
 
@@ -53,13 +55,13 @@ const InvoiceTableMenu: FC<Props> = ({ data }) => {
 			return await InvoiceApi.recalculateInvoice(invoice_id);
 		},
 		onSuccess: () => {
-			toast.success('Invoice recalculation has been triggered. The replacement invoice will be available once the process completes.');
+			toast.success(t('billing:invoices.list.tableMenu.toast.recalculateTriggered'));
 			refetchQueries(['fetchInvoice', data.id]);
 			refetchQueries(['fetchInvoices']);
 			refetchQueries(['invoice', data.customer_id]);
 		},
 		onError: (error: Error) => {
-			toast.error(error.message || 'Unable to recalculate invoice');
+			toast.error(error.message || t('billing:invoices.list.tableMenu.toast.recalculateFailed'));
 		},
 	});
 
@@ -76,99 +78,107 @@ const InvoiceTableMenu: FC<Props> = ({ data }) => {
 		isRecordPaymentDrawerOpen: false,
 	});
 
-	const menuOptions: DropdownMenuOption[] = [
-		{
-			label: 'Download Invoice',
-			group: 'Actions',
-			onSelect: () => {
-				setIsDownloadFormatOpen(true);
+	const actionsGroup = t('common:tableMenu.groups.actions');
+	const connectionsGroup = t('common:tableMenu.groups.connections');
+
+	const menuOptions: DropdownMenuOption[] = useMemo(
+		() => [
+			{
+				label: t('billing:invoices.list.tableMenu.downloadInvoice'),
+				group: actionsGroup,
+				onSelect: () => {
+					setIsDownloadFormatOpen(true);
+				},
 			},
-		},
-		{
-			label: 'Send Communication',
-			group: 'Actions',
-			onSelect: () => {
-				triggerCommunication(data.id);
+			{
+				label: t('billing:invoices.list.tableMenu.sendCommunication'),
+				group: actionsGroup,
+				onSelect: () => {
+					triggerCommunication(data.id);
+				},
 			},
-		},
-		{
-			label: 'Record Payment',
-			group: 'Actions',
-			onSelect: () => {
-				setState({
-					...state,
-					isRecordPaymentDrawerOpen: true,
-					activeInvoice: data,
-				});
+			{
+				label: t('billing:invoices.list.tableMenu.recordPayment'),
+				group: actionsGroup,
+				onSelect: () => {
+					setState((prev) => ({
+						...prev,
+						isRecordPaymentDrawerOpen: true,
+						activeInvoice: data,
+					}));
+				},
+				disabled:
+					data?.payment_status === PAYMENT_STATUS.SUCCEEDED ||
+					data?.invoice_status === INVOICE_STATUS.VOIDED ||
+					(data?.amount_remaining ?? 0) === 0,
 			},
-			disabled:
-				data?.payment_status === PAYMENT_STATUS.SUCCEEDED ||
-				data?.invoice_status === INVOICE_STATUS.VOIDED ||
-				(data?.amount_remaining ?? 0) === 0,
-		},
-		{
-			label: 'Update Invoice Status',
-			group: 'Actions',
-			onSelect: () => {
-				setState({
-					...state,
-					isStatusModalOpen: true,
-					activeInvoice: data,
-				});
+			{
+				label: t('billing:invoices.list.tableMenu.updateInvoiceStatus'),
+				group: actionsGroup,
+				onSelect: () => {
+					setState((prev) => ({
+						...prev,
+						isStatusModalOpen: true,
+						activeInvoice: data,
+					}));
+				},
 			},
-		},
-		{
-			label: 'Update Payment Status',
-			group: 'Actions',
-			onSelect: () => {
-				setState({
-					...state,
-					isPaymentModalOpen: true,
-					activeInvoice: data,
-				});
+			{
+				label: t('billing:invoices.list.tableMenu.updatePaymentStatus'),
+				group: actionsGroup,
+				onSelect: () => {
+					setState((prev) => ({
+						...prev,
+						isPaymentModalOpen: true,
+						activeInvoice: data,
+					}));
+				},
 			},
-		},
-		{
-			label: 'Issue a Credit Note',
-			group: 'Actions',
-			disabled: data?.invoice_status !== 'FINALIZED' || data?.payment_status === 'REFUNDED',
-			onSelect: () => {
-				navigate(`${RouteNames.customers}/${data?.customer_id}/invoice/${data?.id}/credit-note`);
+			{
+				label: t('billing:invoices.list.tableMenu.issueCreditNote'),
+				group: actionsGroup,
+				disabled: data?.invoice_status !== 'FINALIZED' || data?.payment_status === 'REFUNDED',
+				onSelect: () => {
+					navigate(`${RouteNames.customers}/${data?.customer_id}/invoice/${data?.id}/credit-note`);
+				},
 			},
-		},
-		{
-			label: 'Recalculate Invoice',
-			group: 'Actions',
-			disabled:
-				data?.invoice_status !== INVOICE_STATUS.VOIDED ||
-				data?.invoice_type !== INVOICE_TYPE.SUBSCRIPTION ||
-				!!data?.recalculated_invoice_id ||
-				isRecalculating,
-			onSelect: () => {
-				recalculateInvoice(data.id);
+			{
+				label: t('billing:invoices.list.tableMenu.recalculateInvoice'),
+				group: actionsGroup,
+				disabled:
+					data?.invoice_status !== INVOICE_STATUS.VOIDED ||
+					data?.invoice_type !== INVOICE_TYPE.SUBSCRIPTION ||
+					!!data?.recalculated_invoice_id ||
+					isRecalculating,
+				onSelect: () => {
+					recalculateInvoice(data.id);
+				},
 			},
-		},
-		{
-			label: 'View Customer',
-			group: 'Connections',
-			onSelect: () => {
-				navigate(`${RouteNames.customers}/${data.customer_id}`);
+			{
+				label: t('billing:invoices.list.tableMenu.viewCustomer'),
+				group: connectionsGroup,
+				onSelect: () => {
+					navigate(`${RouteNames.customers}/${data.customer_id}`);
+				},
 			},
-		},
-		{
-			label: 'View Subscription',
-			group: 'Connections',
-			onSelect() {
-				navigate(`${RouteNames.customers}/${data.customer_id}/subscription/${data.subscription_id}`);
+			{
+				label: t('billing:invoices.list.tableMenu.viewSubscription'),
+				group: connectionsGroup,
+				onSelect() {
+					navigate(`${RouteNames.customers}/${data.customer_id}/subscription/${data.subscription_id}`);
+				},
 			},
-		},
-	];
+		],
+		[actionsGroup, connectionsGroup, data, isRecalculating, navigate, recalculateInvoice, t, triggerCommunication],
+	);
+
 	const handlePaymentSuccess = () => {
 		refetchQueries(['fetchInvoice', data.id]);
 		refetchQueries(['payments', data.id]);
 		refetchQueries(['fetchInvoices']);
 		refetchQueries(['invoice', data.customer_id]);
 	};
+
 	return (
 		<div>
 			<InvoiceDownloadFormatDialog
@@ -179,9 +189,9 @@ const InvoiceTableMenu: FC<Props> = ({ data }) => {
 				onSelectCsv={() => {
 					const rows = InvoiceApi.downloadInvoiceCsv(data);
 					if (rows === 0) {
-						toast.error('No billable line items to export');
+						toast.error(t('billing:invoices.list.tableMenu.toast.noLineItemsToExport'));
 					} else {
-						toast.success('Invoice CSV downloaded');
+						toast.success(t('billing:invoices.list.tableMenu.toast.csvDownloaded'));
 					}
 				}}
 			/>
@@ -189,29 +199,29 @@ const InvoiceTableMenu: FC<Props> = ({ data }) => {
 				invoice={state.activeInvoice}
 				isOpen={state.isStatusModalOpen}
 				onOpenChange={(open) => {
-					setState({
-						...state,
+					setState((prev) => ({
+						...prev,
 						isStatusModalOpen: open,
-					});
+					}));
 				}}
 			/>
 			<InvoicePaymentStatusModal
 				invoice={state.activeInvoice}
 				isOpen={state.isPaymentModalOpen}
 				onOpenChange={(open) => {
-					setState({
-						...state,
+					setState((prev) => ({
+						...prev,
 						isPaymentModalOpen: open,
-					});
+					}));
 				}}
 			/>
 			<RecordPaymentTopup
 				isOpen={state.isRecordPaymentDrawerOpen}
 				onOpenChange={(open: boolean) => {
-					setState({
-						...state,
+					setState((prev) => ({
+						...prev,
 						isRecordPaymentDrawerOpen: open,
-					});
+					}));
 				}}
 				destination_id={data.id}
 				destination_type={PAYMENT_DESTINATION_TYPE.INVOICE}

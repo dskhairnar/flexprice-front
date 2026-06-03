@@ -150,7 +150,7 @@
 		"labelPostPaid": "آجلة الدفع",
 		"nameLabel": "اسم المحفظة",
 		"statusLabel": "الحالة",
-		"creditRateFormat": "1 رصيد = {{amount}}{{currencySymbol}}",
+		"creditRateFormat": "{{amount}} رصيد = {{currencySymbol}}",
 		"addTopupRate": "سعر إعادة الشحن",
 		"addFreeCredits": "ائتمانات مجانية",
 		"saveWallet": "حفظ المحفظة",
@@ -362,7 +362,14 @@
 			"transactionsPaginationUnit": "المعاملات",
 			"noTransactionsSubtitle": "لا توجد معاملات حديثة",
 			"noMetadataTitle": "لا توجد بيانات وصفية",
-			"noMetadataHint": "أضف بيانات وصفية مخصّصة لتخزين معلومات إضافية عن هذه المحفظة."
+			"noMetadataHint": "أضف بيانات وصفية مخصّصة لتخزين معلومات إضافية عن هذه المحفظة.",
+			"menu": {
+				"createWallet": "إنشاء محفظة",
+				"autoTopup": "تعبئة تلقائية",
+				"alertSettings": "إعدادات التنبيه",
+				"manualDebit": "خصم يدوي",
+				"terminate": "إنهاء"
+			}
 		}
 	},
 	"subscriptionEdit": {
@@ -437,7 +444,13 @@
 			"activateSubtitle": "سيُبدأ تفعيل الاشتراك دورة الفوترة من تاريخ البدء المختار.",
 			"startDate": "تاريخ البدء",
 			"activating": "جارٍ التفعيل…",
-			"activate": "تفعيل"
+			"activate": "تفعيل",
+			"menu": {
+				"activateSubscription": "تفعيل الاشتراك",
+				"editSubscription": "تعديل الاشتراك",
+				"addSubscriptionPhase": "إضافة مرحلة اشتراك",
+				"cancelSubscription": "إلغاء الاشتراك"
+			}
 		},
 		"subscriptionForm": {
 			"subscriptionDetails": "تفاصيل الاشتراك",

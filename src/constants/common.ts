@@ -1,9 +1,11 @@
+import { formatLocalizedCurrency, formatLocalizedNumber, getLocalizedCurrencySymbol } from '@/i18n/display/formatNumber';
+
 // =============================================================================
 // COMMON CONSTANTS & UTILITIES
 // =============================================================================
 
 // =============================================================================
-// CURRENCY FORMATTERS
+// CURRENCY FORMATTERS (locale-aware via active i18n language)
 // =============================================================================
 
 const CURRENCY_SYMBOL_OVERRIDES: Record<string, string> = {
@@ -12,53 +14,20 @@ const CURRENCY_SYMBOL_OVERRIDES: Record<string, string> = {
 
 const getCurrencySymbolOverride = (currency: string): string | undefined => CURRENCY_SYMBOL_OVERRIDES[currency.toUpperCase()];
 
-export const formatCurrency = (amount: number | string, currency: string): string => {
-	const numAmount = typeof amount === 'string' ? parseFloat(amount) : amount;
-	if (isNaN(numAmount)) return `${getCurrencySymbol(currency)}0.00`;
-
-	const formatter = new Intl.NumberFormat('en-US', {
-		style: 'currency',
-		currency: currency,
-		minimumFractionDigits: 2,
-		maximumFractionDigits: 2,
-	});
-	const symbolOverride = getCurrencySymbolOverride(currency);
-
-	if (!symbolOverride) return formatter.format(numAmount);
-
-	return formatter
-		.formatToParts(numAmount)
-		.map((part) => (part.type === 'currency' ? symbolOverride : part.value))
-		.join('');
-};
+export const formatCurrency = (amount: number | string, currency: string): string =>
+	formatLocalizedCurrency(amount, currency, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
 export const formatAmount = (amount: number | string, currency?: string): string => {
-	const numAmount = typeof amount === 'string' ? parseFloat(amount) : amount;
-	if (isNaN(numAmount)) return '0.00';
-
 	if (currency) {
-		return formatCurrency(numAmount, currency);
+		return formatCurrency(amount, currency);
 	}
-
-	return numAmount.toFixed(2);
+	return formatLocalizedNumber(amount, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 };
 
 export const getCurrencySymbol = (currency: string): string => {
 	const symbolOverride = getCurrencySymbolOverride(currency);
 	if (symbolOverride) return symbolOverride;
-
-	try {
-		return (
-			new Intl.NumberFormat('en-US', {
-				style: 'currency',
-				currency: currency,
-			})
-				.formatToParts(0)
-				.find((part) => part.type === 'currency')?.value || currency
-		);
-	} catch {
-		return currency;
-	}
+	return getLocalizedCurrencySymbol(currency);
 };
 
 // =============================================================================

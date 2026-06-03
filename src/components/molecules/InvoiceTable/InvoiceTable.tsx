@@ -1,7 +1,7 @@
 import { Invoice, INVOICE_STATUS } from '@/models/Invoice';
 import { FC, useMemo } from 'react';
 import FlexpriceTable, { ColumnData, RedirectCell } from '../Table';
-import { formatDateShort, getCurrencySymbol } from '@/utils/common/helper_functions';
+import { formatDateShort, formatLocalizedCurrency } from '@/utils/common/helper_functions';
 import { Chip } from '@/components/atoms';
 import { useNavigate } from 'react-router';
 import InvoiceTableMenu from './InvoiceTableMenu';
@@ -66,7 +66,7 @@ const InvoiceTable: FC<Props> = ({ data }) => {
 			},
 			{
 				title: t('invoices.list.columns.amount'),
-				render: (row) => <span>{`${getCurrencySymbol(row.currency)}${row.amount_due}`}</span>,
+				render: (row) => <span>{formatLocalizedCurrency(row.amount_due, row.currency)}</span>,
 			},
 			{
 				title: t('invoices.list.columns.invoiceStatus'),

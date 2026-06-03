@@ -23,10 +23,9 @@ import toast from 'react-hot-toast';
 import { useParams, useOutletContext } from 'react-router';
 import CreateCustomerWalletModal from '../customers/CreateCustomerWalletModal';
 import { EllipsisVertical, Info, Pencil, Trash2, Wallet as WalletIcon, Bell, Minus, RefreshCw } from 'lucide-react';
-import { getCurrencySymbol } from '@/utils/common/helper_functions';
+import { formatLocalizedCurrency, formatLocalizedNumber, resolveCurrencyCode } from '@/utils/common/helper_functions';
 import useQueryParams from '@/hooks/useQueryParams';
 import { DetailsCard } from '@/components/molecules';
-import { formatAmount } from '@/components/atoms/Input/Input';
 import { refetchQueries } from '@/core/services/tanstack/ReactQueryProvider';
 import { logger } from '@/utils/common/Logger';
 import { PremiumFeatureIcon } from '@/components/molecules/PremiumFeature/PremiumFeature';
@@ -136,35 +135,35 @@ const CustomerWalletTab = () => {
 		() => [
 			{
 				icon: <WalletIcon />,
-				label: 'Create Wallet',
+				label: t('customers:tabPanels.wallet.menu.createWallet'),
 				onSelect: () => setShowCreateWalletModal(true),
 			},
 			...(activeWallet
 				? [
 						{
 							icon: <RefreshCw />,
-							label: 'Auto Topup',
+							label: t('customers:tabPanels.wallet.menu.autoTopup'),
 							onSelect: () => setShowAutoTopupModal(true),
 						},
 						{
 							icon: <Bell />,
-							label: 'Alert Settings',
+							label: t('customers:tabPanels.wallet.menu.alertSettings'),
 							onSelect: () => setShowAlertDialog(true),
 						},
 						{
 							icon: <Minus />,
-							label: 'Manual Debit',
+							label: t('customers:tabPanels.wallet.menu.manualDebit'),
 							onSelect: () => setShowDebitModal(true),
 						},
 						{
 							icon: <Trash2 />,
-							label: 'Terminate',
+							label: t('customers:tabPanels.wallet.menu.terminate'),
 							onSelect: () => setShowTerminateModal(true),
 						},
 					]
 				: []),
 		],
-		[activeWallet],
+		[activeWallet, t],
 	);
 
 	// Effect to set initial active wallet
@@ -384,8 +383,11 @@ const CustomerWalletTab = () => {
 										value: (
 											<span>
 												{t('wallet.creditRateFormat', {
-													amount: activeWallet?.conversion_rate ?? '',
-													currencySymbol: getCurrencySymbol(activeWallet?.currency ?? ''),
+													amount: formatLocalizedNumber(1),
+													currencySymbol: formatLocalizedCurrency(
+														activeWallet?.conversion_rate ?? 1,
+														resolveCurrencyCode(activeWallet?.currency),
+													),
 												})}
 											</span>
 										),
@@ -395,8 +397,11 @@ const CustomerWalletTab = () => {
 										value: (
 											<span>
 												{t('wallet.creditRateFormat', {
-													amount: activeWallet?.topup_conversion_rate ?? '',
-													currencySymbol: getCurrencySymbol(activeWallet?.currency ?? ''),
+													amount: formatLocalizedNumber(1),
+													currencySymbol: formatLocalizedCurrency(
+														activeWallet?.topup_conversion_rate ?? 1,
+														resolveCurrencyCode(activeWallet?.currency),
+													),
 												})}
 											</span>
 										),
@@ -443,21 +448,23 @@ const CustomerWalletTab = () => {
 												</div>
 											</div>
 
-											<div className='flex items-baseline space-x-2'>
-												<span className='text-gray-500 text-2xl font-medium'>{getCurrencySymbol(walletBalance?.currency ?? '')}</span>
-												<span className='text-4xl font-medium text-gray-900 leading-tight'>
-													{type === WALLET_BALANCE_TYPE.CURRENT
-														? formatAmount(walletBalance?.balance.toString() ?? '0')
-														: formatAmount(walletBalance?.real_time_balance.toString() ?? '0')}
+											<div className='flex items-baseline gap-2'>
+												<span className='text-4xl font-medium text-gray-900 leading-tight tabular-nums'>
+													{formatLocalizedCurrency(
+														type === WALLET_BALANCE_TYPE.CURRENT ? (walletBalance?.balance ?? 0) : (walletBalance?.real_time_balance ?? 0),
+														resolveCurrencyCode(walletBalance?.currency),
+													)}
 												</span>
 											</div>
 
 											<div className='flex justify-between items-center'>
-												<span className='text-sm text-gray-500'>
-													{type === WALLET_BALANCE_TYPE.CURRENT
-														? formatAmount(walletBalance?.credit_balance.toString() ?? '0')
-														: formatAmount(walletBalance?.real_time_credit_balance.toString() ?? '0')}
-													{'  '}
+												<span className='text-sm text-gray-500 tabular-nums'>
+													{formatLocalizedNumber(
+														type === WALLET_BALANCE_TYPE.CURRENT
+															? (walletBalance?.credit_balance ?? 0)
+															: (walletBalance?.real_time_credit_balance ?? 0),
+														{ maximumFractionDigits: 0, minimumFractionDigits: 0 },
+													)}{' '}
 													{t('tabPanels.wallet.creditsSuffix')}
 												</span>
 											</div>

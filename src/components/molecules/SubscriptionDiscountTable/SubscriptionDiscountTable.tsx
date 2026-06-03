@@ -4,8 +4,7 @@ import { Chip, ActionButton, AddButton, FormHeader } from '@/components/atoms';
 import { Coupon } from '@/models/Coupon';
 import { CouponModal } from '@/components/molecules';
 import formatCouponName from '@/utils/common/format_coupon_name';
-import { getCurrencySymbol } from '@/utils/common/helper_functions';
-import { formatAmount } from '@/components/atoms/Input/Input';
+import { formatLocalizedCurrency, formatLocalizedNumber, resolveCurrencyCode } from '@/utils/common/helper_functions';
 import { useQuery } from '@tanstack/react-query';
 import CouponApi from '@/api/CouponApi';
 import filterValidCoupons from '@/utils/helpers/coupons';
@@ -100,19 +99,20 @@ const SubscriptionDiscountTable: FC<Props> = ({ coupon, onChange, disabled, curr
 			render: (row) => {
 				try {
 					if (row?.type === 'fixed') {
-						const symbol = getCurrencySymbol(row.currency?.trim() ? row.currency : '');
 						return (
 							<div className='text-green-600 font-medium'>
 								{t('subscriptions.discountFixedOff', {
-									symbol,
-									amount: formatAmount(row.amount_off ?? '0'),
+									symbol: '',
+									amount: formatLocalizedCurrency(row.amount_off ?? 0, resolveCurrencyCode(row.currency)),
 								})}
 							</div>
 						);
 					} else if (row?.type === 'percentage') {
 						return (
 							<div className='text-green-600 font-medium'>
-								{t('subscriptions.discountPercentOff', { percent: row.percentage_off ?? 0 })}
+								{t('subscriptions.discountPercentOff', {
+									percent: formatLocalizedNumber(row.percentage_off ?? 0, { maximumFractionDigits: 2 }),
+								})}
 							</div>
 						);
 					}
@@ -151,7 +151,7 @@ const SubscriptionDiscountTable: FC<Props> = ({ coupon, onChange, disabled, curr
 					}}
 					archive={{
 						enabled: !disabled,
-						text: 'Remove',
+						text: t('common:labels.remove'),
 					}}
 				/>
 			),

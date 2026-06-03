@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { BsThreeDotsVertical } from 'react-icons/bs';
 import {
 	DropdownMenu as ShadcnMenu,
@@ -32,7 +33,10 @@ export interface DropdownMenuOption {
 	group?: string;
 }
 
-const DropdownMenu: React.FC<DropdownMenuProps> = ({ options, trigger, isOpen, onOpenChange, dir = 'ltr', className, align = 'end' }) => {
+const DropdownMenu: React.FC<DropdownMenuProps> = ({ options, trigger, isOpen, onOpenChange, dir, className, align = 'end' }) => {
+	const { i18n } = useTranslation();
+	const resolvedDir = dir ?? (i18n.dir() as 'ltr' | 'rtl');
+
 	// Internal state for uncontrolled mode
 	const [internalOpen, setInternalOpen] = useState(false);
 
@@ -112,7 +116,7 @@ const DropdownMenu: React.FC<DropdownMenuProps> = ({ options, trigger, isOpen, o
 
 	return (
 		<div className={cn('', className)} onClick={handleClick} data-interactive='true'>
-			<ShadcnMenu dir={dir} onOpenChange={handleOpenChange} open={isMenuOpen}>
+			<ShadcnMenu dir={resolvedDir} onOpenChange={handleOpenChange} open={isMenuOpen}>
 				<DropdownMenuTrigger className='w-full focus:outline-none rounded-md'>
 					{trigger || <BsThreeDotsVertical className='text-base text-muted-foreground hover:text-foreground transition-colors' />}
 				</DropdownMenuTrigger>
