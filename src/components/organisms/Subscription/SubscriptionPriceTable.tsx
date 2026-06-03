@@ -16,9 +16,8 @@ import { ExtendedPriceOverride } from '@/utils';
 import { LineItemCommitmentConfig } from '@/types/dto/LineItemCommitmentConfig';
 import type { CommitmentTimeBucket } from '@/types/dto/CommitmentTimeBucket';
 import type { AddedSubscriptionLineItem } from './AddSubscriptionChargeDialog';
-import { getCurrencySymbol } from '@/utils/common/helper_functions';
 import { formatBillingPeriodForPrice } from '@/utils/common/helper_functions';
-import { formatAmount } from '@/components/atoms/Input/Input';
+import { formatLocalizedCurrency, formatLocalizedNumber } from '@/utils/common/helper_functions';
 import { BILLING_PERIOD } from '@/constants/constants';
 import { isOneTimePlanPrice } from '@/utils/subscription/planPricesForSubscriptionUi';
 import type { TFunction } from 'i18next';
@@ -212,10 +211,10 @@ function formatAddedLineItemPrice(item: AddedSubscriptionLineItem, t: TFunction,
 		p.price_unit_type === PRICE_UNIT_TYPE.CUSTOM
 			? p.price_unit_config?.price_unit
 			: ((p as { currency?: string }).currency ?? fallbackCurrency);
-	const symbol = currency ? getCurrencySymbol(currency) : '';
 	const amount = p.amount ?? p.price_unit_config?.amount ?? '0';
 	const period = p.billing_period ? formatBillingPeriodForPrice(p.billing_period, t) : '';
-	return `${symbol}${formatAmount(amount)}${period ? ` / ${period}` : ''}`;
+	const formatted = currency ? formatLocalizedCurrency(amount, currency) : formatLocalizedNumber(amount, { maximumFractionDigits: 6 });
+	return `${formatted}${period ? ` / ${period}` : ''}`;
 }
 
 const SubscriptionPriceTable: FC<Props> = ({

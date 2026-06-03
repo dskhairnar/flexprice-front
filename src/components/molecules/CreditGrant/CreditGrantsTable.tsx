@@ -4,7 +4,7 @@ import FlexpriceTable, { ColumnData } from '../Table';
 import { CreditGrant } from '@/models';
 import { formatExpirationPeriod } from '@/utils/common/credit_grant_helpers';
 import { formatBillingPeriodForPrice } from '@/utils/common/helper_functions';
-import { formatAmount } from '@/components/atoms/Input/Input';
+import { formatLocalizedNumber } from '@/utils/common/helper_functions';
 import CreditGrantApi from '@/api/CreditGrantApi';
 import { EllipsisVertical, Trash2 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
@@ -36,7 +36,7 @@ const CreditGrantsTable: React.FC<CreditGrantsTableProps> = ({ data, onDelete, s
 		{
 			title: t('tableColumns.credits'),
 			render: (row) => {
-				return <span>{formatAmount(row.credits.toString())}</span>;
+				return <span>{formatLocalizedNumber(row.credits)}</span>;
 			},
 		},
 		{

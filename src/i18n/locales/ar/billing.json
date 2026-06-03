@@ -71,6 +71,27 @@
 				"billingEntity": "كيان الفوترة",
 				"paymentStatus": "حالة الدفع",
 				"dueDate": "تاريخ الاستحقاق"
+			},
+			"tableMenu": {
+				"downloadInvoice": "تنزيل الفاتورة",
+				"sendCommunication": "إرسال اتصال",
+				"recordPayment": "تسجيل الدفع",
+				"updateInvoiceStatus": "تحديث حالة الفاتورة",
+				"updatePaymentStatus": "تحديث حالة الدفع",
+				"issueCreditNote": "إصدار إشعار دائن",
+				"recalculateInvoice": "إعادة حساب الفاتورة",
+				"viewCustomer": "عرض العميل",
+				"viewSubscription": "عرض الاشتراك",
+				"toast": {
+					"communicationTriggered": "تم تشغيل الاتصال",
+					"communicationFailed": "تعذّر تشغيل الاتصال",
+					"invoiceDownloaded": "تم تنزيل الفاتورة",
+					"downloadFailed": "تعذّر تنزيل الفاتورة",
+					"recalculateTriggered": "تم تشغيل إعادة حساب الفاتورة. ستكون الفاتورة البديلة متاحة بعد اكتمال العملية.",
+					"recalculateFailed": "تعذّر إعادة حساب الفاتورة",
+					"noLineItemsToExport": "لا توجد بنود قابلة للفوترة للتصدير",
+					"csvDownloaded": "تم تنزيل CSV للفاتورة"
+				}
 			}
 		},
 		"details": {

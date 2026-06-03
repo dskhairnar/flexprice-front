@@ -27,7 +27,7 @@ import { Card } from '@/components/atoms';
 import { ChargeValueCell } from '@/components/molecules';
 import { FEATURE_TYPE } from '@/models/Feature';
 import { getFeatureTypeChips } from '@/components/molecules/CustomerUsageTable/CustomerUsageTable';
-import { formatAmount } from '@/components/atoms/Input/Input';
+import { formatLocalizedNumber } from '@/utils/common/helper_functions';
 import { Entitlement } from '@/models/Entitlement';
 import { ENTITY_STATUS } from '@/models';
 import { ENTITLEMENT_ENTITY_TYPE } from '@/models/Entitlement';
@@ -89,7 +89,7 @@ const getFeatureValue = (
 			const unitSingular = entitlement.feature?.unit_singular || unitLabel;
 			return (
 				<span className='flex items-end gap-1'>
-					{formatAmount(value || unlimited)}
+					{formatLocalizedNumber(value || unlimited, { maximumFractionDigits: 0 })}
 					<span className='text-[#64748B] text-sm font-normal font-sans'>
 						{value ? (Number(value) > 0 ? unitPlural : unitSingular) : unitPlural}
 					</span>

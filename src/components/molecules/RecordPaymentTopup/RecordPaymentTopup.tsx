@@ -1,6 +1,6 @@
 import { Button, Input, Select, Textarea, PaymentUrlSuccessDialog, DatePicker, Dialog } from '@/components/atoms';
 import { FC, useState, useEffect, useMemo } from 'react';
-import { getCurrencySymbol } from '@/utils/common/helper_functions';
+import { formatLocalizedCurrency, getCurrencySymbol } from '@/utils/common/helper_functions';
 import { PAYMENT_METHOD_TYPE, PAYMENT_DESTINATION_TYPE, Payment } from '@/models/Payment';
 import { WALLET_TYPE } from '@/models/Wallet';
 import PaymentApi from '@/api/PaymentApi';
@@ -85,7 +85,7 @@ const RecordPaymentTopup: FC<Props> = ({
 		[wallets, currency],
 	);
 	const walletOptions = filteredWallets.map((wallet) => ({
-		label: `${wallet.name || 'Unnamed Wallet'} (${getCurrencySymbol(wallet.currency)}${wallet.balance || 0})`,
+		label: `${wallet.name || 'Unnamed Wallet'} (${formatLocalizedCurrency(wallet.balance || 0, wallet.currency)})`,
 		value: wallet.id,
 	}));
 	const selectOptions =
@@ -147,7 +147,10 @@ const RecordPaymentTopup: FC<Props> = ({
 		if (!formData.amount || formData.amount <= 0) {
 			newErrors.amount = 'Amount is required and must be greater than 0';
 		} else if (max_amount && formData.amount > max_amount) {
-			newErrors.amount = `Amount cannot exceed ${getCurrencySymbol(currency)}${max_amount}`;
+			newErrors.amount = t('payments.amountExceedsMax', {
+				amount: formatLocalizedCurrency(max_amount, currency),
+				defaultValue: `Amount cannot exceed ${formatLocalizedCurrency(max_amount, currency)}`,
+			});
 		}
 
 		if (!formData.payment_method_type) {
@@ -368,7 +371,7 @@ const RecordPaymentTopup: FC<Props> = ({
 						value={formData.amount.toString()}
 						onChange={(value) => setFormData({ ...formData, amount: Number(value) || 0 })}
 						error={errors.amount}
-						description={max_amount ? t('payments.amountDueInline', { amount: `${getCurrencySymbol(currency)}${max_amount}` }) : undefined}
+						description={max_amount ? t('payments.amountDueInline', { amount: formatLocalizedCurrency(max_amount, currency) }) : undefined}
 					/>
 
 					<Select

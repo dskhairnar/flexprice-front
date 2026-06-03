@@ -5,7 +5,7 @@ import toast from 'react-hot-toast';
 import CustomerPortalApi from '@/api/CustomerPortalApi';
 import { Card, Chip } from '@/components/atoms';
 import { WALLET_STATUS } from '@/models/Wallet';
-import { formatAmount } from '@/components/atoms/Input/Input';
+import { formatLocalizedCurrency, formatLocalizedNumber, resolveCurrencyCode } from '@/utils/common/helper_functions';
 import { getCurrencySymbol } from '@/utils/common/helper_functions';
 import { Wallet as WalletIcon } from 'lucide-react';
 import EmptyState from '../EmptyState';
@@ -78,7 +78,7 @@ const WalletBalanceWidget = () => {
 		);
 	}
 
-	const currencySymbol = getCurrencySymbol(walletBalance?.currency ?? wallet.currency ?? 'USD');
+	const currencySymbol = getCurrencySymbol(resolveCurrencyCode(walletBalance?.currency ?? wallet.currency));
 
 	return (
 		<Card
@@ -113,7 +113,7 @@ const WalletBalanceWidget = () => {
 						</span>
 						<div className='flex items-baseline gap-2'>
 							<span className='text-4xl font-semibold' style={{ color: 'var(--portal-text-primary, #09090b)' }}>
-								{formatAmount(walletBalance?.real_time_credit_balance ?? wallet.credit_balance?.toString() ?? '0')}
+								{formatLocalizedNumber(walletBalance?.real_time_credit_balance ?? wallet.credit_balance ?? 0, { maximumFractionDigits: 2 })}
 							</span>
 							<span className='text-base font-normal' style={{ color: 'var(--portal-text-secondary, #71717a)' }}>
 								{t('wallet.credits')}
@@ -121,7 +121,8 @@ const WalletBalanceWidget = () => {
 						</div>
 						<p className='text-sm mt-1' style={{ color: 'var(--portal-text-secondary, #71717a)' }}>
 							{currencySymbol}
-							{formatAmount(walletBalance?.real_time_balance ?? wallet.balance?.toString() ?? '0')} {t('wallet.valueSuffix')}
+							{formatLocalizedCurrency(walletBalance?.real_time_balance ?? wallet.balance ?? 0, resolveCurrencyCode(wallet.currency))}{' '}
+							{t('wallet.valueSuffix')}
 						</p>
 					</div>
 				)}

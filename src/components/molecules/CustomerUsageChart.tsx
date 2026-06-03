@@ -8,6 +8,7 @@ import { GetUsageAnalyticsResponse } from '@/types/dto';
 import { UsageAnalyticItem } from '@/models/Analytics';
 import { useTranslation } from 'react-i18next';
 import { getIntlLocale } from '@/i18n/display/intlLocale';
+import { formatLocalizedNumber } from '@/i18n/display/formatNumber';
 
 // Configuration constants - adjust these values as needed
 const MAX_LEGEND_ITEMS = 5;
@@ -389,7 +390,9 @@ export const CustomerUsageChart: React.FC<CustomerUsageChartProps> = ({ data, ti
 																</span>
 															</div>
 															<span style={{ fontWeight: 500, color: '#111827' }}>
-																{typeof entry.value === 'number' ? entry.value.toLocaleString() : entry.value}
+																{typeof entry.value === 'number'
+																	? formatLocalizedNumber(entry.value, { maximumFractionDigits: 2 })
+																	: entry.value}
 															</span>
 														</div>
 													))}

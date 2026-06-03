@@ -1,6 +1,6 @@
 import { FormHeader } from '@/components/atoms';
 import { LineItem } from '@/models/Invoice';
-import { getCurrencySymbol } from '@/utils/common/helper_functions';
+import { formatLocalizedCurrency, formatLocalizedNumber, resolveCurrencyCode } from '@/utils/common/helper_functions';
 import { FC } from 'react';
 import { useTranslation } from 'react-i18next';
 
@@ -14,14 +14,11 @@ interface Props {
 	total_label?: string;
 }
 
-const formatAmount = (amount: number, currency: string): string => {
-	return `${getCurrencySymbol(currency)}${amount}`;
-};
-
 const InvoiceCreditLineItemTable: FC<Props> = ({ data, total_amount, currency, title, sub_total, tax, total_label }) => {
 	const { t } = useTranslation(['billing', 'common']);
 	const li = 'invoices.details.lineItemsTable';
 	const clt = 'invoices.details.creditLineTable';
+	const resolvedCurrency = resolveCurrencyCode(currency);
 
 	if (data.length === 0) {
 		return <div></div>;
@@ -48,11 +45,15 @@ const InvoiceCreditLineItemTable: FC<Props> = ({ data, total_amount, currency, t
 								return (
 									<tr key={index}>
 										<td className='py-3 px-2 text-gray-800'>{item.display_name ?? t('common:labels.na')}</td>
-										<td className='py-3 px-2 text-center text-gray-800'>
-											{item.quantity != null && item.quantity !== '' ? item.quantity : t('common:labels.na')}
+										<td className='py-3 px-2 text-center text-gray-800 tabular-nums'>
+											{item.quantity != null && item.quantity !== ''
+												? formatLocalizedNumber(item.quantity, { maximumFractionDigits: 6 })
+												: t('common:labels.na')}
 										</td>
 										<td className='py-3 px-2 text-center text-gray-800'>{t('common:labels.na')}</td>
-										<td className='py-3 px-2 text-end text-[#2A9D90]'>{formatAmount(Number(item.amount ?? 0), item.currency)}</td>
+										<td className='py-3 px-2 text-end text-[#2A9D90] tabular-nums'>
+											{formatLocalizedCurrency(Number(item.amount ?? 0), item.currency ?? resolvedCurrency)}
+										</td>
 									</tr>
 								);
 							})}
@@ -64,16 +65,16 @@ const InvoiceCreditLineItemTable: FC<Props> = ({ data, total_amount, currency, t
 					<div className='text-sm text-gray-800 space-y-4 w-1/3'>
 						<div className='flex justify-between'>
 							<span>{t(`${li}.subtotal`)}</span>
-							<span className='text-[#2A9D90] '>{`${getCurrencySymbol(currency ?? '')}${sub_total}`}</span>
+							<span className='text-[#2A9D90] tabular-nums'>{formatLocalizedCurrency(Number(sub_total ?? 0), resolvedCurrency)}</span>
 						</div>
 						<div className='flex justify-between'>
 							<span>{t(`${li}.tax`)}</span>
-							<span>{tax != null ? tax : t('common:labels.na')}</span>
+							<span className='tabular-nums'>{tax != null ? formatLocalizedNumber(tax) : t('common:labels.na')}</span>
 						</div>
 						<div className=' border-t '></div>
 						<div className='flex justify-between font-bold text-gray-900 '>
 							<span>{total_label || t('invoices.details.creditOnCustomerWallet')}</span>
-							<span className=' text-[#2A9D90] '>{formatAmount(total_amount ?? 0, currency ?? '')}</span>
+							<span className='text-[#2A9D90] tabular-nums'>{formatLocalizedCurrency(Number(total_amount ?? 0), resolvedCurrency)}</span>
 						</div>
 					</div>
 				</div>

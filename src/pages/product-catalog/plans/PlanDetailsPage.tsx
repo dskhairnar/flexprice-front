@@ -49,7 +49,7 @@ type Params = {
 };
 
 const PlanDetailsPage = () => {
-	const { t } = useTranslation(['common']);
+	const { t } = useTranslation(['common', 'catalog']);
 	const navigate = useNavigate();
 	const location = useLocation();
 	const { planId } = useParams<Params>();
@@ -131,23 +131,23 @@ const PlanDetailsPage = () => {
 	const dropdownOptions: DropdownMenuOption[] = useMemo(
 		() => [
 			{
-				label: 'Edit',
+				label: t('plans.listPage.rowActions.edit'),
 				icon: <Pencil />,
 				onSelect: () => setPlanDrawerOpen(true),
 			},
 			{
-				label: 'Duplicate',
+				label: t('plans.listPage.rowActions.duplicate'),
 				icon: <Copy />,
 				onSelect: () => setDuplicateDialogOpen(true),
 			},
 			{
-				label: 'Archive',
+				label: t('plans.listPage.rowActions.archive'),
 				icon: <EyeOff />,
 				onSelect: () => archivePlan(),
 				disabled: planData?.status !== ENTITY_STATUS.PUBLISHED,
 			},
 		],
-		[archivePlan, planData?.status],
+		[archivePlan, planData?.status, t],
 	);
 
 	// Handle tab changes based on URL

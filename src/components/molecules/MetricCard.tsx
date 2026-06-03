@@ -1,5 +1,5 @@
 import { formatNumber } from '@/utils/common';
-import { getCurrencySymbol } from '@/utils/common/helper_functions';
+import { formatLocalizedCurrency } from '@/utils/common/helper_functions';
 import { TrendingUp, TrendingDown } from 'lucide-react';
 
 interface MetricCardProps {
@@ -26,7 +26,7 @@ const MetricCard: React.FC<MetricCardProps> = ({
 			return `${formatNumber(value, 2)}%`;
 		}
 		if (currency) {
-			return `${getCurrencySymbol(currency)} ${formatNumber(value, 2)}`;
+			return formatLocalizedCurrency(value, currency, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 		}
 		return formatNumber(value, 2);
 	};

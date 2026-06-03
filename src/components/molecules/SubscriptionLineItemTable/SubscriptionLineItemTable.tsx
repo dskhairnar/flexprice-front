@@ -8,7 +8,12 @@ import { LineItem, SUBSCRIPTION_LINE_ITEM_ENTITY_TYPE } from '@/models/Subscript
 import { FC, useState, useCallback, useMemo } from 'react';
 import { Trash2, Pencil, Info, Eye, Tag, TicketX } from 'lucide-react';
 import { ENTITY_STATUS } from '@/models/base';
-import { formatBillingPeriodForDisplay, getCurrencySymbol, getPriceTypeLabel } from '@/utils/common/helper_functions';
+import {
+	formatBillingPeriodForDisplay,
+	formatLocalizedCurrency,
+	formatLocalizedNumber,
+	getPriceTypeLabel,
+} from '@/utils/common/helper_functions';
 import { PRICE_ENTITY_TYPE, PRICE_STATUS, PRICE_TYPE } from '@/models/Price';
 import { formatDateTimeWithSecondsAndTimezone } from '@/utils/common/format_date';
 import LineItemWindowCommitmentViewDialog from '@/components/molecules/Subscription/LineItemWindowCommitmentViewDialog';
@@ -132,7 +137,7 @@ const LineItemDropdown: FC<LineItemDropdownProps> = ({
 							]
 						: []),
 					{
-						label: 'Edit',
+						label: t('actions.edit'),
 						icon: <Pencil />,
 						onSelect: (e: Event) => {
 							e.preventDefault();
@@ -142,7 +147,7 @@ const LineItemDropdown: FC<LineItemDropdownProps> = ({
 						disabled: isEditDisabled,
 					},
 					{
-						label: 'Terminate',
+						label: t('tableMenu.terminate'),
 						icon: <Trash2 />,
 						onSelect: (e: Event) => {
 							e.preventDefault();
@@ -302,7 +307,7 @@ const formatCommitmentTooltip = (info: SubscriptionCommitmentInfo, t: TFunction)
 		rows.push(
 			<div key='amount' className='flex items-center gap-2'>
 				{t('labels.commitmentAmount')}
-				<span className='text-sm font-medium'>{`${getCurrencySymbol(info.currency ?? '')}${info.commitment_amount}`}</span>
+				<span className='text-sm font-medium'>{formatLocalizedCurrency(info.commitment_amount, info.currency ?? '')}</span>
 			</div>,
 		);
 	}
@@ -482,7 +487,12 @@ const SubscriptionLineItemTable: FC<Props> = ({
 					if (q == null || !Number.isFinite(Number(q))) return <span className='text-gray-500'>{t('labels.na')}</span>;
 					const n = Number(q);
 					return (
-						<span className='tabular-nums'>{Number.isInteger(n) ? n : n.toLocaleString(undefined, { maximumFractionDigits: 6 })}</span>
+						<span className='tabular-nums'>
+							{formatLocalizedNumber(n, {
+								maximumFractionDigits: Number.isInteger(n) ? 0 : 6,
+								minimumFractionDigits: Number.isInteger(n) ? 0 : undefined,
+							})}
+						</span>
 					);
 				},
 			},
