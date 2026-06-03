@@ -145,7 +145,7 @@
 		"labelPostPaid": "Post-Paid",
 		"nameLabel": "Wallet Name",
 		"statusLabel": "Status",
-		"creditRateFormat": "1 Credit = {{amount}}{{currencySymbol}}",
+		"creditRateFormat": "{{amount}} Credit = {{currencySymbol}}",
 		"addTopupRate": "Top-up Rate",
 		"addFreeCredits": "Free Credits",
 		"saveWallet": "Save Wallet",
@@ -353,7 +353,14 @@
 			"transactionsPaginationUnit": "Transactions",
 			"noTransactionsSubtitle": "No recent transactions",
 			"noMetadataTitle": "No metadata",
-			"noMetadataHint": "Add custom metadata to store additional information about this wallet."
+			"noMetadataHint": "Add custom metadata to store additional information about this wallet.",
+			"menu": {
+				"createWallet": "Create Wallet",
+				"autoTopup": "Auto Topup",
+				"alertSettings": "Alert Settings",
+				"manualDebit": "Manual Debit",
+				"terminate": "Terminate"
+			}
 		}
 	},
 	"organisms": {
@@ -405,7 +412,13 @@
 			"activateSubtitle": "Activating the subscription will start the billing cycle from the selected start date.",
 			"startDate": "Start Date",
 			"activating": "Activating...",
-			"activate": "Activate"
+			"activate": "Activate",
+			"menu": {
+				"activateSubscription": "Activate Subscription",
+				"editSubscription": "Edit Subscription",
+				"addSubscriptionPhase": "Add Subscription Phase",
+				"cancelSubscription": "Cancel Subscription"
+			}
 		},
 		"subscriptionForm": {
 			"subscriptionDetails": "Subscription Details",

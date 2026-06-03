@@ -34,7 +34,7 @@ import { FEATURE_TYPE } from '@/models/Feature';
 import { formatMeterUsageResetPeriodToDisplay } from '@/types/formatters/Feature';
 
 // Local utilities
-import { formatAmount } from '@/components/atoms/Input/Input';
+import { formatLocalizedNumber } from '@/utils/common/helper_functions';
 import { ApiDocsSnippet } from '@/store/useApiDocsStore';
 import { refetchQueries } from '@/core/services/tanstack/ReactQueryProvider';
 import { ENTITY_STATUS } from '@/models/base';
@@ -239,7 +239,9 @@ const FeatureDetails = () => {
 						return rowData.static_value || '0';
 					}
 					if (rowData.feature_type === FEATURE_TYPE.METERED) {
-						const usageLimit = rowData.usage_limit ? formatAmount(rowData.usage_limit.toString()) : t('common:labels.unlimited');
+						const usageLimit = rowData.usage_limit
+							? formatLocalizedNumber(rowData.usage_limit, { maximumFractionDigits: 0 })
+							: t('common:labels.unlimited');
 						const unit =
 							rowData.usage_limit === null || rowData.usage_limit > 1
 								? rowData.feature?.unit_plural || t('catalog:features.form.unitsDefault')

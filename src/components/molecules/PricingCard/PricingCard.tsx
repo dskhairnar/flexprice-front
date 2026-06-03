@@ -3,10 +3,10 @@ import type { TFunction } from 'i18next';
 import { useTranslation } from 'react-i18next';
 import { Check, Coins, Eye, Gauge, Info, Mail, MessageSquare, Phone, Sparkles, Zap, type LucideIcon } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger, Button } from '@/components/ui';
-import { formatBillingPeriodForPrice, getCurrencySymbol } from '@/utils';
+import { formatBillingPeriodForPrice } from '@/utils';
+import { formatLocalizedCurrency, formatLocalizedNumber, resolveCurrencyCode } from '@/utils/common/helper_functions';
 import { Link, useNavigate } from 'react-router';
 import { RouteNames } from '@/core/routes/Routes';
-import { formatAmount } from '@/components/atoms/Input/Input';
 import { PlanType } from '@/constants/planTypes';
 import { cn } from '@/lib/utils';
 import { PRICE_TYPE } from '@/models';
@@ -109,7 +109,7 @@ const formatEntitlementValue = ({
 		case 'METERED':
 			return (
 				<>
-					{formatAmount(value.toString())} {feature}
+					{formatLocalizedNumber(String(value), { maximumFractionDigits: 0 })} {feature}
 					{usage_reset_period ? t('pricingCard.perBillingPeriod', { period: formatBillingPeriodForPrice(usage_reset_period, t) }) : ''}
 				</>
 			);
@@ -121,15 +121,15 @@ const formatEntitlementValue = ({
 const formatUsageCharge = (charge: UsageCharge, t: TFunction<'common'>) => {
 	if (!charge.amount) return '';
 
-	const sym = getCurrencySymbol(charge.currency || '');
-	const amt = `${sym}${formatAmount(charge.amount)}`;
+	const currency = resolveCurrencyCode(charge.currency);
+	const amt = formatLocalizedCurrency(charge.amount, currency);
 
 	if (charge.billing_model === 'PACKAGE') {
 		return t('pricingCard.perPackage', { amount: amt });
 	} else if (charge.billing_model === 'FLAT_FEE') {
 		return t('pricingCard.perUnit', { amount: amt });
 	} else if (charge.billing_model === 'TIERED' && charge.tiers?.length) {
-		const startAmt = `${sym}${formatAmount(charge.tiers[0].unit_amount)}`;
+		const startAmt = formatLocalizedCurrency(charge.tiers[0].unit_amount, currency);
 		return t('pricingCard.startingAtPerUnit', { amount: startAmt });
 	}
 	return t('pricingCard.perUnit', { amount: amt });
@@ -138,15 +138,17 @@ const formatUsageCharge = (charge: UsageCharge, t: TFunction<'common'>) => {
 /** Compact usage line for AI pricing preview (/unit instead of per unit). */
 const formatUsageChargeCompact = (charge: UsageCharge, t: TFunction<'common'>) => {
 	if (!charge.amount) return '';
-	const sym = getCurrencySymbol(charge.currency || '');
-	const amt = formatAmount(charge.amount);
+	const currency = resolveCurrencyCode(charge.currency);
+	const amt = formatLocalizedCurrency(charge.amount, currency);
 	if (charge.billing_model === 'PACKAGE') {
-		return t('pricingCard.compactPerPkg', { amount: `${sym}${amt}` });
+		return t('pricingCard.compactPerPkg', { amount: amt });
 	}
 	if (charge.billing_model === 'TIERED' && charge.tiers?.length) {
-		return t('pricingCard.compactFromPerUnit', { amount: `${sym}${formatAmount(charge.tiers[0].unit_amount)}` });
+		return t('pricingCard.compactFromPerUnit', {
+			amount: formatLocalizedCurrency(charge.tiers[0].unit_amount, currency),
+		});
 	}
-	return t('pricingCard.compactPerUnit', { amount: `${sym}${amt}` });
+	return t('pricingCard.compactPerUnit', { amount: amt });
 };
 
 /** Matches default/template grant titles — redundant with plan cadence (e.g. /month on price). */
@@ -176,7 +178,7 @@ function formatEntitlementPreviewLine(ent: PricingCardProps['entitlements'][0], 
 		case 'BOOLEAN':
 			return ent.value ? String(ent.name) : t('pricingCard.previewBooleanNotIncluded', { name: ent.name });
 		case 'METERED':
-			return `${formatAmount(String(ent.value))} ${ent.name}${period}`;
+			return `${formatLocalizedNumber(String(ent.value), { maximumFractionDigits: 0 })} ${ent.name}${period}`;
 		default:
 			return `${ent.value} ${ent.name}`;
 	}
@@ -187,15 +189,15 @@ const UsageChargeTooltip: React.FC<{ charge: UsageCharge; t: TFunction<'common'>
 		return null;
 	}
 
-	const formatRange = (tier: any, index: number, allTiers: any[]) => {
-		const from = index === 0 ? 1 : allTiers[index - 1].up_to + 1;
+	const formatRange = (tier: { up_to: number | null }, index: number, allTiers: { up_to: number | null }[]) => {
+		const from = index === 0 ? 1 : (allTiers[index - 1].up_to ?? 0) + 1;
 		if (tier.up_to === null || index === allTiers.length - 1) {
-			return `${from} - ∞`;
+			return `${formatLocalizedNumber(from, { maximumFractionDigits: 0 })} - ∞`;
 		}
-		return `${from} - ${tier.up_to}`;
+		return `${formatLocalizedNumber(from, { maximumFractionDigits: 0 })} - ${formatLocalizedNumber(tier.up_to, { maximumFractionDigits: 0 })}`;
 	};
 
-	const sym = getCurrencySymbol(charge.currency || '');
+	const currency = resolveCurrencyCode(charge.currency);
 
 	return (
 		<TooltipContent
@@ -215,12 +217,14 @@ const UsageChargeTooltip: React.FC<{ charge: UsageCharge; t: TFunction<'common'>
 								<div className='text-end'>
 									<div className='!font-normal text-muted-foreground'>
 										{t('pricingCard.perUnitShort', {
-											amount: `${sym}${formatAmount(tier.unit_amount)}`,
+											amount: formatLocalizedCurrency(tier.unit_amount, currency),
 										})}
 									</div>
 									{Number(tier.flat_amount) > 0 && (
 										<div className='text-xs text-gray-500'>
-											{t('pricingCard.flatFeeShort', { amount: `${sym}${formatAmount(tier.flat_amount)}` })}
+											{t('pricingCard.flatFeeShort', {
+												amount: formatLocalizedCurrency(tier.flat_amount, currency),
+											})}
 										</div>
 									)}
 								</div>
@@ -269,7 +273,7 @@ const PricingCard: React.FC<PricingCardProps> = ({
 	);
 
 	const config = priceDisplayConfig[price.displayType];
-	const displayAmount = config.text || `${getCurrencySymbol(price.currency || '')}${formatAmount(price.amount || '')}`;
+	const displayAmount = config.text || formatLocalizedCurrency(price.amount || 0, resolveCurrencyCode(price.currency));
 	const hasUsageCharges = usageCharges.length > 0;
 
 	const chargeLimit = isSetupPreview ? usageCharges.length : VISIBLE_LIMIT;
@@ -302,7 +306,7 @@ const PricingCard: React.FC<PricingCardProps> = ({
 				<div className='flex flex-col'>
 					<div className='flex items-baseline'>
 						<span className={cn('font-normal text-gray-900', visualModern ? 'text-[28px]' : 'text-4xl')}>
-							{config.useCurrencyZeroDisplay ? `${getCurrencySymbol(price.currency || '')}0` : displayAmount}
+							{config.useCurrencyZeroDisplay ? formatLocalizedCurrency(0, resolveCurrencyCode(price.currency)) : displayAmount}
 						</span>
 						{config.showBillingPeriod && (
 							<span className={cn('ms-2 text-gray-500', visualModern ? 'text-xs' : 'text-sm text3')}>
@@ -576,7 +580,9 @@ const PricingCard: React.FC<PricingCardProps> = ({
 										<Coins className='h-3.5 w-3.5 shrink-0 text-slate-400' strokeWidth={2} aria-hidden />
 										<span className='min-w-0 flex-1 text-[11px] font-normal leading-snug text-slate-700'>
 											<span className='font-medium text-slate-800'>
-												{t('pricingCard.creditsAmount', { formatted: g.credits.toLocaleString() })}
+												{t('pricingCard.creditsAmount', {
+													formatted: formatLocalizedNumber(g.credits, { maximumFractionDigits: 0 }),
+												})}
 											</span>
 											{!isBoilerplateCreditGrantName(g.name) && <span className='text-slate-600'> · {g.name}</span>}
 											{g.cadence === 'recurring' && g.period && <span className='text-slate-500'> /{g.period}</span>}

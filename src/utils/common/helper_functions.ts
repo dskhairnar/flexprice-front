@@ -1,19 +1,17 @@
 import type { TFunction } from 'i18next';
 import { ApiEnum, translateApiEnum } from '@/i18n/display/apiEnums';
-import { getIntlLocale } from '@/i18n/display/intlLocale';
+import { DEFAULT_CURRENCY_CODE } from '@/constants/constants';
+import { formatLocalizedCurrency, getLocalizedCurrencySymbol } from '@/i18n/display/formatNumber';
+import { getIntlDigitOptions, getIntlLocale } from '@/i18n/display/intlLocale';
 import { Price, PRICE_TYPE } from '@/models/Price';
 import { getAllISOCodes } from 'iso-country-currency';
 import { v4 as uuidv4 } from 'uuid';
 import toast from 'react-hot-toast';
 
+export { formatLocalizedCurrency, formatLocalizedNumber, resolveCurrencyCode } from '@/i18n/display/formatNumber';
+
 export function getCurrencySymbol(currency: string): string {
-	try {
-		const info = getAllISOCodes().filter((code) => code.currency === currency.toUpperCase());
-		return info[0]?.symbol || currency;
-	} catch (error) {
-		console.error('Error getting currency symbol', error);
-		return currency;
-	}
+	return getLocalizedCurrencySymbol(currency);
 }
 
 export function getCurrencyName(currency: string): string {
@@ -80,7 +78,7 @@ export const getTotalPayableText = (fixedCharges: Price[], usageCharges: Price[]
 	let text = '';
 
 	if (fixedCharges.length > 0) {
-		text += `${getCurrencySymbol(fixedCharges[0].currency)}${recurringTotal}`;
+		text += formatLocalizedCurrency(recurringTotal, fixedCharges[0].currency);
 	}
 
 	if (usageCharges.length > 0) {
@@ -99,7 +97,7 @@ export const getTotalPayableInfo = (fixedCharges: Price[], usageCharges: Price[]
 	let text = '';
 
 	if (fixedCharges.length > 0) {
-		text += `${getCurrencySymbol(fixedCharges[0].currency)}${recurringTotal}`;
+		text += formatLocalizedCurrency(recurringTotal, fixedCharges[0].currency);
 	}
 
 	if (usageCharges.length > 0) {
@@ -117,7 +115,12 @@ export const formatDateShort = (dateString: string): string => {
 	if (!dateString) return '';
 	const date = new Date(dateString);
 	if (isNaN(date.getTime())) return '';
-	const options: Intl.DateTimeFormatOptions = { month: 'short', day: 'numeric', year: 'numeric' };
+	const options: Intl.DateTimeFormatOptions = {
+		...getIntlDigitOptions(),
+		month: 'long',
+		day: 'numeric',
+		year: 'numeric',
+	};
 	return date.toLocaleDateString(getIntlLocale(), options);
 };
 
@@ -175,11 +178,11 @@ export const getTotalPayableTextWithCoupons = (
 		const totalDiscount = calculateTotalCouponDiscount(coupons, recurringTotal);
 		const finalAmount = Math.max(0, recurringTotal - totalDiscount);
 
-		text += `${getCurrencySymbol(currency)}${finalAmount.toFixed(2)}`;
+		text += formatLocalizedCurrency(finalAmount, currency);
 
 		// Show discount information if there are coupons
 		if (coupons.length > 0 && totalDiscount > 0) {
-			text += ` (${getCurrencySymbol(currency)}${recurringTotal.toFixed(2)} - ${getCurrencySymbol(currency)}${totalDiscount.toFixed(2)} discount)`;
+			text += ` (${formatLocalizedCurrency(recurringTotal, currency)} - ${formatLocalizedCurrency(totalDiscount, currency)} discount)`;
 		}
 	}
 
@@ -204,7 +207,7 @@ export const getTotalPayableTextWithCoupons = (
 export const getCouponBreakdownText = (
 	coupons: { type: string; amount_off?: string; percentage_off?: string; name?: string }[],
 	originalAmount: number,
-	currency: string = 'USD',
+	currency: string = DEFAULT_CURRENCY_CODE,
 ) => {
 	if (coupons.length === 0) return '';
 
@@ -214,7 +217,7 @@ export const getCouponBreakdownText = (
 		const discount = calculateCouponDiscount(coupon, originalAmount);
 		if (discount > 0) {
 			if (index > 0) breakdown += ', ';
-			breakdown += `${coupon.name || 'Coupon'}: -${getCurrencySymbol(currency)}${discount.toFixed(2)}`;
+			breakdown += `${coupon.name || 'Coupon'}: -${formatLocalizedCurrency(discount, currency)}`;
 		}
 	});
 

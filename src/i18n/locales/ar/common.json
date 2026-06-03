@@ -423,6 +423,22 @@
 		"usageReset": "إعادة ضبط الاستخدام",
 		"noPaymentsFound": "لا توجد مدفوعات"
 	},
+	"tableMenu": {
+		"groups": {
+			"actions": "الإجراءات",
+			"connections": "الارتباطات"
+		},
+		"terminate": "إنهاء",
+		"terminatePrice": "إنهاء السعر",
+		"copyPriceId": "نسخ معرّف السعر",
+		"updatePrice": "تحديث السعر",
+		"editDetails": "تعديل التفاصيل",
+		"viewInvoice": "عرض الفاتورة",
+		"copyLink": "نسخ الرابط",
+		"priceIdCopied": "تم نسخ معرّف السعر إلى الحافظة",
+		"paymentLinkCopied": "تم نسخ رابط الدفع إلى الحافظة",
+		"paymentLinkCopyFailed": "فشل نسخ رابط الدفع. يرجى المحاولة مرة أخرى."
+	},
 	"labels": {
 		"payload": "الحمولة",
 		"sort": "ترتيب",

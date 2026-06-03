@@ -22,7 +22,7 @@ import { Coupon } from '@/models/Coupon';
 import { useNavigate } from 'react-router';
 import { RouteNames } from '@/core/routes/Routes';
 import formatDate from '@/utils/common/format_date';
-import { getCurrencySymbol } from '@/utils/common/helper_functions';
+import { formatLocalizedCurrency, formatLocalizedNumber } from '@/utils/common/helper_functions';
 import { useTranslation } from 'react-i18next';
 
 const initialFilters: FilterCondition[] = [
@@ -151,10 +151,9 @@ const CouponsPage = () => {
 				title: t('coupons.table.discount'),
 				render: (row) => {
 					if (row.type === COUPON_TYPE.FIXED) {
-						return row.amount_off ? `${getCurrencySymbol(row.currency)} ${row.amount_off}` : '-';
-					} else {
-						return row.percentage_off ? `${row.percentage_off}%` : '-';
+						return row.amount_off ? formatLocalizedCurrency(row.amount_off, row.currency) : '-';
 					}
+					return row.percentage_off ? `${formatLocalizedNumber(row.percentage_off, { maximumFractionDigits: 2 })}%` : '-';
 				},
 			},
 			{

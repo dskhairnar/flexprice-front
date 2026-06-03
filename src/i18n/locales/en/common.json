@@ -427,6 +427,22 @@
 		"usageReset": "Usage Reset",
 		"noPaymentsFound": "No payments found"
 	},
+	"tableMenu": {
+		"groups": {
+			"actions": "Actions",
+			"connections": "Connections"
+		},
+		"terminate": "Terminate",
+		"terminatePrice": "Terminate Price",
+		"copyPriceId": "Copy Price ID",
+		"updatePrice": "Update Price",
+		"editDetails": "Edit Details",
+		"viewInvoice": "View Invoice",
+		"copyLink": "Copy Link",
+		"priceIdCopied": "Price ID copied to clipboard",
+		"paymentLinkCopied": "Payment link copied to clipboard",
+		"paymentLinkCopyFailed": "Failed to copy payment link. Please try again."
+	},
 	"labels": {
 		"payload": "Payload",
 		"sort": "Sort",

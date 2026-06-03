@@ -8,6 +8,7 @@ import { useQuery } from '@tanstack/react-query';
 import TaxApi from '@/api/TaxApi';
 import { TaxRateResponse } from '@/types/dto/tax';
 import { formatAmount } from '@/constants/common';
+import { formatLocalizedNumber } from '@/utils/common/helper_functions';
 import { RouteNames } from '@/core/routes/Routes';
 
 interface Props {
@@ -29,7 +30,7 @@ const formatTaxValue = (taxRate: TaxRateResponse | undefined, currency: string =
 	if (!taxRate) return '--';
 
 	if (taxRate.tax_rate_type === TAX_RATE_TYPE.PERCENTAGE && taxRate.percentage_value !== undefined) {
-		return `${taxRate.percentage_value}%`;
+		return `${formatLocalizedNumber(taxRate.percentage_value, { maximumFractionDigits: 4 })}%`;
 	}
 	if (taxRate.tax_rate_type === TAX_RATE_TYPE.FIXED && taxRate.fixed_value !== undefined) {
 		return formatAmount(taxRate.fixed_value, currency);

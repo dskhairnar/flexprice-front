@@ -1,7 +1,7 @@
 import { Button, FormHeader, Toggle } from '@/components/atoms';
 import { LineItem, INVOICE_TYPE } from '@/models/Invoice';
 import { formatBillingPeriod } from '@/utils/common/format_date';
-import { getCurrencySymbol, getPriceTypeLabel } from '@/utils/common/helper_functions';
+import { formatLocalizedCurrency, formatLocalizedNumber, getPriceTypeLabel, resolveCurrencyCode } from '@/utils/common/helper_functions';
 import { FC } from 'react';
 import { RefreshCw } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
@@ -21,10 +21,6 @@ interface Props {
 	showZeroCharges?: boolean;
 	onShowZeroChargesChange?: (show: boolean) => void;
 }
-
-const formatAmount = (amount: number, currency: string): string => {
-	return `${getCurrencySymbol(currency)}${amount}`;
-};
 
 const SubscriptionPreviewLineItemTable: FC<Props> = ({
 	data,
@@ -114,8 +110,14 @@ const SubscriptionPreviewLineItemTable: FC<Props> = ({
 												: t('common:labels.na')}
 										</td>
 									)}
-									<td className='py-4 px-4 text-center text-sm text-gray-600'>{item.quantity ? item.quantity : t('common:labels.na')}</td>
-									<td className='py-4 px-0 text-end text-sm text-gray-900 '>{formatAmount(item.amount ?? 0, item.currency)}</td>
+									<td className='py-4 px-4 text-center text-sm text-gray-600 tabular-nums'>
+										{item.quantity != null && item.quantity !== ''
+											? formatLocalizedNumber(item.quantity, { maximumFractionDigits: 6 })
+											: t('common:labels.na')}
+									</td>
+									<td className='py-4 px-0 text-end text-sm text-gray-900 tabular-nums'>
+										{formatLocalizedCurrency(item.amount ?? 0, resolveCurrencyCode(item.currency ?? currency))}
+									</td>
 								</tr>
 							);
 						})}
@@ -130,7 +132,9 @@ const SubscriptionPreviewLineItemTable: FC<Props> = ({
 					{subtotal !== undefined && subtotal !== null && Number(subtotal) !== 0 && (
 						<div className='flex flex-row justify-end items-center py-1'>
 							<div className='w-40 text-end text-base font-medium text-gray-900'>{t(`${li}.subtotal`)}</div>
-							<div className='flex-1 text-end text-sm text-gray-900 font-medium'>{formatAmount(Number(subtotal), currency ?? '')}</div>
+							<div className='flex-1 text-end text-sm text-gray-900 font-medium tabular-nums'>
+								{formatLocalizedCurrency(Number(subtotal), resolveCurrencyCode(currency))}
+							</div>
 						</div>
 					)}
 
@@ -138,14 +142,18 @@ const SubscriptionPreviewLineItemTable: FC<Props> = ({
 					{discount && Number(discount) > 0 && (
 						<div className='flex flex-row justify-end items-center py-1'>
 							<div className='w-40 text-end text-base font-medium text-gray-900'>{t(`${li}.discount`)}</div>
-							<div className='flex-1 text-end text-sm text-gray-900 font-medium'>−{formatAmount(Number(discount), currency ?? '')}</div>
+							<div className='flex-1 text-end text-sm text-gray-900 font-medium tabular-nums'>
+								−{formatLocalizedCurrency(Number(discount), resolveCurrencyCode(currency))}
+							</div>
 						</div>
 					)}
 					{/* Tax - only show if provided and > 0 */}
 					{tax !== undefined && tax !== null && Number(tax) !== 0 && (
 						<div className='flex flex-row justify-end items-center py-1'>
 							<div className='w-40 text-end text-base font-medium text-gray-900'>{t(`${li}.tax`)}</div>
-							<div className='flex-1 text-end text-sm text-gray-900 font-medium'>{formatAmount(Number(tax), currency ?? '')}</div>
+							<div className='flex-1 text-end text-sm text-gray-900 font-medium tabular-nums'>
+								{formatLocalizedCurrency(Number(tax), resolveCurrencyCode(currency))}
+							</div>
 						</div>
 					)}
 
@@ -153,7 +161,7 @@ const SubscriptionPreviewLineItemTable: FC<Props> = ({
 					<div className='flex flex-row justify-end border-t border-gray-200 items-center py-3'>
 						<div className='w-40 flex items-center gap-2 justify-end text-sm text-gray-900 font-medium'>{t(`${li}.netPayable`)}</div>
 						<div className='flex-1 text-end text-sm text-gray-900 font-semibold'>
-							{formatAmount(Number(amount_due ?? 0), currency ?? '')}
+							{formatLocalizedCurrency(Number(amount_due ?? 0), resolveCurrencyCode(currency))}
 						</div>
 					</div>
 				</div>

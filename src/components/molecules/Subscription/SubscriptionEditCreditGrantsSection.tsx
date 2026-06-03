@@ -6,7 +6,7 @@ import EditSubscriptionCreditGrantModal from '@/components/molecules/CreditGrant
 import CancelCreditGrantModal from '@/components/molecules/CreditGrant/CancelCreditGrantModal';
 import { formatExpirationPeriod } from '@/utils/common/credit_grant_helpers';
 import { formatBillingPeriodForPrice } from '@/utils/common/helper_functions';
-import { formatAmount } from '@/components/atoms/Input/Input';
+import { formatLocalizedNumber } from '@/utils/common/helper_functions';
 import type { CreditGrant } from '@/models';
 import { useTranslation } from 'react-i18next';
 
@@ -56,7 +56,7 @@ const SubscriptionEditCreditGrantsSection: FC<SubscriptionEditCreditGrantsSectio
 			},
 			{
 				title: t('tableColumns.credits'),
-				render: (row) => <span>{formatAmount(row.credits.toString())}</span>,
+				render: (row) => <span>{formatLocalizedNumber(row.credits)}</span>,
 			},
 			{
 				title: t('tableColumns.priority'),

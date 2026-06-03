@@ -4,7 +4,7 @@ import { Price, PRICE_UNIT_TYPE } from '@/models/Price';
 import { BILLING_MODEL, PRICE_TYPE, TIER_MODE, CreatePriceTier, TransformQuantity } from '@/models/Price';
 import { PriceUnit } from '@/models/PriceUnit';
 import { getCurrencySymbol } from './helper_functions';
-import { formatAmount } from '@/components/atoms/Input/Input';
+import { formatLocalizedNumber } from '@/i18n/display/formatNumber';
 import { ExtendedPriceOverride } from './price_override_helpers';
 
 /**
@@ -141,21 +141,21 @@ export const formatPriceDisplay = (normalized: NormalizedPriceDisplay): string =
 
 	switch (billingModel) {
 		case BILLING_MODEL.FLAT_FEE:
-			return `${symbol}${formatAmount(amount)}`;
+			return `${symbol}${formatLocalizedNumber(amount)}`;
 
 		case BILLING_MODEL.PACKAGE: {
 			const divideBy = transformQuantity?.divide_by || 1;
-			return `${symbol}${formatAmount(amount)} / ${divideBy} units`;
+			return `${symbol}${formatLocalizedNumber(amount)} / ${divideBy} units`;
 		}
 
 		case BILLING_MODEL.TIERED:
 		case 'SLAB_TIERED': {
 			const firstTier = tiers?.[0];
-			return `starts at ${symbol}${formatAmount(firstTier?.unit_amount || '0')} per unit`;
+			return `starts at ${symbol}${formatLocalizedNumber(firstTier?.unit_amount || '0')} per unit`;
 		}
 
 		default:
-			return `${symbol}${formatAmount(amount)}`;
+			return `${symbol}${formatLocalizedNumber(amount)}`;
 	}
 };
 
@@ -171,17 +171,17 @@ export const getPriceTableCharge = (price: Price & { pricing_unit?: PriceUnit },
 	const displayTiers = getDisplayTiers(price);
 
 	if (price.type === PRICE_TYPE.FIXED) {
-		return `${displaySymbol}${formatAmount(displayAmount)}`;
+		return `${displaySymbol}${formatLocalizedNumber(displayAmount)}`;
 	} else {
 		if (price.billing_model === BILLING_MODEL.PACKAGE) {
-			return `${displaySymbol}${formatAmount(displayAmount)} / ${formatAmount((price.transform_quantity as { divide_by: number }).divide_by.toString())} units`;
+			return `${displaySymbol}${formatLocalizedNumber(displayAmount)} / ${formatLocalizedNumber((price.transform_quantity as { divide_by: number }).divide_by.toString())} units`;
 		} else if (price.billing_model === BILLING_MODEL.FLAT_FEE) {
-			return `${displaySymbol}${formatAmount(displayAmount)} / unit`;
+			return `${displaySymbol}${formatLocalizedNumber(displayAmount)} / unit`;
 		} else if (price.billing_model === BILLING_MODEL.TIERED) {
 			const firstTier = displayTiers?.[0];
-			return `Starts at ${normalizedPrice ? displaySymbol : displaySymbol}${formatAmount(firstTier?.unit_amount?.toString() || '0')} / unit`;
+			return `Starts at ${normalizedPrice ? displaySymbol : displaySymbol}${formatLocalizedNumber(firstTier?.unit_amount?.toString() || '0')} / unit`;
 		} else {
-			return price.display_amount || `${displaySymbol}${formatAmount(displayAmount)}`;
+			return price.display_amount || `${displaySymbol}${formatLocalizedNumber(displayAmount)}`;
 		}
 	}
 };

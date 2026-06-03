@@ -1,7 +1,7 @@
 import { Card, Progress } from '@/components/atoms';
 import { CustomerUsage } from '@/models';
 import { FEATURE_TYPE } from '@/models/Feature';
-import { formatAmount } from '@/components/atoms/Input/Input';
+import { formatLocalizedNumber } from '@/utils/common/helper_functions';
 import { useTranslation } from 'react-i18next';
 
 interface CurrentUsageWidgetProps {
@@ -39,8 +39,8 @@ const CurrentUsageWidget = ({ usageData, label }: CurrentUsageWidgetProps) => {
 									{item.feature?.name || t('usage.unknownFeature')}
 								</span>
 								<span className='text-sm' style={{ color: 'var(--portal-text-secondary, #71717a)' }}>
-									{formatAmount(usage.toString())}
-									{limit ? ` / ${formatAmount(limit.toString())}` : ` / ${t('usage.unlimited')}`}
+									{formatLocalizedNumber(usage.toString())}
+									{limit ? ` / ${formatLocalizedNumber(limit.toString())}` : ` / ${t('usage.unlimited')}`}
 								</span>
 							</div>
 							<Progress

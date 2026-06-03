@@ -2,7 +2,7 @@ import FlexpriceTable, { ColumnData } from '@/components/molecules/Table';
 import { cn } from '@/lib/utils';
 import { WALLET_TRANSACTION_REASON } from '@/models/Wallet';
 import { WalletTransaction } from '@/models/WalletTransaction';
-import { formatDateShort, getCurrencySymbol } from '@/utils/common/helper_functions';
+import { formatDateShort, formatLocalizedCurrency, formatLocalizedNumber, resolveCurrencyCode } from '@/utils/common/helper_functions';
 import { FC, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 
@@ -22,19 +22,20 @@ const WalletTransactionsTable: FC<Props> = ({ data }) => {
 			amount,
 			currency,
 			className,
+			isCreditLine,
 		}: {
 			type: string;
 			amount: number;
 			currency?: string;
 			className?: string;
+			isCreditLine?: boolean;
 		}) => {
-			return (
-				<span className={cn(type === 'credit' ? 'text-[#2A9D90] ' : 'text-[#18181B] ', className)}>
-					{type === 'credit' ? '+' : '-'}
-					{amount}
-					{currency ? ` ${getCurrencySymbol(currency)}` : ` ${t('payments.transactions.creditsSuffix')}`}
-				</span>
-			);
+			const sign = type === 'credit' ? '+' : '-';
+			const formatted = isCreditLine
+				? `${sign}${formatLocalizedNumber(amount, { maximumFractionDigits: 0, minimumFractionDigits: 0 })} ${t('payments.transactions.creditsSuffix')}`
+				: `${sign}${formatLocalizedCurrency(amount, resolveCurrencyCode(currency))}`;
+
+			return <span className={cn(type === 'credit' ? 'text-[#2A9D90] ' : 'text-[#18181B] ', className)}>{formatted}</span>;
 		};
 
 		const transactionReasonLabel = (type: string, reason: string) => {
@@ -78,7 +79,13 @@ const WalletTransactionsTable: FC<Props> = ({ data }) => {
 			{
 				title: t('wallet.table.columnPriority'),
 				render: (rowData) => {
-					return <span>{rowData.priority || emptyCell}</span>;
+					return (
+						<span>
+							{rowData.priority != null
+								? formatLocalizedNumber(rowData.priority, { maximumFractionDigits: 0, minimumFractionDigits: 0 })
+								: emptyCell}
+						</span>
+					);
 				},
 			},
 			{
@@ -88,7 +95,12 @@ const WalletTransactionsTable: FC<Props> = ({ data }) => {
 					return (
 						<span className='flex flex-col justify-center items-end'>
 							{formatAmountEl({ type: rowData.type, amount: rowData.amount, currency: rowData.currency, className: TX_AMOUNT_PRIMARY })}
-							{formatAmountEl({ type: rowData.type, amount: rowData.credit_amount, className: TX_AMOUNT_SECONDARY })}
+							{formatAmountEl({
+								type: rowData.type,
+								amount: rowData.credit_amount,
+								className: TX_AMOUNT_SECONDARY,
+								isCreditLine: true,
+							})}
 						</span>
 					);
 				},

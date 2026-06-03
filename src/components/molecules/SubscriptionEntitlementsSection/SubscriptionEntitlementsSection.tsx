@@ -11,6 +11,7 @@ import { ENTITLEMENT_ENTITY_TYPE } from '@/models/Entitlement';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { BsThreeDotsVertical } from 'react-icons/bs';
 import toast from 'react-hot-toast';
+import { formatLocalizedNumber } from '@/utils/common/helper_functions';
 
 interface SubscriptionEntitlementsSectionProps {
 	subscriptionId: string;
@@ -99,7 +100,7 @@ const SubscriptionEntitlementsSection: FC<SubscriptionEntitlementsSectionProps> 
 			const limit = entitlementData?.usage_limit;
 			const resetPeriod = entitlementData?.usage_reset_period;
 			return limit !== null && limit !== undefined
-				? `${limit.toLocaleString()}${resetPeriod ? ` / ${resetPeriod.toLowerCase()}` : ''}`
+				? `${formatLocalizedNumber(limit, { maximumFractionDigits: 0 })}${resetPeriod ? ` / ${resetPeriod.toLowerCase()}` : ''}`
 				: t('labels.unlimited');
 		} else if (featureType === FEATURE_TYPE.STATIC) {
 			return entitlementData?.static_value || '--';

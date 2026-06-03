@@ -2,7 +2,7 @@ import FlexpriceTable, { ColumnData } from '@/components/molecules/Table';
 import { cn } from '@/lib/utils';
 import { WALLET_TRANSACTION_REASON } from '@/models/Wallet';
 import { WalletTransaction } from '@/models/WalletTransaction';
-import { formatDateShort, getCurrencySymbol } from '@/utils/common/helper_functions';
+import { formatDateShort, formatLocalizedCurrency, formatLocalizedNumber, resolveCurrencyCode } from '@/utils/common/helper_functions';
 import { FC, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 
@@ -23,23 +23,23 @@ const CustomerWalletTransactionsTable: FC<Props> = ({ data }) => {
 			currency,
 			className,
 			status,
+			isCreditLine,
 		}: {
 			type: string;
 			amount: number;
 			currency?: string;
 			className?: string;
 			status?: string;
+			isCreditLine?: boolean;
 		}) => {
 			const isPending = status?.toLowerCase() === 'pending';
 			const colorClass = isPending ? 'text-[#f5c50b]' : type === 'credit' ? 'text-[#2A9D90]' : 'text-[#18181B]';
+			const sign = type === 'credit' ? '+' : '-';
+			const formatted = isCreditLine
+				? `${sign}${formatLocalizedNumber(amount, { maximumFractionDigits: 0, minimumFractionDigits: 0 })} ${t('payments.transactions.creditsSuffix')}`
+				: `${sign}${formatLocalizedCurrency(amount, resolveCurrencyCode(currency))}`;
 
-			return (
-				<span className={cn(colorClass, className)}>
-					{type === 'credit' ? '+' : '-'}
-					{amount}
-					{currency ? ` ${getCurrencySymbol(currency)}` : ` ${t('payments.transactions.creditsSuffix')}`}
-				</span>
-			);
+			return <span className={cn(colorClass, className)}>{formatted}</span>;
 		};
 
 		const transactionReasonLabel = (type: string, reason: string) => {
@@ -83,7 +83,13 @@ const CustomerWalletTransactionsTable: FC<Props> = ({ data }) => {
 			{
 				title: t('wallet.table.columnPriority'),
 				render: (rowData) => {
-					return <span>{rowData.priority || emptyCell}</span>;
+					return (
+						<span>
+							{rowData.priority != null
+								? formatLocalizedNumber(rowData.priority, { maximumFractionDigits: 0, minimumFractionDigits: 0 })
+								: emptyCell}
+						</span>
+					);
 				},
 			},
 			{
@@ -104,6 +110,7 @@ const CustomerWalletTransactionsTable: FC<Props> = ({ data }) => {
 								amount: rowData.credit_amount,
 								className: TX_AMOUNT_SECONDARY,
 								status: rowData.transaction_status,
+								isCreditLine: true,
 							})}
 						</span>
 					);

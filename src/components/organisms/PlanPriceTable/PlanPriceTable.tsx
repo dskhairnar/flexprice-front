@@ -59,6 +59,7 @@ interface PriceDropdownProps {
 }
 
 const PriceDropdown: FC<PriceDropdownProps> = ({ row, hasEndDate, onEditPrice, onEditDetails, onTerminatePrice }) => {
+	const { t } = useTranslation(['catalog', 'common']);
 	const [isOpen, setIsOpen] = useState(false);
 
 	const handleClick = (e: React.MouseEvent) => {
@@ -74,17 +75,17 @@ const PriceDropdown: FC<PriceDropdownProps> = ({ row, hasEndDate, onEditPrice, o
 				onOpenChange={setIsOpen}
 				options={[
 					{
-						label: 'Copy Price ID',
+						label: t('common:tableMenu.copyPriceId'),
 						icon: <Copy />,
 						onSelect: (e: Event) => {
 							e.preventDefault();
 							setIsOpen(false);
 							navigator.clipboard.writeText(row.id);
-							toast.success('Price ID copied to clipboard');
+							toast.success(t('common:tableMenu.priceIdCopied'));
 						},
 					},
 					{
-						label: 'Update Price',
+						label: t('common:tableMenu.updatePrice'),
 						icon: <Pencil />,
 						onSelect: (e: Event) => {
 							e.preventDefault();
@@ -94,7 +95,7 @@ const PriceDropdown: FC<PriceDropdownProps> = ({ row, hasEndDate, onEditPrice, o
 						disabled: hasEndDate,
 					},
 					{
-						label: 'Edit Details',
+						label: t('common:tableMenu.editDetails'),
 						icon: <FileText />,
 						onSelect: (e: Event) => {
 							e.preventDefault();
@@ -104,7 +105,7 @@ const PriceDropdown: FC<PriceDropdownProps> = ({ row, hasEndDate, onEditPrice, o
 						disabled: hasEndDate,
 					},
 					{
-						label: 'Terminate Price',
+						label: t('common:tableMenu.terminatePrice'),
 						icon: <Trash2 />,
 						onSelect: (e: Event) => {
 							e.preventDefault();
