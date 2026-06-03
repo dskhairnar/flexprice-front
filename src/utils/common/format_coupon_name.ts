@@ -1,13 +1,13 @@
 import { COUPON_CADENCE, COUPON_TYPE } from '@/types/common';
-import { getCurrencySymbol } from './helper_functions';
+import { formatLocalizedCurrency, formatLocalizedNumber } from './helper_functions';
 import { Coupon } from '@/models/Coupon';
 
 const formatCouponName = (coupon: Coupon) => {
 	let couponName = '';
 	if (coupon.type === COUPON_TYPE.FIXED) {
-		couponName = `${getCurrencySymbol(coupon.currency)} ${coupon.amount_off} off`;
+		couponName = `${formatLocalizedCurrency(coupon.amount_off ?? 0, coupon.currency)} off`;
 	} else {
-		couponName = `${coupon.percentage_off}% off`;
+		couponName = `${formatLocalizedNumber(coupon.percentage_off ?? 0, { maximumFractionDigits: 2 })}% off`;
 	}
 	if (coupon.cadence === COUPON_CADENCE.ONCE) {
 		couponName = `${couponName} once`;

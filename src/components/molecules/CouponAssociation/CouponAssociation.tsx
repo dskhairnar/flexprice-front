@@ -48,7 +48,7 @@ const CouponAssociation: FC<Props> = ({ data, onChange, currency, disabled }) =>
 
 	const columns: ColumnData<Coupon>[] = [
 		{
-			title: 'Coupon',
+			title: t('tableColumns.coupon'),
 			render: (row) => (
 				<div>
 					<div className='text-sm font-medium'>{row.name}</div>
@@ -56,9 +56,9 @@ const CouponAssociation: FC<Props> = ({ data, onChange, currency, disabled }) =>
 				</div>
 			),
 		},
-		{ title: 'Type', render: (row) => row.type || '--' },
-		{ title: 'Cadence', render: (row) => row.cadence || '--' },
-		{ title: 'Currency', render: (row) => row.currency.toUpperCase() },
+		{ title: t('tableColumns.type'), render: (row) => row.type || '--' },
+		{ title: t('tableColumns.cadence'), render: (row) => row.cadence || '--' },
+		{ title: t('tableColumns.currency'), render: (row) => row.currency.toUpperCase() },
 		{
 			fieldVariant: 'interactive',
 			hideOnEmpty: true,

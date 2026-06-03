@@ -12,7 +12,7 @@ import {
 	NormalizedPriceDisplay,
 } from '@/utils';
 import { Info } from 'lucide-react';
-import { formatAmount } from '@/components/atoms/Input/Input';
+import { formatLocalizedNumber } from '@/i18n/display/formatNumber';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui';
 import { Coupon } from '@/models';
 import { formatCouponName } from '@/utils';
@@ -67,14 +67,14 @@ const TierBreakdown: FC<{ normalized: NormalizedPriceDisplay; hasOverrides?: boo
 								<div className='text-sm text-muted-foreground'>
 									{t('priceTooltip.perUnit', {
 										symbol,
-										amount: formatAmount(tier.unit_amount),
+										amount: formatLocalizedNumber(tier.unit_amount),
 									})}
 								</div>
 								{Number(tier.flat_amount) > 0 && (
 									<div className='text-xs text-gray-500'>
 										{t('priceTooltip.flatFeeLine', {
 											symbol,
-											amount: formatAmount(tier.flat_amount || '0'),
+											amount: formatLocalizedNumber(tier.flat_amount || '0'),
 										})}
 									</div>
 								)}
@@ -100,8 +100,8 @@ function buildOverrideRows(
 		rows.push({
 			variant: 'simple',
 			text: t('priceTooltip.billingModelChange', {
-				from: getBillingModelLabel(original.billingModel),
-				to: getBillingModelLabel(overridden.billingModel),
+				from: getBillingModelLabel(original.billingModel, t),
+				to: getBillingModelLabel(overridden.billingModel, t),
 			}),
 		});
 	}
@@ -110,8 +110,8 @@ function buildOverrideRows(
 		rows.push({
 			variant: 'simple',
 			text: t('priceTooltip.tierModeChange', {
-				from: getTierModeLabel(original.tierMode),
-				to: getTierModeLabel(overridden.tierMode),
+				from: getTierModeLabel(original.tierMode, t),
+				to: getTierModeLabel(overridden.tierMode, t),
 			}),
 		});
 	}
@@ -120,8 +120,8 @@ function buildOverrideRows(
 		rows.push({
 			variant: 'simple',
 			text: t('priceTooltip.amountChange', {
-				from: `${original.symbol}${formatAmount(original.amount)}`,
-				to: `${overridden.symbol}${formatAmount(overridden.amount)}`,
+				from: `${original.symbol}${formatLocalizedNumber(original.amount)}`,
+				to: `${overridden.symbol}${formatLocalizedNumber(overridden.amount)}`,
 			}),
 		});
 	}
@@ -183,8 +183,8 @@ function buildOverrideRows(
 					if (originalTier.unit_amount !== newTier.unit_amount) {
 						detailLines.push(
 							t('priceTooltip.tierPerUnitChange', {
-								from: `${overridden.symbol}${formatAmount(originalTier.unit_amount)}`,
-								to: `${overridden.symbol}${formatAmount(newTier.unit_amount)}`,
+								from: `${overridden.symbol}${formatLocalizedNumber(originalTier.unit_amount)}`,
+								to: `${overridden.symbol}${formatLocalizedNumber(newTier.unit_amount)}`,
 							}),
 						);
 					}
@@ -192,8 +192,8 @@ function buildOverrideRows(
 					if ((originalTier.flat_amount || '0') !== (newTier.flat_amount || '0')) {
 						detailLines.push(
 							t('priceTooltip.tierFlatFeeChange', {
-								from: `${overridden.symbol}${formatAmount(originalTier.flat_amount || '0')}`,
-								to: `${overridden.symbol}${formatAmount(newTier.flat_amount || '0')}`,
+								from: `${overridden.symbol}${formatLocalizedNumber(originalTier.flat_amount || '0')}`,
+								to: `${overridden.symbol}${formatLocalizedNumber(newTier.flat_amount || '0')}`,
 							}),
 						);
 					}
@@ -211,8 +211,8 @@ function buildOverrideRows(
 							n: index + 1,
 							from: newFrom,
 							upTo: newUpToDisplay,
-							perUnit: `${overridden.symbol}${formatAmount(newTier.unit_amount)}`,
-							flat: `${overridden.symbol}${formatAmount(newTier.flat_amount || '0')}`,
+							perUnit: `${overridden.symbol}${formatLocalizedNumber(newTier.unit_amount)}`,
+							flat: `${overridden.symbol}${formatLocalizedNumber(newTier.flat_amount || '0')}`,
 						}),
 					});
 				}
@@ -301,7 +301,7 @@ const PriceTooltipContent: FC<{
 								{normalized.billingModel === BILLING_MODEL.FLAT_FEE
 									? t('priceTooltip.displayPerUnit', {
 											symbol: normalized.symbol,
-											amount: formatAmount(normalized.amount),
+											amount: formatLocalizedNumber(normalized.amount),
 										})
 									: formatPriceDisplay(normalized)}
 							</div>
@@ -315,11 +315,11 @@ const PriceTooltipContent: FC<{
 						<div className='space-y-1'>
 							<div className='line-through text-gray-400 text-sm'>
 								{normalized.symbol}
-								{formatAmount(discountInfo.originalAmount.toString())}
+								{formatLocalizedNumber(discountInfo.originalAmount.toString())}
 							</div>
 							<div className='text-gray-900 font-medium'>
 								{normalized.symbol}
-								{formatAmount(discountInfo.discountedAmount.toString())}
+								{formatLocalizedNumber(discountInfo.discountedAmount.toString())}
 							</div>
 							{couponName && <div className='text-xs text-gray-500 mt-1'>{couponName}</div>}
 						</div>
@@ -346,7 +346,7 @@ const PriceTooltipContent: FC<{
 							{normalized.billingModel === BILLING_MODEL.FLAT_FEE
 								? t('priceTooltip.displayPerUnit', {
 										symbol: normalized.symbol,
-										amount: formatAmount(normalized.amount),
+										amount: formatLocalizedNumber(normalized.amount),
 									})
 								: formatPriceDisplay(normalized)}
 						</div>

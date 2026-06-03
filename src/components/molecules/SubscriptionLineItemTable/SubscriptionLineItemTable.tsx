@@ -8,7 +8,12 @@ import { LineItem, SUBSCRIPTION_LINE_ITEM_ENTITY_TYPE } from '@/models/Subscript
 import { FC, useState, useCallback, useMemo } from 'react';
 import { Trash2, Pencil, Info } from 'lucide-react';
 import { ENTITY_STATUS } from '@/models/base';
-import { formatBillingPeriodForDisplay, getCurrencySymbol, getPriceTypeLabel } from '@/utils/common/helper_functions';
+import {
+	formatBillingPeriodForDisplay,
+	formatLocalizedCurrency,
+	formatLocalizedNumber,
+	getPriceTypeLabel,
+} from '@/utils/common/helper_functions';
 import { PRICE_ENTITY_TYPE, PRICE_STATUS, PRICE_TYPE } from '@/models/Price';
 import { formatDateTimeWithSecondsAndTimezone } from '@/utils/common/format_date';
 
@@ -45,6 +50,7 @@ interface LineItemDropdownProps {
 }
 
 const LineItemDropdown: FC<LineItemDropdownProps> = ({ row, isEditDisabled, isTerminateDisabled, onEdit, onTerminate }) => {
+	const { t } = useTranslation('common');
 	const [isOpen, setIsOpen] = useState(false);
 
 	const handleClick = (e: React.MouseEvent) => {
@@ -60,7 +66,7 @@ const LineItemDropdown: FC<LineItemDropdownProps> = ({ row, isEditDisabled, isTe
 				onOpenChange={setIsOpen}
 				options={[
 					{
-						label: 'Edit',
+						label: t('actions.edit'),
 						icon: <Pencil />,
 						onSelect: (e: Event) => {
 							e.preventDefault();
@@ -70,7 +76,7 @@ const LineItemDropdown: FC<LineItemDropdownProps> = ({ row, isEditDisabled, isTe
 						disabled: isEditDisabled,
 					},
 					{
-						label: 'Terminate',
+						label: t('tableMenu.terminate'),
 						icon: <Trash2 />,
 						onSelect: (e: Event) => {
 							e.preventDefault();
@@ -204,7 +210,7 @@ const formatCommitmentTooltip = (info: SubscriptionCommitmentInfo, t: TFunction)
 		rows.push(
 			<div key='amount' className='flex items-center gap-2'>
 				{t('labels.commitmentAmount')}
-				<span className='text-sm font-medium'>{`${getCurrencySymbol(info.currency ?? '')}${info.commitment_amount}`}</span>
+				<span className='text-sm font-medium'>{formatLocalizedCurrency(info.commitment_amount, info.currency ?? '')}</span>
 			</div>,
 		);
 	}
@@ -314,7 +320,7 @@ const SubscriptionLineItemTable: FC<Props> = ({
 	const columns: ColumnData<LineItemWithStatus>[] = useMemo(
 		() => [
 			{
-				title: 'Display Name',
+				title: t('tableColumns.displayName'),
 				render: (row: LineItemWithStatus) => (
 					<div className='flex items-center gap-1'>
 						<span>{row.display_name}</span>
@@ -338,7 +344,7 @@ const SubscriptionLineItemTable: FC<Props> = ({
 			...(phaseLabelsById && Object.keys(phaseLabelsById).length > 0
 				? [
 						{
-							title: 'Phase',
+							title: t('tableColumns.phase'),
 							render: (row: LineItemWithStatus) => (
 								<span className='text-sm text-gray-700'>
 									{(row.subscription_phase_id && phaseLabelsById[row.subscription_phase_id]) ?? '—'}
@@ -348,15 +354,15 @@ const SubscriptionLineItemTable: FC<Props> = ({
 					]
 				: []),
 			{
-				title: 'Price Type',
-				render: (row) => <span>{getPriceTypeLabel(row.price_type)}</span>,
+				title: t('tableColumns.priceType'),
+				render: (row) => <span>{getPriceTypeLabel(row.price_type, t)}</span>,
 			},
 			{
-				title: 'Billing Period',
-				render: (row) => formatBillingPeriodForDisplay(row.billing_period),
+				title: t('tableColumns.billingPeriod'),
+				render: (row) => formatBillingPeriodForDisplay(row.billing_period, t),
 			},
 			{
-				title: 'Quantity',
+				title: t('tableColumns.quantity'),
 				render: (row) => {
 					if (row.price_type === PRICE_TYPE.USAGE) {
 						return <span className='text-gray-500'>{t('labels.na')}</span>;
@@ -366,14 +372,19 @@ const SubscriptionLineItemTable: FC<Props> = ({
 					if (q == null || !Number.isFinite(Number(q))) return <span className='text-gray-500'>{t('labels.na')}</span>;
 					const n = Number(q);
 					return (
-						<span className='tabular-nums'>{Number.isInteger(n) ? n : n.toLocaleString(undefined, { maximumFractionDigits: 6 })}</span>
+						<span className='tabular-nums'>
+							{formatLocalizedNumber(n, {
+								maximumFractionDigits: Number.isInteger(n) ? 0 : 6,
+								minimumFractionDigits: Number.isInteger(n) ? 0 : undefined,
+							})}
+						</span>
 					);
 				},
 			},
 			...(hasMultipleEntityTypes
 				? [
 						{
-							title: 'Source',
+							title: t('tableColumns.source'),
 							render: (row: LineItemWithStatus) => (
 								<Chip label={getEntityLabel(row.entity_type)} variant={getEntityChipVariant(row.entity_type)} />
 							),
@@ -381,7 +392,7 @@ const SubscriptionLineItemTable: FC<Props> = ({
 					]
 				: []),
 			{
-				title: 'Status',
+				title: t('tableColumns.status'),
 				render(rowData) {
 					return (
 						<Tooltip
@@ -397,7 +408,7 @@ const SubscriptionLineItemTable: FC<Props> = ({
 				},
 			},
 			{
-				title: 'Charge',
+				title: t('tableColumns.charge'),
 				render: (row) => {
 					if (!row.price) return '--';
 					const isSubscriptionOverride =
@@ -433,7 +444,7 @@ const SubscriptionLineItemTable: FC<Props> = ({
 				},
 			},
 		],
-		[hasMultipleEntityTypes, commitmentInfo, handleEditClick, handleTerminateClick, readOnly, phaseLabelsById],
+		[hasMultipleEntityTypes, commitmentInfo, handleEditClick, handleTerminateClick, readOnly, phaseLabelsById, t],
 	);
 
 	if (isLoading) {

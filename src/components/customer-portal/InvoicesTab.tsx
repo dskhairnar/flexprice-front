@@ -8,8 +8,7 @@ import { Card, Chip } from '@/components/atoms';
 import { InvoiceDownloadFormatDialog } from '@/components/molecules';
 import { Invoice, INVOICE_STATUS } from '@/models/Invoice';
 import { PAYMENT_STATUS } from '@/constants/payment';
-import { formatDateShort, getCurrencySymbol } from '@/utils/common/helper_functions';
-import { formatAmount } from '@/components/atoms/Input/Input';
+import { formatDateShort, formatLocalizedCurrency, resolveCurrencyCode } from '@/utils/common/helper_functions';
 import { Download, Loader2, Search } from 'lucide-react';
 import { Input } from '@/components/ui';
 import EmptyState from './EmptyState';
@@ -127,8 +126,7 @@ const InvoicesTab = () => {
 	// 	)
 	// 	.reduce((sum, inv) => sum + (inv.amount_remaining || 0), 0);
 
-	const currency = invoices[0]?.currency || 'USD';
-	const currencySymbol = getCurrencySymbol(currency);
+	const currency = resolveCurrencyCode(invoices[0]?.currency);
 
 	const openInvoiceDownload = (invoice: Invoice) => {
 		setDownloadTarget(invoice);
@@ -184,8 +182,7 @@ const InvoicesTab = () => {
 				<Card className='bg-white border border-[#E9E9E9] rounded-xl p-4'>
 					<span className='text-sm text-zinc-500'>Total invoiced</span>
 					<p className='text-xl font-semibold text-zinc-950 mt-1'>
-						{currencySymbol}
-						{formatAmount(String(totalInvoiced))}
+						{formatLocalizedCurrency(totalInvoiced, currency)}
 					</p>
 				</Card>
 				<Card className='bg-white border border-[#E9E9E9] rounded-xl p-4'>
@@ -203,8 +200,7 @@ const InvoicesTab = () => {
 						</TooltipProvider>
 					</div>
 					<p className={`text-xl font-semibold mt-1 ${totalOverdue > 0 ? 'text-red-600' : 'text-zinc-950'}`}>
-						{currencySymbol}
-						{formatAmount(String(totalOverdue))}
+						{formatLocalizedCurrency(totalOverdue, currency)}
 					</p>
 				</Card>
 			</div> */}
@@ -254,8 +250,7 @@ const InvoicesTab = () => {
 									</td>
 									<td className='px-4 py-3'>{getStatusChip(invoice)}</td>
 									<td className='px-4 py-3 text-sm text-zinc-900 text-end font-medium'>
-										{currencySymbol}
-										{formatAmount(String(invoice.total ?? 0))}
+										{formatLocalizedCurrency(invoice.total ?? 0, invoice.currency ?? currency)}
 									</td>
 									<td className='px-4 py-3 text-center'>
 										{invoice.invoice_status === INVOICE_STATUS.FINALIZED && (

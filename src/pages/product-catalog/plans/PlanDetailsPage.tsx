@@ -27,20 +27,8 @@ import { Plan, ENTITY_STATUS } from '@/models';
 // Constants and utilities
 import { getPlanPriceSyncWorkflowFilters } from '@/constants/workflow';
 import { useBreadcrumbsStore } from '@/store/useBreadcrumbsStore';
-import { INVOICE_CADENCE } from '@/models';
 import { DataType, FilterOperator, SortDirection } from '@/types/common/QueryBuilder';
 import { useTranslation } from 'react-i18next';
-
-export const formatInvoiceCadence = (cadence: string): string => {
-	switch (cadence.toUpperCase()) {
-		case INVOICE_CADENCE.ADVANCE:
-			return 'Advance';
-		case INVOICE_CADENCE.ARREAR:
-			return 'Arrear';
-		default:
-			return '--';
-	}
-};
 
 const tabs = [
 	{ id: '', label: 'Overview' },
@@ -61,7 +49,7 @@ type Params = {
 };
 
 const PlanDetailsPage = () => {
-	const { t } = useTranslation(['common']);
+	const { t } = useTranslation(['common', 'catalog']);
 	const navigate = useNavigate();
 	const location = useLocation();
 	const { planId } = useParams<Params>();
@@ -143,23 +131,23 @@ const PlanDetailsPage = () => {
 	const dropdownOptions: DropdownMenuOption[] = useMemo(
 		() => [
 			{
-				label: 'Edit',
+				label: t('plans.listPage.rowActions.edit'),
 				icon: <Pencil />,
 				onSelect: () => setPlanDrawerOpen(true),
 			},
 			{
-				label: 'Duplicate',
+				label: t('plans.listPage.rowActions.duplicate'),
 				icon: <Copy />,
 				onSelect: () => setDuplicateDialogOpen(true),
 			},
 			{
-				label: 'Archive',
+				label: t('plans.listPage.rowActions.archive'),
 				icon: <EyeOff />,
 				onSelect: () => archivePlan(),
 				disabled: planData?.status !== ENTITY_STATUS.PUBLISHED,
 			},
 		],
-		[archivePlan, planData?.status],
+		[archivePlan, planData?.status, t],
 	);
 
 	// Handle tab changes based on URL

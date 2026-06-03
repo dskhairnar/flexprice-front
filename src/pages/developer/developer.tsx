@@ -14,6 +14,7 @@ import { API_DOCS_TAGS } from '@/constants/apiDocsTags';
 import ActionButton from '@/components/atoms/ActionButton/ActionButton';
 import { useTranslation } from 'react-i18next';
 import i18n from 'i18next';
+import { formatRbacRole } from '@/i18n/display/apiEnums';
 
 // Utility function to format permissions for display
 export const formatPermissionDisplay = (permissions: readonly string[]): string => {
@@ -151,7 +152,7 @@ const DeveloperPage = () => {
 						<div className='flex flex-wrap gap-1'>
 							{rowData.roles.map((role) => (
 								<span key={role} className='inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800'>
-									{role}
+									{formatRbacRole(role, t)}
 								</span>
 							))}
 						</div>

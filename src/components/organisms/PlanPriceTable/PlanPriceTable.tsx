@@ -17,10 +17,9 @@ import { PriceApi } from '@/api/PriceApi';
 import toast from 'react-hot-toast';
 import { useNavigate } from 'react-router';
 import { RouteNames } from '@/core/routes/Routes';
-import { getPriceTypeLabel } from '@/utils';
-import { BILLING_PERIOD } from '@/constants/constants';
+import { formatBillingPeriodForDisplay, getPriceTypeLabel } from '@/utils';
 import { ChargeValueCell } from '@/components/molecules';
-import { formatInvoiceCadence } from '@/pages';
+import { formatInvoiceCadence } from '@/utils/common/helper_functions';
 import { Dialog } from '@/components/ui';
 import { DeletePriceRequest } from '@/types/dto';
 import { formatDateTimeWithSecondsAndTimezone } from '@/utils/common/format_date';
@@ -60,6 +59,7 @@ interface PriceDropdownProps {
 }
 
 const PriceDropdown: FC<PriceDropdownProps> = ({ row, hasEndDate, onEditPrice, onEditDetails, onTerminatePrice }) => {
+	const { t } = useTranslation(['catalog', 'common']);
 	const [isOpen, setIsOpen] = useState(false);
 
 	const handleClick = (e: React.MouseEvent) => {
@@ -75,17 +75,17 @@ const PriceDropdown: FC<PriceDropdownProps> = ({ row, hasEndDate, onEditPrice, o
 				onOpenChange={setIsOpen}
 				options={[
 					{
-						label: 'Copy Price ID',
+						label: t('common:tableMenu.copyPriceId'),
 						icon: <Copy />,
 						onSelect: (e: Event) => {
 							e.preventDefault();
 							setIsOpen(false);
 							navigator.clipboard.writeText(row.id);
-							toast.success('Price ID copied to clipboard');
+							toast.success(t('common:tableMenu.priceIdCopied'));
 						},
 					},
 					{
-						label: 'Update Price',
+						label: t('common:tableMenu.updatePrice'),
 						icon: <Pencil />,
 						onSelect: (e: Event) => {
 							e.preventDefault();
@@ -95,7 +95,7 @@ const PriceDropdown: FC<PriceDropdownProps> = ({ row, hasEndDate, onEditPrice, o
 						disabled: hasEndDate,
 					},
 					{
-						label: 'Edit Details',
+						label: t('common:tableMenu.editDetails'),
 						icon: <FileText />,
 						onSelect: (e: Event) => {
 							e.preventDefault();
@@ -105,7 +105,7 @@ const PriceDropdown: FC<PriceDropdownProps> = ({ row, hasEndDate, onEditPrice, o
 						disabled: hasEndDate,
 					},
 					{
-						label: 'Terminate Price',
+						label: t('common:tableMenu.terminatePrice'),
 						icon: <Trash2 />,
 						onSelect: (e: Event) => {
 							e.preventDefault();
@@ -118,27 +118,6 @@ const PriceDropdown: FC<PriceDropdownProps> = ({ row, hasEndDate, onEditPrice, o
 			/>
 		</div>
 	);
-};
-
-const formatBillingPeriod = (billingPeriod: string) => {
-	switch (billingPeriod.toUpperCase()) {
-		case BILLING_PERIOD.DAILY:
-			return 'Daily';
-		case BILLING_PERIOD.WEEKLY:
-			return 'Weekly';
-		case BILLING_PERIOD.MONTHLY:
-			return 'Monthly';
-		case BILLING_PERIOD.ANNUAL:
-			return 'Yearly';
-		case BILLING_PERIOD.QUARTERLY:
-			return 'Quarterly';
-		case BILLING_PERIOD.HALF_YEARLY:
-			return 'Half Yearly';
-		case BILLING_PERIOD.ONETIME:
-			return 'One-time';
-		default:
-			return '--';
-	}
 };
 
 const getPriceStatus = (price: Price): PRICE_STATUS => {
@@ -386,23 +365,23 @@ const PlanPriceTable: FC<PlanChargesTableProps> = ({ plan, onPriceUpdate }) => {
 	const chargeColumns: ColumnData<Price>[] = useMemo(
 		() => [
 			{
-				title: 'Display Name',
+				title: t('catalog:shared.chargeColumns.displayName'),
 				render: (row) => <span>{row.display_name ?? t('catalog:plans.organisms.planPriceTable.fallbackName')}</span>,
 			},
 			{
-				title: 'Charge Type',
-				render: (row) => <span>{getPriceTypeLabel(row.type)}</span>,
+				title: t('catalog:shared.chargeColumns.chargeType'),
+				render: (row) => <span>{getPriceTypeLabel(row.type, t)}</span>,
 			},
 			{
-				title: 'Billing Timing',
-				render: (row) => <span>{formatInvoiceCadence(row.invoice_cadence as string)}</span>,
+				title: t('catalog:shared.chargeColumns.billingTiming'),
+				render: (row) => <span>{formatInvoiceCadence(row.invoice_cadence as string, t)}</span>,
 			},
 			{
-				title: 'Billing Period',
-				render: (row) => <span>{formatBillingPeriod(row.billing_period as string)}</span>,
+				title: t('catalog:shared.chargeColumns.billingPeriod'),
+				render: (row) => <span>{formatBillingPeriodForDisplay(row.billing_period as string, t)}</span>,
 			},
 			{
-				title: 'Status',
+				title: t('catalog:shared.chargeColumns.status'),
 				render: (row) => {
 					const status = getPriceStatus(row);
 					const variant = getStatusChipVariant(status);
@@ -422,7 +401,7 @@ const PlanPriceTable: FC<PlanChargesTableProps> = ({ plan, onPriceUpdate }) => {
 				},
 			},
 			{
-				title: 'Value',
+				title: t('catalog:shared.chargeColumns.value'),
 				render: (row) => {
 					const priceWithPricingUnit = row as Price & { pricing_unit?: PriceUnit };
 					return <ChargeValueCell data={priceWithPricingUnit} />;

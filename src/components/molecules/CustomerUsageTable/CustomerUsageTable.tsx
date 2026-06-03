@@ -4,7 +4,7 @@ import { RouteNames } from '@/core/routes/Routes';
 import { FEATURE_TYPE } from '@/models/Feature';
 import { FC, useMemo } from 'react';
 import CustomerUsage, { EntitlementSource, ENTITLEMENT_SOURCE_ENTITY_TYPE } from '@/models/CustomerUsage';
-import { formatAmount } from '@/components/atoms/Input/Input';
+import { formatLocalizedNumber } from '@/utils/common/helper_functions';
 import { useTranslation } from 'react-i18next';
 import i18n from 'i18next';
 import { getFeatureTypeChips } from './getFeatureTypeChips';
@@ -54,7 +54,7 @@ const CustomerUsageTable: FC<Props> = ({ data, allowRedirect = true }) => {
 							{usageRow.is_unlimited
 								? t('usageTable.unlimitedLabel')
 								: usageRow.total_limit
-									? formatAmount(usageRow.total_limit?.toString())
+									? formatLocalizedNumber(usageRow.total_limit?.toString())
 									: t('usageTable.unlimitedLabel')}
 							<span className='text-[#64748B] text-sm font-normal font-sans'>{t('usageTable.units')}</span>
 						</span>
@@ -165,7 +165,7 @@ const CustomerUsageTable: FC<Props> = ({ data, allowRedirect = true }) => {
 						return (
 							<Progress
 								label={t('usageTable.featureTypes.usageProgressUnlimited', {
-									usage: formatAmount(usage.toString()),
+									usage: formatLocalizedNumber(usage.toString()),
 								})}
 								value={0}
 								className='h-[6px]'
@@ -182,7 +182,7 @@ const CustomerUsageTable: FC<Props> = ({ data, allowRedirect = true }) => {
 
 					return (
 						<Progress
-							label={`${formatAmount(usage.toString())} / ${formatAmount(limit.toString())}`}
+							label={`${formatLocalizedNumber(usage.toString())} / ${formatLocalizedNumber(limit.toString())}`}
 							value={value}
 							className='h-[6px]'
 							indicatorColor={indicatorColor}

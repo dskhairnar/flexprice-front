@@ -44,6 +44,7 @@ import type { AddedSubscriptionLineItem } from '@/components/organisms/Subscript
 
 import { cn } from '@/lib/utils';
 import { toSentenceCase } from '@/utils/common/helper_functions';
+import { getIntlLocale } from '@/i18n/display/intlLocale';
 import { ExtendedPriceOverride, getLineItemOverrides } from '@/utils/common/price_override_helpers';
 import { extractLineItemCommitments } from '@/utils/common/commitment_helpers';
 import { extractSubscriptionBoundaries, extractFirstPhaseData } from '@/utils/subscription/phaseConversion';
@@ -807,7 +808,7 @@ const CreateCustomerSubscriptionPage: React.FC = () => {
 							{t('subscriptionCreate.sandboxNotice', {
 								date: new Date(
 									new Date(subscriptionState.startDate).getTime() + SANDBOX_AUTO_CANCELLATION_DAYS * 24 * 60 * 60 * 1000,
-								).toLocaleDateString('en-US', SANDBOX_END_DATE_FORMAT),
+								).toLocaleDateString(getIntlLocale(), SANDBOX_END_DATE_FORMAT),
 								days: SANDBOX_AUTO_CANCELLATION_DAYS,
 							})}
 						</span>

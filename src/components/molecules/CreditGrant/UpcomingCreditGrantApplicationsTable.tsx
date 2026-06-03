@@ -4,7 +4,7 @@ import FlexpriceTable, { ColumnData, RedirectCell } from '../Table';
 import { CreditGrantApplication, APPLICATION_STATUS } from '@/models';
 import { formatDateShort } from '@/utils/common/helper_functions';
 import { formatDateTimeWithSecondsAndTimezone } from '@/utils/common/format_date';
-import { formatAmount } from '@/components/atoms/Input/Input';
+import { formatLocalizedNumber } from '@/utils/common/helper_functions';
 import { Card } from '@/components/atoms';
 import { useTranslation } from 'react-i18next';
 
@@ -41,7 +41,7 @@ const UpcomingCreditGrantApplicationsTable: React.FC<UpcomingCreditGrantApplicat
 			{
 				title: t('creditGrant.upcomingApplications.columnCredits'),
 				render: (row) => {
-					return <span>{formatAmount(row.credits.toString())}</span>;
+					return <span className='tabular-nums'>{formatLocalizedNumber(row.credits)}</span>;
 				},
 			},
 			{

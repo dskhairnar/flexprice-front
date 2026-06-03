@@ -143,6 +143,9 @@
 		"typePostpaidDesc": "Credits are applied to invoices at the end of the billing cycle.",
 		"labelPrePaid": "Pre-Paid",
 		"labelPostPaid": "Post-Paid",
+		"nameLabel": "Wallet Name",
+		"statusLabel": "Status",
+		"creditRateFormat": "{{amount}} Credit = {{currencySymbol}}",
 		"addTopupRate": "Top-up Rate",
 		"addFreeCredits": "Free Credits",
 		"saveWallet": "Save Wallet",
@@ -269,7 +272,8 @@
 	"tabPanels": {
 		"common": {
 			"metadata": "Metadata",
-			"unknown": "Unknown"
+			"unknown": "Unknown",
+			"noMetadataAvailable": "No metadata available."
 		},
 		"analytics": {
 			"heading": "Analytics",
@@ -307,7 +311,19 @@
 		"overview": {
 			"subscriptionsCardTitle": "Subscriptions",
 			"subscriptionsPaginationUnit": "Subscriptions",
-			"entitlementsCardTitle": "Entitlements"
+			"entitlementsCardTitle": "Entitlements",
+			"subscriptionFilters": {
+				"plan": "Plan",
+				"status": "Status",
+				"billingCadence": "Billing Cadence",
+				"billingPeriod": "Billing Period"
+			},
+			"subscriptionSorts": {
+				"createdAt": "Created At",
+				"updatedAt": "Updated At",
+				"startDate": "Start Date",
+				"endDate": "End Date"
+			}
 		},
 		"tax": {
 			"emptyTitle": "Tax",
@@ -337,7 +353,14 @@
 			"transactionsPaginationUnit": "Transactions",
 			"noTransactionsSubtitle": "No recent transactions",
 			"noMetadataTitle": "No metadata",
-			"noMetadataHint": "Add custom metadata to store additional information about this wallet."
+			"noMetadataHint": "Add custom metadata to store additional information about this wallet.",
+			"menu": {
+				"createWallet": "Create Wallet",
+				"autoTopup": "Auto Topup",
+				"alertSettings": "Alert Settings",
+				"manualDebit": "Manual Debit",
+				"terminate": "Terminate"
+			}
 		}
 	},
 	"organisms": {
@@ -389,7 +412,13 @@
 			"activateSubtitle": "Activating the subscription will start the billing cycle from the selected start date.",
 			"startDate": "Start Date",
 			"activating": "Activating...",
-			"activate": "Activate"
+			"activate": "Activate",
+			"menu": {
+				"activateSubscription": "Activate Subscription",
+				"editSubscription": "Edit Subscription",
+				"addSubscriptionPhase": "Add Subscription Phase",
+				"cancelSubscription": "Cancel Subscription"
+			}
 		},
 		"subscriptionForm": {
 			"subscriptionDetails": "Subscription Details",
@@ -463,6 +492,13 @@
 			"deleteAdded": "Delete"
 		},
 		"subscriptionTable": {
+			"columns": {
+				"planName": "Plan Name",
+				"billingPeriod": "Billing Period",
+				"status": "Status",
+				"startDate": "Start Date",
+				"renewalDate": "Renewal Date"
+			},
 			"planModifiedAria": "Plan modified",
 			"hierarchyColumn": "Hierarchy",
 			"inheritedTitle": "Inherited subscription",

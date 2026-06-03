@@ -1,5 +1,23 @@
 {
 	"shared": {
+		"chargeColumns": {
+			"displayName": "اسم العرض",
+			"chargeType": "نوع الرسم",
+			"billingTiming": "توقيت الفوترة",
+			"billingPeriod": "فترة الفوترة",
+			"value": "القيمة",
+			"feature": "الميزة",
+			"featureName": "اسم الميزة",
+			"type": "النوع",
+			"status": "الحالة",
+			"updatedAt": "تاريخ التحديث"
+		},
+		"entitlementColumns": {
+			"featureName": "اسم الميزة",
+			"type": "النوع",
+			"usageReset": "إعادة ضبط الاستخدام",
+			"value": "القيمة"
+		},
 		"description": "الوصف",
 		"lookupKey": "مفتاح البحث",
 		"lookupKeyDescription": "معرّف نظامي يُستخدم في استدعاءات API والتكاملات.",
@@ -51,7 +69,9 @@
 			"title": "تفاصيل الإضافة",
 			"charges": "الرسوم",
 			"entitlements": "الاستحقاقات",
-			"metadata": "البيانات الوصفية"
+			"metadata": "البيانات الوصفية",
+			"noChargesLinked": "لم تُضف رسوم إلى هذه الإضافة بعد",
+			"noEntitlementsLinked": "لم تُضف استحقاقات إلى هذه الإضافة بعد"
 		},
 		"subscriptionSheet": {
 			"editTitle": "تعديل الإضافة",
@@ -255,7 +275,20 @@
 		},
 		"details": {
 			"loadError": "فشل تحميل تفاصيل القسيمة",
-			"detailsTitle": "التفاصيل"
+			"detailsTitle": "التفاصيل",
+			"fields": {
+				"type": "النوع",
+				"discount": "الخصم",
+				"cadence": "الإيقاع",
+				"status": "الحالة",
+				"redemptions": "عمليات الاسترداد",
+				"durationInPeriods": "المدة بالفترات",
+				"redeemAfter": "الاسترداد بعد",
+				"redeemBefore": "الاسترداد قبل",
+				"createdAt": "تاريخ الإنشاء",
+				"updatedAt": "تاريخ التحديث",
+				"metadata": "البيانات الوصفية"
+			}
 		}
 	},
 	"groups": {
@@ -402,7 +435,8 @@
 		"information": {
 			"loading": "جاري تحميل تفاصيل الخطة…",
 			"planDetails": "تفاصيل الخطة",
-			"metadata": "البيانات الوصفية"
+			"metadata": "البيانات الوصفية",
+			"noMetadataAvailable": "لا توجد بيانات وصفية متاحة."
 		},
 		"pricing": {
 			"noWidget": "لا يوجد عنصر واجهة للتسعير",
@@ -742,7 +776,28 @@
 			"displayUnitName": "اسم وحدة العرض",
 			"usageReset": "إعادة ضبط الاستخدام ",
 			"bucketSize": "حجم الدفعة",
-			"groupBy": "تجميع حسب"
+			"groupBy": "تجميع حسب",
+			"noChargesLinked": "لا توجد رسوم مرتبطة بهذه الميزة بعد",
+			"noEntitlementsLinked": "لا توجد استحقاقات مرتبطة بهذه الميزة بعد",
+			"alertSettingsMenu": "إعدادات التنبيه",
+			"columns": {
+				"planAddon": "الخطة/الإضافة",
+				"billingTiming": "توقيت الفوترة",
+				"billingPeriod": "فترة الفوترة",
+				"value": "القيمة",
+				"planAddonEntitlement": "الخطة / الإضافة",
+				"status": "الحالة"
+			},
+			"aggregationTypes": {
+				"sum": "مجموع",
+				"count": "عدد",
+				"countUnique": "عدد فريد",
+				"latest": "الأحدث",
+				"sumWithMultiplier": "مجموع مع مضاعف",
+				"max": "الحد الأقصى",
+				"weightedSum": "مجموع موزون",
+				"avg": "متوسط"
+			}
 		}
 	},
 	"entityChargesPage": {

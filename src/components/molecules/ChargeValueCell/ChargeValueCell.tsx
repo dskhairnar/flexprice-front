@@ -14,7 +14,7 @@ import {
 	ExtendedPriceOverride,
 } from '@/utils';
 import { Info } from 'lucide-react';
-import { formatAmount } from '@/components/atoms/Input/Input';
+import { formatLocalizedNumber } from '@/i18n/display/formatNumber';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui';
 import { Coupon } from '@/models';
 import { cn } from '@/lib/utils';
@@ -35,11 +35,11 @@ const DiscountedPriceDisplay: FC<{
 		<div className='flex flex-col'>
 			<div className='line-through text-gray-400 text-sm'>
 				{symbol}
-				{formatAmount(originalAmount.toString())}
+				{formatLocalizedNumber(originalAmount.toString())}
 			</div>
 			<div className='text-gray-900 font-medium'>
 				{symbol}
-				{formatAmount(discountedAmount.toString())}
+				{formatLocalizedNumber(discountedAmount.toString())}
 			</div>
 		</div>
 		<TooltipProvider delayDuration={0}>
@@ -67,8 +67,8 @@ const OverrideTooltip: FC<{
 	if (overridden.billingModel !== original.billingModel) {
 		changes.push(
 			t('catalog:chargeValue.override.billingModelLine', {
-				from: getBillingModelLabel(original.billingModel),
-				to: getBillingModelLabel(overridden.billingModel),
+				from: getBillingModelLabel(original.billingModel, t),
+				to: getBillingModelLabel(overridden.billingModel, t),
 			}),
 		);
 	}
@@ -76,8 +76,8 @@ const OverrideTooltip: FC<{
 	if (overridden.tierMode !== original.tierMode) {
 		changes.push(
 			t('catalog:chargeValue.override.tierModeLine', {
-				from: getTierModeLabel(original.tierMode),
-				to: getTierModeLabel(overridden.tierMode),
+				from: getTierModeLabel(original.tierMode, t),
+				to: getTierModeLabel(overridden.tierMode, t),
 			}),
 		);
 	}
@@ -85,8 +85,8 @@ const OverrideTooltip: FC<{
 	if (overridden.amount !== original.amount) {
 		changes.push(
 			t('catalog:chargeValue.override.amountLine', {
-				from: `${original.symbol}${formatAmount(original.amount)}`,
-				to: `${overridden.symbol}${formatAmount(overridden.amount)}`,
+				from: `${original.symbol}${formatLocalizedNumber(original.amount)}`,
+				to: `${overridden.symbol}${formatLocalizedNumber(overridden.amount)}`,
 			}),
 		);
 	}
@@ -157,8 +157,8 @@ const OverrideTooltip: FC<{
 					if (originalTier.unit_amount !== newTier.unit_amount) {
 						tierChangesForThisTier.push(
 							t('catalog:chargeValue.override.tierDetailPerUnit', {
-								from: `${overridden.symbol}${formatAmount(originalTier.unit_amount)}`,
-								to: `${overridden.symbol}${formatAmount(newTier.unit_amount)}`,
+								from: `${overridden.symbol}${formatLocalizedNumber(originalTier.unit_amount)}`,
+								to: `${overridden.symbol}${formatLocalizedNumber(newTier.unit_amount)}`,
 							}),
 						);
 					}
@@ -166,8 +166,8 @@ const OverrideTooltip: FC<{
 					if ((originalTier.flat_amount || '0') !== (newTier.flat_amount || '0')) {
 						tierChangesForThisTier.push(
 							t('catalog:chargeValue.override.tierDetailFlatFee', {
-								from: `${overridden.symbol}${formatAmount(originalTier.flat_amount || '0')}`,
-								to: `${overridden.symbol}${formatAmount(newTier.flat_amount || '0')}`,
+								from: `${overridden.symbol}${formatLocalizedNumber(originalTier.flat_amount || '0')}`,
+								to: `${overridden.symbol}${formatLocalizedNumber(newTier.flat_amount || '0')}`,
 							}),
 						);
 					}
@@ -183,8 +183,8 @@ const OverrideTooltip: FC<{
 				} else {
 					const newFrom = index === 0 ? 0 : newTiers[index - 1]?.up_to || 0;
 					const newUpToDisplay = newTier.up_to === null || newTier.up_to === undefined ? '∞' : newTier.up_to.toString();
-					const perUnit = `${overridden.symbol}${formatAmount(newTier.unit_amount)}`;
-					const flatFee = `${overridden.symbol}${formatAmount(newTier.flat_amount || '0')}`;
+					const perUnit = `${overridden.symbol}${formatLocalizedNumber(newTier.unit_amount)}`;
+					const flatFee = `${overridden.symbol}${formatLocalizedNumber(newTier.flat_amount || '0')}`;
 					tierChanges.push(
 						t('catalog:chargeValue.override.tierAdded', {
 							header: t('catalog:chargeValue.override.tierHeader', { n: index + 1 }),
@@ -303,14 +303,14 @@ const TieredPricingTooltip: FC<{
 											<div className='!font-normal text-muted-foreground'>
 												{t('catalog:chargeValue.perUnitLine', {
 													symbol,
-													amount: formatAmount(tier.unit_amount),
+													amount: formatLocalizedNumber(tier.unit_amount),
 												})}
 											</div>
 											{Number(tier.flat_amount) > 0 && (
 												<div className='text-xs text-gray-500'>
 													{t('catalog:chargeValue.flatFeePlusLine', {
 														symbol,
-														amount: formatAmount(tier.flat_amount || '0'),
+														amount: formatLocalizedNumber(tier.flat_amount || '0'),
 													})}
 												</div>
 											)}

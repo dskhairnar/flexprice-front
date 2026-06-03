@@ -1,48 +1,24 @@
+import { formatLocalizedCurrency, formatLocalizedNumber, getLocalizedCurrencySymbol } from '@/i18n/display/formatNumber';
+
 // =============================================================================
 // COMMON CONSTANTS & UTILITIES
 // =============================================================================
 
 // =============================================================================
-// CURRENCY FORMATTERS
+// CURRENCY FORMATTERS (locale-aware via active i18n language)
 // =============================================================================
 
-export const formatCurrency = (amount: number | string, currency: string): string => {
-	const numAmount = typeof amount === 'string' ? parseFloat(amount) : amount;
-	if (isNaN(numAmount)) return `${getCurrencySymbol(currency)}0.00`;
-
-	return new Intl.NumberFormat('en-US', {
-		style: 'currency',
-		currency: currency,
-		minimumFractionDigits: 2,
-		maximumFractionDigits: 2,
-	}).format(numAmount);
-};
+export const formatCurrency = (amount: number | string, currency: string): string =>
+	formatLocalizedCurrency(amount, currency, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
 export const formatAmount = (amount: number | string, currency?: string): string => {
-	const numAmount = typeof amount === 'string' ? parseFloat(amount) : amount;
-	if (isNaN(numAmount)) return '0.00';
-
 	if (currency) {
-		return formatCurrency(numAmount, currency);
+		return formatCurrency(amount, currency);
 	}
-
-	return numAmount.toFixed(2);
+	return formatLocalizedNumber(amount, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 };
 
-export const getCurrencySymbol = (currency: string): string => {
-	try {
-		return (
-			new Intl.NumberFormat('en-US', {
-				style: 'currency',
-				currency: currency,
-			})
-				.formatToParts(0)
-				.find((part) => part.type === 'currency')?.value || currency
-		);
-	} catch {
-		return currency;
-	}
-};
+export const getCurrencySymbol = (currency: string): string => getLocalizedCurrencySymbol(currency);
 
 // =============================================================================
 // DATE FORMATTERS

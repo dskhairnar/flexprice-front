@@ -8,7 +8,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ChevronLeft, ChevronRight, Search } from 'lucide-react';
 import { RedirectCell, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/molecules';
-import { getCurrencySymbol } from '@/utils';
+import { DEFAULT_CURRENCY_CODE } from '@/constants/constants';
+import { formatLocalizedCompactNumber, formatLocalizedCurrency, formatLocalizedNumber } from '@/i18n/display/formatNumber';
 import { cn } from '@/lib/utils';
 import RevenueDashboardApi from '@/api/RevenueDashboardApi';
 import { RouteNames } from '@/core/routes/Routes';
@@ -56,17 +57,17 @@ const getDateRangeForPeriod = (period: RevenueFilterValue) => {
 
 const formatCurrency = (value: number | null, currency: string, naLabel: string) => {
 	if (value == null) return naLabel;
-	return `${getCurrencySymbol(currency)} ${value.toLocaleString(undefined, { maximumFractionDigits: 2 })}`;
+	return formatLocalizedCurrency(value, currency);
 };
 
 const formatDecimal = (value: number | null, naLabel: string) => {
 	if (value == null) return naLabel;
-	return value.toLocaleString(undefined, { maximumFractionDigits: 2 });
+	return formatLocalizedNumber(value, { maximumFractionDigits: 2 });
 };
 
 const formatInteger = (value: number | null, naLabel: string) => {
 	if (value == null) return naLabel;
-	return value.toLocaleString();
+	return formatLocalizedNumber(value, { maximumFractionDigits: 0 });
 };
 
 const toNumberOrNull = (value: unknown): number | null => {
@@ -214,9 +215,25 @@ const Revenue = () => {
 							(isLoading || showGlobalEmpty) ? (
 								<div className='rounded-xl border border-gray-200 bg-white overflow-hidden'>
 									<div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3'>
-										<MetricTile title={t('insightsTools.revenue.metricNetRevenue')} value='' loading={isLoading} loadingLabel={t('insightsTools.revenue.loadingEllipsis')} />
-										<MetricTile title={t('insightsTools.revenue.metricContractRevenue')} value='' loading={isLoading} loadingLabel={t('insightsTools.revenue.loadingEllipsis')} />
-										<MetricTile title={t('insightsTools.revenue.metricUsageRevenue')} value='' loading={isLoading} loadingLabel={t('insightsTools.revenue.loadingEllipsis')} isLast />
+										<MetricTile
+											title={t('insightsTools.revenue.metricNetRevenue')}
+											value=''
+											loading
+											loadingLabel={t('insightsTools.revenue.loadingEllipsis')}
+										/>
+										<MetricTile
+											title={t('insightsTools.revenue.metricContractRevenue')}
+											value=''
+											loading
+											loadingLabel={t('insightsTools.revenue.loadingEllipsis')}
+										/>
+										<MetricTile
+											title={t('insightsTools.revenue.metricUsageRevenue')}
+											value=''
+											loading
+											loadingLabel={t('insightsTools.revenue.loadingEllipsis')}
+											isLast
+										/>
 									</div>
 								</div>
 							) : (
@@ -228,9 +245,25 @@ const Revenue = () => {
 												<p className='text-xs font-medium text-gray-400 uppercase tracking-wide px-1 mb-1'>{cur}</p>
 												<div className='rounded-xl border border-gray-200 bg-white overflow-hidden'>
 													<div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3'>
-														<MetricTile title={t('insightsTools.revenue.metricNetRevenue')} value={formatCurrency(toNumberOrNull(sum.total_revenue), cur, naLabel)} loading={false} loadingLabel={t('insightsTools.revenue.loadingEllipsis')} />
-														<MetricTile title={t('insightsTools.revenue.metricContractRevenue')} value={formatCurrency(toNumberOrNull(sum.total_fixed_revenue), cur, naLabel)} loading={false} loadingLabel={t('insightsTools.revenue.loadingEllipsis')} />
-														<MetricTile title={t('insightsTools.revenue.metricUsageRevenue')} value={formatCurrency(toNumberOrNull(sum.total_usage_revenue), cur, naLabel)} loading={false} loadingLabel={t('insightsTools.revenue.loadingEllipsis')} isLast />
+														<MetricTile
+															title={t('insightsTools.revenue.metricNetRevenue')}
+															value={formatCurrency(toNumberOrNull(sum.total_revenue), cur, naLabel)}
+															loading={false}
+															loadingLabel={t('insightsTools.revenue.loadingEllipsis')}
+														/>
+														<MetricTile
+															title={t('insightsTools.revenue.metricContractRevenue')}
+															value={formatCurrency(toNumberOrNull(sum.total_fixed_revenue), cur, naLabel)}
+															loading={false}
+															loadingLabel={t('insightsTools.revenue.loadingEllipsis')}
+														/>
+														<MetricTile
+															title={t('insightsTools.revenue.metricUsageRevenue')}
+															value={formatCurrency(toNumberOrNull(sum.total_usage_revenue), cur, naLabel)}
+															loading={false}
+															loadingLabel={t('insightsTools.revenue.loadingEllipsis')}
+															isLast
+														/>
 													</div>
 												</div>
 											</div>
@@ -241,11 +274,42 @@ const Revenue = () => {
 							// Single currency selected — show summary tiles for that currency.
 							<div className='rounded-xl border border-gray-200 bg-white overflow-hidden'>
 								<div className={`grid grid-cols-1 sm:grid-cols-2 ${showVoiceColumns ? 'lg:grid-cols-5' : 'lg:grid-cols-3'}`}>
-									<MetricTile title={t('insightsTools.revenue.metricNetRevenue')} value={formatCurrency(normalizedSummary.netRevenue, normalizedSummary.currency, naLabel)} loading={isLoading} loadingLabel={t('insightsTools.revenue.loadingEllipsis')} />
-									<MetricTile title={t('insightsTools.revenue.metricContractRevenue')} value={formatCurrency(normalizedSummary.fixedContractRevenue, normalizedSummary.currency, naLabel)} loading={isLoading} loadingLabel={t('insightsTools.revenue.loadingEllipsis')} />
-									<MetricTile title={t('insightsTools.revenue.metricUsageRevenue')} value={formatCurrency(normalizedSummary.usageRevenue, normalizedSummary.currency, naLabel)} loading={isLoading} loadingLabel={t('insightsTools.revenue.loadingEllipsis')} isLast={!showVoiceColumns} />
-									{showVoiceColumns && <MetricTile title={t('insightsTools.revenue.metricVoiceMinutes')} value={formatInteger(normalizedSummary.totalMinutes, naLabel)} loading={isLoading} loadingLabel={t('insightsTools.revenue.loadingEllipsis')} />}
-									{showVoiceColumns && <MetricTile title={t('insightsTools.revenue.metricCostPerMinute')} value={formatDecimal(normalizedSummary.cpm, naLabel)} loading={isLoading} loadingLabel={t('insightsTools.revenue.loadingEllipsis')} isLast />}
+									<MetricTile
+										title={t('insightsTools.revenue.metricNetRevenue')}
+										value={formatCurrency(normalizedSummary.netRevenue, normalizedSummary.currency, naLabel)}
+										loading={isLoading}
+										loadingLabel={t('insightsTools.revenue.loadingEllipsis')}
+									/>
+									<MetricTile
+										title={t('insightsTools.revenue.metricContractRevenue')}
+										value={formatCurrency(normalizedSummary.fixedContractRevenue, normalizedSummary.currency, naLabel)}
+										loading={isLoading}
+										loadingLabel={t('insightsTools.revenue.loadingEllipsis')}
+									/>
+									<MetricTile
+										title={t('insightsTools.revenue.metricUsageRevenue')}
+										value={formatCurrency(normalizedSummary.usageRevenue, normalizedSummary.currency, naLabel)}
+										loading={isLoading}
+										loadingLabel={t('insightsTools.revenue.loadingEllipsis')}
+										isLast={!showVoiceColumns}
+									/>
+									{showVoiceColumns && (
+										<MetricTile
+											title={t('insightsTools.revenue.metricVoiceMinutes')}
+											value={formatInteger(normalizedSummary.totalMinutes, naLabel)}
+											loading={isLoading}
+											loadingLabel={t('insightsTools.revenue.loadingEllipsis')}
+										/>
+									)}
+									{showVoiceColumns && (
+										<MetricTile
+											title={t('insightsTools.revenue.metricCostPerMinute')}
+											value={formatDecimal(normalizedSummary.cpm, naLabel)}
+											loading={isLoading}
+											loadingLabel={t('insightsTools.revenue.loadingEllipsis')}
+											isLast
+										/>
+									)}
 								</div>
 							</div>
 						)}
@@ -318,6 +382,7 @@ const Revenue = () => {
 									<TableHead className='rounded-tl-md pl-4 font-semibold text-gray-700 text-[13px]'>
 										{t('insightsTools.revenue.colCustomer')}
 									</TableHead>
+									{selectedCurrency === '' && <TableHead className='font-semibold text-gray-700 text-[13px]'>{t('currency')}</TableHead>}
 									<TableHead className='font-semibold text-gray-700 text-[13px]'>{t('insightsTools.revenue.metricNetRevenue')}</TableHead>
 									<TableHead className='font-semibold text-gray-700 text-[13px]'>
 										{t('insightsTools.revenue.metricContractRevenue')}
@@ -378,7 +443,9 @@ const Revenue = () => {
 								})}
 								{pagedItems.length === 0 && (
 									<TableRow className='bg-white'>
-										<TableCell colSpan={showVoiceColumns ? 6 : 4} className='pl-4 py-4 font-normal text-gray-500 text-[13px]'>
+										<TableCell
+											colSpan={showVoiceColumns ? 6 : selectedCurrency === '' ? 5 : 4}
+											className='pl-4 py-4 font-normal text-gray-500 text-[13px]'>
 											{search.trim() ? t('insightsTools.revenue.noSearchMatches') : i18n.t('labels.na', { ns: 'common' })}
 										</TableCell>
 									</TableRow>
@@ -455,20 +522,22 @@ const RevenueBarChart = ({ title, data, type }: { title: string; data: RevenueDa
 
 	const formatYAxis = (val: number) => {
 		if (type === 'currency') {
-			if (val >= 1_000_000) return `$${(val / 1_000_000).toFixed(1)}M`;
-			if (val >= 1_000) return `$${(val / 1_000).toFixed(0)}K`;
-			return `$${val.toLocaleString()}`;
+			if (Math.abs(val) >= 1000) {
+				return formatLocalizedCurrency(val, DEFAULT_CURRENCY_CODE, { notation: 'compact', maximumFractionDigits: 1 });
+			}
+			return formatLocalizedCurrency(val, DEFAULT_CURRENCY_CODE, { maximumFractionDigits: 0 });
 		}
-		if (val >= 1_000_000) return `${(val / 1_000_000).toFixed(1)}M`;
-		if (val >= 1_000) return `${(val / 1_000).toFixed(0)}K`;
-		return val.toLocaleString(undefined, { maximumFractionDigits: 0 });
+		if (Math.abs(val) >= 1000) {
+			return formatLocalizedCompactNumber(val);
+		}
+		return formatLocalizedNumber(val, { maximumFractionDigits: 0 });
 	};
 
 	const formatTooltip = (val: number) => {
 		if (type === 'currency') {
-			return [`$ ${val.toLocaleString(undefined, { maximumFractionDigits: 2 })}`, title];
+			return [formatLocalizedCurrency(val, DEFAULT_CURRENCY_CODE), title];
 		}
-		return [val.toLocaleString(undefined, { maximumFractionDigits: 2 }), title];
+		return [formatLocalizedNumber(val, { maximumFractionDigits: 2 }), title];
 	};
 
 	return (

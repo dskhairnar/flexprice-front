@@ -1,6 +1,6 @@
 import { config } from '@/config/config';
 import { FC, useState, useEffect } from 'react';
-import { useTranslation } from 'react-i18next';
+import { Trans, useTranslation } from 'react-i18next';
 import { Button, Input, Sheet, Spacer } from '@/components/atoms';
 import { Switch } from '@/components/ui';
 import { useMutation } from '@tanstack/react-query';
@@ -36,9 +36,7 @@ const WhopConnectionDrawer: FC<WhopConnectionDrawerProps> = ({ isOpen, onOpenCha
 	const [webhookCopied, setWebhookCopied] = useState(false);
 
 	const webhookUrl =
-		user?.tenant?.id && activeEnvironment?.id
-			? `${config.api.baseUrl}/webhooks/whop/${user.tenant.id}/${activeEnvironment.id}`
-			: '';
+		user?.tenant?.id && activeEnvironment?.id ? `${config.api.baseUrl}/webhooks/whop/${user.tenant.id}/${activeEnvironment.id}` : '';
 
 	const [formData, setFormData] = useState<WhopFormData>({
 		name: '',
@@ -75,7 +73,7 @@ const WhopConnectionDrawer: FC<WhopConnectionDrawerProps> = ({ isOpen, onOpenCha
 				});
 			}
 			setErrors({});
-		setWebhookCopied(false);
+			setWebhookCopied(false);
 		}
 	}, [isOpen, connection]);
 
@@ -93,7 +91,7 @@ const WhopConnectionDrawer: FC<WhopConnectionDrawerProps> = ({ isOpen, onOpenCha
 		if (!formData.name.trim()) newErrors.name = t('connection.validation.nameRequired');
 		if (!connection) {
 			if (!formData.api_key.trim()) newErrors.api_key = t('connection.validation.apiKeyRequiredUpper');
-			if (!formData.company_id.trim()) newErrors.company_id = 'Company ID is required';
+			if (!formData.company_id.trim()) newErrors.company_id = t('connection.validation.companyIdRequired');
 		}
 		setErrors(newErrors);
 		return Object.keys(newErrors).length === 0;
@@ -152,8 +150,11 @@ const WhopConnectionDrawer: FC<WhopConnectionDrawerProps> = ({ isOpen, onOpenCha
 	});
 
 	const handleSave = () => {
-		if (validateForm()) {
-			connection ? updateConnection() : createConnection();
+		if (!validateForm()) return;
+		if (connection) {
+			updateConnection();
+		} else {
+			createConnection();
 		}
 	};
 
@@ -177,49 +178,49 @@ const WhopConnectionDrawer: FC<WhopConnectionDrawerProps> = ({ isOpen, onOpenCha
 					? t('integrationDrawer.title.edit', { providerName: 'Whop' })
 					: t('integrationDrawer.title.connect', { providerName: 'Whop' })
 			}
-			description='Connect Flexprice to Whop to sync invoices.'
+			description={t('connection.whop.connectFlexpriceToWhopToSyncInvoicesHint')}
 			size='lg'>
 			<div className='space-y-6 mt-4'>
 				{/* Connection Name */}
 				<Input
 					label={t('integrationDrawer.connectionName')}
-					placeholder='Name your Whop connection'
+					placeholder={t('connection.whop.nameYourWhopConnectionPlaceholder')}
 					value={formData.name}
 					onChange={(value) => handleChange('name', value)}
 					error={errors.name}
-					description='A friendly name for this connection.'
+					description={t('connection.whop.aFriendlyNameForThisConnectionHint')}
 				/>
 
 				{/* Credentials — only shown when creating */}
 				{!connection && (
 					<>
 						<Input
-							label='API Key'
-							placeholder='apik_...'
+							label={t('connection.whop.apiKey')}
+							placeholder={t('connection.whop.apiKeyPlaceholder')}
 							type='password'
 							value={formData.api_key}
 							onChange={(value) => handleChange('api_key', value)}
 							error={errors.api_key}
-							description='Bearer token from your Whop developer dashboard.'
+							description={t('connection.whop.apiKeyHint')}
 						/>
 						<Input
-							label='Company ID'
-							placeholder='biz_...'
+							label={t('connection.whop.companyId')}
+							placeholder={t('connection.whop.companyIdPlaceholder')}
 							value={formData.company_id}
 							onChange={(value) => handleChange('company_id', value)}
 							error={errors.company_id}
-							description='Your Whop company identifier (biz_...).'
+							description={t('connection.whop.companyIdHint')}
 						/>
 					</>
 				)}
 
 				{/* Product ID — shown on create and edit (not a secret) */}
 				<Input
-					label='Product ID (optional)'
-					placeholder='prod_... — leave blank to auto-create'
+					label={t('connection.whop.productIdOptional')}
+					placeholder={t('connection.whop.productIdOptionalPlaceholder')}
 					value={formData.product_id}
 					onChange={(value) => handleChange('product_id', value)}
-					description='Whop product used for invoices. Leave blank to have Flexprice create one automatically.'
+					description={t('connection.whop.productIdOptionalHint')}
 				/>
 
 				{/* Sync configuration */}
@@ -230,7 +231,7 @@ const WhopConnectionDrawer: FC<WhopConnectionDrawerProps> = ({ isOpen, onOpenCha
 						<div className='flex items-center justify-between p-3 bg-white border border-gray-200 rounded-lg'>
 							<div>
 								<label className='text-sm font-medium text-gray-700'>{t('connection.labels.invoices')}</label>
-								<p className='text-xs text-gray-500'>Push Flexprice invoices to Whop as send_invoice payments</p>
+								<p className='text-xs text-gray-500'>{t('connection.whop.pushFlexpriceInvoicesToWhopAs')}</p>
 							</div>
 							<Switch checked={formData.sync_config.invoice} onCheckedChange={handleSyncConfigChange} />
 						</div>
@@ -241,8 +242,7 @@ const WhopConnectionDrawer: FC<WhopConnectionDrawerProps> = ({ isOpen, onOpenCha
 				<div className='p-4 bg-blue-50 border border-blue-200 rounded-lg'>
 					<h3 className='text-sm font-medium text-blue-800 mb-2'>{t('connection.webhook.sectionTitle')}</h3>
 					<p className='text-xs text-blue-700 mb-3'>
-						Register this URL in your Whop dashboard under Webhooks. Flexprice will listen for{' '}
-						<code className='font-mono'>invoice.paid</code> events to automatically mark invoices as paid.
+						<Trans ns='settings' i18nKey='connection.whop.webhookRegisterHintHtml' components={{ code: <code className='font-mono' /> }} />
 					</p>
 					<div>
 						<label className='text-sm font-medium text-blue-800 mb-2 block'>{t('connection.webhook.url')}</label>
