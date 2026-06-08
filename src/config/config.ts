@@ -73,7 +73,7 @@ interface FeaturesConfig {
 	tenantFeatureAllowlist: string[];
 }
 
-/** Primary defaults to **Geist** (Google Fonts in `src/index.css`). Override via `VITE_FONT_CONFIG`. */
+/** Primary defaults to **Geist** (Google Fonts in `src/index.css`). Override via `VITE_FONT_CONFIG` or `VITE_FONT_PRIMARY`. */
 export interface TypographyConfig {
 	primaryFont: string;
 	fallbackFont: string;
@@ -83,7 +83,6 @@ export interface TypographyConfig {
 
 const DEFAULT_FONT_PRIMARY = 'Geist';
 const DEFAULT_FONT_FALLBACK = 'sans-serif';
-const TIRDAD_FONT_PRIMARY = 'thmanyah Sans';
 
 /** Wrap family name in quotes when needed for valid CSS `font-family`. */
 function cssFontFamilyToken(name: string): string {
@@ -99,25 +98,35 @@ interface FontConfigJson {
 	fallback?: string;
 }
 
-export function parseTypographyConfig(rawFontConfig?: string, brandName?: string): TypographyConfig {
-	const raw = rawFontConfig?.trim();
-	const isTirdad = brandName?.trim().toLowerCase() === 'tirdad';
-	let primary = isTirdad ? TIRDAD_FONT_PRIMARY : DEFAULT_FONT_PRIMARY;
+export function parseTypographyConfig(rawFontConfig?: string, envPrimary?: string, envFallback?: string): TypographyConfig {
+	let primary = DEFAULT_FONT_PRIMARY;
 	let fallback = DEFAULT_FONT_FALLBACK;
+	const raw = rawFontConfig?.trim();
+
 	if (raw) {
 		try {
 			const parsed = JSON.parse(raw) as FontConfigJson;
 			if (typeof parsed.primary === 'string' && parsed.primary.trim()) primary = parsed.primary.trim();
 			if (typeof parsed.fallback === 'string' && parsed.fallback.trim()) fallback = parsed.fallback.trim();
+			const fontFamily = [cssFontFamilyToken(primary), fallback].join(', ');
+			return { primaryFont: primary, fallbackFont: fallback, fontFamily };
 		} catch {
-			// invalid JSON — keep defaults
+			// invalid JSON — fall through to individual env vars
 		}
 	}
+
+	if (envPrimary?.trim()) primary = envPrimary.trim();
+	if (envFallback?.trim()) fallback = envFallback.trim();
+
 	const fontFamily = [cssFontFamilyToken(primary), fallback].join(', ');
 	return { primaryFont: primary, fallbackFont: fallback, fontFamily };
 }
 
-const typographyConfig = parseTypographyConfig(import.meta.env.VITE_FONT_CONFIG, brandConfig.name);
+const typographyConfig = parseTypographyConfig(
+	import.meta.env.VITE_FONT_CONFIG,
+	import.meta.env.VITE_FONT_PRIMARY,
+	import.meta.env.VITE_FONT_FALLBACK,
+);
 
 function parseTenantFeatureAllowlist(): string[] {
 	const raw = import.meta.env.VITE_TENANT_FEATURE_ALLOWLIST?.trim();
