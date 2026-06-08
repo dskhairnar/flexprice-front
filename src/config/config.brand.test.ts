@@ -212,4 +212,12 @@ describe('parseTypographyConfig', () => {
 		expect(result.primaryFont).toBe('Inter');
 		expect(result.fontFamily).toBe('Inter, system-ui');
 	});
+
+	it('quotes fallback font names that contain spaces', async () => {
+		const { parseTypographyConfig } = await import('./config');
+		const result = parseTypographyConfig(undefined, undefined, 'Times New Roman');
+
+		expect(result.fallbackFont).toBe('Times New Roman');
+		expect(result.fontFamily).toBe("Geist, 'Times New Roman'");
+	});
 });
