@@ -206,6 +206,9 @@
 		"fallback": "--"
 	},
 	"subscriptionCreate": {
+		"selectCustomerLabel": "العميل",
+		"selectCustomerPlaceholder": "ابحث عن عميل...",
+		"selectCustomerHint": "اختر عميلاً للمتابعة مع إنشاء اشتراك",
 		"toast": {
 			"draftSaved": "تم حفظ مسودة الاشتراك بنجاح",
 			"created": "تم إنشاء الاشتراك بنجاح",

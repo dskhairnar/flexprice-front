@@ -123,6 +123,7 @@ export const RouteNames = {
 	billing: '/billing',
 	customers: '/billing/customers',
 	subscriptions: '/billing/subscriptions',
+	createSubscription: '/billing/subscriptions/create',
 	subscriptionDetails: '/billing/subscriptions/:id',
 	taxes: '/billing/taxes',
 	invoices: '/billing/invoices',
@@ -377,6 +378,10 @@ export const MainRouter: any = createBrowserRouter([
 					{
 						path: RouteNames.subscriptions,
 						element: <SubscriptionsPage />,
+					},
+					{
+						path: RouteNames.createSubscription,
+						element: <CreateCustomerSubscriptionPage />,
 					},
 					{
 						path: `${RouteNames.subscriptions}/:id/edit`,

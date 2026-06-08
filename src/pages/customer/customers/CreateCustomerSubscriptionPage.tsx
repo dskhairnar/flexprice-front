@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useNavigate, useParams } from 'react-router';
+import { useNavigate, useParams, useLocation } from 'react-router';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
 
@@ -78,8 +78,12 @@ function subscriptionChargesHaveFixedPrice(
 }
 
 type Params = {
-	id: string;
+	id?: string;
 	subscription_id?: string;
+};
+
+type CreateSubscriptionLocationState = {
+	returnTo?: string;
 };
 
 export enum SubscriptionPhaseState {
@@ -227,23 +231,29 @@ const usePlanDetails = (planId: string | undefined) => {
 
 const CreateCustomerSubscriptionPage: React.FC = () => {
 	const { t } = useTranslation(['customers', 'common']);
-	const { id: customerId, subscription_id } = useParams<Params>();
+	const { id: urlCustomerId, subscription_id } = useParams<Params>();
 	const navigate = useNavigate();
+	const location = useLocation();
 	const updateBreadcrumb = useBreadcrumbsStore((state) => state.updateBreadcrumb);
+	const returnTo = (location.state as CreateSubscriptionLocationState | null)?.returnTo;
+
+	const [selectedCustomer, setSelectedCustomer] = useState<Customer | undefined>();
+	const effectiveCustomerId = urlCustomerId ?? selectedCustomer?.id;
+	const showCustomerPicker = !urlCustomerId;
 
 	const [isDraft, setIsDraft] = useState(false);
 	const { data: customerTaxAssociations } = useQuery({
-		queryKey: ['customerTaxAssociations', customerId],
+		queryKey: ['customerTaxAssociations', effectiveCustomerId],
 		queryFn: async () => {
 			return await TaxApi.listTaxAssociations({
 				limit: 100,
 				offset: 0,
-				entity_id: customerId!,
+				entity_id: effectiveCustomerId!,
 				expand: EXPAND.TAX_RATE,
 				entity_type: TAXRATE_ENTITY_TYPE.CUSTOMER,
 			});
 		},
-		enabled: !!customerId,
+		enabled: !!effectiveCustomerId,
 	});
 
 	useEffect(() => {
@@ -285,7 +295,7 @@ const CreateCustomerSubscriptionPage: React.FC = () => {
 		linkedCoupon: null,
 		lineItemCoupons: {},
 		addons: [],
-		customerId: customerId!,
+		customerId: urlCustomerId ?? '',
 		tax_rate_overrides: [],
 		entitlementOverrides: {},
 		creditGrants: [],
@@ -302,7 +312,7 @@ const CreateCustomerSubscriptionPage: React.FC = () => {
 	});
 
 	const { data: plans, isLoading: plansLoading, isError: plansError } = usePlans();
-	const { data: customerData } = useCustomerData(customerId);
+	const { data: customerData } = useCustomerData(effectiveCustomerId);
 	const { data: subscriptionData } = useSubscriptionData(subscription_id);
 	const {
 		data: planDetails,
@@ -329,6 +339,26 @@ const CreateCustomerSubscriptionPage: React.FC = () => {
 		const startDate = new Date(price.start_date);
 		if (isNaN(startDate.getTime())) return true;
 		return startDate <= now;
+	};
+
+	const navigateAfterAction = () => {
+		if (returnTo === RouteNames.subscriptions) {
+			navigate(RouteNames.subscriptions);
+			return;
+		}
+		if (effectiveCustomerId) {
+			navigate(`${RouteNames.customers}/${effectiveCustomerId}`);
+		}
+	};
+
+	const handleCustomerChange = (customer: Customer | undefined) => {
+		setSelectedCustomer(customer);
+		if (!customer) return;
+
+		setSubscriptionState((prev) => ({
+			...prev,
+			customerId: customer.id,
+		}));
 	};
 
 	useEffect(() => {
@@ -360,7 +390,7 @@ const CreateCustomerSubscriptionPage: React.FC = () => {
 				linkedCoupon: null,
 				lineItemCoupons: {},
 				addons: [],
-				customerId: customerId!,
+				customerId: urlCustomerId ?? '',
 				tax_rate_overrides: [],
 				entitlementOverrides: {},
 				creditGrants: (subscriptionData.details.credit_grants || []).map(creditGrantToInternal),
@@ -389,7 +419,7 @@ const CreateCustomerSubscriptionPage: React.FC = () => {
 				})(),
 			}));
 		}
-	}, [subscriptionData, customerId]);
+	}, [subscriptionData, effectiveCustomerId]);
 
 	// Sync plan details from usePlanDetails hook to state
 	useEffect(() => {
@@ -444,8 +474,9 @@ const CreateCustomerSubscriptionPage: React.FC = () => {
 
 			refetchQueries(['debug-customers']);
 			refetchQueries(['debug-subscriptions']);
+			refetchQueries(['fetchSubscriptions']);
 
-			navigate(`${RouteNames.customers}/${customerId}`);
+			navigateAfterAction();
 		},
 		onError: (error: Error) => {
 			toast.error(error.message || t('subscriptionCreate.toast.error'));
@@ -722,7 +753,7 @@ const CreateCustomerSubscriptionPage: React.FC = () => {
 			billing_cycle: sanitized.billingCycle,
 			billing_anchor: sanitized.billingAnchor,
 			currency: sanitized.currency.toLowerCase(),
-			customer_id: customerId!,
+			customer_id: effectiveCustomerId!,
 			plan_id: sanitized.selectedPlan,
 			start_date: sanitized.finalStartDate,
 			end_date: sanitized.finalEndDate,
@@ -779,7 +810,7 @@ const CreateCustomerSubscriptionPage: React.FC = () => {
 		handleSubscriptionSubmit(false);
 	};
 
-	const navigateBack = () => navigate(`${RouteNames.customers}/${customerId}`);
+	const navigateBack = navigateAfterAction;
 
 	return (
 		<div className={cn('flex gap-8 mt-5 relative mb-12')}>
@@ -809,10 +840,19 @@ const CreateCustomerSubscriptionPage: React.FC = () => {
 					}}
 					allCoupons={allCouponsData}
 					subscriberCustomer={customerData}
+					customerPicker={
+						showCustomerPicker
+							? {
+									value: selectedCustomer,
+									onChange: handleCustomerChange,
+									hint: t('subscriptionCreate.selectCustomerHint'),
+								}
+							: undefined
+					}
 				/>
 
 				{/* Sandbox Note */}
-				{isDevelopment && subscriptionState.selectedPlan && subscriptionState.startDate && (
+				{effectiveCustomerId && isDevelopment && subscriptionState.selectedPlan && subscriptionState.startDate && (
 					<div className='w-full flex items-center gap-2.5 rounded-md border border-amber-300 bg-amber-50/80 px-3 py-2.5'>
 						<AlertTriangle className='h-4 w-4 flex-shrink-0 text-amber-600' />
 						<span className='text-sm font-medium text-amber-800 leading-relaxed'>
@@ -826,7 +866,7 @@ const CreateCustomerSubscriptionPage: React.FC = () => {
 					</div>
 				)}
 
-				{subscriptionState.selectedPlan && !subscription_id && (
+				{effectiveCustomerId && subscriptionState.selectedPlan && !subscription_id && (
 					<div className='flex items-center justify-between'>
 						<div className='flex items-center space-x-4'>
 							<Button onClick={navigateBack} variant={'outline'} disabled={isCreating}>

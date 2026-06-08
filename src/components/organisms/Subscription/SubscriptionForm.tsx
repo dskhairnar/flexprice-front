@@ -140,6 +140,7 @@ const SubscriptionForm = ({
 	onPhasesChange,
 	allCoupons = [],
 	subscriberCustomer,
+	customerPicker,
 }: {
 	state: SubscriptionFormState;
 	setState: React.Dispatch<React.SetStateAction<SubscriptionFormState>>;
@@ -154,8 +155,15 @@ const SubscriptionForm = ({
 	allCoupons?: Coupon[];
 	/** Subscription customer; used for invoicing "Self" option and labels */
 	subscriberCustomer?: Customer;
+	/** When set, renders a customer picker under Subscription Details and above Plan */
+	customerPicker?: {
+		value?: Customer;
+		onChange: (customer: Customer | undefined) => void;
+		hint?: string;
+	};
 }) => {
 	const { t } = useTranslation(['customers', 'common']);
+	const isCustomerSelectionPending = !!customerPicker && !customerPicker.value;
 	// Fetch plan prices via shared hook (same cache key + canonical active filter as CreateCustomerSubscriptionPage)
 	const { data: selectedPlanPrices } = usePlanPrices(state.selectedPlan);
 
@@ -483,6 +491,21 @@ const SubscriptionForm = ({
 		<div className='p-6 rounded-[6px] border border-gray-300 space-y-6 bg-white'>
 			<FormHeader title={t('organisms.subscriptionForm.subscriptionDetails')} variant='sub-header' />
 
+			{customerPicker && (
+				<div className='space-y-2'>
+					<CustomerSearchSelect
+						value={customerPicker.value}
+						onChange={customerPicker.onChange}
+						includeNoneOption={false}
+						display={{
+							label: t('subscriptionCreate.selectCustomerLabel'),
+							placeholder: t('subscriptionCreate.selectCustomerPlaceholder'),
+						}}
+					/>
+					{isCustomerSelectionPending && customerPicker.hint && <p className='text-sm text-muted-foreground'>{customerPicker.hint}</p>}
+				</div>
+			)}
+
 			{/* Plan Selection */}
 			{!plansLoading && (
 				<div className='space-y-2'>
@@ -491,7 +514,7 @@ const SubscriptionForm = ({
 						options={plansWithCharges}
 						onChange={handlePlanChange}
 						label={t('organisms.subscriptionForm.planRequired')}
-						disabled={isDisabled || isLoadingPlanDetails}
+						disabled={isDisabled || isLoadingPlanDetails || isCustomerSelectionPending}
 						placeholder={t('organisms.subscriptionForm.selectPlan')}
 						error={
 							plansError

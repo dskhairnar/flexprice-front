@@ -206,6 +206,9 @@
 		"fallback": "--"
 	},
 	"subscriptionCreate": {
+		"selectCustomerLabel": "Customer",
+		"selectCustomerPlaceholder": "Search for customer...",
+		"selectCustomerHint": "Select a customer to continue with creating a subscription",
 		"toast": {
 			"draftSaved": "Draft subscription saved successfully",
 			"created": "Subscription created successfully",
