@@ -103,7 +103,7 @@ export function parseTypographyConfig(rawFontConfig?: string, envPrimary?: strin
 			const parsed = JSON.parse(raw) as FontConfigJson;
 			if (typeof parsed.primary === 'string' && parsed.primary.trim()) primary = parsed.primary.trim();
 			if (typeof parsed.fallback === 'string' && parsed.fallback.trim()) fallback = parsed.fallback.trim();
-			const fontFamily = [cssFontFamilyToken(primary), fallback].join(', ');
+			const fontFamily = [cssFontFamilyToken(primary), cssFontFamilyToken(fallback)].join(', ');
 			return { primaryFont: primary, fallbackFont: fallback, fontFamily };
 		} catch {
 			// invalid JSON — fall through to individual env vars
@@ -113,7 +113,7 @@ export function parseTypographyConfig(rawFontConfig?: string, envPrimary?: strin
 	if (envPrimary?.trim()) primary = envPrimary.trim();
 	if (envFallback?.trim()) fallback = envFallback.trim();
 
-	const fontFamily = [cssFontFamilyToken(primary), fallback].join(', ');
+	const fontFamily = [cssFontFamilyToken(primary), cssFontFamilyToken(fallback)].join(', ');
 	return { primaryFont: primary, fallbackFont: fallback, fontFamily };
 }
 
