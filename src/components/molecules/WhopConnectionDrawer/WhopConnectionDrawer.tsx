@@ -91,7 +91,7 @@ const WhopConnectionDrawer: FC<WhopConnectionDrawerProps> = ({ isOpen, onOpenCha
 		if (!formData.name.trim()) newErrors.name = t('connection.validation.nameRequired');
 		if (!connection) {
 			if (!formData.api_key.trim()) newErrors.api_key = t('connection.validation.apiKeyRequiredUpper');
-			if (!formData.company_id.trim()) newErrors.company_id = t('connection.validation.companyIdRequired');
+			if (!formData.company_id.trim()) newErrors.company_id = t('connection.whop.companyIdRequired');
 		}
 		setErrors(newErrors);
 		return Object.keys(newErrors).length === 0;
@@ -150,12 +150,12 @@ const WhopConnectionDrawer: FC<WhopConnectionDrawerProps> = ({ isOpen, onOpenCha
 	});
 
 	const handleSave = () => {
-		if (validateForm()) {
-			if (connection) {
-				updateConnection();
-			} else {
-				createConnection();
-			}
+		if (!validateForm()) return;
+
+		if (connection) {
+			updateConnection();
+		} else {
+			createConnection();
 		}
 	};
 
@@ -185,11 +185,11 @@ const WhopConnectionDrawer: FC<WhopConnectionDrawerProps> = ({ isOpen, onOpenCha
 				{/* Connection Name */}
 				<Input
 					label={t('integrationDrawer.connectionName')}
-					placeholder={t('connection.whop.connectionNamePlaceholder')}
+					placeholder={t('connection.whop.connectionPlaceholder')}
 					value={formData.name}
 					onChange={(value) => handleChange('name', value)}
 					error={errors.name}
-					description={t('connection.whop.connectionNameHint')}
+					description={t('connection.whop.connectionHint')}
 				/>
 
 				{/* Credentials — only shown when creating */}
@@ -218,8 +218,7 @@ const WhopConnectionDrawer: FC<WhopConnectionDrawerProps> = ({ isOpen, onOpenCha
 				{/* Product ID — shown on create and edit (not a secret) */}
 				<Input
 					label={t('connection.whop.productIdOptional')}
-					// eslint-disable-next-line i18next/no-literal-string
-					placeholder='prod_... — leave blank to auto-create'
+					placeholder={t('connection.whop.productIdPlaceholder')}
 					value={formData.product_id}
 					onChange={(value) => handleChange('product_id', value)}
 					description={t('connection.whop.productIdHint')}
@@ -244,8 +243,8 @@ const WhopConnectionDrawer: FC<WhopConnectionDrawerProps> = ({ isOpen, onOpenCha
 				<div className='p-4 bg-blue-50 border border-blue-200 rounded-lg'>
 					<h3 className='text-sm font-medium text-blue-800 mb-2'>{t('connection.webhook.sectionTitle')}</h3>
 					<p className='text-xs text-blue-700 mb-3'>
-						{t('connection.whop.webhookIntro')} <code className='font-mono'>{t('connection.whop.invoicePaidEvent')}</code>{' '}
-						{t('connection.whop.webhookOutro')}
+						{t('connection.whop.webhookIntroPrefix')} <code className='font-mono'>{t('connection.whop.webhookEventName')}</code>{' '}
+						{t('connection.whop.webhookIntroSuffix')}
 					</p>
 					<div>
 						<label className='text-sm font-medium text-blue-800 mb-2 block'>{t('connection.webhook.url')}</label>
