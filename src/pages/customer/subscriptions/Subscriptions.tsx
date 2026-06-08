@@ -1,4 +1,4 @@
-import { Page, ActionButton, Chip, Tooltip, AddButton } from '@/components/atoms';
+import { Page, ActionButton, Chip, Tooltip } from '@/components/atoms';
 import { ApiDocsContent, RedirectCell } from '@/components/molecules';
 import { ColumnData } from '@/components/molecules/Table';
 import { QueryableDataArea } from '@/components/organisms';
@@ -25,9 +25,8 @@ import { RouteNames } from '@/core/routes/Routes';
 import formatDate from '@/utils/common/format_date';
 import { Trash2 } from 'lucide-react';
 import { SubscriptionResponse } from '@/types/dto/Subscription';
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useCallback } from 'react';
 import SubscriptionCancelDialog from '@/components/molecules/SubscriptionCancelDialog/SubscriptionCancelDialog';
-import { CreateSubscriptionDialog } from '@/components/molecules/Subscription';
 import { useTranslation } from 'react-i18next';
 import { TFunction } from 'i18next';
 import { isInheritedSubscription } from '@/utils/subscription/isInheritedSubscription';
@@ -81,7 +80,6 @@ const SubscriptionsPage = () => {
 	const { t: tGuide } = useTranslation('guides');
 	const guides = useMemo(() => buildGuides(tGuide), [tGuide]);
 	const [cancelSubscription, setCancelSubscription] = useState<{ id: string; currentPeriodStart: string } | null>(null);
-	const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
 
 	const sortingOptions: SortOption[] = useMemo(
 		() => [
@@ -182,6 +180,10 @@ const SubscriptionsPage = () => {
 		[t],
 	);
 
+	const handleEmptyCreate = useCallback(() => {
+		navigate(RouteNames.customers);
+	}, [navigate]);
+
 	const columns: ColumnData<SubscriptionResponse>[] = useMemo(
 		() => [
 			{
@@ -249,7 +251,7 @@ const SubscriptionsPage = () => {
 
 	return (
 		<>
-			<Page heading={t('subscriptions.title')} headingCTA={<AddButton onClick={() => setIsCreateDialogOpen(true)} />}>
+			<Page heading={t('subscriptions.title')}>
 				<ApiDocsContent tags={API_DOCS_TAGS.Subscriptions} />
 				<QueryableDataArea<SubscriptionResponse>
 					queryConfig={{
@@ -289,13 +291,12 @@ const SubscriptionsPage = () => {
 						heading: t('subscriptions.title'),
 						description: t('subscriptions.listPage.emptyState.description'),
 						buttonLabel: t('subscriptions.listPage.emptyState.createButton'),
-						buttonAction: () => setIsCreateDialogOpen(true),
+						buttonAction: handleEmptyCreate,
 						tags: API_DOCS_TAGS.Subscriptions,
 						tutorials: guides.customers.tutorials,
 					}}
 				/>
 			</Page>
-			<CreateSubscriptionDialog isOpen={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen} />
 			<SubscriptionCancelDialog
 				isOpen={!!cancelSubscription}
 				onOpenChange={(open) => {

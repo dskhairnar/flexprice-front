@@ -236,10 +236,6 @@
 	},
 	"subscriptions": {
 		"title": "الاشتراكات",
-		"createDialog": {
-			"title": "إنشاء اشتراك",
-			"selectCustomer": "اختر عميل"
-		},
 		"listPage": {
 			"sortLabels": {
 				"createdAt": "تاريخ الإنشاء",
