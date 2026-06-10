@@ -10,6 +10,8 @@ export interface BreadcrumbItem {
 }
 
 const formatPathSegment = (segment: string): string => {
+	// Preserve entity slugs and external IDs (e.g. cust-co) instead of English title-casing.
+	if (/[_-]/.test(segment) || /[A-Z]/.test(segment)) return segment;
 	return segment
 		.replace(/-/g, ' ')
 		.split(' ')

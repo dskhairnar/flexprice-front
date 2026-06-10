@@ -30,6 +30,7 @@ import CreditGrantApi from '@/api/CreditGrantApi';
 import { generateExpandQueryParams } from '@/utils/common/api_helper';
 import { EXPAND } from '@/models/expand';
 import { useTranslation } from 'react-i18next';
+import { ApiEnum, translateApiEnum } from '@/i18n/display/apiEnums';
 
 type PriceType = {
 	currency: string;
@@ -174,11 +175,20 @@ const findBestPriceCombination = (
 };
 
 const PricingPage = () => {
-	const { t } = useTranslation(['catalog']);
+	const { t } = useTranslation(['catalog', 'common', 'billing']);
 	const { limit, offset, page } = usePagination();
 	const [selectedBillingPeriod, setSelectedBillingPeriod] = useState<string>('');
 	const [selectedCurrency, setSelectedCurrency] = useState<string>('');
 	const [planDrawerOpen, setPlanDrawerOpen] = useState<boolean>(false);
+
+	const localizedBillingPeriodOptions = useMemo(
+		() =>
+			billlingPeriodOptions.map((option) => ({
+				...option,
+				label: translateApiEnum(t, ApiEnum.billingPeriod, option.value, { fallback: option.label }),
+			})),
+		[t],
+	);
 
 	// Fetch plans
 	const fetchPlans = async () => {
@@ -419,7 +429,7 @@ const PricingPage = () => {
 			value: currency.toUpperCase(),
 		}));
 
-		const allPeriodOptions = billlingPeriodOptions;
+		const allPeriodOptions = localizedBillingPeriodOptions;
 
 		// Filter available options based on selections
 		const availableCurrencyOptions = selectedBillingPeriod
@@ -493,7 +503,7 @@ const PricingPage = () => {
 			uniqueBillingPeriods: availablePeriodOptions,
 			filteredPlans: sortedPlans,
 		};
-	}, [plansWithData, selectedBillingPeriod, selectedCurrency]);
+	}, [plansWithData, selectedBillingPeriod, selectedCurrency, localizedBillingPeriodOptions]);
 
 	const transformedPlans: PricingCardProps[] = filteredPlans.map((plan) => {
 		const prices = plan.prices as Price[];
@@ -604,14 +614,14 @@ const PricingPage = () => {
 						value={selectedBillingPeriod}
 						options={uniqueBillingPeriods}
 						onChange={setSelectedBillingPeriod}
-						placeholder='Select billing period'
+						placeholder={t('catalog:plans.pricing.selectBillingPeriod')}
 					/>
 					<Select
 						className='w-40 !rounded-xl'
 						value={selectedCurrency}
 						options={uniqueCurrencies}
 						onChange={setSelectedCurrency}
-						placeholder='Select currency'
+						placeholder={t('catalog:plans.pricing.selectCurrency')}
 					/>
 				</div>
 			}>

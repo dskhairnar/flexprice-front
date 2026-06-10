@@ -24,6 +24,12 @@ export const getRegionDashboardUrl = (region: Region): string | null => {
 	return null;
 };
 
+/** True when the current dashboard origin matches the configured US region URL. */
+export function isCurrentUsRegion(regions: RegionOption[] = config.regions.regions): boolean {
+	if (typeof window === 'undefined') return false;
+	return detectCurrentRegion(regions)?.key === 'us';
+}
+
 /**
  * Finds the region whose URL origin matches window.location.origin.
  * Returns null if no match.

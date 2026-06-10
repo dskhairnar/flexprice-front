@@ -190,7 +190,72 @@
 		"keyboardShortcutsHint": "↑↓ Navigate · Enter Select · Esc Close · {{shortcut}} to open anytime",
 		"shortcutToast": "Press {{shortcut}} to open the command palette anytime",
 		"keyboardShortcutTitle": "Command + K",
-		"kbdDisplay": "⌘ + K"
+		"kbdDisplay": "⌘ + K",
+		"groups": {
+			"actions": "Actions",
+			"goTo": "Go to",
+			"documentation": "Documentation",
+			"help": "Help"
+		},
+		"commands": {
+			"action-create-feature": "Create Feature",
+			"action-simulate-ingest-events": "Simulate ingest events",
+			"action-open-documentation": "Open documentation",
+			"action-keyboard-shortcuts": "Keyboard shortcuts",
+			"action-contact-us": "Contact us",
+			"action-book-call": "Book a call",
+			"action-join-slack": "Join Slack community",
+			"action-open-intercom": "Open Intercom",
+			"action-logout": "Log out",
+			"doc-welcome": "Docs: Welcome & overview",
+			"doc-creating-metered-feature": "Docs: Creating a metered feature",
+			"doc-sending-events": "Docs: Sending events",
+			"doc-creating-plan": "Docs: Creating a plan",
+			"doc-creating-feature": "Docs: Creating a feature",
+			"doc-creating-customer": "Docs: Creating a customer",
+			"doc-create-subscription": "Docs: Create subscription for customer",
+			"doc-creating-wallet": "Docs: Creating a wallet",
+			"doc-invoices-overview": "Docs: Invoices overview",
+			"doc-api-reference": "Docs: API Reference",
+			"doc-webhooks": "Docs: Webhooks",
+			"doc-api-keys": "Docs: Manage API Keys",
+			"nav-home": "Home",
+			"nav-product-catalog-features": "Product Catalog → Features",
+			"nav-product-catalog-plans": "Product Catalog → Plans",
+			"nav-product-catalog-coupons": "Product Catalog → Coupons",
+			"nav-product-catalog-addons": "Product Catalog → Addons",
+			"nav-product-catalog-cost-sheets": "Product Catalog → Cost Sheets",
+			"nav-product-catalog-price-units": "Product Catalog → Price Units",
+			"nav-product-catalog-groups": "Product Catalog → Groups",
+			"nav-billing-customers": "Billing → Customers",
+			"nav-billing-subscriptions": "Billing → Subscriptions",
+			"nav-billing-taxes": "Billing → Taxes",
+			"nav-billing-invoices": "Billing → Invoices",
+			"nav-billing-credit-notes": "Billing → Credit Notes",
+			"nav-billing-payments": "Billing → Payments",
+			"nav-settings-billing": "Settings → Billing",
+			"nav-tools-imports": "Tools → Imports",
+			"nav-tools-revenue": "Tools → Revenue",
+			"nav-tools-exports": "Tools → Exports",
+			"nav-tools-s3-exports": "Tools → S3 Exports",
+			"nav-developers-events": "Usage Tracking → Events Debugger",
+			"nav-usage-tracking-query": "Usage Tracking → Query",
+			"nav-developers-api-keys": "Developers → API Keys",
+			"nav-developers-service-accounts": "Developers → Service Accounts",
+			"nav-developers-webhooks": "Developers → Webhooks",
+			"nav-developers-workflows": "Developers → Workflows",
+			"nav-integrations": "Integrations",
+			"nav-integration-stripe": "Integrations → Stripe",
+			"nav-integration-razorpay": "Integrations → Razorpay",
+			"nav-integration-chargebee": "Integrations → Chargebee",
+			"nav-integration-hubspot": "Integrations → Hubspot",
+			"nav-integration-quickbooks": "Integrations → QuickBooks",
+			"nav-integration-zoho": "Integrations → Zoho Books",
+			"nav-integration-nomod": "Integrations → Nomod",
+			"nav-integration-moyasar": "Integrations → Moyasar",
+			"nav-integration-paddle": "Integrations → Paddle",
+			"nav-pricing-widget": "Pricing Widget"
+		}
 	},
 	"emptyPage": {
 		"learnMore": "Learn More"
@@ -305,7 +370,21 @@
 			"addCharges": "Add Charges",
 			"checkout": "Checkout",
 			"onboarding": "Onboarding",
-			"pricingSetup": "Pricing Setup"
+			"pricingSetup": "Pricing Setup",
+			"usageTracking": "Usage Tracking",
+			"events": "Events",
+			"query": "Query",
+			"s3Exports": "S3 Exports",
+			"stripe": "Stripe",
+			"razorpay": "Razorpay",
+			"chargebee": "Chargebee",
+			"hubspot": "Hubspot",
+			"quickbooks": "QuickBooks",
+			"zoho": "Zoho Books",
+			"nomod": "Nomod",
+			"moyasar": "Moyasar",
+			"paddle": "Paddle",
+			"whop": "Whop"
 		}
 	},
 	"sidebar": {
@@ -519,6 +598,7 @@
 		"timePeriod": "Time Period",
 		"windowSize": "Window Size",
 		"apiReference": "API Reference",
+		"apiDocs": "API",
 		"noDocumentationFound": "No documentation found",
 		"dataRegion": "Data region",
 		"selectARegion": "Select a region",
@@ -740,7 +820,7 @@
 		"refreshPage": "Refresh Page"
 	},
 	"onboardingLanding": {
-		"welcomeHeading": "Welcome to Flexprice!",
+		"welcomeHeading": "Welcome to Tirdad!",
 		"welcomeSubtext": "Let's get your pricing and billing started!",
 		"bookDemo": "Book a Demo",
 		"heroImageAlt": "Onboarding Hero",
@@ -749,8 +829,8 @@
 	},
 	"tenantSetup": {
 		"loadingWorkspaceAria": "Loading workspace",
-		"flexpriceLogoAlt": "Flexprice",
-		"welcomeHeading": "Welcome to Flexprice",
+		"flexpriceLogoAlt": "Tirdad",
+		"welcomeHeading": "Welcome to Tirdad",
 		"welcomeSubtext": "Let's finish setting up your workspace — complete this form to get started.",
 		"orgNameLabel": "Organization name",
 		"orgNamePlaceholder": "Enter your organization name",
@@ -761,7 +841,7 @@
 		"rolePlaceholder": "Your role",
 		"teamSizeQuestion": "What's your team size?",
 		"teamSizePlaceholder": "Team size",
-		"pricingModelQuestion": "What pricing model are you choosing for Flexprice?",
+		"pricingModelQuestion": "What pricing model are you choosing for Tirdad?",
 		"pricingModelPlaceholder": "How do you price today?",
 		"referralQuestion": "How did you find us?",
 		"referralPlaceholder": "Where did you hear about us?"
@@ -818,10 +898,11 @@
 		"workflows": "Workflows",
 		"integrations": "Integrations",
 		"pricingWidget": "Pricing Widget",
-		"settings": "Settings"
+		"settings": "Settings",
+		"logout": "Log out"
 	},
 	"fundingStrip": {
-		"announcement": "Flexprice Raises $1.5M SEED Round",
+		"announcement": "Tirdad Raises $1.5M SEED Round",
 		"knowMore": "KNOW MORE"
 	}
 }
