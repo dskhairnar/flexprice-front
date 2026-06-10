@@ -51,11 +51,11 @@ export function deriveDirection(locale: Locale): Direction {
 
 export function parseBrandConfig(raw: Record<string, unknown>): BrandConfig {
 	return {
-		name: typeof raw.name === 'string' ? raw.name : 'Flexprice',
+		name: typeof raw.name === 'string' ? raw.name : 'Tirdad',
 		logo: typeof raw.logo === 'string' ? raw.logo : '/comicon.png',
 		primaryColor: typeof raw.primaryColor === 'string' ? raw.primaryColor : '#7C3AED',
-		favicon: typeof raw.favicon === 'string' ? raw.favicon : '/favicon.ico',
-		supportEmail: typeof raw.supportEmail === 'string' ? raw.supportEmail : 'support@flexprice.io',
+		favicon: typeof raw.favicon === 'string' ? raw.favicon : '/comicon.png',
+		supportEmail: typeof raw.supportEmail === 'string' ? raw.supportEmail : 'support@tirdad.io',
 	};
 }
 
@@ -146,11 +146,13 @@ export function useBrand(): BrandConfig {
 	return brandConfig;
 }
 
-/** Injects --brand-primary CSS var and swaps the favicon. Call once before first render. */
+/** Injects --brand-primary CSS var, tab title, and favicon. Call once before first render. */
 export function initBranding(): void {
 	document.documentElement.style.setProperty('--brand-primary', brandConfig.primaryColor);
+	document.title = brandConfig.name;
 	const faviconEl = document.getElementById('app-favicon') as HTMLLinkElement | null;
 	if (faviconEl) {
 		faviconEl.href = brandConfig.favicon;
+		faviconEl.type = brandConfig.favicon.endsWith('.svg') ? 'image/svg+xml' : 'image/png';
 	}
 }

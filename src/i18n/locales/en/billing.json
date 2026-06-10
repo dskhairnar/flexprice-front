@@ -95,6 +95,7 @@
 			}
 		},
 		"details": {
+			"tabOverview": "Overview",
 			"creditNotes": "Credit Notes",
 			"updatePaymentStatus": "Update Payment Status",
 			"updateInvoiceStatus": "Update Invoice Status",

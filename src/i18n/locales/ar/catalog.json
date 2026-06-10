@@ -447,7 +447,9 @@
 		},
 		"pricing": {
 			"noWidget": "لا يوجد عنصر واجهة للتسعير",
-			"widgetsPageTitle": "عناصر التسعير"
+			"widgetsPageTitle": "عناصر التسعير",
+			"selectBillingPeriod": "اختر فترة الفوترة",
+			"selectCurrency": "اختر العملة"
 		},
 		"organisms": {
 			"chargeLabels": {
@@ -815,6 +817,10 @@
 				"max": "الحد الأقصى",
 				"weightedSum": "مجموع موزون",
 				"avg": "متوسط"
+			},
+			"usageResetPeriod": {
+				"periodic": "دوري",
+				"cumulative": "تراكمي"
 			}
 		}
 	},

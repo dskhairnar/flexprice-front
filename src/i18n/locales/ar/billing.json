@@ -95,6 +95,7 @@
 			}
 		},
 		"details": {
+			"tabOverview": "نظرة عامة",
 			"creditNotes": "إشعارات دائنة",
 			"updatePaymentStatus": "تحديث حالة الدفع",
 			"updateInvoiceStatus": "تحديث حالة الفاتورة",

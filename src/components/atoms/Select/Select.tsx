@@ -3,6 +3,7 @@ import { cn } from '@/lib/utils';
 import * as SelectPrimitive from '@radix-ui/react-select';
 import { Circle } from 'lucide-react';
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 
 export interface SelectOption {
 	value: string;
@@ -60,7 +61,7 @@ const FlexPriceSelect: React.FC<Props> = ({
 	disabled = false,
 	options,
 	value,
-	placeholder = 'Select an option',
+	placeholder: placeholderProp,
 	label = '',
 	required = false,
 	description,
@@ -74,6 +75,8 @@ const FlexPriceSelect: React.FC<Props> = ({
 	trigger,
 	contentClassName,
 }) => {
+	const { t } = useTranslation('common');
+	const placeholder = placeholderProp ?? t('selectUi.selectAnOption');
 	return (
 		<div className={cn('space-y-1 ', className)}>
 			{/* Label */}

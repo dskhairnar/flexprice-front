@@ -10,6 +10,7 @@ import AuthService from '@/core/auth/AuthService';
 import { getCommandPaletteActionEventName, CommandPaletteActionId } from '@/core/actions';
 import useUser from '@/hooks/useUser';
 import { useShouldShowSidebarPricingPromo } from '@/hooks/useShouldShowSidebarPricingPromo';
+import { useDocumentationConfig } from '@/hooks/useDocumentationConfig';
 import SidebarPricingPromoCard from './SidebarPricingPromoCard';
 
 const SidebarFooter = () => {
@@ -30,19 +31,22 @@ const SidebarFooter = () => {
 	const { loading, user } = useUser();
 	const { open: sidebarOpen } = useSidebar();
 	const showPricingPromo = useShouldShowSidebarPricingPromo();
+	const { sidebarDocumentationEnabled } = useDocumentationConfig();
 
 	if (loading) return <Skeleton className='w-full h-10' />;
 
 	const dropdownItems = [
 		{
-			label: 'Settings',
+			id: 'settings',
+			label: t('nav.settings'),
 			icon: Settings,
 			onClick: () => {
 				navigate(RouteNames.settings);
 			},
 		},
 		{
-			label: 'Logout',
+			id: 'logout',
+			label: t('nav.logout'),
 			icon: LogOut,
 			onClick: handleLogout,
 		},
@@ -52,18 +56,20 @@ const SidebarFooter = () => {
 		<div className='flex flex-col gap-2 w-full'>
 			{showPricingPromo && <SidebarPricingPromoCard className='mb-4' onCreateWithAI={() => navigate(RouteNames.pricingSetup)} />}
 
-			<SidebarMenuButton
-				onClick={() => {
-					window.open('https://docs.flexprice.io', '_blank');
-				}}
-				tooltip={t('labels.documentation')}
-				className={cn(`flex items-center justify-between gap-2 hover:bg-muted transition-colors my-0 py-1 `)}>
-				<span className='flex items-center gap-2'>
-					<BookOpen className={cn('size-5 me-1 !stroke-[1.5px]')} />
-					<span className='text-sm select-none'>{t('labels.documentation')}</span>
-				</span>
-				<ExternalLink />
-			</SidebarMenuButton>
+			{sidebarDocumentationEnabled && (
+				<SidebarMenuButton
+					onClick={() => {
+						window.open('https://docs.flexprice.io', '_blank');
+					}}
+					tooltip={t('labels.documentation')}
+					className={cn(`flex items-center justify-between gap-2 hover:bg-muted transition-colors my-0 py-1 `)}>
+					<span className='flex items-center gap-2'>
+						<BookOpen className={cn('size-5 me-1 !stroke-[1.5px]')} />
+						<span className='text-sm select-none'>{t('labels.documentation')}</span>
+					</span>
+					<ExternalLink />
+				</SidebarMenuButton>
+			)}
 
 			{/* user profile */}
 			<Popover>
@@ -83,7 +89,7 @@ const SidebarFooter = () => {
 				<PopoverContent className='!w-56 mx-auto p-2 space-y-1'>
 					{dropdownItems.map((item) => (
 						<button
-							key={item.label}
+							key={item.id}
 							onClick={item.onClick}
 							className='w-full flex items-center gap-2 rounded-[6px] px-2 py-1 text-sm hover:bg-muted transition-colors'>
 							{item.icon && <item.icon className='size-4' />}
