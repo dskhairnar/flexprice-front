@@ -20,26 +20,25 @@ import toast from 'react-hot-toast';
 import { useNavigate } from 'react-router';
 import { v4 as uuidv4 } from 'uuid';
 import { z } from 'zod';
+import type { TFunction } from 'i18next';
 import { useTranslation } from 'react-i18next';
 
-// Feature type options constant
-const FEATURE_TYPE_OPTIONS: SelectOption[] = [
+const getFeatureTypeOptions = (t: TFunction): SelectOption[] => [
 	{
-		label: 'Metered',
-		description: 'Functionality with varying usage that needs to be measured i.e. API calls, llm tokens, etc.',
+		label: t('catalog:features.form.typeOptions.metered.label'),
+		description: t('catalog:features.form.typeOptions.metered.description'),
 		suffixIcon: <Gauge className='size-4' />,
 		value: FEATURE_TYPE.METERED,
 	},
 	{
-		label: 'Boolean',
-		description: 'Functionality that customers can either have access to or not i.e. SSO, CRM Integration, etc.',
+		label: t('catalog:features.form.typeOptions.boolean.label'),
+		description: t('catalog:features.form.typeOptions.boolean.description'),
 		suffixIcon: <SquareCheckBig className='size-4' />,
 		value: FEATURE_TYPE.BOOLEAN,
 	},
-
 	{
-		label: 'Static',
-		description: 'Functionality that can be configured for a customer i.e. log retention period, support tier, etc.',
+		label: t('catalog:features.form.typeOptions.static.label'),
+		description: t('catalog:features.form.typeOptions.static.description'),
 		suffixIcon: <Wrench className='size-4' />,
 		value: FEATURE_TYPE.STATIC,
 	},
@@ -296,7 +295,7 @@ const FeatureDetailsSection = ({
 	onUpdateFeature: (updates: Partial<FeatureFormData>) => void;
 	onUpdateFormState: (updates: Partial<FeatureFormState>) => void;
 }) => {
-	const { t } = useTranslation(['catalog', 'common']);
+	const { t, i18n } = useTranslation(['catalog', 'common']);
 	const handleNameChange = useCallback(
 		(name: string) => {
 			onUpdateFeature({
@@ -360,6 +359,7 @@ const FeatureDetailsSection = ({
 	);
 
 	const isMeteredType = data.type === FEATURE_TYPE.METERED;
+	const featureTypeOptions = useMemo(() => getFeatureTypeOptions(t), [t, i18n.language]);
 
 	return (
 		<Card className='p-6 rounded-[6px] border border-[#E4E4E7]'>
@@ -376,7 +376,7 @@ const FeatureDetailsSection = ({
 			<div className='w-full min-w-[200px] overflow-hidden'>
 				<Select
 					label={t('catalog:features.form.type')}
-					options={FEATURE_TYPE_OPTIONS}
+					options={featureTypeOptions}
 					className='w-full overflow-hidden'
 					value={data.type}
 					onChange={handleTypeChange}

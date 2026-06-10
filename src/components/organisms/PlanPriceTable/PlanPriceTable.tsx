@@ -9,7 +9,7 @@ import {
 	UpdatePriceDetailsDrawer,
 	QueryBuilder,
 } from '@/components/molecules';
-import { Price, Plan, PRICE_STATUS, PRICE_ENTITY_TYPE } from '@/models';
+import { Price, Plan, PRICE_STATUS, PRICE_ENTITY_TYPE, PRICE_TYPE, INVOICE_CADENCE } from '@/models';
 import { PriceUnit } from '@/models/PriceUnit';
 import { Plus, Trash2, Pencil, FileText, Copy } from 'lucide-react';
 import { useMutation, useQuery } from '@tanstack/react-query';
@@ -19,6 +19,7 @@ import { useNavigate } from 'react-router';
 import { RouteNames } from '@/core/routes/Routes';
 import { BILLING_PERIOD } from '@/constants/constants';
 import { formatBillingPeriodForDisplay } from '@/utils';
+import { formatPriceStatus } from '@/utils/common/format_chips';
 import { ChargeValueCell } from '@/components/molecules';
 import { Dialog } from '@/components/ui';
 import { DeletePriceRequest } from '@/types/dto';
@@ -427,7 +428,7 @@ const PlanPriceTable: FC<PlanChargesTableProps> = ({ plan, onPriceUpdate }) => {
 				render: (row) => {
 					const status = getPriceStatus(row);
 					const variant = getStatusChipVariant(status);
-					const label = status.charAt(0).toUpperCase() + status.slice(1);
+					const label = formatPriceStatus(status, t);
 					const tooltipContent = formatPriceDateTooltip(row, t);
 					return (
 						<Tooltip

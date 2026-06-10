@@ -37,6 +37,7 @@ export async function initI18n(locale: string, direction: Direction): Promise<vo
 				partialBundledLanguages: true,
 				interpolation: { escapeValue: false },
 			});
+		await i18n.loadNamespaces(['common']);
 	} catch (err) {
 		console.error('[i18n] Initialization failed:', err);
 		throw err;
