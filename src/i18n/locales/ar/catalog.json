@@ -158,13 +158,18 @@
 		"details": {
 			"title": "تفاصيل جدول التكلفة",
 			"charges": "الرسوم",
-			"metadata": "البيانات الوصفية"
+			"metadata": "البيانات الوصفية",
+			"noChargesLinked": "لم تُضف رسوم إلى جدول التكلفة بعد"
 		},
 		"toast": {
 			"updated": "تم تحديث جدول التكلفة بنجاح",
 			"created": "تم إنشاء جدول التكلفة بنجاح",
 			"failedUpdate": "فشل تحديث جدول التكلفة. يُرجى المحاولة مجددًا.",
-			"failedCreate": "فشل إنشاء جدول التكلفة. يُرجى المحاولة مجددًا."
+			"failedCreate": "فشل إنشاء جدول التكلفة. يُرجى المحاولة مجددًا.",
+			"archived": "تم أرشفة جدول التكلفة بنجاح",
+			"archiveFailed": "فشل أرشفة جدول التكلفة",
+			"loadError": "خطأ في تحميل بيانات جدول التكلفة",
+			"noDataError": "لا تتوفر بيانات جدول التكلفة"
 		},
 		"validation": {
 			"nameRequired": "الاسم مطلوب",
@@ -352,7 +357,8 @@
 			"urlQueryPrice": "?entity_type=price",
 			"urlHintOr": "أو",
 			"urlQueryFeature": "?entity_type=feature",
-			"urlHintSuffix": "إلى عنوان URL لعرض الرسوم أو الميزات في هذه المجموعة."
+			"urlHintSuffix": "إلى عنوان URL لعرض الرسوم أو الميزات في هذه المجموعة.",
+			"noPrices": "لا توجد أسعار في هذه المجموعة. أضف أسعارًا إلى المجموعة لعرضها هنا."
 		},
 		"toast": {
 			"updated": "تم تحديث المجموعة بنجاح",
@@ -436,14 +442,54 @@
 			}
 		},
 		"tabs": {
+			"overview": "نظرة عامة",
 			"creditGrants": "منح الرصيد",
-			"entitlements": "الاستحقاقات"
+			"entitlements": "الاستحقاقات",
+			"information": "المعلومات"
+		},
+		"creditGrants": {
+			"noGrantsLinked": "لم تُضف منح رصيد إلى هذه الخطة بعد",
+			"defaultName": "أرصدة مجانية",
+			"toast": {
+				"added": "تمت إضافة منحة الرصيد بنجاح",
+				"addFailed": "فشل في إضافة منحة الرصيد",
+				"loadError": "خطأ في تحميل منح الرصيد"
+			}
+		},
+		"entitlements": {
+			"noEntitlementsLinked": "لم تُضف استحقاقات إلى هذه الخطة بعد",
+			"toast": {
+				"loadError": "خطأ في تحميل الاستحقاقات"
+			}
+		},
+		"sync": {
+			"usageCharges": "مزامنة رسوم الاستخدام",
+			"syncing": "جاري المزامنة…",
+			"inProgressPrefix": "المزامنة قيد التقدم. يمكنك التحقق من الحالة في",
+			"workflows": "سير العمل",
+			"completed": "اكتملت المزامنة. يمكنك المزامنة مرة أخرى.",
+			"failed": "فشلت المزامنة. يمكنك المحاولة مرة أخرى.",
+			"tooltip": "مزامنة أسعار الخطة مع الاشتراكات الحالية",
+			"startedToast": "بدأت المزامنة وستستغرق حتى ساعة واحدة.",
+			"errorToast": "خطأ في مزامنة الخطة مع الاشتراكات",
+			"loadError": "خطأ في تحميل بيانات الخطة",
+			"noDataError": "لا تتوفر بيانات الخطة"
 		},
 		"information": {
 			"loading": "جاري تحميل تفاصيل الخطة…",
 			"planDetails": "تفاصيل الخطة",
 			"metadata": "البيانات الوصفية",
-			"noMetadataAvailable": "لا توجد بيانات وصفية متاحة."
+			"noMetadataAvailable": "لا توجد بيانات وصفية متاحة.",
+			"name": "الاسم",
+			"lookupKey": "مفتاح البحث",
+			"description": "الوصف",
+			"createdDate": "تاريخ الإنشاء",
+			"status": "الحالة",
+			"toast": {
+				"metadataUpdated": "تم تحديث البيانات الوصفية بنجاح",
+				"metadataUpdateFailed": "فشل تحديث البيانات الوصفية",
+				"loadError": "خطأ في تحميل بيانات الخطة"
+			}
 		},
 		"pricing": {
 			"noWidget": "لا يوجد عنصر واجهة للتسعير",
@@ -781,7 +827,21 @@
 			"pageTitle": "إنشاء ميزة",
 			"creating": "جاري إنشاء الميزة…",
 			"unitDefault": "وحدة",
-			"unitsDefault": "وحدات"
+			"unitsDefault": "وحدات",
+			"typeOptions": {
+				"metered": {
+					"label": "مُقاس",
+					"description": "وظائف ذات استخدام متغيّر يحتاج إلى قياس، مثل استدعاءات API أو رموز LLM، إلخ."
+				},
+				"boolean": {
+					"label": "منطقي",
+					"description": "وظائف يمكن للعملاء الوصول إليها أو لا، مثل SSO أو تكامل CRM، إلخ."
+				},
+				"static": {
+					"label": "ثابت",
+					"description": "وظائف يمكن تكوينها للعميل، مثل فترة الاحتفاظ بالسجلات أو مستوى الدعم، إلخ."
+				}
+			}
 		},
 		"details": {
 			"charges": "الرسوم",
@@ -832,6 +892,16 @@
 			"COSTSHEET": "ورقة تكلفة"
 		},
 		"selectChargeTypeTitle": "اختر نوع الرسم",
+		"chargeTypeOptions": {
+			"fixed": {
+				"label": "رسوم ثابتة",
+				"description": "تُفوتر وفق جدول ثابت (شهري، سنوي، إلخ)."
+			},
+			"usage": {
+				"label": "رسوم الاستخدام",
+				"description": "ادفع فقط مقابل ما يستخدمه العملاء فعليًا."
+			}
+		},
 		"addChargeOptionsGroupAria": "خيارات إضافة رسم",
 		"addFixedCharge": "إضافة رسم ثابت",
 		"addUsageBasedCharges": "إضافة رسوم حسب الاستخدام",

@@ -176,17 +176,17 @@ const PlansPage = () => {
 	const getRowDropdownOptions = useCallback(
 		(row: Plan): DropdownMenuOption[] => [
 			{
-				label: t('plans.listPage.rowActions.edit'),
+				label: t('catalog:plans.listPage.rowActions.edit'),
 				icon: <Pencil />,
 				onSelect: () => handleEdit(row),
 			},
 			{
-				label: t('plans.listPage.rowActions.duplicate'),
+				label: t('catalog:plans.listPage.rowActions.duplicate'),
 				icon: <Copy />,
 				onSelect: () => handleDuplicate(row),
 			},
 			{
-				label: t('plans.listPage.rowActions.archive'),
+				label: t('catalog:plans.listPage.rowActions.archive'),
 				icon: <EyeOff />,
 				onSelect: () => {
 					setPlanToArchive(row);

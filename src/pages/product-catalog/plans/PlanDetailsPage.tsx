@@ -29,19 +29,23 @@ import { getPlanPriceSyncWorkflowFilters } from '@/constants/workflow';
 import { useBreadcrumbsStore } from '@/store/useBreadcrumbsStore';
 import { DataType, FilterOperator, SortDirection } from '@/types/common/QueryBuilder';
 import { useTranslation } from 'react-i18next';
+import type { TFunction } from 'i18next';
 
-const tabs = [
-	{ id: '', label: 'Overview' },
-	{ id: 'entitlements', label: 'Entitlements' },
-	{ id: 'credit-grants', label: 'Credit Grants' },
-	{ id: 'information', label: 'Information' },
-] as const;
-
-type TabId = (typeof tabs)[number]['id'];
+const TAB_IDS = ['', 'entitlements', 'credit-grants', 'information'] as const;
+type TabId = (typeof TAB_IDS)[number];
 
 const getActiveTab = (pathTabId: string): TabId => {
-	const validTabId = tabs.find((tab) => tab.id === pathTabId);
-	return validTabId ? validTabId.id : '';
+	return TAB_IDS.includes(pathTabId as TabId) ? (pathTabId as TabId) : '';
+};
+
+const getTabLabel = (tabId: TabId, t: TFunction): string => {
+	const labels: Record<TabId, string> = {
+		'': t('catalog:plans.tabs.overview'),
+		entitlements: t('catalog:plans.tabs.entitlements'),
+		'credit-grants': t('catalog:plans.tabs.creditGrants'),
+		information: t('catalog:plans.tabs.information'),
+	};
+	return labels[tabId];
 };
 
 type Params = {
@@ -49,12 +53,12 @@ type Params = {
 };
 
 const PlanDetailsPage = () => {
-	const { t } = useTranslation(['common', 'catalog']);
+	const { t } = useTranslation(['catalog', 'common']);
 	const navigate = useNavigate();
 	const location = useLocation();
 	const { planId } = useParams<Params>();
 	const queryClient = useQueryClient();
-	const [activeTab, setActiveTab] = useState<TabId>(tabs[0]?.id);
+	const [activeTab, setActiveTab] = useState<TabId>(TAB_IDS[0]);
 	const [planDrawerOpen, setPlanDrawerOpen] = useState(false);
 	const [duplicateDialogOpen, setDuplicateDialogOpen] = useState(false);
 
@@ -107,22 +111,22 @@ const PlanDetailsPage = () => {
 			return await PlanApi.deletePlan(planId!);
 		},
 		onSuccess: () => {
-			toast.success('Plan archived successfully');
+			toast.success(t('catalog:plans.listPage.toast.archiveSuccess'));
 			navigate(RouteNames.plan);
 		},
 		onError: (error: Error) => {
-			toast.error(error.message || 'Failed to archive plan');
+			toast.error(error.message || t('catalog:plans.listPage.toast.archiveErrorFallback'));
 		},
 	});
 
 	const { mutate: syncPlan, isPending: isSyncing } = useMutation({
 		mutationFn: () => PlanApi.synchronizePlanPricesWithSubscription(planId!),
 		onSuccess: () => {
-			toast.success('Sync has been started and will take up to 1 hour to complete.');
+			toast.success(t('catalog:plans.sync.startedToast'));
 			void queryClient.invalidateQueries({ queryKey: ['planSyncWorkflows', planId] });
 		},
 		onError: (error: Error) => {
-			toast.error(error.message || 'Error synchronizing plan with subscriptions');
+			toast.error(error.message || t('catalog:plans.sync.errorToast'));
 		},
 	});
 
@@ -131,17 +135,17 @@ const PlanDetailsPage = () => {
 	const dropdownOptions: DropdownMenuOption[] = useMemo(
 		() => [
 			{
-				label: t('plans.listPage.rowActions.edit'),
+				label: t('catalog:plans.listPage.rowActions.edit'),
 				icon: <Pencil />,
 				onSelect: () => setPlanDrawerOpen(true),
 			},
 			{
-				label: t('plans.listPage.rowActions.duplicate'),
+				label: t('catalog:plans.listPage.rowActions.duplicate'),
 				icon: <Copy />,
 				onSelect: () => setDuplicateDialogOpen(true),
 			},
 			{
-				label: t('plans.listPage.rowActions.archive'),
+				label: t('catalog:plans.listPage.rowActions.archive'),
 				icon: <EyeOff />,
 				onSelect: () => archivePlan(),
 				disabled: planData?.status !== ENTITY_STATUS.PUBLISHED,
@@ -166,16 +170,16 @@ const PlanDetailsPage = () => {
 			setSegmentLoading(3, true);
 		}
 
-		const activeTabData = tabs.find((tab) => tab.id === activeTab);
+		const activeTabData = activeTab;
 		setSegmentLoading(2, true);
 
-		if (activeTab !== '' && activeTabData) {
-			updateBreadcrumb(3, activeTabData.label);
+		if (activeTab !== '') {
+			updateBreadcrumb(3, getTabLabel(activeTabData, t));
 		}
 		if (planData?.name) {
 			updateBreadcrumb(2, planData.name);
 		}
-	}, [activeTab, updateBreadcrumb, setSegmentLoading, planData]);
+	}, [activeTab, updateBreadcrumb, setSegmentLoading, planData, t]);
 
 	const onTabChange = (tabId: TabId) => {
 		if (tabId === '') {
@@ -190,12 +194,12 @@ const PlanDetailsPage = () => {
 	}
 
 	if (isError) {
-		toast.error('Error loading plan data');
+		toast.error(t('catalog:plans.sync.loadError'));
 		return null;
 	}
 
 	if (!planData) {
-		toast.error('No plan data available');
+		toast.error(t('catalog:plans.sync.noDataError'));
 		return null;
 	}
 
@@ -221,29 +225,29 @@ const PlanDetailsPage = () => {
 										variant='outline'
 										className='flex gap-2'>
 										<RefreshCw />
-										Sync Usage Charges
+										{t('catalog:plans.sync.usageCharges')}
 									</Button>
 								</span>
 							</TooltipTrigger>
 							<TooltipContent>
 								{isSyncing ? (
-									<span className='text-sm'>Syncing...</span>
+									<span className='text-sm'>{t('catalog:plans.sync.syncing')}</span>
 								) : isSyncRunning ? (
 									<span className='text-sm'>
-										Sync in progress. You can check status in{' '}
+										{t('catalog:plans.sync.inProgressPrefix')}{' '}
 										<button
 											onClick={() => navigate(`${RouteNames.workflows}?entity_id=${planId}`)}
 											className='text-blue-600 hover:text-blue-800 underline'>
-											Workflows
+											{t('catalog:plans.sync.workflows')}
 										</button>
 										.
 									</span>
 								) : latestRun?.status === 'Completed' ? (
-									<span className='text-sm'>Sync completed. You can sync again.</span>
+									<span className='text-sm'>{t('catalog:plans.sync.completed')}</span>
 								) : latestRun?.status === 'Failed' ? (
-									<span className='text-sm'>Sync failed. You can try again.</span>
+									<span className='text-sm'>{t('catalog:plans.sync.failed')}</span>
 								) : (
-									<span className='text-sm'>Synchronize plan prices with existing subscriptions</span>
+									<span className='text-sm'>{t('catalog:plans.sync.tooltip')}</span>
 								)}
 							</TooltipContent>
 						</Tooltip>
@@ -264,19 +268,19 @@ const PlanDetailsPage = () => {
 
 			<div className='border-b border-border mt-4 mb-6'>
 				<nav className='flex space-x-4' aria-label={t('common:labels.tabs')}>
-					{tabs.map((tab, index) => {
+					{TAB_IDS.map((tabId, index) => {
 						return (
 							<button
-								key={tab.id}
-								onClick={() => onTabChange(tab.id)}
+								key={tabId}
+								onClick={() => onTabChange(tabId)}
 								className={cn(
 									'px-4 py-2 text-sm font-normal transition-colors focus-visible:outline-none',
 									index === 0 && 'px-0',
-									activeTab === tab.id ? 'text-foreground' : 'text-muted-foreground hover:text-foreground',
+									activeTab === tabId ? 'text-foreground' : 'text-muted-foreground hover:text-foreground',
 								)}
 								role='tab'
-								aria-selected={activeTab === tab.id}>
-								{tab.label}
+								aria-selected={activeTab === tabId}>
+								{getTabLabel(tabId, t)}
 							</button>
 						);
 					})}

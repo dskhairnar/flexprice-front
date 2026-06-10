@@ -7,7 +7,7 @@ export default defineConfig({
 		globals: true,
 		environment: 'jsdom',
 		env: {
-			// Reset white-label overrides so brand config tests assert against Tirdad defaults.
+			// Reset white-label overrides so brand config tests assert against Flexprice defaults.
 			// Individual tests use vi.stubEnv() to set specific values.
 			VITE_BRAND_CONFIG: '{}',
 			VITE_AUTH_CONFIG: '{}',

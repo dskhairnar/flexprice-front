@@ -13,6 +13,7 @@ import { useLocaleStore } from './store/useLocaleStore.ts';
 import React from 'react';
 
 registerWebMCPTools();
+initBranding();
 
 // Reads direction from Zustand store — subscribes so Radix primitives re-render on locale change
 function DirectionWrapper({ children }: { children: React.ReactNode }) {
@@ -21,7 +22,6 @@ function DirectionWrapper({ children }: { children: React.ReactNode }) {
 }
 
 (async () => {
-	initBranding();
 	initTypography();
 
 	// Use persisted locale (from localStorage via Zustand) rather than the config default
