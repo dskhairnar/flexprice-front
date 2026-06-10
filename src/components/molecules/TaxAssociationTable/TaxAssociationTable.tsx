@@ -8,6 +8,7 @@ import TaxApi from '@/api/TaxApi';
 import { formatEntityStatus } from '@/utils/common/format_chips';
 import { RouteNames } from '@/core/routes/Routes';
 import { ENTITY_STATUS } from '@/models/base';
+import { TrashIcon } from 'lucide-react';
 
 interface Props {
 	data: TaxAssociationResponse[];
