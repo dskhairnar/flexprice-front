@@ -15,6 +15,7 @@ import {
 	SUBSCRIPTION_STATUS,
 } from '@/models/Subscription';
 
+/** ISO 4217 code when API omits currency (not user-facing copy). */
 export const DEFAULT_CURRENCY_CODE = 'USD';
 
 export enum BILLING_PERIOD {
@@ -182,6 +183,3 @@ export const subscriptionLineItemEntityTypeOptions = [
 
 // Sandbox environment auto-cancellation period (in days)
 export const SANDBOX_AUTO_CANCELLATION_DAYS = 45;
-
-/** ISO 4217 code when API omits currency (not user-facing copy). */
-export const DEFAULT_CURRENCY_CODE = 'USD';

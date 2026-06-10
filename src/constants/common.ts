@@ -1,4 +1,4 @@
-import { formatLocalizedCurrency, formatLocalizedNumber, getLocalizedCurrencySymbol } from '@/i18n/display/formatNumber';
+import { formatLocalizedNumber } from '@/i18n/display/formatNumber';
 
 // =============================================================================
 // COMMON CONSTANTS & UTILITIES
