@@ -2,7 +2,7 @@ import { CreditNote } from '@/models';
 import { CREDIT_NOTE_STATUS, CREDIT_NOTE_TYPE } from '@/types/dto';
 import { FC } from 'react';
 import FlexpriceTable, { ColumnData, RedirectCell } from '../Table';
-import { formatDateShort, getCurrencySymbol } from '@/utils/common/helper_functions';
+import { formatDateShort, formatLocalizedCurrency } from '@/utils/common/helper_functions';
 import { Chip } from '@/components/atoms';
 import { useNavigate } from 'react-router';
 import { RouteNames } from '@/core/routes/Routes';
@@ -49,7 +49,7 @@ const CreditNoteTable: FC<Props> = ({ data }) => {
 		},
 		{
 			title: t('creditNotes.table.amount'),
-			render: (row: CreditNote) => <span>{`${getCurrencySymbol(row.currency)}${row.total_amount}`}</span>,
+			render: (row: CreditNote) => <span>{formatLocalizedCurrency(row.total_amount, row.currency)}</span>,
 		},
 		{
 			title: t('creditNotes.table.status'),

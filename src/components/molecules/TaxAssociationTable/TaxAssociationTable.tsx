@@ -5,45 +5,46 @@ import { TaxAssociationResponse } from '@/types/dto/tax';
 import { Chip, ActionButton } from '@/components/atoms';
 import { formatDateShort } from '@/utils/common/helper_functions';
 import TaxApi from '@/api/TaxApi';
-import formatChips from '@/utils/common/format_chips';
+import { formatEntityStatus } from '@/utils/common/format_chips';
 import { RouteNames } from '@/core/routes/Routes';
+import { ENTITY_STATUS } from '@/models/base';
 
 interface Props {
 	data: TaxAssociationResponse[];
-	onEdit?: (taxAssociation: TaxAssociationResponse) => void;
 	showDelete?: boolean;
+	refetchQueryKey?: string;
 }
 
-const TaxAssociationTable: FC<Props> = ({ data, onEdit, showDelete = true }) => {
+const TaxAssociationTable: FC<Props> = ({ data, showDelete = true, refetchQueryKey = 'fetchTaxAssociations' }) => {
 	const { t } = useTranslation('common');
 	const columns: ColumnData<TaxAssociationResponse>[] = [
 		{
-			title: 'Tax ID',
+			title: t('tableColumns.taxId'),
 			render: (row) => (
 				<RedirectCell redirectUrl={`${RouteNames.taxes}/${row.tax_rate_id}`}>{row.tax_rate?.name || row.tax_rate_id}</RedirectCell>
 			),
 		},
 		{
-			title: 'Priority',
+			title: t('tableColumns.priority'),
 			render: (row) => row.priority,
 		},
 		{
-			title: 'Auto Apply',
+			title: t('tableColumns.autoApply'),
 			render: (row) => <Chip variant={row.auto_apply ? 'success' : 'default'} label={row.auto_apply ? t('labels.yes') : t('labels.no')} />,
 		},
 		{
-			title: 'Currency',
+			title: t('tableColumns.currency'),
 			render: (row) => row.currency,
 		},
 		{
-			title: 'Status',
+			title: t('tableColumns.status'),
 			render: (row) => {
-				const label = formatChips(row?.status);
-				return <Chip variant={label === 'Active' ? 'success' : 'default'} label={label} />;
+				const label = formatEntityStatus(row?.status ?? '', t);
+				return <Chip variant={row?.status === ENTITY_STATUS.PUBLISHED ? 'success' : 'default'} label={label} />;
 			},
 		},
 		{
-			title: 'Created',
+			title: t('tableColumns.created'),
 			render: (row) => formatDateShort(row.created_at),
 		},
 		{
@@ -55,14 +56,13 @@ const TaxAssociationTable: FC<Props> = ({ data, onEdit, showDelete = true }) => 
 						deleteMutationFn={async () => {
 							return await TaxApi.deleteTaxAssociation(row?.id);
 						}}
-						refetchQueryKey='fetchTaxAssociations'
-						entityName={`Tax Association ${row?.id}`}
-						edit={{
-							enabled: true,
-							onClick: () => onEdit?.(row),
-						}}
+						refetchQueryKey={refetchQueryKey}
+						entityName={`${row?.tax_rate?.name} Tax for ${row?.entity_type}`}
+						edit={{ enabled: false }}
 						archive={{
-							enabled: !showDelete,
+							enabled: showDelete,
+							icon: <TrashIcon className='h-4 w-4' />,
+							text: t('actions.delete'),
 						}}
 					/>
 				);

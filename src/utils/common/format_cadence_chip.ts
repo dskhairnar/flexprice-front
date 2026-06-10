@@ -1,15 +1,16 @@
 import { CadenceStatus } from '@/types/common';
+import type { TFunction } from 'i18next';
 
-const formatCadenceChip = (data: string): string => {
+const formatCadenceChip = (data: string, t: TFunction): string => {
 	switch (data) {
 		case CadenceStatus.ONCE:
-			return 'Once';
+			return t('catalog:coupons.drawer.cadenceOnce');
 		case CadenceStatus.REPEAT:
-			return 'Repeat';
+			return t('catalog:coupons.drawer.cadenceRepeated');
 		case CadenceStatus.FOREVER:
-			return 'Forever';
+			return t('catalog:coupons.drawer.cadenceForever');
 		default:
-			return 'Once';
+			return t('catalog:coupons.drawer.cadenceOnce');
 	}
 };
 

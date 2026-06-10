@@ -14,7 +14,9 @@ import { Price } from '@/models/Price';
 import { useBreadcrumbsStore } from '@/store/useBreadcrumbsStore';
 import AddonApi from '@/api/AddonApi';
 import EntitlementApi from '@/api/EntitlementApi';
-import { getPriceTypeLabel } from '@/utils/common/helper_functions';
+import { formatBillingPeriodForDisplay, formatInvoiceCadence, getPriceTypeLabel } from '@/utils/common/helper_functions';
+import { formatEntityStatus } from '@/utils/common/format_chips';
+import type { TFunction } from 'i18next';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { EyeOff, Plus, Pencil, Trash2 } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
@@ -22,85 +24,61 @@ import toast from 'react-hot-toast';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useParams } from 'react-router';
 import { Card } from '@/components/atoms';
-import formatChips from '@/utils/common/format_chips';
 import { ChargeValueCell } from '@/components/molecules';
-import { BILLING_PERIOD } from '@/constants/constants';
 import { FEATURE_TYPE } from '@/models/Feature';
 import { getFeatureTypeChips } from '@/components/molecules/CustomerUsageTable/CustomerUsageTable';
-import { formatAmount } from '@/components/atoms/Input/Input';
+import { formatLocalizedNumber } from '@/utils/common/helper_functions';
 import { Entitlement } from '@/models/Entitlement';
 import { ENTITY_STATUS } from '@/models';
 import { ENTITLEMENT_ENTITY_TYPE } from '@/models/Entitlement';
 import { EntitlementResponse } from '@/types/dto';
 
-const formatBillingPeriod = (billingPeriod: string) => {
-	switch (billingPeriod.toUpperCase()) {
-		case BILLING_PERIOD.DAILY:
-			return 'Daily';
-		case BILLING_PERIOD.WEEKLY:
-			return 'Weekly';
-		case BILLING_PERIOD.MONTHLY:
-			return 'Monthly';
-		case BILLING_PERIOD.ANNUAL:
-			return 'Yearly';
-		case BILLING_PERIOD.QUARTERLY:
-			return 'Quarterly';
-		case BILLING_PERIOD.HALF_YEARLY:
-			return 'Half Yearly';
-		default:
-			return '--';
-	}
-};
-
-const formatInvoiceCadence = (cadence: string): string => {
-	switch (cadence.toUpperCase()) {
-		case 'ADVANCE':
-			return 'Advance';
-		case 'ARREAR':
-			return 'Arrear';
-		default:
-			return '';
-	}
-};
-
 type Params = {
 	id: string;
 };
 
-const getChargeColumns = (naLabel: string): ColumnData<Price>[] => [
+const getChargeColumns = (naLabel: string, t: TFunction): ColumnData<Price>[] => [
 	{
-		title: 'Display Name',
+		title: t('catalog:shared.chargeColumns.displayName'),
 		render(rowData) {
 			return <span>{rowData.display_name ?? naLabel}</span>;
 		},
 	},
 	{
-		title: 'Charge Type',
+		title: t('catalog:shared.chargeColumns.chargeType'),
 		render: (row) => {
-			return <span>{getPriceTypeLabel(row.type)}</span>;
+			return <span>{getPriceTypeLabel(row.type, t)}</span>;
 		},
 	},
 	{
-		title: 'Billing Timing',
+		title: t('catalog:shared.chargeColumns.billingTiming'),
 		render(rowData) {
-			return <span>{formatInvoiceCadence(rowData.invoice_cadence as string)}</span>;
+			return <span>{formatInvoiceCadence(rowData.invoice_cadence as string, t)}</span>;
 		},
 	},
 	{
-		title: 'Billing Period',
+		title: t('catalog:shared.chargeColumns.billingPeriod'),
 		render(rowData) {
-			return <span>{formatBillingPeriod(rowData.billing_period as string)}</span>;
+			return <span>{formatBillingPeriodForDisplay(rowData.billing_period as string, t)}</span>;
 		},
 	},
 	{
-		title: 'Value',
+		title: t('catalog:shared.chargeColumns.value'),
 		render(rowData) {
 			return <ChargeValueCell data={rowData} />;
 		},
 	},
 ];
 
-const getFeatureValue = (entitlement: Entitlement, unlimited: string, unitLabel: string, unitsLabel: string) => {
+const getFeatureValue = (
+	entitlement: Entitlement,
+	unlimited: string,
+	unitLabel: string,
+	unitsLabel: string,
+	yesLabel: string,
+	noLabel: string,
+	naLabel: string,
+) => {
 	const value = entitlement.usage_limit?.toFixed() || '';
 
 	switch (entitlement.feature_type) {
@@ -111,7 +89,7 @@ const getFeatureValue = (entitlement: Entitlement, unlimited: string, unitLabel:
 			const unitSingular = entitlement.feature?.unit_singular || unitLabel;
 			return (
 				<span className='flex items-end gap-1'>
-					{formatAmount(value || unlimited)}
+					{formatLocalizedNumber(value || unlimited, { maximumFractionDigits: 0 })}
 					<span className='text-[#64748B] text-sm font-normal font-sans'>
 						{value ? (Number(value) > 0 ? unitPlural : unitSingular) : unitPlural}
 					</span>
@@ -119,9 +97,9 @@ const getFeatureValue = (entitlement: Entitlement, unlimited: string, unitLabel:
 			);
 		}
 		case FEATURE_TYPE.BOOLEAN:
-			return entitlement.is_enabled ? 'Yes' : 'No';
+			return entitlement.is_enabled ? yesLabel : noLabel;
 		default:
-			return '--';
+			return naLabel;
 	}
 };
 
@@ -130,23 +108,27 @@ const getEntitlementColumns = (
 	unlimited: string,
 	unitLabel: string,
 	unitsLabel: string,
+	yesLabel: string,
+	noLabel: string,
+	naLabel: string,
+	t: TFunction,
 ): ColumnData<EntitlementResponse>[] => [
 	{
-		title: 'Feature Name',
+		title: t('catalog:shared.entitlementColumns.featureName'),
 		render(row) {
 			return <RedirectCell redirectUrl={`${RouteNames.featureDetails}/${row?.feature?.id}`}>{row?.feature?.name}</RedirectCell>;
 		},
 	},
 	{
-		title: 'Type',
+		title: t('catalog:shared.entitlementColumns.type'),
 		render(row) {
 			return getFeatureTypeChips({ type: row?.feature_type || '', showIcon: true, showLabel: true });
 		},
 	},
 	{
-		title: 'Value',
+		title: t('catalog:shared.entitlementColumns.value'),
 		render(row) {
-			return getFeatureValue(row, unlimited, unitLabel, unitsLabel);
+			return getFeatureValue(row, unlimited, unitLabel, unitsLabel, yesLabel, noLabel, naLabel);
 		},
 	},
 	{
@@ -164,7 +146,7 @@ const getEntitlementColumns = (
 					entityName={row?.feature?.name}
 					archive={{
 						enabled: row?.status !== ENTITY_STATUS.ARCHIVED,
-						text: 'Delete',
+						text: t('common:actions.delete'),
 						icon: <Trash2 />,
 					}}
 				/>
@@ -213,7 +195,28 @@ const AddonDetails = () => {
 		}
 	}, [addonData, updateBreadcrumb]);
 
-	const chargeColumns = useMemo(() => getChargeColumns(t('common:labels.na')), [t]);
+	const chargeColumns = useMemo(() => getChargeColumns(t('common:labels.na'), t), [t]);
+
+	const addonDetails = useMemo(
+		() =>
+			addonData
+				? [
+						{ label: t('catalog:addons.drawer.addonName'), value: addonData.name },
+						{ label: t('catalog:shared.lookupKey'), value: addonData.lookup_key },
+						{
+							label: t('catalog:shared.chargeColumns.status'),
+							value: (
+								<Chip
+									label={formatEntityStatus(addonData.status ?? '', t)}
+									variant={addonData.status === ENTITY_STATUS.PUBLISHED ? 'success' : 'default'}
+								/>
+							),
+						},
+						{ label: t('catalog:shared.description'), value: addonData.description || t('common:labels.na') },
+					]
+				: [],
+		[addonData, t],
+	);
 
 	if (isLoading) {
 		return <Loader />;
@@ -229,18 +232,6 @@ const AddonDetails = () => {
 		return null;
 	}
 
-	const addonDetails = [
-		{ label: 'Addon Name', value: addonData?.name },
-		{ label: 'Lookup Key', value: addonData?.lookup_key },
-		{
-			label: 'Status',
-			value: (
-				<Chip label={formatChips(addonData?.status)} variant={addonData?.status === ENTITY_STATUS.PUBLISHED ? 'success' : 'default'} />
-			),
-		},
-		{ label: 'Description', value: addonData?.description || '--' },
-	];
-
 	return (
 		<Page
 			documentTitle={addonData?.name}
@@ -249,7 +240,7 @@ const AddonDetails = () => {
 				<>
 					<Button onClick={() => setAddonDrawerOpen(true)} variant={'outline'} className='flex gap-2'>
 						<Pencil />
-						Edit
+						{t('common:actions.edit')}
 					</Button>
 
 					<Button
@@ -258,7 +249,7 @@ const AddonDetails = () => {
 						variant={'outline'}
 						className='flex gap-2'>
 						<EyeOff />
-						Archive
+						{t('common:actions.archive')}
 					</Button>
 				</>
 			}>
@@ -283,7 +274,7 @@ const AddonDetails = () => {
 							title={t('catalog:addons.details.charges')}
 							cta={
 								<Button prefixIcon={<Plus />} onClick={() => navigate(`${RouteNames.addonCharges.replace(':addonId', id!)}`)}>
-									Add
+									{t('common:actions.add')}
 								</Button>
 							}
 						/>
@@ -292,7 +283,7 @@ const AddonDetails = () => {
 				) : (
 					<NoDataCard
 						title={t('catalog:addons.details.charges')}
-						subtitle='No charges added to the addon yet'
+						subtitle={t('catalog:addons.details.noChargesLinked')}
 						cta={
 							<Button prefixIcon={<Plus />} onClick={() => navigate(`${RouteNames.addonCharges.replace(':addonId', id!)}`)}>
 								Add
@@ -320,13 +311,17 @@ const AddonDetails = () => {
 								t('common:labels.unlimited'),
 								t('catalog:features.form.unitDefault'),
 								t('catalog:features.form.unitsDefault'),
+								t('common:labels.yes'),
+								t('common:labels.no'),
+								t('common:labels.na'),
+								t,
 							)}
 						/>
 					</Card>
 				) : (
 					<NoDataCard
 						title={t('catalog:addons.details.entitlements')}
-						subtitle='No entitlements added to the addon yet'
+						subtitle={t('catalog:addons.details.noEntitlementsLinked')}
 						cta={
 							<Button prefixIcon={<Plus />} onClick={() => setEntitlementDrawerOpen(true)}>
 								Add

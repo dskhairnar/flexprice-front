@@ -1,12 +1,12 @@
 import { useParams } from 'react-router';
 import { useQuery } from '@tanstack/react-query';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Button, Card, CardHeader, NoDataCard, Loader } from '@/components/atoms';
 import { Plus } from 'lucide-react';
 import { EntitlementApi } from '@/api';
 import { FlexpriceTable, ColumnData, RedirectCell, AddEntitlementDrawer } from '@/components/molecules';
 import { getFeatureTypeChips } from '@/components/molecules/CustomerUsageTable/CustomerUsageTable';
-import { formatAmount } from '@/components/atoms/Input/Input';
+import { formatLocalizedNumber } from '@/utils/common/helper_functions';
 import { Entitlement, ENTITY_STATUS, FEATURE_TYPE, ENTITLEMENT_ENTITY_TYPE, EXPAND, ENTITLEMENT_USAGE_RESET_PERIOD } from '@/models';
 import { EntitlementResponse } from '@/types';
 import { RouteNames } from '@/core/routes/Routes';
@@ -33,7 +33,7 @@ const PlanEntitlementsTab = () => {
 			case FEATURE_TYPE.METERED:
 				return (
 					<span className='flex items-end gap-1'>
-						{formatAmount(value || unlimited)}
+						{formatLocalizedNumber(value || unlimited, { maximumFractionDigits: 0 })}
 						<span className='text-[#64748B] text-sm font-normal font-sans'>
 							{value
 								? Number(value) > 0
@@ -67,56 +67,61 @@ const PlanEntitlementsTab = () => {
 		enabled: !!planId,
 	});
 
-	const columnData: ColumnData<EntitlementResponse>[] = [
-		{
-			title: 'Feature Name',
-			render(row) {
-				return <RedirectCell redirectUrl={`${RouteNames.featureDetails}/${row?.feature?.id}`}>{row?.feature?.name}</RedirectCell>;
+	const columnData: ColumnData<EntitlementResponse>[] = useMemo(
+		() => [
+			{
+				title: t('catalog:shared.entitlementColumns.featureName'),
+				render(row) {
+					return <RedirectCell redirectUrl={`${RouteNames.featureDetails}/${row?.feature?.id}`}>{row?.feature?.name}</RedirectCell>;
+				},
 			},
-		},
-		{
-			title: 'Type',
-			render(row) {
-				return getFeatureTypeChips({ type: row?.feature_type || '', showIcon: true, showLabel: true });
+			{
+				title: t('catalog:shared.entitlementColumns.type'),
+				render(row) {
+					return getFeatureTypeChips({ type: row?.feature_type || '', showIcon: true, showLabel: true });
+				},
 			},
-		},
-		{
-			title: 'Usage Reset',
-			render(row) {
-				const period = row?.usage_reset_period as ENTITLEMENT_USAGE_RESET_PERIOD | '' | null;
-				return period && Object.values(ENTITLEMENT_USAGE_RESET_PERIOD).includes(period as ENTITLEMENT_USAGE_RESET_PERIOD) ? period : '--';
+			{
+				title: t('catalog:shared.entitlementColumns.usageReset'),
+				render(row) {
+					const period = row?.usage_reset_period as ENTITLEMENT_USAGE_RESET_PERIOD | '' | null;
+					return period && Object.values(ENTITLEMENT_USAGE_RESET_PERIOD).includes(period as ENTITLEMENT_USAGE_RESET_PERIOD)
+						? period
+						: t('common:labels.na');
+				},
 			},
-		},
-		{
-			title: 'Value',
-			render(row) {
-				return getFeatureValue(row);
+			{
+				title: t('catalog:shared.entitlementColumns.value'),
+				render(row) {
+					return getFeatureValue(row);
+				},
 			},
-		},
-		{
-			fieldVariant: 'interactive',
-			width: '30px',
-			hideOnEmpty: true,
-			render(row) {
-				return (
-					<ActionButton
-						id={row?.id}
-						deleteMutationFn={async () => {
-							return await EntitlementApi.delete(row?.id);
-						}}
-						refetchQueryKey='planEntitlements'
-						entityName={row?.feature?.name}
-						edit={{ enabled: false }}
-						archive={{
-							enabled: row?.status !== ENTITY_STATUS.ARCHIVED,
-							text: 'Delete',
-							icon: <Trash2 />,
-						}}
-					/>
-				);
+			{
+				fieldVariant: 'interactive',
+				width: '30px',
+				hideOnEmpty: true,
+				render(row) {
+					return (
+						<ActionButton
+							id={row?.id}
+							deleteMutationFn={async () => {
+								return await EntitlementApi.delete(row?.id);
+							}}
+							refetchQueryKey='planEntitlements'
+							entityName={row?.feature?.name}
+							edit={{ enabled: false }}
+							archive={{
+								enabled: row?.status !== ENTITY_STATUS.ARCHIVED,
+								text: t('common:actions.delete'),
+								icon: <Trash2 />,
+							}}
+						/>
+					);
+				},
 			},
-		},
-	];
+		],
+		[t],
+	);
 
 	if (isLoading) {
 		return <Loader />;

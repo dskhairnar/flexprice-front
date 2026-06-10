@@ -551,7 +551,7 @@ const UsagePricingForm: FC<Props> = ({
 								setFlatFee(e);
 							}
 						}}
-						suffix={<span className='text-[#64748B]'>{`/ unit / ${formatBillingPeriodForPrice(billingPeriod)}`}</span>}
+						suffix={<span className='text-[#64748B]'>{`/ unit / ${formatBillingPeriodForPrice(billingPeriod, t)}`}</span>}
 					/>
 				</div>
 			)}
@@ -590,7 +590,7 @@ const UsagePricingForm: FC<Props> = ({
 									});
 								}
 							}}
-							suffix={`/ units / ${formatBillingPeriodForPrice(billingPeriod)}`}
+							suffix={`/ units / ${formatBillingPeriodForPrice(billingPeriod, t)}`}
 						/>
 					</div>
 					{inputErrors.packagedModelError && <p className='text-red-500 text-sm'>{inputErrors.packagedModelError}</p>}

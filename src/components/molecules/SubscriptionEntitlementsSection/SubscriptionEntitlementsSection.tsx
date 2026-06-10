@@ -11,6 +11,7 @@ import { ENTITLEMENT_ENTITY_TYPE } from '@/models/Entitlement';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { BsThreeDotsVertical } from 'react-icons/bs';
 import toast from 'react-hot-toast';
+import { formatLocalizedNumber } from '@/utils/common/helper_functions';
 
 interface SubscriptionEntitlementsSectionProps {
 	subscriptionId: string;
@@ -19,7 +20,7 @@ interface SubscriptionEntitlementsSectionProps {
 }
 
 const SubscriptionEntitlementsSection: FC<SubscriptionEntitlementsSectionProps> = ({ subscriptionId, readOnly = false }) => {
-	const { t } = useTranslation('common');
+	const { t } = useTranslation(['common', 'catalog']);
 	const [drawerOpen, setDrawerOpen] = useState(false);
 	const [dropdownOpen, setDropdownOpen] = useState<string | null>(null);
 	const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
@@ -99,7 +100,7 @@ const SubscriptionEntitlementsSection: FC<SubscriptionEntitlementsSectionProps> 
 			const limit = entitlementData?.usage_limit;
 			const resetPeriod = entitlementData?.usage_reset_period;
 			return limit !== null && limit !== undefined
-				? `${limit.toLocaleString()}${resetPeriod ? ` / ${resetPeriod.toLowerCase()}` : ''}`
+				? `${formatLocalizedNumber(limit, { maximumFractionDigits: 0 })}${resetPeriod ? ` / ${resetPeriod.toLowerCase()}` : ''}`
 				: t('labels.unlimited');
 		} else if (featureType === FEATURE_TYPE.STATIC) {
 			return entitlementData?.static_value || '--';
@@ -132,15 +133,15 @@ const SubscriptionEntitlementsSection: FC<SubscriptionEntitlementsSectionProps> 
 
 	const columns: ColumnData<any>[] = [
 		{
-			title: 'Feature Name',
+			title: t('catalog:shared.entitlementColumns.featureName'),
 			render: (row: any) => <span>{row.feature?.name || t('labels.unknownFeature')}</span>,
 		},
 		{
-			title: 'Feature Type',
+			title: t('tableColumns.featureType'),
 			render: (row: any) => getFeatureTypeChip(row.feature_type),
 		},
 		{
-			title: 'Value',
+			title: t('catalog:shared.entitlementColumns.value'),
 			render: (row: any) => <span>{getEntitlementValue(row)}</span>,
 		},
 		{

@@ -59,7 +59,7 @@ const RecurringChargePreview: FC<Props> = ({ charge, onEditClicked, onDeleteClic
 					<span>•</span>
 					<span>
 						{displayInfo.symbol}
-						{formatAmount(displayInfo.amount)} / {formatBillingPeriodForPrice(charge.billing_period || '')}
+						{formatAmount(displayInfo.amount)} / {formatBillingPeriodForPrice(charge.billing_period || '', t)}
 					</span>
 				</div>
 			</div>

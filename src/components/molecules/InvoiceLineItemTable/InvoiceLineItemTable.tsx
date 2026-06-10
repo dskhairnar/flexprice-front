@@ -1,6 +1,6 @@
 import { Button, FormHeader, Toggle } from '@/components/atoms';
 import { LineItem, INVOICE_TYPE } from '@/models/Invoice';
-import { getCurrencySymbol, getPriceTypeLabel } from '@/utils/common/helper_functions';
+import { formatLocalizedCurrency, formatLocalizedNumber, getPriceTypeLabel } from '@/utils/common/helper_functions';
 import { formatBillingPeriod } from '@/utils/common/format_date';
 import { FC, useState } from 'react';
 import { RefreshCw, Info } from 'lucide-react';
@@ -24,9 +24,7 @@ interface Props {
 	invoiceType?: INVOICE_TYPE;
 }
 
-const formatAmount = (amount: number, currency: string): string => {
-	return `${getCurrencySymbol(currency)}${amount}`;
-};
+const formatLineItemAmount = (amount: number, currency: string): string => formatLocalizedCurrency(amount, currency);
 
 const InvoiceLineItemTable: FC<Props> = ({
 	data,
@@ -112,7 +110,7 @@ const InvoiceLineItemTable: FC<Props> = ({
 										<td className='py-4 px-0 text-sm  text-gray-900'>{item.display_name ?? na}</td>
 										{invoiceType === INVOICE_TYPE.SUBSCRIPTION && (
 											<td className='py-4 px-4 text-sm text-gray-600 text-end'>
-												{item.price_type ? getPriceTypeLabel(item.price_type) : na}
+												{item.price_type ? getPriceTypeLabel(item.price_type, t) : na}
 											</td>
 										)}
 										{invoiceType === INVOICE_TYPE.SUBSCRIPTION && (
@@ -120,8 +118,14 @@ const InvoiceLineItemTable: FC<Props> = ({
 												{item.period_start && item.period_end ? formatBillingPeriod(item.period_start, item.period_end) : na}
 											</td>
 										)}
-										<td className='py-4 px-4 text-end text-sm text-gray-600'>{item.quantity ? item.quantity : na}</td>
-										<td className='py-4 px-0 text-end w-36  text-sm text-gray-600'>{formatAmount(item.amount ?? 0, item.currency)}</td>
+										<td className='py-4 px-4 text-end text-sm text-gray-600 tabular-nums'>
+											{item.quantity != null && item.quantity !== ''
+												? formatLocalizedNumber(item.quantity, { maximumFractionDigits: 6 })
+												: na}
+										</td>
+										<td className='py-4 px-0 text-end w-36  text-sm text-gray-600'>
+											{formatLineItemAmount(item.amount ?? 0, item.currency)}
+										</td>
 									</tr>
 								);
 							})}
@@ -136,7 +140,7 @@ const InvoiceLineItemTable: FC<Props> = ({
 						{subtotal !== undefined && subtotal !== null && Number(subtotal) !== 0 && (
 							<div className='flex justify-between items-center py-1.5'>
 								<span className='text-xs text-gray-500'>{t('invoices.details.lineItemsTable.subtotal')}</span>
-								<span className='text-sm text-gray-900 font-medium'>{formatAmount(Number(subtotal), currency ?? '')}</span>
+								<span className='text-sm text-gray-900 font-medium'>{formatLineItemAmount(Number(subtotal), currency ?? '')}</span>
 							</div>
 						)}
 
@@ -144,7 +148,7 @@ const InvoiceLineItemTable: FC<Props> = ({
 						{discount !== undefined && discount !== null && Number(discount) > 0 && (
 							<div className='flex justify-between items-center py-1.5'>
 								<span className='text-xs text-gray-500'>{t('invoices.details.lineItemsTable.discount')}</span>
-								<span className='text-sm text-gray-600'>−{formatAmount(Number(discount), currency ?? '')}</span>
+								<span className='text-sm text-gray-600'>−{formatLineItemAmount(Number(discount), currency ?? '')}</span>
 							</div>
 						)}
 
@@ -154,14 +158,16 @@ const InvoiceLineItemTable: FC<Props> = ({
 							Number(total_prepaid_credits_applied) > 0 && (
 								<div className='flex justify-between items-center py-1.5'>
 									<span className='text-xs text-gray-500'>{t('invoices.details.lineItemsTable.prepaidCredits')}</span>
-									<span className='text-sm text-gray-600'>−{formatAmount(Number(total_prepaid_credits_applied), currency ?? '')}</span>
+									<span className='text-sm text-gray-600'>
+										−{formatLineItemAmount(Number(total_prepaid_credits_applied), currency ?? '')}
+									</span>
 								</div>
 							)}
 
 						{total_tax !== undefined && total_tax !== null && Number(total_tax) !== 0 && (
 							<div className='flex justify-between items-center py-1.5'>
 								<span className='text-xs text-gray-500'>{t('invoices.details.lineItemsTable.tax')}</span>
-								<span className='text-sm text-gray-900 font-medium'>{formatAmount(Number(total_tax), currency ?? '')}</span>
+								<span className='text-sm text-gray-900 font-medium'>{formatLineItemAmount(Number(total_tax), currency ?? '')}</span>
 							</div>
 						)}
 
@@ -180,20 +186,20 @@ const InvoiceLineItemTable: FC<Props> = ({
 									</Tooltip>
 								</TooltipProvider>
 							</div>
-							<span className='text-base text-gray-900 font-semibold'>{formatAmount(Number(amount_due ?? 0), currency ?? '')}</span>
+							<span className='text-base text-gray-900 font-semibold'>{formatLineItemAmount(Number(amount_due ?? 0), currency ?? '')}</span>
 						</div>
 
 						{/* Amount paid - always show, default to 0 if not provided */}
 						<div className='flex justify-between items-center py-1.5'>
 							<span className='text-xs text-gray-500'>{t('invoices.details.lineItemsTable.amountPaid')}</span>
-							<span className='text-sm text-gray-900 font-medium'>{formatAmount(Number(amount_paid ?? 0), currency ?? '')}</span>
+							<span className='text-sm text-gray-900 font-medium'>{formatLineItemAmount(Number(amount_paid ?? 0), currency ?? '')}</span>
 						</div>
 
 						{/* Overpaid amount - only show when the customer paid more than net payable */}
 						{overpaid_amount !== undefined && overpaid_amount !== null && Number(overpaid_amount) > 0 && (
 							<div className='flex justify-between items-center py-1.5'>
 								<span className='text-xs text-gray-500'>{t('invoices.details.lineItemsTable.overpaid')}</span>
-								<span className='text-sm text-gray-900 font-medium'>{formatAmount(Number(overpaid_amount), currency ?? '')}</span>
+								<span className='text-sm text-gray-900 font-medium'>{formatLineItemAmount(Number(overpaid_amount), currency ?? '')}</span>
 							</div>
 						)}
 
@@ -203,7 +209,7 @@ const InvoiceLineItemTable: FC<Props> = ({
 							<div className='flex justify-between items-center pt-3 mt-2 border-t border-gray-100'>
 								<span className='text-sm text-gray-900 font-semibold'>{t('invoices.details.lineItemsTable.remainingBalance')}</span>
 								<span className='text-base text-gray-900 font-semibold'>
-									{formatAmount(Number(amount_remaining ?? amount_due ?? 0), currency ?? '')}
+									{formatLineItemAmount(Number(amount_remaining ?? amount_due ?? 0), currency ?? '')}
 								</span>
 							</div>
 						)}

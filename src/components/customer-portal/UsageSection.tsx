@@ -1,7 +1,7 @@
 import { Card, Progress } from '@/components/atoms';
 import { CustomerUsage } from '@/models';
 import { FEATURE_TYPE } from '@/models/Feature';
-import { formatAmount } from '@/components/atoms/Input/Input';
+import { formatLocalizedNumber } from '@/utils/common/helper_functions';
 import { useTranslation } from 'react-i18next';
 
 interface UsageSectionProps {
@@ -48,8 +48,8 @@ const UsageSection = ({ usageData, isLoading }: UsageSectionProps) => {
 							<div className='flex items-center justify-between'>
 								<span className='text-sm text-zinc-700'>{item.feature?.name || t('usage.unknownFeature')}</span>
 								<span className='text-sm text-zinc-500'>
-									{formatAmount(usage.toString())}
-									{limit ? ` / ${formatAmount(limit.toString())}` : ` / ${t('usage.unlimited')}`}
+									{formatLocalizedNumber(usage.toString())}
+									{limit ? ` / ${formatLocalizedNumber(limit.toString())}` : ` / ${t('usage.unlimited')}`}
 								</span>
 							</div>
 							<Progress

@@ -3,7 +3,7 @@ import { FC, useState, useCallback } from 'react';
 import { useMutation } from '@tanstack/react-query';
 import WalletApi from '@/api/WalletApi';
 import toast from 'react-hot-toast';
-import { getCurrencySymbol } from '@/utils';
+import { formatLocalizedCurrency, resolveCurrencyCode } from '@/utils/common/helper_functions';
 import { refetchQueries } from '@/core/services/tanstack/ReactQueryProvider';
 import { WALLET_TRANSACTION_REASON } from '@/models';
 import { v4 as uuidv4 } from 'uuid';
@@ -96,7 +96,7 @@ const DebitCard: FC<DebitCardProps> = ({ walletId, currency, conversion_rate = 1
 	const getDescriptionText = (): string => {
 		if (debitPayload.credits && debitPayload.credits > 0) {
 			return t('wallet.debit.preview', {
-				amount: `${getCurrencySymbol(currency || '')}${getCurrencyAmountFromCredits(conversion_rate, debitPayload.credits)}`,
+				amount: formatLocalizedCurrency(getCurrencyAmountFromCredits(conversion_rate, debitPayload.credits), resolveCurrencyCode(currency)),
 			});
 		}
 		return '';

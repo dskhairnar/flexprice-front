@@ -59,6 +59,37 @@
 		"completed": "Completed",
 		"running": "Running"
 	},
+	"apiEnums": {
+		"billingPeriodUnit": {
+			"daily": "day",
+			"weekly": "week",
+			"monthly": "month",
+			"quarterly": "quarter",
+			"halfYearly": "half year",
+			"annual": "year",
+			"onetime": "one-time"
+		},
+		"subscriptionType": {
+			"standalone": "Standalone",
+			"delegatedInvoicing": "Delegated invoicing",
+			"parent": "Parent",
+			"inherited": "Inherited",
+			"groupedInvoicing": "Grouped invoicing"
+		},
+		"tierMode": {
+			"volume": "Volume",
+			"slab": "Slab"
+		},
+		"rbacRole": {
+			"superAdmin": "Super admin",
+			"admin": "Admin",
+			"member": "Member",
+			"viewer": "Viewer",
+			"owner": "Owner",
+			"editor": "Editor",
+			"readOnly": "Read only"
+		}
+	},
 	"validation": {
 		"required": "This field is required",
 		"email": "Please enter a valid email address",
@@ -267,7 +298,15 @@
 	},
 	"breadcrumb": {
 		"navAriaLabel": "breadcrumb",
-		"moreSrOnly": "More"
+		"moreSrOnly": "More",
+		"loading": "…",
+		"segments": {
+			"createFeature": "Create Feature",
+			"addCharges": "Add Charges",
+			"checkout": "Checkout",
+			"onboarding": "Onboarding",
+			"pricingSetup": "Pricing Setup"
+		}
 	},
 	"sidebar": {
 		"toggleSidebarAccessibilityLabel": "Toggle Sidebar",
@@ -340,12 +379,77 @@
 		"providerEntityId": "Provider Entity ID",
 		"enterProviderEntityId": "Enter provider entity ID",
 		"integration": "Integration",
-		"actions": "Integration actions"
+		"actions": "Integration actions",
+		"syncPush": "Push to Integration",
+		"syncPull": "Pull from Integration"
+	},
+	"tableColumns": {
+		"name": "Name",
+		"displayName": "Display Name",
+		"status": "Status",
+		"createdAt": "Created At",
+		"updatedAt": "Updated At",
+		"created": "Created",
+		"priority": "Priority",
+		"currency": "Currency",
+		"type": "Type",
+		"cadence": "Cadence",
+		"period": "Period",
+		"expiration": "Expiration",
+		"expirationConfig": "Expiration Config",
+		"credits": "Credits",
+		"taxId": "Tax ID",
+		"taxRate": "Tax Rate",
+		"autoApply": "Auto Apply",
+		"chargeType": "Charge Type",
+		"billingTiming": "Billing Timing",
+		"billingPeriod": "Billing Period",
+		"value": "Value",
+		"featureName": "Feature Name",
+		"featureType": "Feature Type",
+		"priceType": "Price Type",
+		"quantity": "Quantity",
+		"phase": "Phase",
+		"source": "Source",
+		"charge": "Charge",
+		"coupon": "Coupon",
+		"refId": "Ref ID",
+		"invoiceId": "Invoice ID",
+		"date": "Date",
+		"paymentMethod": "Payment Method",
+		"amount": "Amount",
+		"taxName": "Tax Name",
+		"code": "Code",
+		"rate": "Rate",
+		"taxableAmount": "Taxable Amount",
+		"taxAmount": "Tax Amount",
+		"appliedAt": "Applied At",
+		"integration": "Integration",
+		"charges": "Charges",
+		"usageReset": "Usage Reset",
+		"noPaymentsFound": "No payments found"
+	},
+	"tableMenu": {
+		"groups": {
+			"actions": "Actions",
+			"connections": "Connections"
+		},
+		"terminate": "Terminate",
+		"terminatePrice": "Terminate Price",
+		"copyPriceId": "Copy Price ID",
+		"updatePrice": "Update Price",
+		"editDetails": "Edit Details",
+		"viewInvoice": "View Invoice",
+		"copyLink": "Copy Link",
+		"priceIdCopied": "Price ID copied to clipboard",
+		"paymentLinkCopied": "Payment link copied to clipboard",
+		"paymentLinkCopyFailed": "Failed to copy payment link. Please try again."
 	},
 	"labels": {
 		"payload": "Payload",
 		"sort": "Sort",
 		"na": "--",
+		"notSet": "Not set",
 		"notApplicable": "N/A",
 		"unknown": "Unknown",
 		"creditGrants": "Credit Grants",
@@ -715,5 +819,9 @@
 		"integrations": "Integrations",
 		"pricingWidget": "Pricing Widget",
 		"settings": "Settings"
+	},
+	"fundingStrip": {
+		"announcement": "Flexprice Raises $1.5M SEED Round",
+		"knowMore": "KNOW MORE"
 	}
 }

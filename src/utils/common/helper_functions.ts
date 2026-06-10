@@ -5,6 +5,8 @@ import { getAllISOCodes } from 'iso-country-currency';
 import { v4 as uuidv4 } from 'uuid';
 import toast from 'react-hot-toast';
 
+export { formatLocalizedCurrency, formatLocalizedNumber, resolveCurrencyCode } from '@/i18n/display/formatNumber';
+
 export function getCurrencySymbol(currency: string): string {
 	return getCurrencyDisplaySymbol(currency);
 }
@@ -19,81 +21,23 @@ export function getCurrencyName(currency: string): string {
 	}
 }
 
-export const formatBillingModel = (billingModel: string) => {
-	switch (billingModel.toUpperCase()) {
-		case BILLING_MODEL.FLAT_FEE:
-			return 'Flat Fee';
-		case BILLING_MODEL.PACKAGE:
-			return 'Package';
-		case BILLING_MODEL.TIERED:
-			return 'Tiered';
-		default:
-			return '--';
-	}
-};
+export const formatBillingModel = (billingModel: string, t: TFunction) =>
+	translateApiEnum(t, ApiEnum.billingModel, billingModel, { fallback: '--' });
 
-/**
- * Formats billing period for price display (e.g., "50rs/month", "100rs/day")
- * @param billingPeriod - The billing period to format
- * @returns The billing period in short form (day, month, year, etc.)
- */
-export const formatBillingPeriodForPrice = (billingPeriod: string) => {
-	switch (billingPeriod.toUpperCase()) {
-		case BILLING_PERIOD.DAILY:
-			return 'day';
-		case BILLING_PERIOD.WEEKLY:
-			return 'week';
-		case BILLING_PERIOD.MONTHLY:
-			return 'month';
-		case BILLING_PERIOD.ANNUAL:
-			return 'year';
-		case BILLING_PERIOD.QUARTERLY:
-			return 'quarter';
-		case BILLING_PERIOD.HALF_YEARLY:
-			return 'half year';
-		case BILLING_PERIOD.ONETIME:
-			return 'one-time';
-		default:
-			return '--';
-	}
-};
+/** Short unit for price suffixes (e.g. "/ month"). */
+export const formatBillingPeriodForPrice = (billingPeriod: string, t: TFunction) =>
+	translateApiEnum(t, ApiEnum.billingPeriodUnit, billingPeriod, { fallback: '--' });
 
-/**
- * Formats billing period for sentence display (e.g., "You will be billed monthly")
- * @param billingPeriod - The billing period to format
- * @returns The billing period in adjective form (monthly, annually, etc.)
- */
-export const formatBillingPeriodForDisplay = (billingPeriod: string) => {
-	switch (billingPeriod.toUpperCase()) {
-		case BILLING_PERIOD.DAILY:
-			return 'Daily';
-		case BILLING_PERIOD.WEEKLY:
-			return 'Weekly';
-		case BILLING_PERIOD.MONTHLY:
-			return 'Monthly';
-		case BILLING_PERIOD.ANNUAL:
-			return 'Annually';
-		case BILLING_PERIOD.QUARTERLY:
-			return 'Quarterly';
-		case BILLING_PERIOD.HALF_YEARLY:
-			return 'Half Yearly';
-		case BILLING_PERIOD.ONETIME:
-			return 'One-time';
-		default:
-			return '--';
-	}
-};
+/** Adjective form for tables (e.g. "Monthly"). Reuses billing list page keys. */
+export const formatBillingPeriodForDisplay = (billingPeriod: string, t: TFunction) =>
+	translateApiEnum(t, ApiEnum.billingPeriod, billingPeriod, { fallback: '--' });
 
-export const getPriceTypeLabel = (type: string | PRICE_TYPE | undefined): string => {
+export const formatInvoiceCadence = (cadence: string, t: TFunction) =>
+	translateApiEnum(t, ApiEnum.invoiceCadence, cadence, { fallback: '--' });
+
+export const getPriceTypeLabel = (type: string | PRICE_TYPE | undefined, t: TFunction): string => {
 	if (type == null || type === '') return '--';
-	switch (String(type).toUpperCase()) {
-		case PRICE_TYPE.FIXED:
-			return 'Fixed charge';
-		case PRICE_TYPE.USAGE:
-			return 'Usage Based';
-		default:
-			return '--';
-	}
+	return translateApiEnum(t, ApiEnum.priceType, String(type), { fallback: '--' });
 };
 
 export const toSentenceCase = (str: string): string => {
@@ -131,7 +75,7 @@ export const getTotalPayableText = (fixedCharges: Price[], usageCharges: Price[]
 	let text = '';
 
 	if (fixedCharges.length > 0) {
-		text += `${getCurrencySymbol(fixedCharges[0].currency)}${recurringTotal}`;
+		text += formatLocalizedCurrency(recurringTotal, fixedCharges[0].currency);
 	}
 
 	if (usageCharges.length > 0) {
@@ -150,7 +94,7 @@ export const getTotalPayableInfo = (fixedCharges: Price[], usageCharges: Price[]
 	let text = '';
 
 	if (fixedCharges.length > 0) {
-		text += `${getCurrencySymbol(fixedCharges[0].currency)}${recurringTotal}`;
+		text += formatLocalizedCurrency(recurringTotal, fixedCharges[0].currency);
 	}
 
 	if (usageCharges.length > 0) {
@@ -165,9 +109,16 @@ export const getTotalPayableInfo = (fixedCharges: Price[], usageCharges: Price[]
 };
 
 export const formatDateShort = (dateString: string): string => {
+	if (!dateString) return '';
 	const date = new Date(dateString);
-	const options: Intl.DateTimeFormatOptions = { month: 'short', day: 'numeric', year: 'numeric' };
-	return date.toLocaleDateString('en-US', options);
+	if (isNaN(date.getTime())) return '';
+	const options: Intl.DateTimeFormatOptions = {
+		...getIntlDigitOptions(),
+		month: 'long',
+		day: 'numeric',
+		year: 'numeric',
+	};
+	return date.toLocaleDateString(getIntlLocale(), options);
 };
 
 /**
@@ -224,11 +175,11 @@ export const getTotalPayableTextWithCoupons = (
 		const totalDiscount = calculateTotalCouponDiscount(coupons, recurringTotal);
 		const finalAmount = Math.max(0, recurringTotal - totalDiscount);
 
-		text += `${getCurrencySymbol(currency)}${finalAmount.toFixed(2)}`;
+		text += formatLocalizedCurrency(finalAmount, currency);
 
 		// Show discount information if there are coupons
 		if (coupons.length > 0 && totalDiscount > 0) {
-			text += ` (${getCurrencySymbol(currency)}${recurringTotal.toFixed(2)} - ${getCurrencySymbol(currency)}${totalDiscount.toFixed(2)} discount)`;
+			text += ` (${formatLocalizedCurrency(recurringTotal, currency)} - ${formatLocalizedCurrency(totalDiscount, currency)} discount)`;
 		}
 	}
 
@@ -253,7 +204,7 @@ export const getTotalPayableTextWithCoupons = (
 export const getCouponBreakdownText = (
 	coupons: { type: string; amount_off?: string; percentage_off?: string; name?: string }[],
 	originalAmount: number,
-	currency: string = 'USD',
+	currency: string = DEFAULT_CURRENCY_CODE,
 ) => {
 	if (coupons.length === 0) return '';
 
@@ -263,7 +214,7 @@ export const getCouponBreakdownText = (
 		const discount = calculateCouponDiscount(coupon, originalAmount);
 		if (discount > 0) {
 			if (index > 0) breakdown += ', ';
-			breakdown += `${coupon.name || 'Coupon'}: -${getCurrencySymbol(currency)}${discount.toFixed(2)}`;
+			breakdown += `${coupon.name || 'Coupon'}: -${formatLocalizedCurrency(discount, currency)}`;
 		}
 	});
 

@@ -25,6 +25,7 @@ import {
 	SUBSCRIPTION_PRORATION_BEHAVIOR,
 	SUBSCRIPTION_STATUS,
 	PRICE_TYPE,
+	ENTITY_STATUS,
 } from '@/models';
 import { InternalCreditGrantRequest, creditGrantToInternal, internalToCreateRequest } from '@/types/dto/CreditGrant';
 import { BILLING_PERIOD, PAYMENT_TERMS_NONE, SANDBOX_AUTO_CANCELLATION_DAYS } from '@/constants/constants';
@@ -43,6 +44,7 @@ import type { AddedSubscriptionLineItem } from '@/components/organisms/Subscript
 
 import { cn } from '@/lib/utils';
 import { toSentenceCase } from '@/utils/common/helper_functions';
+import { getIntlLocale } from '@/i18n/display/intlLocale';
 import { ExtendedPriceOverride, getLineItemOverrides } from '@/utils/common/price_override_helpers';
 import { extractLineItemCommitments } from '@/utils/common/commitment_helpers';
 import { extractSubscriptionBoundaries, extractFirstPhaseData } from '@/utils/subscription/phaseConversion';
@@ -246,14 +248,16 @@ const CreateCustomerSubscriptionPage: React.FC = () => {
 		if (customerTaxAssociations?.items) {
 			setSubscriptionState((prev) => ({
 				...prev,
-				tax_rate_overrides: customerTaxAssociations.items.map((item) => ({
-					tax_rate_id: item.tax_rate_id,
-					tax_rate_code: item.tax_rate?.code ?? '',
-					currency: item.currency.toLowerCase(),
-					auto_apply: item.auto_apply,
-					priority: item.priority,
-					tax_rate_name: item.tax_rate?.name ?? '',
-				})),
+				tax_rate_overrides: customerTaxAssociations.items
+					.filter((item) => item.tax_rate?.status === ENTITY_STATUS.PUBLISHED)
+					.map((item) => ({
+						tax_rate_id: item.tax_rate_id,
+						tax_rate_code: item.tax_rate?.code ?? '',
+						currency: item.currency.toLowerCase(),
+						auto_apply: item.auto_apply,
+						priority: item.priority,
+						tax_rate_name: item.tax_rate?.name ?? '',
+					})),
 			}));
 		}
 	}, [customerTaxAssociations]);
@@ -581,7 +585,7 @@ const CreateCustomerSubscriptionPage: React.FC = () => {
 			// Note: getLineItemOverrides automatically excludes quantity for USAGE type prices
 			finalOverrideLineItems = getLineItemOverrides(currentPrices, priceOverrides);
 
-			// Extract line item commitments from price overrides
+			// Extract line item commitments from price overrides (time buckets are folded in)
 			const commitments = extractLineItemCommitments(priceOverrides);
 			finalLineItemCommitments = Object.keys(commitments).length > 0 ? commitments : undefined;
 
@@ -743,10 +747,11 @@ const CreateCustomerSubscriptionPage: React.FC = () => {
 				: SUBSCRIPTION_PRORATION_BEHAVIOR.NONE,
 			payment_terms:
 				sanitized.paymentTerms && sanitized.paymentTerms !== PAYMENT_TERMS_NONE ? (sanitized.paymentTerms as PAYMENT_TERMS) : undefined,
-			line_items:
-				!sanitized.sanitizedPhases && sanitized.addedSubscriptionLineItems && sanitized.addedSubscriptionLineItems.length > 0
-					? sanitized.addedSubscriptionLineItems.map(({ tempId: _tempId, ...req }) => req)
-					: undefined,
+			line_items: (() => {
+				if (sanitized.sanitizedPhases) return undefined;
+				const addedItems = sanitized.addedSubscriptionLineItems?.map(({ tempId: _tempId, ...req }) => req) ?? [];
+				return addedItems.length > 0 ? addedItems : undefined;
+			})(),
 			inheritance: Object.keys(inheritancePayload).length > 0 ? inheritancePayload : undefined,
 			...(sanitized.trial_period_days !== undefined ? { trial_period_days: sanitized.trial_period_days } : {}),
 			...(sanitized.auto_invoice_threshold !== undefined ? { auto_invoice_threshold: sanitized.auto_invoice_threshold } : {}),
@@ -804,7 +809,7 @@ const CreateCustomerSubscriptionPage: React.FC = () => {
 							{t('subscriptionCreate.sandboxNotice', {
 								date: new Date(
 									new Date(subscriptionState.startDate).getTime() + SANDBOX_AUTO_CANCELLATION_DAYS * 24 * 60 * 60 * 1000,
-								).toLocaleDateString('en-US', SANDBOX_END_DATE_FORMAT),
+								).toLocaleDateString(getIntlLocale(), SANDBOX_END_DATE_FORMAT),
 								days: SANDBOX_AUTO_CANCELLATION_DAYS,
 							})}
 						</span>

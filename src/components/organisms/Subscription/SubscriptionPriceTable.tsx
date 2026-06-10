@@ -14,12 +14,13 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import OptionsDropdownMenu from '@/components/molecules/DropdownMenu';
 import { ExtendedPriceOverride } from '@/utils';
 import { LineItemCommitmentConfig } from '@/types/dto/LineItemCommitmentConfig';
+import type { CommitmentTimeBucket } from '@/types/dto/CommitmentTimeBucket';
 import type { AddedSubscriptionLineItem } from './AddSubscriptionChargeDialog';
-import { getCurrencySymbol } from '@/utils/common/helper_functions';
 import { formatBillingPeriodForPrice } from '@/utils/common/helper_functions';
-import { formatAmount } from '@/components/atoms/Input/Input';
+import { formatLocalizedCurrency, formatLocalizedNumber } from '@/utils/common/helper_functions';
 import { BILLING_PERIOD } from '@/constants/constants';
 import { isOneTimePlanPrice } from '@/utils/subscription/planPricesForSubscriptionUi';
+import type { TFunction } from 'i18next';
 import { useTranslation } from 'react-i18next';
 
 const DEFAULT_ROW_LIMIT = 5;
@@ -190,7 +191,7 @@ export interface Props {
 	overriddenPrices?: Record<string, ExtendedPriceOverride>;
 	lineItemCoupons?: Record<string, Coupon>;
 	onLineItemCouponsChange?: (priceId: string, coupon: Coupon | null) => void;
-	onCommitmentChange?: (priceId: string, config: LineItemCommitmentConfig | null) => void;
+	onCommitmentChange?: (priceId: string, config: LineItemCommitmentConfig | null, timeBuckets?: CommitmentTimeBucket[]) => void;
 	disabled?: boolean;
 	subscriptionLevelCoupon?: Coupon | null;
 	/** Subscription-level added line items (entity type SUBSCRIPTION). Shown with delete-only actions. */
@@ -203,17 +204,17 @@ export interface Props {
 	onEditAddedCharge?: (item: AddedSubscriptionLineItem) => void;
 }
 
-function formatAddedLineItemPrice(item: AddedSubscriptionLineItem, fallbackCurrency?: string): string {
+function formatAddedLineItemPrice(item: AddedSubscriptionLineItem, t: TFunction, fallbackCurrency?: string): string {
 	const p = item.price;
 	if (!p) return '--';
 	const currency =
 		p.price_unit_type === PRICE_UNIT_TYPE.CUSTOM
 			? p.price_unit_config?.price_unit
 			: ((p as { currency?: string }).currency ?? fallbackCurrency);
-	const symbol = currency ? getCurrencySymbol(currency) : '';
 	const amount = p.amount ?? p.price_unit_config?.amount ?? '0';
-	const period = p.billing_period ? formatBillingPeriodForPrice(p.billing_period) : '';
-	return `${symbol}${formatAmount(amount)}${period ? ` / ${period}` : ''}`;
+	const period = p.billing_period ? formatBillingPeriodForPrice(p.billing_period, t) : '';
+	const formatted = currency ? formatLocalizedCurrency(amount, currency) : formatLocalizedNumber(amount, { maximumFractionDigits: 6 });
+	return `${formatted}${period ? ` / ${period}` : ''}`;
 }
 
 const SubscriptionPriceTable: FC<Props> = ({
@@ -362,7 +363,7 @@ const SubscriptionPriceTable: FC<Props> = ({
 				</div>
 			),
 			quantity: <span>{item.quantity ?? 1}</span>,
-			price: <span>{formatAddedLineItemPrice(item, currency)}</span>,
+			price: <span>{formatAddedLineItemPrice(item, t, currency)}</span>,
 			invoice_cadence: item.price?.invoice_cadence ?? '--',
 			actions:
 				onRemoveAddedCharge || onEditAddedCharge ? (
@@ -454,8 +455,9 @@ const SubscriptionPriceTable: FC<Props> = ({
 					isOpen={isCommitmentDialogOpen}
 					onOpenChange={setIsCommitmentDialogOpen}
 					price={selectedCommitmentPrice}
-					onSave={(priceId, config) => onCommitmentChange?.(priceId, config)}
+					onSave={(priceId, config, timeBuckets) => onCommitmentChange?.(priceId, config, timeBuckets)}
 					currentConfig={overriddenPrices[selectedCommitmentPrice.id]?.commitment}
+					currentTimeBuckets={overriddenPrices[selectedCommitmentPrice.id]?.commitment_time_buckets}
 					billingPeriod={billingPeriod}
 				/>
 			)}

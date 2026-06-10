@@ -27,7 +27,7 @@ import {
 import type { TypedBackendFilter } from '@/types/formatters/QueryBuilder';
 import { BILLING_CADENCE } from '@/models/Invoice';
 import { BILLING_PERIOD } from '@/constants/constants';
-import { toSentenceCase } from '@/utils/common/helper_functions';
+import { formatBillingPeriodForDisplay } from '@/utils/common/helper_functions';
 import { searchPlansForFilter } from '@/utils/filterSearchHelpers';
 import { PlanApi } from '@/api';
 import { useTranslation } from 'react-i18next';
@@ -35,63 +35,6 @@ import { useTranslation } from 'react-i18next';
 type ContextType = {
 	isArchived: boolean;
 };
-
-// Filter options for customer subscriptions (no customer_id - scoped by route)
-const subscriptionFilterOptions: FilterField[] = [
-	{
-		field: 'plan_id',
-		label: 'Plan',
-		fieldType: FilterFieldType.ASYNC_MULTI_SELECT,
-		operators: [FilterOperator.IN, FilterOperator.NOT_IN],
-		dataType: DataType.ARRAY,
-		asyncConfig: {
-			searchFn: searchPlansForFilter,
-		},
-	},
-	{
-		field: 'subscription_status',
-		label: 'Status',
-		fieldType: FilterFieldType.MULTI_SELECT,
-		operators: [FilterOperator.IN, FilterOperator.NOT_IN],
-		dataType: DataType.ARRAY,
-		options: [
-			{ value: SUBSCRIPTION_STATUS.ACTIVE, label: 'Active' },
-			{ value: SUBSCRIPTION_STATUS.CANCELLED, label: 'Cancelled' },
-			{ value: SUBSCRIPTION_STATUS.INCOMPLETE, label: 'Incomplete' },
-			{ value: SUBSCRIPTION_STATUS.TRIALING, label: 'Trialing' },
-			{ value: SUBSCRIPTION_STATUS.DRAFT, label: 'Draft' },
-		],
-	},
-	{
-		field: 'billing_cadence',
-		label: 'Billing Cadence',
-		fieldType: FilterFieldType.MULTI_SELECT,
-		operators: [FilterOperator.IN],
-		dataType: DataType.ARRAY,
-		options: Object.values(BILLING_CADENCE).map((cadence) => ({
-			value: cadence,
-			label: cadence.charAt(0).toUpperCase() + cadence.slice(1).toLowerCase(),
-		})),
-	},
-	{
-		field: 'billing_period',
-		label: 'Billing Period',
-		fieldType: FilterFieldType.MULTI_SELECT,
-		operators: [FilterOperator.IN],
-		dataType: DataType.ARRAY,
-		options: Object.values(BILLING_PERIOD).map((period) => ({
-			value: period,
-			label: toSentenceCase(period.replace('_', ' ')),
-		})),
-	},
-];
-
-const subscriptionSortOptions: SortOption[] = [
-	{ field: 'created_at', label: 'Created At', direction: SortDirection.DESC },
-	{ field: 'updated_at', label: 'Updated At', direction: SortDirection.DESC },
-	{ field: 'start_date', label: 'Start Date', direction: SortDirection.DESC },
-	{ field: 'end_date', label: 'End Date', direction: SortDirection.DESC },
-];
 
 const initialSubscriptionFilters: FilterCondition[] = [
 	{
@@ -103,10 +46,8 @@ const initialSubscriptionFilters: FilterCondition[] = [
 	},
 ];
 
-const initialSubscriptionSorts: SortOption[] = [{ field: 'updated_at', label: 'Updated At', direction: SortDirection.DESC }];
-
 const CustomerOverviewTab = () => {
-	const { t } = useTranslation('customers');
+	const { t } = useTranslation(['customers', 'billing', 'common']);
 	const navigate = useNavigate();
 	const { id: customerId } = useParams();
 	const { isArchived } = useOutletContext<ContextType>();
@@ -114,6 +55,73 @@ const CustomerOverviewTab = () => {
 	const handleAddSubscription = () => {
 		navigate(`${RouteNames.customers}/${customerId}/add-subscription`);
 	};
+
+	const subscriptionFilterOptions: FilterField[] = useMemo(
+		() => [
+			{
+				field: 'plan_id',
+				label: t('tabPanels.overview.subscriptionFilters.plan'),
+				fieldType: FilterFieldType.ASYNC_MULTI_SELECT,
+				operators: [FilterOperator.IN, FilterOperator.NOT_IN],
+				dataType: DataType.ARRAY,
+				asyncConfig: {
+					searchFn: searchPlansForFilter,
+				},
+			},
+			{
+				field: 'subscription_status',
+				label: t('tabPanels.overview.subscriptionFilters.status'),
+				fieldType: FilterFieldType.MULTI_SELECT,
+				operators: [FilterOperator.IN, FilterOperator.NOT_IN],
+				dataType: DataType.ARRAY,
+				options: [
+					{ value: SUBSCRIPTION_STATUS.ACTIVE, label: t('common:status.active') },
+					{ value: SUBSCRIPTION_STATUS.CANCELLED, label: t('common:status.cancelled') },
+					{ value: SUBSCRIPTION_STATUS.INCOMPLETE, label: t('common:status.incomplete') },
+					{ value: SUBSCRIPTION_STATUS.TRIALING, label: t('common:status.trialing') },
+					{ value: SUBSCRIPTION_STATUS.DRAFT, label: t('common:status.draft') },
+				],
+			},
+			{
+				field: 'billing_cadence',
+				label: t('tabPanels.overview.subscriptionFilters.billingCadence'),
+				fieldType: FilterFieldType.MULTI_SELECT,
+				operators: [FilterOperator.IN],
+				dataType: DataType.ARRAY,
+				options: Object.values(BILLING_CADENCE).map((cadence) => ({
+					value: cadence,
+					label: t(`billing:subscriptions.listPage.billingCadence.${cadence.toLowerCase()}`),
+				})),
+			},
+			{
+				field: 'billing_period',
+				label: t('tabPanels.overview.subscriptionFilters.billingPeriod'),
+				fieldType: FilterFieldType.MULTI_SELECT,
+				operators: [FilterOperator.IN],
+				dataType: DataType.ARRAY,
+				options: Object.values(BILLING_PERIOD).map((period) => ({
+					value: period,
+					label: formatBillingPeriodForDisplay(period, t),
+				})),
+			},
+		],
+		[t],
+	);
+
+	const subscriptionSortOptions: SortOption[] = useMemo(
+		() => [
+			{ field: 'created_at', label: t('tabPanels.overview.subscriptionSorts.createdAt'), direction: SortDirection.DESC },
+			{ field: 'updated_at', label: t('tabPanels.overview.subscriptionSorts.updatedAt'), direction: SortDirection.DESC },
+			{ field: 'start_date', label: t('tabPanels.overview.subscriptionSorts.startDate'), direction: SortDirection.DESC },
+			{ field: 'end_date', label: t('tabPanels.overview.subscriptionSorts.endDate'), direction: SortDirection.DESC },
+		],
+		[t],
+	);
+
+	const initialSubscriptionSorts: SortOption[] = useMemo(
+		() => [{ field: 'updated_at', label: t('tabPanels.overview.subscriptionSorts.updatedAt'), direction: SortDirection.DESC }],
+		[t],
+	);
 
 	const { filters, sorts, setFilters, setSorts, sanitizedFilters, sanitizedSorts } = useFilterSortingWithPersistence({
 		initialFilters: initialSubscriptionFilters,

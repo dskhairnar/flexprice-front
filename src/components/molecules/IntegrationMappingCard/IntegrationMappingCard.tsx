@@ -43,6 +43,7 @@ interface IntegrationRow {
 	provider_type: string;
 	mapping: IntegrationMappingItem | null;
 	syncOutboundEnabled: boolean;
+	syncInboundEnabled: boolean;
 }
 
 interface IntegrationMappingCardProps {
@@ -87,14 +88,16 @@ const IntegrationMappingCard: FC<IntegrationMappingCardProps> = ({
 			provider_type: cfg.provider,
 			mapping: mappingByProvider.get(cfg.provider) ?? null,
 			syncOutboundEnabled: !!cfg.current_config?.[entityType]?.outbound,
+			syncInboundEnabled: !!cfg.current_config?.[entityType]?.inbound,
 		}));
 	}, [integrationConfigData?.integrations, integrationMappingsData?.items, entityType]);
 
 	const { mutate: syncIntegration, isPending: isSyncing } = useMutation({
-		mutationFn: () =>
+		mutationFn: (method: 'push' | 'pull') =>
 			IntegrationMappingApi.syncIntegration({
 				entity_type: entityType,
 				entity_id: entityId,
+				method,
 			}),
 		onSuccess: () => {
 			toast.success('Integration sync triggered successfully');
@@ -131,10 +134,13 @@ const IntegrationMappingCard: FC<IntegrationMappingCardProps> = ({
 		setDropdownOpen(null);
 	}, []);
 
-	const handleSyncClick = useCallback(() => {
-		setDropdownOpen(null);
-		syncIntegration();
-	}, [syncIntegration]);
+	const handleSyncClick = useCallback(
+		(method: 'push' | 'pull') => {
+			setDropdownOpen(null);
+			syncIntegration(method);
+		},
+		[syncIntegration],
+	);
 
 	const handleLinkSubmit = () => {
 		if (!linkTarget) {
@@ -152,7 +158,7 @@ const IntegrationMappingCard: FC<IntegrationMappingCardProps> = ({
 	const integrationColumns: ColumnData<IntegrationRow>[] = useMemo(
 		() => [
 			{
-				title: 'Integration',
+				title: t('tableColumns.integration'),
 				render: (row: IntegrationRow) => {
 					const logo = getProviderLogo(row.provider_type);
 					return (
@@ -168,13 +174,13 @@ const IntegrationMappingCard: FC<IntegrationMappingCardProps> = ({
 				render: (row: IntegrationRow) => <span className='text-muted-foreground'>{row.mapping?.provider_entity_id || '—'}</span>,
 			},
 			{
-				title: 'Created At',
+				title: t('tableColumns.createdAt'),
 				render: (row: IntegrationRow) => (
 					<span className='text-muted-foreground'>{row.mapping?.created_at ? formatDate(row.mapping.created_at) : '—'}</span>
 				),
 			},
 			{
-				title: 'Updated At',
+				title: t('tableColumns.updatedAt'),
 				render: (row: IntegrationRow) => (
 					<span className='text-muted-foreground'>{row.mapping?.updated_at ? formatDate(row.mapping.updated_at) : '—'}</span>
 				),
@@ -229,11 +235,22 @@ const IntegrationMappingCard: FC<IntegrationMappingCardProps> = ({
 										disabled={isMappingsPending || isSyncing || !row.syncOutboundEnabled || isActionDisabled}
 										onSelect={(e) => {
 											e.preventDefault();
-											handleSyncClick();
+											handleSyncClick('push');
 										}}
 										className='cursor-pointer'>
-										{t('actions.sync')}
+										{t('integrations.syncPush')}
 									</DropdownMenuItem>
+									{entityType === 'invoice' && (
+										<DropdownMenuItem
+											disabled={isMappingsPending || isSyncing || !row.syncInboundEnabled || isActionDisabled}
+											onSelect={(e) => {
+												e.preventDefault();
+												handleSyncClick('pull');
+											}}
+											className='cursor-pointer'>
+											{t('integrations.syncPull')}
+										</DropdownMenuItem>
+									)}
 								</DropdownMenuContent>
 							</DropdownMenu>
 						</div>

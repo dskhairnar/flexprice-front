@@ -8,7 +8,7 @@ import { Skeleton } from '@/components/ui';
 import { RouteNames } from '@/core/routes/Routes';
 import { useBreadcrumbsStore } from '@/store/useBreadcrumbsStore';
 import { CustomerApi, SubscriptionApi, TaxApi } from '@/api';
-import { formatDateShort, getCurrencySymbol } from '@/utils/common/helper_functions';
+import { formatDateShort, formatLocalizedCurrency, formatLocalizedNumber, resolveCurrencyCode } from '@/utils/common/helper_functions';
 import { useQuery } from '@tanstack/react-query';
 import { FC, useEffect, useMemo, useState } from 'react';
 import type { TFunction } from 'i18next';
@@ -27,6 +27,7 @@ import formatDate from '@/utils/common/format_date';
 import { BILLING_PERIOD } from '@/constants/constants';
 import { ExternalLink } from 'lucide-react';
 import { formatSubscriptionTypeDisplayLabel } from '@/utils/subscription/formatSubscriptionTypeDisplay';
+import { getIntlLocale } from '@/i18n/display/intlLocale';
 
 const DATE_NO_YEAR_FORMAT: Intl.DateTimeFormatOptions = { month: 'short', day: 'numeric' };
 
@@ -209,7 +210,7 @@ const CustomerSubscriptionDetailsPage: FC = () => {
 					const chip = getSubscriptionTypeChipProps(row.subscription_type);
 					return (
 						<Chip
-							label={formatSubscriptionTypeDisplayLabel(row.subscription_type)}
+							label={formatSubscriptionTypeDisplayLabel(row.subscription_type, t)}
 							className='shrink-0'
 							{...('variant' in chip
 								? { variant: chip.variant }
@@ -309,7 +310,7 @@ const CustomerSubscriptionDetailsPage: FC = () => {
 	const formatDateNoYear = (dateString: string | Date) => {
 		const d = new Date(dateString);
 		if (isNaN(d.getTime())) return t('usageTable.featureTypes.dash');
-		return d.toLocaleDateString('en-US', DATE_NO_YEAR_FORMAT);
+		return d.toLocaleDateString(getIntlLocale(), DATE_NO_YEAR_FORMAT);
 	};
 
 	return (
@@ -405,8 +406,8 @@ const CustomerSubscriptionDetailsPage: FC = () => {
 				{subscriptionDetails?.commitment_amount && (
 					<div className='w-full flex justify-between items-center'>
 						<p className='text-[#71717A] text-sm'>{t('subscriptionDetail.commitmentLabel')}</p>
-						<p className='text-[#09090B] text-sm'>
-							{getCurrencySymbol(subscriptionDetails?.currency || '')} {subscriptionDetails?.commitment_amount || '0'}/{' '}
+						<p className='text-[#09090B] text-sm tabular-nums'>
+							{formatLocalizedCurrency(subscriptionDetails?.commitment_amount ?? 0, resolveCurrencyCode(subscriptionDetails?.currency))}/
 							{getCommitmentPeriodLabel(subscriptionDetails, t)}
 						</p>
 					</div>
@@ -415,8 +416,8 @@ const CustomerSubscriptionDetailsPage: FC = () => {
 				{subscriptionDetails?.auto_invoice_threshold != null && (
 					<div className='w-full flex justify-between items-center'>
 						<p className='text-[#71717A] text-sm'>{t('subscriptionDetail.autoInvoiceThreshold')}</p>
-						<p className='text-[#09090B] text-sm'>
-							{getCurrencySymbol(subscriptionDetails?.currency || '')} {subscriptionDetails.auto_invoice_threshold}
+						<p className='text-[#09090B] text-sm tabular-nums'>
+							{formatLocalizedCurrency(subscriptionDetails.auto_invoice_threshold, resolveCurrencyCode(subscriptionDetails?.currency))}
 						</p>
 					</div>
 				)}
@@ -425,7 +426,7 @@ const CustomerSubscriptionDetailsPage: FC = () => {
 				{subscriptionDetails?.overage_factor && subscriptionDetails?.overage_factor > 1 && (
 					<div className='w-full flex justify-between items-center'>
 						<p className='text-[#71717A] text-sm'>{t('subscriptionDetail.overageFactor')}</p>
-						<p className='text-[#09090B] text-sm'>{subscriptionDetails?.overage_factor}</p>
+						<p className='text-[#09090B] text-sm tabular-nums'>{formatLocalizedNumber(subscriptionDetails?.overage_factor ?? 0)}</p>
 					</div>
 				)}
 				<Spacer className='!my-4' />
@@ -455,7 +456,7 @@ const CustomerSubscriptionDetailsPage: FC = () => {
 				<Card className='card mt-8'>
 					<FormHeader title={t('subscriptionDetail.taxAssociations')} variant='sub-header' titleClassName='font-semibold' />
 					<div className='mt-4'>
-						<TaxAssociationTable data={subscriptionTaxAssociations.items} />
+						<TaxAssociationTable data={subscriptionTaxAssociations.items} refetchQueryKey='subscriptionTaxAssociations' />
 					</div>
 				</Card>
 			)}

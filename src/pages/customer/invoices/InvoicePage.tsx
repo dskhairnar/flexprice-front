@@ -24,7 +24,7 @@ import { Invoice, INVOICE_STATUS, INVOICE_TYPE } from '@/models/Invoice';
 import { PAYMENT_STATUS } from '@/constants';
 import { useNavigate } from 'react-router';
 import { RouteNames } from '@/core/routes/Routes';
-import { formatDateShort, getCurrencySymbol } from '@/utils/common/helper_functions';
+import { formatDateShort, formatLocalizedCurrency } from '@/utils/common/helper_functions';
 import { useCallback, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { TFunction } from 'i18next';
@@ -304,7 +304,7 @@ const InvoicesPage = () => {
 			},
 			{
 				title: t('invoices.list.columns.amount'),
-				render: (row) => <span>{`${getCurrencySymbol(row.currency)}${row.amount_due}`}</span>,
+				render: (row) => <span>{formatLocalizedCurrency(row.amount_due, row.currency)}</span>,
 			},
 			{
 				title: t('invoices.list.columns.invoiceStatus'),

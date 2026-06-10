@@ -6,7 +6,7 @@ import EditSubscriptionCreditGrantModal from '@/components/molecules/CreditGrant
 import CancelCreditGrantModal from '@/components/molecules/CreditGrant/CancelCreditGrantModal';
 import { formatExpirationPeriod } from '@/utils/common/credit_grant_helpers';
 import { formatBillingPeriodForPrice } from '@/utils/common/helper_functions';
-import { formatAmount } from '@/components/atoms/Input/Input';
+import { formatLocalizedNumber } from '@/utils/common/helper_functions';
 import type { CreditGrant } from '@/models';
 import { useTranslation } from 'react-i18next';
 
@@ -51,30 +51,30 @@ const SubscriptionEditCreditGrantsSection: FC<SubscriptionEditCreditGrantsSectio
 	const columns: ColumnData<CreditGrant>[] = useMemo(
 		() => [
 			{
-				title: 'Name',
+				title: t('tableColumns.name'),
 				render: (row) => <span>{row.name}</span>,
 			},
 			{
-				title: 'Credits',
-				render: (row) => <span>{formatAmount(row.credits.toString())}</span>,
+				title: t('tableColumns.credits'),
+				render: (row) => <span>{formatLocalizedNumber(row.credits)}</span>,
 			},
 			{
-				title: 'Priority',
+				title: t('tableColumns.priority'),
 				render: (row) => <span>{row.priority ?? t('labels.na')}</span>,
 			},
 			{
-				title: 'Cadence',
+				title: t('tableColumns.cadence'),
 				render: (row) => {
 					const cadence = row.cadence.toLowerCase().replace('_', ' ');
 					return cadence.charAt(0).toUpperCase() + cadence.slice(1);
 				},
 			},
 			{
-				title: 'Period',
-				render: (row) => (row.period ? `${row.period_count || 1} ${formatBillingPeriodForPrice(row.period)}` : '--'),
+				title: t('tableColumns.period'),
+				render: (row) => (row.period ? `${row.period_count || 1} ${formatBillingPeriodForPrice(row.period, t)}` : '--'),
 			},
 			{
-				title: 'Expiration Config',
+				title: t('tableColumns.expirationConfig'),
 				render: (row) => <span>{formatExpirationPeriod(row)}</span>,
 			},
 			{
@@ -100,7 +100,7 @@ const SubscriptionEditCreditGrantsSection: FC<SubscriptionEditCreditGrantsSectio
 				),
 			},
 		],
-		[onRequestCancel, readOnly],
+		[onRequestCancel, readOnly, t],
 	);
 
 	return (

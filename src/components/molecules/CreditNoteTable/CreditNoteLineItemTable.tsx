@@ -1,6 +1,6 @@
 import { FormHeader } from '@/components/atoms';
 import { CreditNoteLineItem } from '@/models/CreditNote';
-import { getCurrencySymbol } from '@/utils/common/helper_functions';
+import { formatLocalizedCurrency, formatLocalizedNumber, resolveCurrencyCode } from '@/utils/common/helper_functions';
 import { FC } from 'react';
 import { useTranslation } from 'react-i18next';
 
@@ -14,13 +14,10 @@ interface Props {
 	total_label?: string;
 }
 
-const formatAmount = (amount: number, currency: string): string => {
-	return `${getCurrencySymbol(currency)}${amount}`;
-};
-
 const CreditNoteLineItemTable: FC<Props> = ({ data, total_amount, currency, title, sub_total, tax, total_label }) => {
 	const { t } = useTranslation(['billing', 'common']);
 	const li = 'invoices.details.lineItemsTable';
+	const resolvedCurrency = resolveCurrencyCode(currency);
 
 	if (data.length === 0) {
 		return <div></div>;
@@ -43,7 +40,9 @@ const CreditNoteLineItemTable: FC<Props> = ({ data, total_amount, currency, titl
 								return (
 									<tr key={item.id || index}>
 										<td className='py-3 px-2 text-gray-800'>{item.display_name ?? t('common:labels.na')}</td>
-										<td className='py-3 px-2 text-end text-[#2A9D90]'>{formatAmount(item.amount ?? 0, item.currency)}</td>
+										<td className='py-3 px-2 text-end text-[#2A9D90] tabular-nums'>
+											{formatLocalizedCurrency(item.amount ?? 0, item.currency ?? resolvedCurrency)}
+										</td>
 									</tr>
 								);
 							})}
@@ -56,19 +55,19 @@ const CreditNoteLineItemTable: FC<Props> = ({ data, total_amount, currency, titl
 						{sub_total !== undefined && (
 							<div className='flex justify-between'>
 								<span>{t(`${li}.subtotal`)}</span>
-								<span className='text-[#2A9D90] '>{`${getCurrencySymbol(currency ?? '')}${sub_total}`}</span>
+								<span className='text-[#2A9D90] tabular-nums'>{formatLocalizedCurrency(Number(sub_total), resolvedCurrency)}</span>
 							</div>
 						)}
 						{tax !== undefined && (
 							<div className='flex justify-between'>
 								<span>{t(`${li}.tax`)}</span>
-								<span>{tax != null ? tax : t('common:labels.na')}</span>
+								<span className='tabular-nums'>{tax != null ? formatLocalizedNumber(tax) : t('common:labels.na')}</span>
 							</div>
 						)}
 						{(sub_total !== undefined || tax !== undefined) && <div className=' border-t '></div>}
 						<div className='flex justify-between font-semibold text-gray-900 '>
 							<span>{total_label || t('creditNotes.totalCreditAmount')}</span>
-							<span className=' text-[#2A9D90] '>{formatAmount(total_amount ?? 0, currency ?? '')}</span>
+							<span className='text-[#2A9D90] tabular-nums'>{formatLocalizedCurrency(Number(total_amount ?? 0), resolvedCurrency)}</span>
 						</div>
 					</div>
 				</div>

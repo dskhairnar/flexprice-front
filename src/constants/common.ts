@@ -1,9 +1,11 @@
+import { formatLocalizedCurrency, formatLocalizedNumber, getLocalizedCurrencySymbol } from '@/i18n/display/formatNumber';
+
 // =============================================================================
 // COMMON CONSTANTS & UTILITIES
 // =============================================================================
 
 // =============================================================================
-// CURRENCY FORMATTERS
+// CURRENCY FORMATTERS (locale-aware via active i18n language)
 // =============================================================================
 
 const CURRENCY_SYMBOL_OVERRIDES: Record<string, string> = {
@@ -33,14 +35,10 @@ export const formatCurrency = (amount: number | string, currency: string): strin
 };
 
 export const formatAmount = (amount: number | string, currency?: string): string => {
-	const numAmount = typeof amount === 'string' ? parseFloat(amount) : amount;
-	if (isNaN(numAmount)) return '0.00';
-
 	if (currency) {
-		return formatCurrency(numAmount, currency);
+		return formatCurrency(amount, currency);
 	}
-
-	return numAmount.toFixed(2);
+	return formatLocalizedNumber(amount, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 };
 
 export const getCurrencySymbol = (currency: string): string => {

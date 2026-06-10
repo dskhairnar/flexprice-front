@@ -7,8 +7,7 @@ import { Card, Chip, Loader, Select, ShortPagination } from '@/components/atoms'
 import EmptyState from './EmptyState';
 import { WalletTransactionsTable } from '@/components/molecules';
 import { WALLET_STATUS } from '@/models/Wallet';
-import { formatAmount } from '@/components/atoms/Input/Input';
-import { getCurrencySymbol } from '@/utils/common/helper_functions';
+import { formatLocalizedCurrency, formatLocalizedNumber, resolveCurrencyCode } from '@/utils/common/helper_functions';
 import { Wallet as WalletIcon } from 'lucide-react';
 import usePagination from '@/hooks/usePagination';
 
@@ -88,8 +87,6 @@ const WalletTab = () => {
 		);
 	}
 
-	const currencySymbol = getCurrencySymbol(walletBalance?.currency ?? activeWallet?.currency ?? 'USD');
-
 	const walletOptions = wallets.map((w) => ({
 		value: w.id,
 		label: w.name || t('wallet.fallbackName', { id: w.id.slice(0, 8) }),
@@ -131,13 +128,18 @@ const WalletTab = () => {
 						<span className='text-sm text-zinc-500 block mb-2'>{t('wallet.balance')}</span>
 						<div className='flex items-baseline gap-2'>
 							<span className='text-4xl font-semibold text-zinc-950'>
-								{formatAmount(walletBalance?.real_time_credit_balance ?? activeWallet?.credit_balance?.toString() ?? '0')}
+								{formatLocalizedNumber(walletBalance?.real_time_credit_balance ?? activeWallet?.credit_balance ?? 0, {
+									maximumFractionDigits: 2,
+								})}
 							</span>
 							<span className='text-base font-normal text-zinc-500'>{t('wallet.credits')}</span>
 						</div>
 						<p className='text-sm text-zinc-500 mt-1'>
-							{currencySymbol}
-							{formatAmount(walletBalance?.real_time_balance ?? activeWallet?.balance?.toString() ?? '0')} {t('wallet.valueSuffix')}
+							{formatLocalizedCurrency(
+								walletBalance?.real_time_balance ?? activeWallet?.balance ?? 0,
+								resolveCurrencyCode(activeWallet?.currency),
+							)}{' '}
+							{t('wallet.valueSuffix')}
 						</p>
 					</div>
 				)}
