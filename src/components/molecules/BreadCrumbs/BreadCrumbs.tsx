@@ -71,7 +71,7 @@ const BreadCrumbs: FC = () => {
 							) : index === breadcrumbs.length - 1 || index === 0 ? (
 								<div
 									title={breadcrumb.label}
-									className={`hover:text-gray-800 capitalize select-none max-w-[140px] truncate ${
+									className={`hover:text-gray-800 select-none max-w-[140px] truncate ${
 										index === breadcrumbs.length - 1 ? 'font-normal text-[#020617]' : ''
 									}`}>
 									{breadcrumb.label}
@@ -80,7 +80,7 @@ const BreadCrumbs: FC = () => {
 								<Link
 									to={breadcrumb.path}
 									title={breadcrumb.label}
-									className={`hover:text-gray-800 capitalize max-w-[140px] truncate block ${index === breadcrumbs.length - 1 ? 'font-normal text-[#020617]' : ''}`}>
+									className={`hover:text-gray-800 max-w-[140px] truncate block ${index === breadcrumbs.length - 1 ? 'font-normal text-[#020617]' : ''}`}>
 									{breadcrumb.label}
 								</Link>
 							)}

@@ -68,6 +68,20 @@ interface RestrictionsConfig {
 	rawEnvs: string;
 }
 
+export interface DocumentationConfig {
+	apiReference: {
+		enabled: boolean;
+	};
+	sidebarDocumentation: {
+		enabled: boolean;
+	};
+}
+
+const documentationConfig: DocumentationConfig = {
+	apiReference: { enabled: true },
+	sidebarDocumentation: { enabled: true },
+};
+
 /** Primary defaults to **Geist** (Google Fonts in `src/index.css`). Override via `VITE_FONT_CONFIG` or `VITE_FONT_PRIMARY`. */
 export interface TypographyConfig {
 	primaryFont: string;
@@ -140,6 +154,7 @@ export interface Config {
 	regions: RegionsConfig;
 	allowedLocales: Locale[];
 	typography: TypographyConfig;
+	documentation: DocumentationConfig;
 }
 
 function parseAppEnv(): APP_ENV {
@@ -200,6 +215,7 @@ export const config: Config = {
 	regions: regionsConfig,
 	allowedLocales: allowedLocalesConfig,
 	typography: typographyConfig,
+	documentation: documentationConfig,
 };
 
 /** Sets `--font-sans` from `config.typography.fontFamily` (see `src/index.css`). Call once at startup. */

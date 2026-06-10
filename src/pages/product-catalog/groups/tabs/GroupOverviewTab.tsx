@@ -71,53 +71,6 @@ const CHARGE_FILTER_FIELD = {
 	STATUS: 'status',
 } as const;
 
-// ----- Feature section: filter/sort options (same as Features.tsx but without group_id) -----
-const featureSortOptions: SortOption[] = [
-	{ field: 'name', label: 'Name', direction: SortDirection.ASC },
-	{ field: 'created_at', label: 'Created At', direction: SortDirection.DESC },
-	{ field: 'updated_at', label: 'Updated At', direction: SortDirection.DESC },
-];
-
-const featureFilterOptions: FilterField[] = [
-	{
-		field: 'name',
-		label: 'Name',
-		fieldType: FilterFieldType.INPUT,
-		operators: DEFAULT_OPERATORS_PER_DATA_TYPE[DataType.STRING],
-		dataType: DataType.STRING,
-	},
-	{
-		field: 'created_at',
-		label: 'Created At',
-		fieldType: FilterFieldType.DATEPICKER,
-		operators: DEFAULT_OPERATORS_PER_DATA_TYPE[DataType.DATE],
-		dataType: DataType.DATE,
-	},
-	{
-		field: 'status',
-		label: 'Status',
-		fieldType: FilterFieldType.MULTI_SELECT,
-		operators: [FilterOperator.IN, FilterOperator.NOT_IN],
-		dataType: DataType.ARRAY,
-		options: [
-			{ value: ENTITY_STATUS.PUBLISHED, label: 'Active' },
-			{ value: ENTITY_STATUS.ARCHIVED, label: 'Inactive' },
-		],
-	},
-	{
-		field: 'type',
-		label: 'Type',
-		fieldType: FilterFieldType.MULTI_SELECT,
-		operators: DEFAULT_OPERATORS_PER_DATA_TYPE[DataType.ARRAY],
-		dataType: DataType.ARRAY,
-		options: [
-			{ value: FEATURE_TYPE.METERED, label: 'Metered' },
-			{ value: FEATURE_TYPE.BOOLEAN, label: 'Boolean' },
-			{ value: FEATURE_TYPE.STATIC, label: 'Static' },
-		],
-	},
-];
-
 const initialFeatureFilters: FilterCondition[] = [
 	{ field: 'name', operator: FilterOperator.CONTAINS, valueString: '', dataType: DataType.STRING, id: 'group-feat-name' },
 	{
@@ -129,27 +82,96 @@ const initialFeatureFilters: FilterCondition[] = [
 	},
 ];
 
-const initialFeatureSorts: SortOption[] = [{ field: 'updated_at', label: 'Updated At', direction: SortDirection.DESC }];
-
-// ----- Feature type chip (mirror Features page) -----
-const getFeatureTypeChips = (type: string, addIcon = false) => {
-	const icon = getFeatureIcon(type);
-	switch (type.toLocaleLowerCase()) {
-		case FEATURE_TYPE.STATIC:
-			return <Chip textColor='#4B5563' bgColor='#F3F4F6' icon={addIcon ? icon : null} label={toSentenceCase(type)} className='text-xs' />;
-		case FEATURE_TYPE.METERED:
-			return <Chip textColor='#1E40AF' bgColor='#DBEAFE' icon={addIcon ? icon : null} label={toSentenceCase(type)} className='text-xs' />;
-		case FEATURE_TYPE.BOOLEAN:
-			return <Chip textColor='#166534' bgColor='#DCFCE7' icon={addIcon ? icon : null} label={toSentenceCase(type)} className='text-xs' />;
-		default:
-			return <Chip textColor='#6B7280' bgColor='#F9FAFB' icon={addIcon ? icon : null} label={toSentenceCase(type)} className='text-xs' />;
-	}
-};
-
 const GroupOverviewTab = () => {
 	const { id: groupId } = useParams();
 	const [searchParams] = useSearchParams();
 	const { t } = useTranslation(['catalog', 'common']);
+
+	const featureSortOptions: SortOption[] = useMemo(
+		() => [
+			{ field: 'name', label: t('catalog:features.listPage.sortLabels.name'), direction: SortDirection.ASC },
+			{ field: 'created_at', label: t('catalog:features.listPage.sortLabels.createdAt'), direction: SortDirection.DESC },
+			{ field: 'updated_at', label: t('catalog:features.listPage.sortLabels.updatedAt'), direction: SortDirection.DESC },
+		],
+		[t],
+	);
+
+	const featureFilterOptions: FilterField[] = useMemo(
+		() => [
+			{
+				field: 'name',
+				label: t('catalog:features.listPage.filterLabels.name'),
+				fieldType: FilterFieldType.INPUT,
+				operators: DEFAULT_OPERATORS_PER_DATA_TYPE[DataType.STRING],
+				dataType: DataType.STRING,
+			},
+			{
+				field: 'created_at',
+				label: t('catalog:features.listPage.filterLabels.createdAt'),
+				fieldType: FilterFieldType.DATEPICKER,
+				operators: DEFAULT_OPERATORS_PER_DATA_TYPE[DataType.DATE],
+				dataType: DataType.DATE,
+			},
+			{
+				field: 'status',
+				label: t('catalog:features.listPage.filterLabels.status'),
+				fieldType: FilterFieldType.MULTI_SELECT,
+				operators: [FilterOperator.IN, FilterOperator.NOT_IN],
+				dataType: DataType.ARRAY,
+				options: [
+					{ value: ENTITY_STATUS.PUBLISHED, label: t('catalog:features.listPage.filterStatus.active') },
+					{ value: ENTITY_STATUS.ARCHIVED, label: t('catalog:features.listPage.filterStatus.inactive') },
+				],
+			},
+			{
+				field: 'type',
+				label: t('catalog:features.listPage.filterLabels.type'),
+				fieldType: FilterFieldType.MULTI_SELECT,
+				operators: DEFAULT_OPERATORS_PER_DATA_TYPE[DataType.ARRAY],
+				dataType: DataType.ARRAY,
+				options: [
+					{ value: FEATURE_TYPE.METERED, label: t('catalog:features.listPage.filterTypes.metered') },
+					{ value: FEATURE_TYPE.BOOLEAN, label: t('catalog:features.listPage.filterTypes.boolean') },
+					{ value: FEATURE_TYPE.STATIC, label: t('catalog:features.listPage.filterTypes.static') },
+				],
+			},
+		],
+		[t],
+	);
+
+	const initialFeatureSorts: SortOption[] = useMemo(
+		() => [{ field: 'updated_at', label: t('catalog:features.listPage.sortLabels.updatedAt'), direction: SortDirection.DESC }],
+		[t],
+	);
+
+	const getFeatureTypeChipLabel = useCallback(
+		(type: string) => {
+			const key = type.toLowerCase();
+			if (key === FEATURE_TYPE.STATIC) return t('catalog:features.listPage.typeChips.static');
+			if (key === FEATURE_TYPE.METERED) return t('catalog:features.listPage.typeChips.metered');
+			if (key === FEATURE_TYPE.BOOLEAN) return t('catalog:features.listPage.typeChips.boolean');
+			return t('catalog:features.listPage.typeChips.unknown', { defaultValue: toSentenceCase(type) });
+		},
+		[t],
+	);
+
+	const getFeatureTypeChips = useCallback(
+		(type: string, addIcon = false) => {
+			const icon = getFeatureIcon(type);
+			const label = getFeatureTypeChipLabel(type);
+			switch (type.toLocaleLowerCase()) {
+				case FEATURE_TYPE.STATIC:
+					return <Chip textColor='#4B5563' bgColor='#F3F4F6' icon={addIcon ? icon : null} label={label} className='text-xs' />;
+				case FEATURE_TYPE.METERED:
+					return <Chip textColor='#1E40AF' bgColor='#DBEAFE' icon={addIcon ? icon : null} label={label} className='text-xs' />;
+				case FEATURE_TYPE.BOOLEAN:
+					return <Chip textColor='#166534' bgColor='#DCFCE7' icon={addIcon ? icon : null} label={label} className='text-xs' />;
+				default:
+					return <Chip textColor='#6B7280' bgColor='#F9FAFB' icon={addIcon ? icon : null} label={label} className='text-xs' />;
+			}
+		},
+		[getFeatureTypeChipLabel],
+	);
 
 	const formatPriceDateTooltip = useCallback(
 		(price: Price & { start_date?: string; end_date?: string }): React.ReactNode => {
@@ -457,7 +479,7 @@ const GroupOverviewTab = () => {
 			},
 			{ title: t('catalog:shared.chargeColumns.updatedAt'), render: (row) => formatDate(row?.updated_at) },
 		],
-		[t],
+		[t, getFeatureTypeChips],
 	);
 
 	if (isLoading) {
