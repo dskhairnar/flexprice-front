@@ -11,13 +11,13 @@ import {
 const noLegacy = { indiaUrl: undefined, usUrl: undefined, selectionEnabled: false };
 
 describe('parseBrandConfig', () => {
-	it('returns Tirdad defaults with empty raw', () => {
+	it('returns Flexprice defaults with empty raw', () => {
 		const result = parseBrandConfig({});
-		expect(result.name).toBe('Tirdad');
+		expect(result.name).toBe('Flexprice');
 		expect(result.logo).toBe('/comicon.png');
 		expect(result.primaryColor).toBe('#7C3AED');
 		expect(result.favicon).toBe('/comicon.png');
-		expect(result.supportEmail).toBe('support@tirdad.io');
+		expect(result.supportEmail).toBe('support@flexprice.io');
 	});
 
 	it('applies overrides from raw data', () => {
@@ -30,7 +30,7 @@ describe('parseBrandConfig', () => {
 
 	it('ignores non-string values and falls back to defaults', () => {
 		const result = parseBrandConfig({ name: 42, logo: null });
-		expect(result.name).toBe('Tirdad');
+		expect(result.name).toBe('Flexprice');
 		expect(result.logo).toBe('/comicon.png');
 	});
 });
@@ -179,7 +179,7 @@ describe('config object', () => {
 	it('config module exports a config object with required fields', async () => {
 		const { config } = await import('./config');
 		expect(config.brand).toBeDefined();
-		expect(config.brand.supportEmail).toBe('support@tirdad.io');
+		expect(config.brand.supportEmail).toBe('support@flexprice.io');
 		expect(config.authPage).toBeDefined();
 		expect(config.authPage.template).toBe('flexprice_default');
 		expect(config.i18n).toBeDefined();

@@ -14,7 +14,8 @@ import {
 	ExtendedPriceOverride,
 } from '@/utils';
 import { Info } from 'lucide-react';
-import { formatLocalizedNumber } from '@/i18n/display/formatNumber';
+import { formatLocalizedNumber, formatLocalizedCurrency } from '@/i18n/display/formatNumber';
+import { PRICE_UNIT_TYPE } from '@/models/Price';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui';
 import { Coupon } from '@/models';
 import { cn } from '@/lib/utils';
@@ -30,30 +31,33 @@ const DiscountedPriceDisplay: FC<{
 	discountedAmount: number;
 	symbol: string;
 	couponName: string;
-}> = ({ originalAmount, discountedAmount, symbol, couponName }) => (
-	<div className='flex items-center gap-2'>
-		<div className='flex flex-col'>
-			<div className='line-through text-gray-400 text-sm'>
-				{symbol}
-				{formatLocalizedNumber(originalAmount.toString())}
+	currency?: string;
+	priceUnitType?: PRICE_UNIT_TYPE;
+}> = ({ originalAmount, discountedAmount, symbol, couponName, currency, priceUnitType }) => {
+	const formatAmount = (value: number) =>
+		priceUnitType === PRICE_UNIT_TYPE.FIAT && currency
+			? formatLocalizedCurrency(value, currency)
+			: `${symbol}${formatLocalizedNumber(value.toString())}`;
+
+	return (
+		<div className='flex items-center gap-2'>
+			<div className='flex flex-col'>
+				<div className='line-through text-gray-400 text-sm'>{formatAmount(originalAmount)}</div>
+				<div className='text-gray-900 font-medium'>{formatAmount(discountedAmount)}</div>
 			</div>
-			<div className='text-gray-900 font-medium'>
-				{symbol}
-				{formatLocalizedNumber(discountedAmount.toString())}
-			</div>
+			<TooltipProvider delayDuration={0}>
+				<Tooltip>
+					<TooltipTrigger>
+						<Info className='h-4 w-4 text-blue-500 hover:text-blue-600 transition-colors duration-150' />
+					</TooltipTrigger>
+					<TooltipContent sideOffset={5} className='bg-white border border-gray-200 shadow-lg text-sm text-gray-900 px-3 py-2 rounded-lg'>
+						<div className='font-medium'>{couponName}</div>
+					</TooltipContent>
+				</Tooltip>
+			</TooltipProvider>
 		</div>
-		<TooltipProvider delayDuration={0}>
-			<Tooltip>
-				<TooltipTrigger>
-					<Info className='h-4 w-4 text-blue-500 hover:text-blue-600 transition-colors duration-150' />
-				</TooltipTrigger>
-				<TooltipContent sideOffset={5} className='bg-white border border-gray-200 shadow-lg text-sm text-gray-900 px-3 py-2 rounded-lg'>
-					<div className='font-medium'>{couponName}</div>
-				</TooltipContent>
-			</Tooltip>
-		</TooltipProvider>
-	</div>
-);
+	);
+};
 
 const OverrideTooltip: FC<{
 	original: NormalizedPriceDisplay;
@@ -352,6 +356,8 @@ const ChargeValueCell: FC<Props> = ({ data, appliedCoupon, priceOverride }) => {
 					discountedAmount={discountInfo.discountedAmount}
 					symbol={displayData.symbol}
 					couponName={couponLabel}
+					currency={displayData.currency}
+					priceUnitType={displayData.priceUnitType}
 				/>
 			) : (
 				<div>{formatPriceDisplay(displayData)}</div>

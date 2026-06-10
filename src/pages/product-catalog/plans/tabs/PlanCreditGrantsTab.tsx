@@ -1,6 +1,6 @@
 import { useParams } from 'react-router';
 import { useQuery, useMutation } from '@tanstack/react-query';
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { Button, Card, CardHeader, NoDataCard, Loader } from '@/components/atoms';
 import { Plus } from 'lucide-react';
 import { uniqueId } from 'lodash';
@@ -20,7 +20,7 @@ import { InternalCreditGrantRequest, CreateCreditGrantRequest } from '@/types/dt
 import { useTranslation } from 'react-i18next';
 
 const PlanCreditGrantsTab = () => {
-	const { t } = useTranslation(['catalog']);
+	const { t } = useTranslation(['catalog', 'common']);
 	const { planId } = useParams<{ planId: string }>();
 	const [creditGrantModalOpen, setCreditGrantModalOpen] = useState(false);
 
@@ -49,21 +49,21 @@ const PlanCreditGrantsTab = () => {
 			return await CreditGrantApi.create(grantWithPlanId);
 		},
 		onSuccess: () => {
-			toast.success('Credit grant added successfully');
+			toast.success(t('catalog:plans.creditGrants.toast.added'));
 			setCreditGrantModalOpen(false);
 			refetchQueries(['planCreditGrants', planId!]);
 		},
 		onError: (error: Error) => {
-			toast.error(error.message || 'Failed to add credit grant');
+			toast.error(error.message || t('catalog:plans.creditGrants.toast.addFailed'));
 		},
 	});
 
-	const getEmptyCreditGrant = (): InternalCreditGrantRequest => {
+	const getEmptyCreditGrant = useCallback((): InternalCreditGrantRequest => {
 		return {
 			id: uniqueId('credit-grant-'),
 			credits: 0,
 			period: CREDIT_GRANT_PERIOD.MONTHLY,
-			name: 'Free Credits',
+			name: t('catalog:plans.creditGrants.defaultName'),
 			scope: CREDIT_GRANT_SCOPE.PLAN,
 			cadence: CREDIT_GRANT_CADENCE.ONETIME,
 			period_count: 1,
@@ -73,7 +73,7 @@ const PlanCreditGrantsTab = () => {
 			priority: 0,
 			metadata: {},
 		};
-	};
+	}, [planId, t]);
 
 	const handleSaveCreditGrant = (data: InternalCreditGrantRequest) => {
 		// eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -90,7 +90,7 @@ const PlanCreditGrantsTab = () => {
 	}
 
 	if (isError) {
-		toast.error('Error loading credit grants');
+		toast.error(t('catalog:plans.creditGrants.toast.loadError'));
 		return null;
 	}
 
@@ -113,7 +113,7 @@ const PlanCreditGrantsTab = () => {
 							title={t('catalog:plans.tabs.creditGrants')}
 							cta={
 								<Button prefixIcon={<Plus />} onClick={() => setCreditGrantModalOpen(true)} disabled={isCreatingCreditGrant}>
-									{isCreatingCreditGrant ? 'Adding...' : 'Add'}
+									{isCreatingCreditGrant ? t('common:actions.adding') : t('common:actions.add')}
 								</Button>
 							}
 						/>
@@ -128,10 +128,10 @@ const PlanCreditGrantsTab = () => {
 				) : (
 					<NoDataCard
 						title={t('catalog:plans.tabs.creditGrants')}
-						subtitle='No credit grants added to the plan yet'
+						subtitle={t('catalog:plans.creditGrants.noGrantsLinked')}
 						cta={
 							<Button prefixIcon={<Plus />} onClick={() => setCreditGrantModalOpen(true)} disabled={isCreatingCreditGrant}>
-								{isCreatingCreditGrant ? 'Adding...' : 'Add'}
+								{isCreatingCreditGrant ? t('common:actions.adding') : t('common:actions.add')}
 							</Button>
 						}
 					/>

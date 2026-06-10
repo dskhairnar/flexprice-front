@@ -18,6 +18,7 @@ import toast from 'react-hot-toast';
 import { useNavigate } from 'react-router';
 import { RouteNames } from '@/core/routes/Routes';
 import { formatBillingPeriodForDisplay, getPriceTypeLabel } from '@/utils';
+import { formatPriceStatus } from '@/utils/common/format_chips';
 import { ChargeValueCell } from '@/components/molecules';
 import { formatInvoiceCadence } from '@/utils/common/helper_functions';
 import { Dialog } from '@/components/ui';
@@ -385,7 +386,7 @@ const PlanPriceTable: FC<PlanChargesTableProps> = ({ plan, onPriceUpdate }) => {
 				render: (row) => {
 					const status = getPriceStatus(row);
 					const variant = getStatusChipVariant(status);
-					const label = status.charAt(0).toUpperCase() + status.slice(1);
+					const label = formatPriceStatus(status, t);
 					const tooltipContent = formatPriceDateTooltip(row, t);
 					return (
 						<Tooltip

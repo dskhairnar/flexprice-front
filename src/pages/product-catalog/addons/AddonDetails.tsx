@@ -286,7 +286,7 @@ const AddonDetails = () => {
 						subtitle={t('catalog:addons.details.noChargesLinked')}
 						cta={
 							<Button prefixIcon={<Plus />} onClick={() => navigate(`${RouteNames.addonCharges.replace(':addonId', id!)}`)}>
-								Add
+								{t('common:actions.add')}
 							</Button>
 						}
 					/>
@@ -299,7 +299,7 @@ const AddonDetails = () => {
 							title={t('catalog:addons.details.entitlements')}
 							cta={
 								<Button prefixIcon={<Plus />} onClick={() => setEntitlementDrawerOpen(true)}>
-									Add
+									{t('common:actions.add')}
 								</Button>
 							}
 						/>
@@ -324,7 +324,7 @@ const AddonDetails = () => {
 						subtitle={t('catalog:addons.details.noEntitlementsLinked')}
 						cta={
 							<Button prefixIcon={<Plus />} onClick={() => setEntitlementDrawerOpen(true)}>
-								Add
+								{t('common:actions.add')}
 							</Button>
 						}
 					/>

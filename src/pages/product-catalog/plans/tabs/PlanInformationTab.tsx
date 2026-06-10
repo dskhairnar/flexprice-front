@@ -9,7 +9,7 @@ import { formatEntityStatus } from '@/utils/common/format_chips';
 import { getTypographyClass } from '@/lib/typography';
 import { refetchQueries } from '@/core/services/tanstack/ReactQueryProvider';
 import { PlanApi } from '@/api';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { logger } from '@/utils/common/Logger';
 import toast from 'react-hot-toast';
 import { useTranslation } from 'react-i18next';
@@ -42,21 +42,26 @@ const PlanInformationTab = () => {
 		}
 	}, [planData?.metadata]);
 
-	const planDetails = [
-		{ label: 'Name', value: planData?.name },
-		{ label: 'Lookup Key', value: planData?.lookup_key || '--' },
-		{ label: 'Description', value: planData?.description || '--' },
-		{ label: 'Created Date', value: formatDate(planData?.created_at ?? '') },
-		{
-			label: 'Status',
-			value: (
-				<Chip
-					label={formatEntityStatus(planData?.status || '', t)}
-					variant={planData?.status === ENTITY_STATUS.PUBLISHED ? 'success' : 'default'}
-				/>
-			),
-		},
-	];
+	const na = t('common:labels.na');
+
+	const planDetails = useMemo(
+		() => [
+			{ label: t('catalog:plans.information.name'), value: planData?.name },
+			{ label: t('catalog:plans.information.lookupKey'), value: planData?.lookup_key || na },
+			{ label: t('catalog:plans.information.description'), value: planData?.description || na },
+			{ label: t('catalog:plans.information.createdDate'), value: formatDate(planData?.created_at ?? '') },
+			{
+				label: t('catalog:plans.information.status'),
+				value: (
+					<Chip
+						label={formatEntityStatus(planData?.status || '', t)}
+						variant={planData?.status === ENTITY_STATUS.PUBLISHED ? 'success' : 'default'}
+					/>
+				),
+			},
+		],
+		[planData, t, na],
+	);
 
 	const handleSaveMetadata = async (newMetadata: Record<string, string>) => {
 		if (!planId) return;
@@ -65,10 +70,10 @@ const PlanInformationTab = () => {
 			setLocalMetadata(newMetadata);
 			setShowMetadataModal(false);
 			refetchQueries(['fetchPlan', planId]);
-			toast.success('Metadata updated successfully');
+			toast.success(t('catalog:plans.information.toast.metadataUpdated'));
 		} catch (e) {
 			logger.error('Failed to update metadata', e);
-			toast.error('Failed to update metadata');
+			toast.error(t('catalog:plans.information.toast.metadataUpdateFailed'));
 		}
 	};
 
@@ -83,13 +88,13 @@ const PlanInformationTab = () => {
 	}
 
 	if (isError || !planData) {
-		toast.error('Error loading plan data');
+		toast.error(t('catalog:plans.information.toast.loadError'));
 		return null;
 	}
 
 	return (
 		<div>
-			{planDetails.filter((detail) => detail.value !== '--').length > 0 && (
+			{planDetails.filter((detail) => detail.value !== na).length > 0 && (
 				<div>
 					<Spacer className='!h-4' />
 					<div className='flex justify-between items-center'>

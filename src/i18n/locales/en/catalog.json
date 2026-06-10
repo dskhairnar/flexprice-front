@@ -158,13 +158,18 @@
 		"details": {
 			"title": "Cost Sheet Details",
 			"charges": "Charges",
-			"metadata": "Metadata"
+			"metadata": "Metadata",
+			"noChargesLinked": "No charges added to the cost sheet yet"
 		},
 		"toast": {
 			"updated": "Cost Sheet updated successfully",
 			"created": "Cost Sheet created successfully",
 			"failedUpdate": "Failed to update cost sheet. Please try again.",
-			"failedCreate": "Failed to create cost sheet. Please try again."
+			"failedCreate": "Failed to create cost sheet. Please try again.",
+			"archived": "Cost Sheet archived successfully",
+			"archiveFailed": "Failed to archive cost sheet",
+			"loadError": "Error loading cost sheet data",
+			"noDataError": "No cost sheet data available"
 		},
 		"validation": {
 			"nameRequired": "Name is required",
@@ -345,7 +350,8 @@
 			"urlQueryPrice": "?entity_type=price",
 			"urlHintOr": "or",
 			"urlQueryFeature": "?entity_type=feature",
-			"urlHintSuffix": "to the URL to view charges or features in this group."
+			"urlHintSuffix": "to the URL to view charges or features in this group.",
+			"noPrices": "This group has no prices. Add prices to the group to see them here."
 		},
 		"toast": {
 			"updated": "Group updated successfully",
@@ -429,14 +435,54 @@
 			}
 		},
 		"tabs": {
+			"overview": "Overview",
 			"creditGrants": "Credit Grants",
-			"entitlements": "Entitlements"
+			"entitlements": "Entitlements",
+			"information": "Information"
+		},
+		"creditGrants": {
+			"noGrantsLinked": "No credit grants added to the plan yet",
+			"defaultName": "Free Credits",
+			"toast": {
+				"added": "Credit grant added successfully",
+				"addFailed": "Failed to add credit grant",
+				"loadError": "Error loading credit grants"
+			}
+		},
+		"entitlements": {
+			"noEntitlementsLinked": "No entitlements added to the plan yet",
+			"toast": {
+				"loadError": "Error loading entitlements"
+			}
+		},
+		"sync": {
+			"usageCharges": "Sync Usage Charges",
+			"syncing": "Syncing...",
+			"inProgressPrefix": "Sync in progress. You can check status in",
+			"workflows": "Workflows",
+			"completed": "Sync completed. You can sync again.",
+			"failed": "Sync failed. You can try again.",
+			"tooltip": "Synchronize plan prices with existing subscriptions",
+			"startedToast": "Sync has been started and will take up to 1 hour to complete.",
+			"errorToast": "Error synchronizing plan with subscriptions",
+			"loadError": "Error loading plan data",
+			"noDataError": "No plan data available"
 		},
 		"information": {
 			"loading": "Loading plan details...",
 			"planDetails": "Plan Details",
 			"metadata": "Metadata",
-			"noMetadataAvailable": "No metadata available."
+			"noMetadataAvailable": "No metadata available.",
+			"name": "Name",
+			"lookupKey": "Lookup Key",
+			"description": "Description",
+			"createdDate": "Created Date",
+			"status": "Status",
+			"toast": {
+				"metadataUpdated": "Metadata updated successfully",
+				"metadataUpdateFailed": "Failed to update metadata",
+				"loadError": "Error loading plan data"
+			}
 		},
 		"pricing": {
 			"noWidget": "No Pricing Widget Exists",
@@ -774,7 +820,21 @@
 			"pageTitle": "Create Feature",
 			"creating": "Creating Feature...",
 			"unitDefault": "unit",
-			"unitsDefault": "units"
+			"unitsDefault": "units",
+			"typeOptions": {
+				"metered": {
+					"label": "Metered",
+					"description": "Functionality with varying usage that needs to be measured i.e. API calls, llm tokens, etc."
+				},
+				"boolean": {
+					"label": "Boolean",
+					"description": "Functionality that customers can either have access to or not i.e. SSO, CRM Integration, etc."
+				},
+				"static": {
+					"label": "Static",
+					"description": "Functionality that can be configured for a customer i.e. log retention period, support tier, etc."
+				}
+			}
 		},
 		"details": {
 			"charges": "Charges",
@@ -825,6 +885,16 @@
 			"COSTSHEET": "Cost sheet"
 		},
 		"selectChargeTypeTitle": "Select Charge Type",
+		"chargeTypeOptions": {
+			"fixed": {
+				"label": "Fixed charges",
+				"description": "Billed on a fixed schedule (monthly, yearly, etc.)"
+			},
+			"usage": {
+				"label": "Usage Charges",
+				"description": "Pay only for what customers actually use"
+			}
+		},
 		"addChargeOptionsGroupAria": "Add charge options",
 		"addFixedCharge": "Add fixed charge",
 		"addUsageBasedCharges": "Add Usage Based Charges",

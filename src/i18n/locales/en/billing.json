@@ -752,7 +752,39 @@
 			"priorityPlaceholder": "e.g. 0",
 			"cancel": "Cancel",
 			"saveChanges": "Save Changes",
-			"addCredit": "Add Credit"
+			"addCredit": "Add Credit",
+			"cadence": {
+				"onetime": {
+					"label": "One-time",
+					"description": "This credit will be applied to the subscription once."
+				},
+				"recurring": {
+					"label": "Recurring",
+					"description": "This credit will be applied to the subscription every billing period."
+				}
+			},
+			"expiration": {
+				"billingCycle": {
+					"label": "Expires with subscription period",
+					"description": "Unused credits reset at the end of each subscription period (matches the billing schedule)."
+				},
+				"never": {
+					"label": "No Expiry",
+					"description": "Credits stay available until they are completely used - no time limit."
+				}
+			},
+			"suffixCredit": "credit",
+			"suffixDays": "days",
+			"validation": {
+				"nameRequired": "Name is required",
+				"creditsPositive": "Credits must be a positive number",
+				"expirationTypeRequired": "Expiration type is required",
+				"expirationDurationPositive": "Expiration duration must be a positive number",
+				"periodRequired": "Grant period is required for recurring credits",
+				"priorityNonNegative": "Priority must be a non-negative number",
+				"conversionRatePositive": "Conversion rate must be greater than 0",
+				"topupConversionRatePositive": "Top-up conversion rate must be greater than 0"
+			}
 		},
 		"subscriptionModal": {
 			"title": "Add Credit Grant",

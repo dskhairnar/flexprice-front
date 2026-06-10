@@ -666,7 +666,39 @@
 			"priorityPlaceholder": "مثلاً 0",
 			"cancel": "إلغاء",
 			"saveChanges": "حفظ التغييرات",
-			"addCredit": "إضافة رصيد"
+			"addCredit": "إضافة رصيد",
+			"cadence": {
+				"onetime": {
+					"label": "مرة واحدة",
+					"description": "يُطبَّق هذا الرصيد على الاشتراك مرة واحدة."
+				},
+				"recurring": {
+					"label": "متكرر",
+					"description": "يُطبَّق هذا الرصيد على الاشتراك في كل فترة فوترة."
+				}
+			},
+			"expiration": {
+				"billingCycle": {
+					"label": "ينتهي مع فترة الاشتراك",
+					"description": "تُعاد الأرصدة غير المستخدمة إلى الصفر في نهاية كل فترة اشتراك (وفق جدول الفوترة)."
+				},
+				"never": {
+					"label": "بدون انتهاء",
+					"description": "تبقى الأرصدة متاحة حتى تُستخدم بالكامل — بلا حد زمني."
+				}
+			},
+			"suffixCredit": "رصيد",
+			"suffixDays": "أيام",
+			"validation": {
+				"nameRequired": "الاسم مطلوب",
+				"creditsPositive": "يجب أن تكون الأرصدة رقماً موجباً",
+				"expirationTypeRequired": "نوع الانتهاء مطلوب",
+				"expirationDurationPositive": "يجب أن تكون مدة الانتهاء رقماً موجباً",
+				"periodRequired": "فترة المنحة مطلوبة للأرصدة المتكررة",
+				"priorityNonNegative": "يجب أن تكون الأولوية رقماً غير سالب",
+				"conversionRatePositive": "يجب أن يكون سعر التحويل أكبر من 0",
+				"topupConversionRatePositive": "يجب أن يكون سعر تحويل التعبئة أكبر من 0"
+			}
 		},
 		"subscriptionModal": {
 			"title": "إضافة منحة رصيد",

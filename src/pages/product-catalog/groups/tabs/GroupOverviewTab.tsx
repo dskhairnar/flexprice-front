@@ -514,10 +514,7 @@ const GroupOverviewTab = () => {
 		if (!priceIds.length) {
 			return (
 				<div className='space-y-6'>
-					<NoDataCard
-						title={t('catalog:addons.details.charges')}
-						subtitle='This group has no prices. Add prices to the group to see them here.'
-					/>
+					<NoDataCard title={t('catalog:addons.details.charges')} subtitle={t('catalog:groups.overview.noPrices')} />
 				</div>
 			);
 		}
