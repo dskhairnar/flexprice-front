@@ -948,8 +948,8 @@
 		"flatFee": "flat fee",
 		"noCouponApplied": "No coupon applied",
 		"tierRangeWithUnits": "{{range}} units",
-		"perUnitLine": "{{symbol}}{{amount}} per unit",
-		"flatFeePlusLine": "+ {{symbol}}{{amount}} flat fee",
+		"perUnitLine": "{{amount}} per unit",
+		"flatFeePlusLine": "+ {{amount}} flat fee",
 		"override": {
 			"billingModelLine": "Billing Model: {{from}} → {{to}}",
 			"tierModeLine": "Tier Mode: {{from}} → {{to}}",
