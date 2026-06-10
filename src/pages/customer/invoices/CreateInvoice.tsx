@@ -6,7 +6,7 @@ import { useParams, useNavigate } from 'react-router';
 import { useBreadcrumbsStore } from '@/store/useBreadcrumbsStore';
 import useUser from '@/hooks/useUser';
 import { currencyOptions } from '@/constants/constants';
-import { getCurrencySymbol, calculateCouponDiscount } from '@/utils/common/helper_functions';
+import { calculateCouponDiscount, formatLocalizedCurrency, getCurrencySymbol } from '@/utils/common/helper_functions';
 import InvoiceApi from '@/api/InvoiceApi';
 import toast from 'react-hot-toast';
 import { RouteNames } from '@/core/routes/Routes';
@@ -331,12 +331,12 @@ const CreateInvoicePage: FC = () => {
 						<div className='text-sm text-gray-800 space-y-4 w-1/3 px-2'>
 							<div className='flex justify-between'>
 								<span>{t('invoices.details.lineItemsTable.subtotal')}</span>
-								<span>{`${getCurrencySymbol(currency)}${calculateSubtotal().toFixed(2)}`}</span>
+								<span className='tabular-nums'>{formatLocalizedCurrency(calculateSubtotal(), currency)}</span>
 							</div>
 							{calculatedDiscount > 0 && (
 								<div className='flex justify-between text-green-600'>
 									<span>{t('createInvoice.couponDiscount')}</span>
-									<span>-{`${getCurrencySymbol(currency)}${calculatedDiscount.toFixed(2)}`}</span>
+									<span className='tabular-nums'>−{formatLocalizedCurrency(calculatedDiscount, currency)}</span>
 								</div>
 							)}
 							<div className='flex justify-between'>
@@ -346,7 +346,7 @@ const CreateInvoicePage: FC = () => {
 							<div className='border-t'></div>
 							<div className='flex justify-between font-bold'>
 								<span>{t('creditNotes.totalAmountLabel')}</span>
-								<span>{`${getCurrencySymbol(currency)}${(finalTotal - calculatedDiscount).toFixed(2)}`}</span>
+								<span className='tabular-nums'>{formatLocalizedCurrency(finalTotal - calculatedDiscount, currency)}</span>
 							</div>
 						</div>
 					</div>

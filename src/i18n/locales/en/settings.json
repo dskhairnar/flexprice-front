@@ -327,7 +327,8 @@
 			"organizationIdRequired": "Organization ID is required",
 			"accountsServerRequired": "Accounts server is required",
 			"clientIdRequired": "Client ID is required",
-			"redirectUrlInvalid": "Must be a valid URL starting with http:// or https://"
+			"redirectUrlInvalid": "Must be a valid URL starting with http:// or https://",
+			"companyIdRequired": "Company ID is required"
 		},
 		"toast": {
 			"created": "{{provider}} connection created successfully",
@@ -541,22 +542,20 @@
 			"webhookEventTransactionsCompleted": "transactions.completed"
 		},
 		"whop": {
-			"description": "Connect Flexprice to Whop to sync invoices.",
-			"connectionPlaceholder": "Name your Whop connection",
-			"connectionHint": "A friendly name for this connection.",
+			"connectFlexpriceToWhopToSyncInvoicesHint": "Connect Flexprice to Whop to sync invoices.",
+			"nameYourWhopConnectionPlaceholder": "Name your Whop connection",
+			"aFriendlyNameForThisConnectionHint": "A friendly name for this connection.",
+			"apiKey": "API Key",
 			"apiKeyPlaceholder": "apik_...",
 			"apiKeyHint": "Bearer token from your Whop developer dashboard.",
 			"companyId": "Company ID",
 			"companyIdPlaceholder": "biz_...",
 			"companyIdHint": "Your Whop company identifier (biz_...).",
-			"companyIdRequired": "Company ID is required",
 			"productIdOptional": "Product ID (optional)",
-			"productIdPlaceholder": "prod_... — leave blank to auto-create",
-			"productIdHint": "Whop product used for invoices. Leave blank to have Flexprice create one automatically.",
-			"invoiceSyncHint": "Push Flexprice invoices to Whop as send_invoice payments",
-			"webhookIntroPrefix": "Register this URL in your Whop dashboard under Webhooks. Flexprice will listen for",
-			"webhookEventName": "invoice.paid",
-			"webhookIntroSuffix": "events to automatically mark invoices as paid."
+			"productIdOptionalPlaceholder": "prod_... — leave blank to auto-create",
+			"productIdOptionalHint": "Whop product used for invoices. Leave blank to have Flexprice create one automatically.",
+			"pushFlexpriceInvoicesToWhopAs": "Push Flexprice invoices to Whop as send_invoice payments",
+			"webhookRegisterHintHtml": "Register this URL in your Whop dashboard under Webhooks. Flexprice will listen for <code>invoice.paid</code> events to automatically mark invoices as paid."
 		}
 	},
 	"insightsTools": {

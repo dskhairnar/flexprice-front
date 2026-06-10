@@ -148,57 +148,44 @@ const SubscriptionActionButton: React.FC<Props> = ({ subscription }) => {
 	const isDraft = subscription.subscription_status === SUBSCRIPTION_STATUS.DRAFT;
 	const readOnly = isInheritedSubscription(subscription);
 
-	const menuOptions: DropdownMenuOption[] = [
-		...(isDraft
-			? [
-					{
-						label: 'Activate Subscription',
-						icon: <Play className='h-4 w-4' />,
-						onSelect: () => setState((prev) => ({ ...prev, isActivateModalOpen: true })),
-						disabled: readOnly,
-					},
-				]
-			: []),
-		{
-			label: 'Edit Subscription',
-			icon: <Pencil className='h-4 w-4' />,
-			onSelect: () => navigate(`${RouteNames.subscriptions}/${subscription.id}/edit`),
-			disabled: isCancelled || readOnly,
-		},
-		...(!isCancelled && !isDraft
-			? [
-					// {
-					// 	label: 'Pause Subscription',
-					// 	icon: <CirclePause className='h-4 w-4' />,
-					// 	onSelect: () => setState((prev) => ({ ...prev, isPauseModalOpen: true })),
-					// 	disabled: isPaused || isCancelled || readOnly,
-					// },
-					{
-						label: 'Add Subscription Phase',
-						icon: <Plus className='h-4 w-4' />,
-						onSelect: () => setState((prev) => ({ ...prev, isAddPhaseModalOpen: true })),
-						disabled: isPaused || isCancelled || readOnly,
-					},
-				]
-			: []),
-		// ...(isPaused && !isCancelled
-		// 	? [
-		// 			{
-		// 				label: 'Resume Subscription',
-		// 				icon: <CirclePlay className='h-4 w-4' />,
-		// 				onSelect: () => setState((prev) => ({ ...prev, isResumeModalOpen: true })),
-		// 				disabled: isCancelled || readOnly,
-		// 			},
-		// 		]
-		// 	: []),
-		{
-			label: 'Cancel Subscription',
-			icon: <X className='h-4 w-4' />,
-			onSelect: () => setState((prev) => ({ ...prev, isCancelModalOpen: true })),
-			disabled: isCancelled || readOnly,
-			className: 'text-destructive',
-		},
-	];
+	const menuOptions: DropdownMenuOption[] = useMemo(
+		() => [
+			...(isDraft
+				? [
+						{
+							label: t('customers:organisms.subscriptionAction.menu.activateSubscription'),
+							icon: <Play className='h-4 w-4' />,
+							onSelect: () => setState((prev) => ({ ...prev, isActivateModalOpen: true })),
+							disabled: readOnly,
+						},
+					]
+				: []),
+			{
+				label: t('customers:organisms.subscriptionAction.menu.editSubscription'),
+				icon: <Pencil className='h-4 w-4' />,
+				onSelect: () => navigate(`${RouteNames.subscriptions}/${subscription.id}/edit`),
+				disabled: isCancelled || readOnly,
+			},
+			...(!isCancelled && !isDraft
+				? [
+						{
+							label: t('customers:organisms.subscriptionAction.menu.addSubscriptionPhase'),
+							icon: <Plus className='h-4 w-4' />,
+							onSelect: () => setState((prev) => ({ ...prev, isAddPhaseModalOpen: true })),
+							disabled: isPaused || isCancelled || readOnly,
+						},
+					]
+				: []),
+			{
+				label: t('customers:organisms.subscriptionAction.menu.cancelSubscription'),
+				icon: <X className='h-4 w-4' />,
+				onSelect: () => setState((prev) => ({ ...prev, isCancelModalOpen: true })),
+				disabled: isCancelled || readOnly,
+				className: 'text-destructive',
+			},
+		],
+		[isCancelled, isDraft, isPaused, navigate, readOnly, subscription.id, t],
+	);
 
 	return (
 		<>

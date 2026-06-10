@@ -4,7 +4,7 @@ import FlexpriceTable, { ColumnData } from '../Table';
 import { CreditGrant } from '@/models';
 import { formatExpirationPeriod } from '@/utils/common/credit_grant_helpers';
 import { formatBillingPeriodForPrice } from '@/utils/common/helper_functions';
-import { formatAmount } from '@/components/atoms/Input/Input';
+import { formatLocalizedNumber } from '@/utils/common/helper_functions';
 import CreditGrantApi from '@/api/CreditGrantApi';
 import { EllipsisVertical, Trash2 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
@@ -28,36 +28,36 @@ const CreditGrantsTable: React.FC<CreditGrantsTableProps> = ({ data, onDelete, s
 
 	const columns: ColumnData<CreditGrant>[] = [
 		{
-			title: 'Name',
+			title: t('tableColumns.name'),
 			render: (row) => {
 				return <span>{row.name}</span>;
 			},
 		},
 		{
-			title: 'Credits',
+			title: t('tableColumns.credits'),
 			render: (row) => {
-				return <span>{formatAmount(row.credits.toString())}</span>;
+				return <span>{formatLocalizedNumber(row.credits)}</span>;
 			},
 		},
 		{
-			title: 'Priority',
+			title: t('tableColumns.priority'),
 			render: (row) => {
 				return <span>{row.priority ?? t('labels.na')}</span>;
 			},
 		},
 		{
-			title: 'Cadence',
+			title: t('tableColumns.cadence'),
 			render: (row) => {
 				const cadence = row.cadence.toLowerCase().replace('_', ' ');
 				return cadence.charAt(0).toUpperCase() + cadence.slice(1);
 			},
 		},
 		{
-			title: 'Period',
-			render: (row) => (row.period ? `${row.period_count || 1} ${formatBillingPeriodForPrice(row.period)}` : '--'),
+			title: t('tableColumns.period'),
+			render: (row) => (row.period ? `${row.period_count || 1} ${formatBillingPeriodForPrice(row.period, t)}` : '--'),
 		},
 		{
-			title: 'Expiration Config',
+			title: t('tableColumns.expirationConfig'),
 			render: (row) => {
 				return <span>{formatExpirationPeriod(row)}</span>;
 			},

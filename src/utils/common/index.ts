@@ -1,9 +1,13 @@
 export { default as formatNumber, formatCompactNumber } from './format_number';
 export {
 	getCurrencySymbol,
+	formatLocalizedCurrency,
+	formatLocalizedNumber,
 	getCurrencyName,
 	formatDateShort,
 	formatBillingPeriodForPrice,
+	formatBillingPeriodForDisplay,
+	formatInvoiceCadence,
 	getPriceTypeLabel,
 	copyToClipboard,
 } from './helper_functions';

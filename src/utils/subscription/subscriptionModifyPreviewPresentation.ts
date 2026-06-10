@@ -1,9 +1,8 @@
-import { formatAmount } from '@/components/atoms/Input/Input';
 import type { Invoice } from '@/models/Invoice';
 import { SUBSCRIPTION_MODIFY_INVOICE_RESOURCE_ACTION, SUBSCRIPTION_MODIFY_LINE_ITEM_ACTION } from '@/models';
 import type { ChangedInvoice, ChangedLineItem } from '@/types/dto/Subscription';
 import formatDate from '@/utils/common/format_date';
-import { getCurrencySymbol } from '@/utils/common/helper_functions';
+import { formatLocalizedCurrency, resolveCurrencyCode } from '@/utils/common/helper_functions';
 
 /** Dialog / caller context for quantity modify preview (API does not return “before” quantity). */
 export interface QuantityChangePreviewContext {
@@ -54,10 +53,9 @@ export function resolveInvoiceAmountSource(changedInvoices: ChangedInvoice[], la
 	return null;
 }
 
-/** Formatted money for UI, e.g. "$1,234.56" */
+/** Formatted money for UI using active locale (e.g. "$1,234.56" or Arabic digits). */
 export function formatMoneyForPreview(currency: string, amount: number): string {
-	const sym = getCurrencySymbol(currency || 'USD');
-	return `${sym}${formatAmount(String(amount))}`;
+	return formatLocalizedCurrency(amount, resolveCurrencyCode(currency));
 }
 
 export function getInvoiceAmountForPreviewDisplay(invoice: Invoice): number {
@@ -92,7 +90,7 @@ function resolveBillingImpacts(changedInvoices: ChangedInvoice[], latestInvoice:
 	return changedInvoices.map((inv) => {
 		const showAmount = amountSource != null && (changedInvoices.length === 1 || inv.id === amountSource.id);
 		const rawAmount = showAmount ? getInvoiceAmountForPreviewDisplay(amountSource!) : null;
-		const currency = amountSource?.currency ?? latestInvoice?.currency ?? 'USD';
+		const currency = resolveCurrencyCode(amountSource?.currency ?? latestInvoice?.currency);
 		const hasAmount = rawAmount != null && rawAmount > 0;
 		const amountText = hasAmount ? formatMoneyForPreview(currency, rawAmount!) : undefined;
 

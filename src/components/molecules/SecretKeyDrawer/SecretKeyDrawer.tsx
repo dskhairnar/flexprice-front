@@ -9,6 +9,7 @@ import { Copy, AlertTriangle, Eye, EyeOff, Info } from 'lucide-react';
 import { refetchQueries } from '@/core/services/tanstack/ReactQueryProvider';
 import { GetServiceAccountsResponse } from '@/types/dto/UserApi';
 import { useTranslation } from 'react-i18next';
+import { formatRbacRole } from '@/i18n/display/apiEnums';
 
 interface Props {
 	isOpen: boolean;
@@ -266,7 +267,7 @@ const SecretKeyDrawer: FC<Props> = ({ isOpen, onOpenChange }) => {
 																<span
 																	key={role}
 																	className='inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800'>
-																	{role}
+																	{formatRbacRole(role, t)}
 																</span>
 															))}
 														</div>

@@ -48,21 +48,21 @@ const SubscriptionTaxAssociationTable: FC<Props> = ({ data, onChange, disabled }
 
 	const columns: ColumnData<TaxRateOverride>[] = [
 		{
-			title: 'Tax Rate',
+			title: t('tableColumns.taxRate'),
 			render: (row) => {
 				return <div>{row.tax_rate_code}</div>;
 			},
 		},
 		{
-			title: 'Priority',
+			title: t('tableColumns.priority'),
 			render: (row) => row.priority || '--',
 		},
 		{
-			title: 'Auto Apply',
+			title: t('tableColumns.autoApply'),
 			render: (row) => <Chip variant={row.auto_apply ? 'success' : 'default'} label={row.auto_apply ? t('labels.yes') : t('labels.no')} />,
 		},
 		{
-			title: 'Currency',
+			title: t('tableColumns.currency'),
 			render: (row) => row.currency,
 		},
 		{

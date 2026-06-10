@@ -1,16 +1,7 @@
-import { ENTITY_STATUS } from '@/models';
+import type { TFunction } from 'i18next';
+import { ApiEnum, translateApiEnum } from '@/i18n/display/apiEnums';
 
-const formatChips = (data: string): string => {
-	switch (data) {
-		case ENTITY_STATUS.PUBLISHED:
-			return 'Active';
-		case ENTITY_STATUS.ARCHIVED:
-			return 'Inactive';
-		case ENTITY_STATUS.DELETED:
-			return 'Inactive';
-		default:
-			return 'Inactive';
-	}
-};
-
-export default formatChips;
+/** Localized label for API entity status (published → active, archived → inactive). */
+export function formatEntityStatus(status: string, t: TFunction): string {
+	return translateApiEnum(t, ApiEnum.entityStatus, status, { fallback: t('common:status.inactive') });
+}

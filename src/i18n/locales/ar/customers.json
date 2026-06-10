@@ -143,6 +143,9 @@
 		"typePostpaidDesc": "تُطبّق الائتمانات على الفواتير في نهاية دورة الفوترة.",
 		"labelPrePaid": "مسبقة الدفع",
 		"labelPostPaid": "آجلة الدفع",
+		"nameLabel": "اسم المحفظة",
+		"statusLabel": "الحالة",
+		"creditRateFormat": "{{amount}} رصيد = {{currencySymbol}}",
 		"addTopupRate": "سعر إعادة الشحن",
 		"addFreeCredits": "ائتمانات مجانية",
 		"saveWallet": "حفظ المحفظة",
@@ -269,7 +272,8 @@
 	"tabPanels": {
 		"common": {
 			"metadata": "البيانات الوصفية",
-			"unknown": "غير معروف"
+			"unknown": "غير معروف",
+			"noMetadataAvailable": "لا توجد بيانات وصفية متاحة."
 		},
 		"analytics": {
 			"heading": "التحليلات",
@@ -307,7 +311,19 @@
 		"overview": {
 			"subscriptionsCardTitle": "الاشتراكات",
 			"subscriptionsPaginationUnit": "الاشتراكات",
-			"entitlementsCardTitle": "الاستحقاقات"
+			"entitlementsCardTitle": "الاستحقاقات",
+			"subscriptionFilters": {
+				"plan": "الخطة",
+				"status": "الحالة",
+				"billingCadence": "إيقاع الفوترة",
+				"billingPeriod": "فترة الفوترة"
+			},
+			"subscriptionSorts": {
+				"createdAt": "تاريخ الإنشاء",
+				"updatedAt": "تاريخ التحديث",
+				"startDate": "تاريخ البدء",
+				"endDate": "تاريخ الانتهاء"
+			}
 		},
 		"tax": {
 			"emptyTitle": "الضريبة",
@@ -337,7 +353,14 @@
 			"transactionsPaginationUnit": "المعاملات",
 			"noTransactionsSubtitle": "لا توجد معاملات حديثة",
 			"noMetadataTitle": "لا توجد بيانات وصفية",
-			"noMetadataHint": "أضف بيانات وصفية مخصّصة لتخزين معلومات إضافية عن هذه المحفظة."
+			"noMetadataHint": "أضف بيانات وصفية مخصّصة لتخزين معلومات إضافية عن هذه المحفظة.",
+			"menu": {
+				"createWallet": "إنشاء محفظة",
+				"autoTopup": "تعبئة تلقائية",
+				"alertSettings": "إعدادات التنبيه",
+				"manualDebit": "خصم يدوي",
+				"terminate": "إنهاء"
+			}
 		}
 	},
 	"subscriptionEdit": {
@@ -408,7 +431,13 @@
 			"activateSubtitle": "سيُبدأ تفعيل الاشتراك دورة الفوترة من تاريخ البدء المختار.",
 			"startDate": "تاريخ البدء",
 			"activating": "جارٍ التفعيل…",
-			"activate": "تفعيل"
+			"activate": "تفعيل",
+			"menu": {
+				"activateSubscription": "تفعيل الاشتراك",
+				"editSubscription": "تعديل الاشتراك",
+				"addSubscriptionPhase": "إضافة مرحلة اشتراك",
+				"cancelSubscription": "إلغاء الاشتراك"
+			}
 		},
 		"subscriptionForm": {
 			"subscriptionDetails": "تفاصيل الاشتراك",
@@ -482,6 +511,13 @@
 			"deleteAdded": "حذف"
 		},
 		"subscriptionTable": {
+			"columns": {
+				"planName": "اسم الخطة",
+				"billingPeriod": "فترة الفوترة",
+				"status": "الحالة",
+				"startDate": "تاريخ البدء",
+				"renewalDate": "تاريخ التجديد"
+			},
 			"planModifiedAria": "تم تعديل الخطة",
 			"hierarchyColumn": "التسلسل",
 			"inheritedTitle": "اشتراك موروث",

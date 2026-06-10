@@ -8,8 +8,7 @@ import { Card, Chip } from '@/components/atoms';
 import { InvoiceDownloadFormatDialog } from '@/components/molecules';
 import { Invoice, INVOICE_STATUS } from '@/models/Invoice';
 import { PAYMENT_STATUS } from '@/constants/payment';
-import { formatDateShort, getCurrencySymbol } from '@/utils/common/helper_functions';
-import { formatAmount } from '@/components/atoms/Input/Input';
+import { formatDateShort, formatLocalizedCurrency, resolveCurrencyCode } from '@/utils/common/helper_functions';
 import { Download, Loader2, Search } from 'lucide-react';
 import EmptyState from '../EmptyState';
 import { usePortalConfig } from '@/context/PortalConfigContext';
@@ -17,13 +16,13 @@ import { downloadInvoiceLineItemsCsv } from '@/utils/invoices/downloadInvoiceLin
 
 interface InvoicesTableProps {
 	invoices: Invoice[];
-	currencySymbol: string;
+	currency: string;
 	onOpenDownloadFormat: (invoice: Invoice) => void;
 	downloadPendingId: string | null;
 	hasTheme: boolean;
 }
 
-const InvoicesTable = ({ invoices, currencySymbol, onOpenDownloadFormat, downloadPendingId, hasTheme }: InvoicesTableProps) => {
+const InvoicesTable = ({ invoices, currency, onOpenDownloadFormat, downloadPendingId, hasTheme }: InvoicesTableProps) => {
 	const { t } = useTranslation('customer-portal');
 
 	const getStatusChip = (invoice: Invoice) => {
@@ -83,8 +82,7 @@ const InvoicesTable = ({ invoices, currencySymbol, onOpenDownloadFormat, downloa
 							</td>
 							<td className='px-4 py-3'>{getStatusChip(invoice)}</td>
 							<td className='px-4 py-3 text-sm text-end font-medium' style={{ color: 'var(--portal-text-primary, #09090b)' }}>
-								{currencySymbol}
-								{formatAmount(String(invoice.total ?? 0))}
+								{formatLocalizedCurrency(invoice.total ?? 0, invoice.currency ?? currency)}
 							</td>
 							<td className='px-4 py-3 text-center'>
 								{invoice.invoice_status === INVOICE_STATUS.FINALIZED && (
@@ -174,8 +172,7 @@ const InvoicesWidget = () => {
 		);
 	}
 
-	const currency = invoices[0]?.currency || 'USD';
-	const currencySymbol = getCurrencySymbol(currency);
+	const currency = resolveCurrencyCode(invoices[0]?.currency);
 
 	if (invoices.length === 0) {
 		return (
@@ -245,7 +242,7 @@ const InvoicesWidget = () => {
 				style={{ backgroundColor: 'var(--portal-surface, white)', border: '1px solid var(--portal-border, #E9E9E9)' }}>
 				<InvoicesTable
 					invoices={filteredInvoices}
-					currencySymbol={currencySymbol}
+					currency={currency}
 					onOpenDownloadFormat={openInvoiceDownload}
 					downloadPendingId={busyDownloadInvoiceId}
 					hasTheme={hasTheme}

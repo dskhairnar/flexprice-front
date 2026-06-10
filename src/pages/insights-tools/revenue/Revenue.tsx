@@ -8,7 +8,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ChevronLeft, ChevronRight, Search } from 'lucide-react';
 import { RedirectCell, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/molecules';
-import { getCurrencySymbol } from '@/utils';
+import { DEFAULT_CURRENCY_CODE } from '@/constants/constants';
+import { formatLocalizedCompactNumber, formatLocalizedCurrency, formatLocalizedNumber } from '@/i18n/display/formatNumber';
 import { cn } from '@/lib/utils';
 import RevenueDashboardApi from '@/api/RevenueDashboardApi';
 import { RouteNames } from '@/core/routes/Routes';
@@ -56,17 +57,17 @@ const getDateRangeForPeriod = (period: RevenueFilterValue) => {
 
 const formatCurrency = (value: number | null, currency: string, naLabel: string) => {
 	if (value == null) return naLabel;
-	return `${getCurrencySymbol(currency)} ${value.toLocaleString(undefined, { maximumFractionDigits: 2 })}`;
+	return formatLocalizedCurrency(value, currency);
 };
 
 const formatDecimal = (value: number | null, naLabel: string) => {
 	if (value == null) return naLabel;
-	return value.toLocaleString(undefined, { maximumFractionDigits: 2 });
+	return formatLocalizedNumber(value, { maximumFractionDigits: 2 });
 };
 
 const formatInteger = (value: number | null, naLabel: string) => {
 	if (value == null) return naLabel;
-	return value.toLocaleString();
+	return formatLocalizedNumber(value, { maximumFractionDigits: 0 });
 };
 
 const toNumberOrNull = (value: unknown): number | null => {
@@ -381,9 +382,7 @@ const Revenue = () => {
 									<TableHead className='rounded-tl-md pl-4 font-semibold text-gray-700 text-[13px]'>
 										{t('insightsTools.revenue.colCustomer')}
 									</TableHead>
-									{selectedCurrency === '' && (
-										<TableHead className='font-semibold text-gray-700 text-[13px]'>{t('insightsTools.revenue.colCurrency')}</TableHead>
-									)}
+									{selectedCurrency === '' && <TableHead className='font-semibold text-gray-700 text-[13px]'>{t('currency')}</TableHead>}
 									<TableHead className='font-semibold text-gray-700 text-[13px]'>{t('insightsTools.revenue.metricNetRevenue')}</TableHead>
 									<TableHead className='font-semibold text-gray-700 text-[13px]'>
 										{t('insightsTools.revenue.metricContractRevenue')}
@@ -523,20 +522,22 @@ const RevenueBarChart = ({ title, data, type }: { title: string; data: RevenueDa
 
 	const formatYAxis = (val: number) => {
 		if (type === 'currency') {
-			if (val >= 1_000_000) return `$${(val / 1_000_000).toFixed(1)}M`;
-			if (val >= 1_000) return `$${(val / 1_000).toFixed(0)}K`;
-			return `$${val.toLocaleString()}`;
+			if (Math.abs(val) >= 1000) {
+				return formatLocalizedCurrency(val, DEFAULT_CURRENCY_CODE, { notation: 'compact', maximumFractionDigits: 1 });
+			}
+			return formatLocalizedCurrency(val, DEFAULT_CURRENCY_CODE, { maximumFractionDigits: 0 });
 		}
-		if (val >= 1_000_000) return `${(val / 1_000_000).toFixed(1)}M`;
-		if (val >= 1_000) return `${(val / 1_000).toFixed(0)}K`;
-		return val.toLocaleString(undefined, { maximumFractionDigits: 0 });
+		if (Math.abs(val) >= 1000) {
+			return formatLocalizedCompactNumber(val);
+		}
+		return formatLocalizedNumber(val, { maximumFractionDigits: 0 });
 	};
 
 	const formatTooltip = (val: number) => {
 		if (type === 'currency') {
-			return [`$ ${val.toLocaleString(undefined, { maximumFractionDigits: 2 })}`, title];
+			return [formatLocalizedCurrency(val, DEFAULT_CURRENCY_CODE), title];
 		}
-		return [val.toLocaleString(undefined, { maximumFractionDigits: 2 }), title];
+		return [formatLocalizedNumber(val, { maximumFractionDigits: 2 }), title];
 	};
 
 	return (

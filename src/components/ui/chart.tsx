@@ -2,6 +2,7 @@ import * as React from 'react';
 import * as RechartsPrimitive from 'recharts';
 
 import { cn } from '@/lib/utils';
+import { formatLocalizedNumber } from '@/i18n/display/formatNumber';
 
 /** Recharts series key fallback when name/dataKey is missing — not shown as standalone UI copy. */
 const CHART_FALLBACK_PAYLOAD_KEY = 'value';
@@ -200,7 +201,11 @@ const ChartTooltipContent = React.forwardRef<
 												<span className='text-muted-foreground'>{itemConfig?.label || item.name}</span>
 											</div>
 											{item.value && (
-												<span className='font-mono font-medium tabular-nums text-foreground'>{item.value.toLocaleString()}</span>
+												<span className='font-mono font-medium tabular-nums text-foreground'>
+													{typeof item.value === 'number'
+														? formatLocalizedNumber(item.value, { maximumFractionDigits: 2 })
+														: String(item.value ?? '')}
+												</span>
 											)}
 										</div>
 									</>

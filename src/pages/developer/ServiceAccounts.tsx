@@ -12,6 +12,7 @@ import { EmptyPage } from '@/components/organisms';
 import { API_DOCS_TAGS } from '@/constants/apiDocsTags';
 import ServiceAccountDrawer from '@/components/molecules/ServiceAccountDrawer/ServiceAccountDrawer';
 import { useTranslation } from 'react-i18next';
+import { formatRbacRole } from '@/i18n/display/apiEnums';
 
 const ServiceAccountsPage = () => {
 	const { t } = useTranslation(['developers', 'common']);
@@ -72,7 +73,7 @@ const ServiceAccountsPage = () => {
 						<div className='flex flex-wrap gap-1'>
 							{rowData.roles.map((role) => (
 								<span key={role} className='inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800'>
-									{role}
+									{formatRbacRole(role, t)}
 								</span>
 							))}
 						</div>

@@ -2,7 +2,7 @@ import { useTranslation } from 'react-i18next';
 import { FC, useMemo, useCallback } from 'react';
 import { Payment } from '@/models/Payment';
 import FlexpriceTable, { ColumnData, TooltipCell } from '../Table';
-import { formatDateShort, toSentenceCase, getCurrencySymbol } from '@/utils/common/helper_functions';
+import { formatDateShort, formatLocalizedCurrency, toSentenceCase } from '@/utils/common/helper_functions';
 import { Chip, NoDataCard } from '@/components/atoms';
 import { CreditCard, Banknote, Receipt, CircleDollarSign, ExternalLink, Copy, Eye } from 'lucide-react';
 import { RouteNames } from '@/core/routes/Routes';
@@ -55,17 +55,19 @@ const PAYMENT_STATUS_CONFIG = {
 
 const PaymentTableMenu: FC<PaymentTableMenuProps> = ({ payment }) => {
 	const navigate = useNavigate();
+	const { t } = useTranslation('common');
+
 	const handleCopyPaymentLink = useCallback(async () => {
 		if (!payment.payment_url) return;
 
 		try {
 			await navigator.clipboard.writeText(payment.payment_url);
-			toast.success('Payment link copied to clipboard!');
+			toast.success(t('tableMenu.paymentLinkCopied'));
 		} catch (error) {
 			console.error('Failed to copy payment link:', error);
-			toast.error('Failed to copy payment link. Please try again.');
+			toast.error(t('tableMenu.paymentLinkCopyFailed'));
 		}
-	}, [payment.payment_url]);
+	}, [payment.payment_url, t]);
 
 	const menuOptions = useMemo((): DropdownMenuOption[] => {
 		const isPaymentLink = payment.payment_method_type.toUpperCase() === PAYMENT_METHOD_TYPE.PAYMENT_LINK;
@@ -74,7 +76,7 @@ const PaymentTableMenu: FC<PaymentTableMenuProps> = ({ payment }) => {
 
 		const options = [
 			{
-				label: 'View Invoice',
+				label: t('tableMenu.viewInvoice'),
 				icon: <Eye className='w-4 h-4' />,
 				onSelect: () => {
 					navigate(`${RouteNames.invoices}/${payment.destination_id}`);
@@ -85,7 +87,7 @@ const PaymentTableMenu: FC<PaymentTableMenuProps> = ({ payment }) => {
 
 		if (isEnabled) {
 			options.push({
-				label: 'Copy Link',
+				label: t('tableMenu.copyLink'),
 				icon: <Copy className='w-4 h-4' />,
 				onSelect: handleCopyPaymentLink,
 				disabled: !isEnabled,
@@ -93,7 +95,15 @@ const PaymentTableMenu: FC<PaymentTableMenuProps> = ({ payment }) => {
 		}
 
 		return options;
-	}, [payment.payment_method_type, payment.payment_url, handleCopyPaymentLink, navigate, payment.destination_id, payment.destination_type]);
+	}, [
+		payment.payment_method_type,
+		payment.payment_url,
+		handleCopyPaymentLink,
+		navigate,
+		payment.destination_id,
+		payment.destination_type,
+		t,
+	]);
 
 	return <DropdownMenu options={menuOptions} />;
 };
@@ -118,12 +128,12 @@ const InvoicePaymentsTable: FC<Props> = ({ data }) => {
 	const columns = useMemo(
 		(): ColumnData<Payment>[] => [
 			{
-				title: 'Ref ID',
+				title: t('tableColumns.refId'),
 				width: 200,
 				render: (rowData) => <TooltipCell tooltipContent={rowData.idempotency_key} tooltipText={rowData.idempotency_key} />,
 			},
 			{
-				title: 'Invoice ID',
+				title: t('tableColumns.invoiceId'),
 				render: (payment) => {
 					if (payment.destination_type.toUpperCase() === 'INVOICE') {
 						return (
@@ -136,18 +146,18 @@ const InvoicePaymentsTable: FC<Props> = ({ data }) => {
 				},
 			},
 			{
-				title: 'Date',
+				title: t('tableColumns.date'),
 				render: (payment) => formatDateShort(payment.created_at),
 			},
 			{
-				title: 'Status',
+				title: t('tableColumns.status'),
 				render: (payment) => {
 					const variant = getPaymentStatusVariant(payment.payment_status);
 					return <Chip label={toSentenceCase(payment.payment_status)} variant={variant} />;
 				},
 			},
 			{
-				title: 'Payment Method',
+				title: t('tableColumns.paymentMethod'),
 				render: (payment) => (
 					<div className='flex items-center gap-2'>
 						{getPaymentMethodIcon(payment.payment_method_type)}
@@ -156,8 +166,8 @@ const InvoicePaymentsTable: FC<Props> = ({ data }) => {
 				),
 			},
 			{
-				title: 'Amount',
-				render: (payment) => `${getCurrencySymbol(payment.currency)} ${payment.amount}`,
+				title: t('tableColumns.amount'),
+				render: (payment) => formatLocalizedCurrency(payment.amount, payment.currency),
 			},
 			{
 				title: '',
@@ -166,14 +176,14 @@ const InvoicePaymentsTable: FC<Props> = ({ data }) => {
 				render: (payment) => <PaymentTableMenu payment={payment} />,
 			},
 		],
-		[getPaymentMethodIcon, getPaymentMethodLabel, getPaymentStatusVariant],
+		[getPaymentMethodIcon, getPaymentMethodLabel, getPaymentStatusVariant, t],
 	);
 
 	// Early return for empty data
 	if (!data?.length) {
 		return (
 			<div className='my-6'>
-				<NoDataCard title={t('labels.payments')} subtitle='No payments found' />
+				<NoDataCard title={t('labels.payments')} subtitle={t('tableColumns.noPaymentsFound')} />
 			</div>
 		);
 	}

@@ -59,6 +59,37 @@
 		"completed": "مكتمل",
 		"running": "قيد التشغيل"
 	},
+	"apiEnums": {
+		"billingPeriodUnit": {
+			"daily": "يوم",
+			"weekly": "أسبوع",
+			"monthly": "شهر",
+			"quarterly": "ربع",
+			"halfYearly": "نصف سنة",
+			"annual": "سنة",
+			"onetime": "مرة واحدة"
+		},
+		"subscriptionType": {
+			"standalone": "مستقل",
+			"delegatedInvoicing": "فوترة مفوضة",
+			"parent": "أصل",
+			"inherited": "موروث",
+			"groupedInvoicing": "فوترة مجمعة"
+		},
+		"tierMode": {
+			"volume": "حجم",
+			"slab": "شرائح"
+		},
+		"rbacRole": {
+			"superAdmin": "مسؤول أعلى",
+			"admin": "مسؤول",
+			"member": "عضو",
+			"viewer": "مشاهد",
+			"owner": "مالك",
+			"editor": "محرر",
+			"readOnly": "قراءة فقط"
+		}
+	},
 	"validation": {
 		"required": "هذا الحقل مطلوب",
 		"email": "يرجى إدخال عنوان بريد إلكتروني صالح",
@@ -250,7 +281,15 @@
 	},
 	"breadcrumb": {
 		"navAriaLabel": "مسار التنقل",
-		"moreSrOnly": "المزيد"
+		"moreSrOnly": "المزيد",
+		"loading": "…",
+		"segments": {
+			"createFeature": "إنشاء ميزة",
+			"addCharges": "إضافة رسوم",
+			"checkout": "الدفع",
+			"onboarding": "الإعداد الأولي",
+			"pricingSetup": "إعداد التسعير"
+		}
 	},
 	"sidebar": {
 		"toggleSidebarAccessibilityLabel": "إظهار أو إخفاء الشريط الجانبي",
@@ -340,10 +379,73 @@
 		"syncPush": "دفع إلى التكامل",
 		"syncPull": "سحب من التكامل"
 	},
+	"tableColumns": {
+		"name": "الاسم",
+		"displayName": "اسم العرض",
+		"status": "الحالة",
+		"createdAt": "تاريخ الإنشاء",
+		"updatedAt": "تاريخ التحديث",
+		"created": "تاريخ الإنشاء",
+		"priority": "الأولوية",
+		"currency": "العملة",
+		"type": "النوع",
+		"cadence": "الإيقاع",
+		"period": "الفترة",
+		"expiration": "انتهاء الصلاحية",
+		"expirationConfig": "إعداد انتهاء الصلاحية",
+		"credits": "الأرصدة",
+		"taxId": "معرّف الضريبة",
+		"taxRate": "معدل الضريبة",
+		"autoApply": "تطبيق تلقائي",
+		"chargeType": "نوع الرسم",
+		"billingTiming": "توقيت الفوترة",
+		"billingPeriod": "فترة الفوترة",
+		"value": "القيمة",
+		"featureName": "اسم الميزة",
+		"featureType": "نوع الميزة",
+		"priceType": "نوع السعر",
+		"quantity": "الكمية",
+		"phase": "المرحلة",
+		"source": "المصدر",
+		"charge": "الرسم",
+		"coupon": "القسيمة",
+		"refId": "معرّف المرجع",
+		"invoiceId": "معرّف الفاتورة",
+		"date": "التاريخ",
+		"paymentMethod": "طريقة الدفع",
+		"amount": "المبلغ",
+		"taxName": "اسم الضريبة",
+		"code": "الرمز",
+		"rate": "المعدل",
+		"taxableAmount": "المبلغ الخاضع للضريبة",
+		"taxAmount": "مبلغ الضريبة",
+		"appliedAt": "تاريخ التطبيق",
+		"integration": "التكامل",
+		"charges": "الرسوم",
+		"usageReset": "إعادة ضبط الاستخدام",
+		"noPaymentsFound": "لا توجد مدفوعات"
+	},
+	"tableMenu": {
+		"groups": {
+			"actions": "الإجراءات",
+			"connections": "الارتباطات"
+		},
+		"terminate": "إنهاء",
+		"terminatePrice": "إنهاء السعر",
+		"copyPriceId": "نسخ معرّف السعر",
+		"updatePrice": "تحديث السعر",
+		"editDetails": "تعديل التفاصيل",
+		"viewInvoice": "عرض الفاتورة",
+		"copyLink": "نسخ الرابط",
+		"priceIdCopied": "تم نسخ معرّف السعر إلى الحافظة",
+		"paymentLinkCopied": "تم نسخ رابط الدفع إلى الحافظة",
+		"paymentLinkCopyFailed": "فشل نسخ رابط الدفع. يرجى المحاولة مرة أخرى."
+	},
 	"labels": {
 		"payload": "الحمولة",
 		"sort": "ترتيب",
 		"na": "--",
+		"notSet": "غير محدد",
 		"notApplicable": "غير منطبق",
 		"unknown": "غير معروف",
 		"creditGrants": "منح الرصيد",
@@ -721,5 +823,9 @@
 	"queryableDataArea": {
 		"errorFetching": "خطأ في جلب البيانات",
 		"defaultPromoImageUrl": "https://mintlify.s3.us-west-1.amazonaws.com/flexprice/UsageBaseMetering(1).jpg"
+	},
+	"fundingStrip": {
+		"announcement": "فليكسبرايس تجمع 1.5 مليون دولار في جولة البذرة",
+		"knowMore": "اعرف المزيد"
 	}
 }
