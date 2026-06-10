@@ -21,10 +21,10 @@ describe('parseBrandConfig', () => {
 	});
 
 	it('applies overrides from raw data', () => {
-		const result = parseBrandConfig({ name: 'Tirdad', primaryColor: '#0d1b2a', supportEmail: 'hi@tirdad.com' });
-		expect(result.name).toBe('Tirdad');
+		const result = parseBrandConfig({ name: 'Acme', primaryColor: '#0d1b2a', supportEmail: 'support@acme.example' });
+		expect(result.name).toBe('Acme');
 		expect(result.primaryColor).toBe('#0d1b2a');
-		expect(result.supportEmail).toBe('hi@tirdad.com');
+		expect(result.supportEmail).toBe('support@acme.example');
 		expect(result.logo).toBe('/comicon.png');
 	});
 
@@ -185,5 +185,39 @@ describe('config object', () => {
 		expect(config.i18n).toBeDefined();
 		expect(config.regions).toBeDefined();
 		expect(Array.isArray(config.allowedLocales)).toBe(true);
+	});
+});
+
+describe('parseTypographyConfig', () => {
+	it('uses Geist by default when no font env is set', async () => {
+		const { parseTypographyConfig } = await import('./config');
+		const result = parseTypographyConfig();
+
+		expect(result.primaryFont).toBe('Geist');
+		expect(result.fontFamily).toBe('Geist, sans-serif');
+	});
+
+	it('applies VITE_FONT_PRIMARY when set', async () => {
+		const { parseTypographyConfig } = await import('./config');
+		const result = parseTypographyConfig(undefined, 'Custom Sans');
+
+		expect(result.primaryFont).toBe('Custom Sans');
+		expect(result.fontFamily).toBe("'Custom Sans', sans-serif");
+	});
+
+	it('prefers VITE_FONT_CONFIG JSON over individual env vars', async () => {
+		const { parseTypographyConfig } = await import('./config');
+		const result = parseTypographyConfig('{"primary":"Inter","fallback":"system-ui"}', 'Custom Sans');
+
+		expect(result.primaryFont).toBe('Inter');
+		expect(result.fontFamily).toBe('Inter, system-ui');
+	});
+
+	it('quotes fallback font names that contain spaces', async () => {
+		const { parseTypographyConfig } = await import('./config');
+		const result = parseTypographyConfig(undefined, undefined, 'Times New Roman');
+
+		expect(result.fallbackFont).toBe('Times New Roman');
+		expect(result.fontFamily).toBe("Geist, 'Times New Roman'");
 	});
 });

@@ -1,9 +1,6 @@
-import type { TFunction } from 'i18next';
-import { ApiEnum, translateApiEnum } from '@/i18n/display/apiEnums';
-import { DEFAULT_CURRENCY_CODE } from '@/constants/constants';
-import { formatLocalizedCurrency, getLocalizedCurrencySymbol } from '@/i18n/display/formatNumber';
-import { getIntlDigitOptions, getIntlLocale } from '@/i18n/display/intlLocale';
-import { Price, PRICE_TYPE } from '@/models/Price';
+import { BILLING_PERIOD } from '@/constants/constants';
+import { getCurrencySymbol as getCurrencyDisplaySymbol } from '@/constants/common';
+import { BILLING_MODEL, Price, PRICE_TYPE } from '@/models/Price';
 import { getAllISOCodes } from 'iso-country-currency';
 import { v4 as uuidv4 } from 'uuid';
 import toast from 'react-hot-toast';
@@ -11,7 +8,7 @@ import toast from 'react-hot-toast';
 export { formatLocalizedCurrency, formatLocalizedNumber, resolveCurrencyCode } from '@/i18n/display/formatNumber';
 
 export function getCurrencySymbol(currency: string): string {
-	return getLocalizedCurrencySymbol(currency);
+	return getCurrencyDisplaySymbol(currency);
 }
 
 export function getCurrencyName(currency: string): string {

@@ -68,7 +68,7 @@ interface RestrictionsConfig {
 	rawEnvs: string;
 }
 
-/** Primary defaults to **Geist** (Google Fonts in `src/index.css`). Override via `VITE_FONT_CONFIG`. */
+/** Primary defaults to **Geist** (Google Fonts in `src/index.css`). Override via `VITE_FONT_CONFIG` or `VITE_FONT_PRIMARY`. */
 export interface TypographyConfig {
 	primaryFont: string;
 	fallbackFont: string;
@@ -93,24 +93,35 @@ interface FontConfigJson {
 	fallback?: string;
 }
 
-function parseTypographyConfig(): TypographyConfig {
-	const raw = import.meta.env.VITE_FONT_CONFIG?.trim();
+export function parseTypographyConfig(rawFontConfig?: string, envPrimary?: string, envFallback?: string): TypographyConfig {
 	let primary = DEFAULT_FONT_PRIMARY;
 	let fallback = DEFAULT_FONT_FALLBACK;
+	const raw = rawFontConfig?.trim();
+
 	if (raw) {
 		try {
 			const parsed = JSON.parse(raw) as FontConfigJson;
 			if (typeof parsed.primary === 'string' && parsed.primary.trim()) primary = parsed.primary.trim();
 			if (typeof parsed.fallback === 'string' && parsed.fallback.trim()) fallback = parsed.fallback.trim();
+			const fontFamily = [cssFontFamilyToken(primary), cssFontFamilyToken(fallback)].join(', ');
+			return { primaryFont: primary, fallbackFont: fallback, fontFamily };
 		} catch {
-			// invalid JSON — keep defaults
+			// invalid JSON — fall through to individual env vars
 		}
 	}
-	const fontFamily = [cssFontFamilyToken(primary), fallback].join(', ');
+
+	if (envPrimary?.trim()) primary = envPrimary.trim();
+	if (envFallback?.trim()) fallback = envFallback.trim();
+
+	const fontFamily = [cssFontFamilyToken(primary), cssFontFamilyToken(fallback)].join(', ');
 	return { primaryFont: primary, fallbackFont: fallback, fontFamily };
 }
 
-const typographyConfig = parseTypographyConfig();
+const typographyConfig = parseTypographyConfig(
+	import.meta.env.VITE_FONT_CONFIG,
+	import.meta.env.VITE_FONT_PRIMARY,
+	import.meta.env.VITE_FONT_FALLBACK,
+);
 
 export interface Config {
 	app: AppConfig;

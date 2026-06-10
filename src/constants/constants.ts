@@ -1,4 +1,5 @@
 import { getAllISOCodes } from 'iso-country-currency';
+import { getCurrencySymbol } from './common';
 import { CREDIT_GRANT_PERIOD } from '@/models/CreditGrant';
 import { BILLING_MODEL, PRICE_ENTITY_TYPE } from '@/models/Price';
 import { ENTITLEMENT_ENTITY_TYPE } from '@/models/Entitlement';
@@ -45,7 +46,7 @@ export const getCurrencyOptions = () => {
 		if (code) {
 			map.set(currency, {
 				currency: code.currency,
-				symbol: code.symbol,
+				symbol: getCurrencySymbol(code.currency),
 			});
 		}
 	});
@@ -55,7 +56,7 @@ export const getCurrencyOptions = () => {
 		if (!priorityCurrencies.includes(code.currency)) {
 			map.set(code.currency, {
 				currency: code.currency,
-				symbol: code.symbol,
+				symbol: getCurrencySymbol(code.currency),
 			});
 		}
 	});
