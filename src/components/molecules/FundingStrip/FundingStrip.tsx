@@ -1,15 +1,21 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { config, AUTH_PROVIDER } from '@/config/config';
+import { Locale } from '@/config/branding';
+import { useLocaleStore } from '@/store/useLocaleStore';
+import { isCurrentUsRegion } from '@/utils/region/regionUtils';
 
 const FUNDING_URL =
 	'https://entrepreneur.economictimes.indiatimes.com/news/funding/flexprice-secures-15-million-in-seed-funding-to-revolutionize-ai-billing-solutions/131320984';
 
 const FundingStrip: React.FC = () => {
 	const { t } = useTranslation('common', { keyPrefix: 'fundingStrip' });
+	const locale = useLocaleStore((s) => s.locale);
 
-	// Only show in production with Supabase auth
-	if (!config.app.isProd || config.auth.provider !== AUTH_PROVIDER.Supabase) {
+	const showForProdSupabase = config.app.isProd && config.auth.provider === AUTH_PROVIDER.Supabase;
+	const showForArabicUs = locale === Locale.Ar && isCurrentUsRegion();
+
+	if (!showForProdSupabase && !showForArabicUs) {
 		return null;
 	}
 

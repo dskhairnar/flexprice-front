@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { detectCurrentRegion } from './regionUtils';
+import { detectCurrentRegion, isCurrentUsRegion } from './regionUtils';
 import { RegionOption } from '@/config/authTemplates';
 
 const regions: RegionOption[] = [
@@ -28,5 +28,23 @@ describe('detectCurrentRegion', () => {
 
 	it('returns null for empty regions array', () => {
 		expect(detectCurrentRegion([])).toBeNull();
+	});
+});
+
+describe('isCurrentUsRegion', () => {
+	it('returns true when current origin matches the US region URL', () => {
+		Object.defineProperty(window, 'location', {
+			value: { ...window.location, origin: 'https://us.flexprice.io' },
+			writable: true,
+		});
+		expect(isCurrentUsRegion(regions)).toBe(true);
+	});
+
+	it('returns false when current origin is not the US region URL', () => {
+		Object.defineProperty(window, 'location', {
+			value: { ...window.location, origin: 'https://in.flexprice.io' },
+			writable: true,
+		});
+		expect(isCurrentUsRegion(regions)).toBe(false);
 	});
 });

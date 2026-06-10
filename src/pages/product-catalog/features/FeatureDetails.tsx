@@ -444,7 +444,7 @@ const FeatureDetails = () => {
 									<div className='grid grid-cols-[200px_1fr] items-center'>
 										<span className='text-gray-500 text-sm'>{t('catalog:features.details.usageReset')}</span>
 										<span className='text-gray-800 text-sm'>
-											{formatMeterUsageResetPeriodToDisplay(data?.meter?.reset_usage || t('common:labels.na'))}
+											{formatMeterUsageResetPeriodToDisplay(data?.meter?.reset_usage || t('common:labels.na'), t)}
 										</span>
 									</div>
 									{(data?.meter?.aggregation?.type === METER_AGGREGATION_TYPE.MAX ||

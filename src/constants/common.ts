@@ -1,4 +1,6 @@
-import { formatLocalizedNumber } from '@/i18n/display/formatNumber';
+import { formatLocalizedNumber, getLocalizedCurrencySymbol } from '@/i18n/display/formatNumber';
+import { getIntlDigitOptions, getIntlLocale } from '@/i18n/display/intlLocale';
+import i18n from 'i18next';
 
 // =============================================================================
 // COMMON CONSTANTS & UTILITIES
@@ -9,13 +11,33 @@ import { formatLocalizedNumber } from '@/i18n/display/formatNumber';
 // =============================================================================
 
 const CURRENCY_SYMBOL_OVERRIDES: Record<string, string> = {
+	USD: '$',
 	SAR: '\u20c1',
 };
 
 const getCurrencySymbolOverride = (currency: string): string | undefined => CURRENCY_SYMBOL_OVERRIDES[currency.toUpperCase()];
 
-export const formatCurrency = (amount: number | string, currency: string): string =>
-	formatLocalizedCurrency(amount, currency, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+export const formatCurrency = (amount: number | string, currency: string): string => {
+	const numAmount = typeof amount === 'string' ? parseFloat(amount) : amount;
+	if (isNaN(numAmount)) return `${getCurrencySymbol(currency)}0.00`;
+
+	const locale = getIntlLocale(i18n.language);
+	const formatter = new Intl.NumberFormat(locale, {
+		...getIntlDigitOptions(i18n.language),
+		style: 'currency',
+		currency: currency,
+		minimumFractionDigits: 2,
+		maximumFractionDigits: 2,
+	});
+	const symbolOverride = getCurrencySymbolOverride(currency);
+
+	if (!symbolOverride) return formatter.format(numAmount);
+
+	return formatter
+		.formatToParts(numAmount)
+		.map((part) => (part.type === 'currency' ? symbolOverride : part.value))
+		.join('');
+};
 
 export const formatAmount = (amount: number | string, currency?: string): string => {
 	if (currency) {
@@ -40,7 +62,9 @@ export const formatDate = (date: string | Date): string => {
 	const dateObj = typeof date === 'string' ? new Date(date) : date;
 	if (isNaN(dateObj.getTime())) return '--';
 
-	return new Intl.DateTimeFormat('en-US', {
+	const locale = getIntlLocale(i18n.language);
+	return new Intl.DateTimeFormat(locale, {
+		...getIntlDigitOptions(i18n.language),
 		year: 'numeric',
 		month: 'short',
 		day: 'numeric',
@@ -53,7 +77,9 @@ export const formatDateTime = (date: string | Date): string => {
 	const dateObj = typeof date === 'string' ? new Date(date) : date;
 	if (isNaN(dateObj.getTime())) return '--';
 
-	return new Intl.DateTimeFormat('en-US', {
+	const locale = getIntlLocale(i18n.language);
+	return new Intl.DateTimeFormat(locale, {
+		...getIntlDigitOptions(i18n.language),
 		year: 'numeric',
 		month: 'short',
 		day: 'numeric',
@@ -72,7 +98,7 @@ export const toSentenceCase = (str: string): string => {
 };
 
 export const formatPercentage = (value: number, decimals: number = 1): string => {
-	return `${value.toFixed(decimals)}%`;
+	return `${formatLocalizedNumber(value, { minimumFractionDigits: decimals, maximumFractionDigits: decimals })}%`;
 };
 
 export { default as formatNumber } from '@/utils/common/format_number';

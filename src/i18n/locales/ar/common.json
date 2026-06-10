@@ -179,7 +179,72 @@
 		"keyboardShortcutsHint": "↑↓ للتنقل · Enter للاختيار · Esc للإغلاق · {{shortcut}} للفتح في أي وقت",
 		"shortcutToast": "اضغط {{shortcut}} لفتح لوحة الأوامر في أي وقت",
 		"keyboardShortcutTitle": "أمر + K",
-		"kbdDisplay": "⌘ + K"
+		"kbdDisplay": "⌘ + K",
+		"groups": {
+			"actions": "الإجراءات",
+			"goTo": "انتقل إلى",
+			"documentation": "التوثيق",
+			"help": "المساعدة"
+		},
+		"commands": {
+			"action-create-feature": "إنشاء ميزة",
+			"action-simulate-ingest-events": "محاكاة أحداث الاستيعاب",
+			"action-open-documentation": "فتح التوثيق",
+			"action-keyboard-shortcuts": "اختصارات لوحة المفاتيح",
+			"action-contact-us": "اتصل بنا",
+			"action-book-call": "احجز مكالمة",
+			"action-join-slack": "انضم إلى مجتمع Slack",
+			"action-open-intercom": "فتح Intercom",
+			"action-logout": "تسجيل الخروج",
+			"doc-welcome": "التوثيق: مرحباً ونظرة عامة",
+			"doc-creating-metered-feature": "التوثيق: إنشاء ميزة مقاسة",
+			"doc-sending-events": "التوثيق: إرسال الأحداث",
+			"doc-creating-plan": "التوثيق: إنشاء خطة",
+			"doc-creating-feature": "التوثيق: إنشاء ميزة",
+			"doc-creating-customer": "التوثيق: إنشاء عميل",
+			"doc-create-subscription": "التوثيق: إنشاء اشتراك للعميل",
+			"doc-creating-wallet": "التوثيق: إنشاء محفظة",
+			"doc-invoices-overview": "التوثيق: نظرة عامة على الفواتير",
+			"doc-api-reference": "التوثيق: مرجع API",
+			"doc-webhooks": "التوثيق: الويب هوكات",
+			"doc-api-keys": "التوثيق: إدارة مفاتيح API",
+			"nav-home": "الرئيسية",
+			"nav-product-catalog-features": "كتالوج المنتجات ← الميزات",
+			"nav-product-catalog-plans": "كتالوج المنتجات ← الخطط",
+			"nav-product-catalog-coupons": "كتالوج المنتجات ← القسائم",
+			"nav-product-catalog-addons": "كتالوج المنتجات ← الإضافات",
+			"nav-product-catalog-cost-sheets": "كتالوج المنتجات ← جداول التكلفة",
+			"nav-product-catalog-price-units": "كتالوج المنتجات ← وحدات السعر",
+			"nav-product-catalog-groups": "كتالوج المنتجات ← المجموعات",
+			"nav-billing-customers": "الفوترة ← العملاء",
+			"nav-billing-subscriptions": "الفوترة ← الاشتراكات",
+			"nav-billing-taxes": "الفوترة ← الضرائب",
+			"nav-billing-invoices": "الفوترة ← الفواتير",
+			"nav-billing-credit-notes": "الفوترة ← إشعارات دائنة",
+			"nav-billing-payments": "الفوترة ← المدفوعات",
+			"nav-settings-billing": "الإعدادات ← الفوترة",
+			"nav-tools-imports": "الأدوات ← الاستيراد",
+			"nav-tools-revenue": "الأدوات ← الإيرادات",
+			"nav-tools-exports": "الأدوات ← التصدير",
+			"nav-tools-s3-exports": "الأدوات ← تصدير S3",
+			"nav-developers-events": "تتبع الاستخدام ← مصحح الأحداث",
+			"nav-usage-tracking-query": "تتبع الاستخدام ← الاستعلام",
+			"nav-developers-api-keys": "المطورون ← مفاتيح API",
+			"nav-developers-service-accounts": "المطورون ← حسابات الخدمة",
+			"nav-developers-webhooks": "المطورون ← الويب هوكات",
+			"nav-developers-workflows": "المطورون ← سير العمل",
+			"nav-integrations": "التكاملات",
+			"nav-integration-stripe": "التكاملات ← Stripe",
+			"nav-integration-razorpay": "التكاملات ← Razorpay",
+			"nav-integration-chargebee": "التكاملات ← Chargebee",
+			"nav-integration-hubspot": "التكاملات ← Hubspot",
+			"nav-integration-quickbooks": "التكاملات ← QuickBooks",
+			"nav-integration-zoho": "التكاملات ← Zoho Books",
+			"nav-integration-nomod": "التكاملات ← Nomod",
+			"nav-integration-moyasar": "التكاملات ← Moyasar",
+			"nav-integration-paddle": "التكاملات ← Paddle",
+			"nav-pricing-widget": "أداة التسعير"
+		}
 	},
 	"emptyPage": {
 		"learnMore": "اعرف المزيد"
@@ -290,7 +355,21 @@
 			"addCharges": "إضافة رسوم",
 			"checkout": "الدفع",
 			"onboarding": "الإعداد الأولي",
-			"pricingSetup": "إعداد التسعير"
+			"pricingSetup": "إعداد التسعير",
+			"usageTracking": "تتبع الاستخدام",
+			"events": "الأحداث",
+			"query": "الاستعلام",
+			"s3Exports": "تصدير S3",
+			"stripe": "Stripe",
+			"razorpay": "Razorpay",
+			"chargebee": "Chargebee",
+			"hubspot": "Hubspot",
+			"quickbooks": "QuickBooks",
+			"zoho": "Zoho Books",
+			"nomod": "Nomod",
+			"moyasar": "Moyasar",
+			"paddle": "Paddle",
+			"whop": "Whop"
 		}
 	},
 	"sidebar": {
@@ -519,6 +598,7 @@
 		"timePeriod": "الفترة الزمنية",
 		"windowSize": "حجم النافذة",
 		"apiReference": "مرجع API",
+		"apiDocs": "API",
 		"noDocumentationFound": "لم يتم العثور على وثائق",
 		"dataRegion": "منطقة البيانات",
 		"selectARegion": "اختر منطقة",
@@ -740,7 +820,7 @@
 		"refreshPage": "تحديث الصفحة"
 	},
 	"onboardingLanding": {
-		"welcomeHeading": "مرحباً بك في Flexprice!",
+		"welcomeHeading": "مرحباً بك في Tirdad!",
 		"welcomeSubtext": "لنبدأ بتسعيرك وفوترتك!",
 		"bookDemo": "حجز عرض تجريبي",
 		"heroImageAlt": "صورة تعريفية للإعداد",
@@ -749,8 +829,8 @@
 	},
 	"tenantSetup": {
 		"loadingWorkspaceAria": "جارٍ تحميل مساحة العمل",
-		"flexpriceLogoAlt": "Flexprice",
-		"welcomeHeading": "مرحباً بك في Flexprice",
+		"flexpriceLogoAlt": "Tirdad",
+		"welcomeHeading": "مرحباً بك في Tirdad",
 		"welcomeSubtext": "لنكمّل إعداد مساحة عملك وأكمل هذا النموذج للبدء.",
 		"orgNameLabel": "اسم المنظمة",
 		"orgNamePlaceholder": "أدخل اسم منظمتك",
@@ -761,7 +841,7 @@
 		"rolePlaceholder": "دورك",
 		"teamSizeQuestion": "كم حجم فريقك؟",
 		"teamSizePlaceholder": "حجم الفريق",
-		"pricingModelQuestion": "ما نموذج التسعير الذي تختاره لـ Flexprice؟",
+		"pricingModelQuestion": "ما نموذج التسعير الذي تختاره لـ Tirdad؟",
 		"pricingModelPlaceholder": "كيف تسعّر اليوم؟",
 		"referralQuestion": "كيف عرفت عنا؟",
 		"referralPlaceholder": "من أين سمعت بنا؟"
@@ -818,18 +898,15 @@
 		"workflows": "سير العمل",
 		"integrations": "التكاملات",
 		"pricingWidget": "أداة التسعير",
-		"settings": "الإعدادات"
+		"settings": "الإعدادات",
+		"logout": "تسجيل الخروج"
 	},
 	"fundingStrip": {
-		"announcement": "Flexprice تحصل على تمويل بذري بقيمة 1.5 مليون دولار",
+		"announcement": "Tirdad تحصل على تمويل بذري بقيمة 1.5 مليون دولار",
 		"knowMore": "اعرف المزيد"
 	},
 	"queryableDataArea": {
 		"errorFetching": "خطأ في جلب البيانات",
 		"defaultPromoImageUrl": "https://mintlify.s3.us-west-1.amazonaws.com/flexprice/UsageBaseMetering(1).jpg"
-	},
-	"fundingStrip": {
-		"announcement": "فليكسبرايس تجمع 1.5 مليون دولار في جولة البذرة",
-		"knowMore": "اعرف المزيد"
 	}
 }

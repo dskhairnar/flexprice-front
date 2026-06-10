@@ -40,18 +40,18 @@ const InvoiceDetailsPage = () => {
 	const tabs = [
 		{
 			value: 'Overview',
-			label: 'Overview',
+			label: t('invoices.details.tabOverview'),
 			content: <CustomerInvoiceDetail breadcrumb_index={2} invoice_id={invoiceId!} />,
 		},
 		{
 			value: 'payments',
-			label: 'Payments',
+			label: t('payments.tabPayments'),
 			content: paymentsLoading ? (
 				<Loader />
 			) : (
 				<div>
 					<InvoicePaymentsTable data={payments?.items ?? []} />
-					<ShortPagination unit='Payments' totalItems={payments?.pagination.total ?? 0} />
+					<ShortPagination unit={t('payments.paginationUnit')} totalItems={payments?.pagination.total ?? 0} />
 				</div>
 			),
 		},
@@ -69,7 +69,7 @@ const InvoiceDetailsPage = () => {
 					) : (
 						<>
 							<CreditNoteTable data={creditNotes?.items ?? []} />
-							<ShortPagination unit='Credit Notes' totalItems={creditNotes?.pagination.total ?? 0} />
+							<ShortPagination unit={t('creditNotes.list.paginationUnit')} totalItems={creditNotes?.pagination.total ?? 0} />
 						</>
 					)}
 				</div>

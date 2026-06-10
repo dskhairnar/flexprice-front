@@ -16,6 +16,7 @@ import {
 import useEnvironment from '@/hooks/useEnvironment';
 import { toast } from 'react-hot-toast';
 import { useTranslation } from 'react-i18next';
+import type { CommandPaletteGroupType } from '@/config/command-palette';
 
 const GROUPS_ORDER = [
 	CommandPaletteGroup.Actions,
@@ -23,6 +24,13 @@ const GROUPS_ORDER = [
 	CommandPaletteGroup.Help,
 	CommandPaletteGroup.Documentation,
 ] as const;
+
+const GROUP_I18N_KEY: Record<CommandPaletteGroupType, string> = {
+	[CommandPaletteGroup.Actions]: 'commandPalette.groups.actions',
+	[CommandPaletteGroup.GoTo]: 'commandPalette.groups.goTo',
+	[CommandPaletteGroup.Help]: 'commandPalette.groups.help',
+	[CommandPaletteGroup.Documentation]: 'commandPalette.groups.documentation',
+};
 
 const CommandPalette = () => {
 	const { t } = useTranslation('common');
@@ -90,12 +98,14 @@ const CommandPalette = () => {
 		const set = new Set<string>();
 		for (const cmd of visibleCommands) {
 			if (suggestedIdsSet.has(cmd.id)) {
-				const value = [cmd.label, cmd.group, ...(cmd.keywords ?? [])].join(' ');
+				const commandLabel = t(`commandPalette.commands.${cmd.id}`, { defaultValue: cmd.label });
+				const groupLabel = t(GROUP_I18N_KEY[cmd.group]);
+				const value = [commandLabel, groupLabel, ...(cmd.keywords ?? [])].join(' ');
 				set.add(value);
 			}
 		}
 		return set;
-	}, [suggestedIdsSet, visibleCommands]);
+	}, [suggestedIdsSet, visibleCommands, t]);
 
 	const filter = useMemo(
 		() => (value: string, searchTerm: string) => {
@@ -141,11 +151,13 @@ const CommandPalette = () => {
 				{GROUPS_ORDER.map((groupName) => {
 					const items = commandsByGroup.get(groupName);
 					if (!items?.length) return null;
+					const groupLabel = t(GROUP_I18N_KEY[groupName]);
 					return (
-						<CommandGroup className='!font-normal' key={groupName} heading={groupName}>
+						<CommandGroup className='!font-normal' key={groupName} heading={groupLabel}>
 							{items.map((command) => {
 								const Icon = command.icon;
-								const searchValue = [command.label, command.group, ...(command.keywords ?? [])].join(' ');
+								const commandLabel = t(`commandPalette.commands.${command.id}`, { defaultValue: command.label });
+								const searchValue = [commandLabel, groupLabel, ...(command.keywords ?? [])].join(' ');
 								return (
 									<CommandItem
 										key={command.id}
@@ -153,7 +165,7 @@ const CommandPalette = () => {
 										onSelect={() => handleSelect(command)}
 										className='my-1 mx-2 p-2 !rounded-xl'>
 										{Icon && <Icon className='!size-[11px] shrink-0 text-muted-foreground mx-2' />}
-										<span className='!text-[13px] text-black/70 !font-normal'>{command.label}</span>
+										<span className='!text-[13px] text-black/70 !font-normal'>{commandLabel}</span>
 									</CommandItem>
 								);
 							})}

@@ -447,7 +447,9 @@
 		},
 		"pricing": {
 			"noWidget": "No Pricing Widget Exists",
-			"widgetsPageTitle": "Pricing Widgets"
+			"widgetsPageTitle": "Pricing Widgets",
+			"selectBillingPeriod": "Select billing period",
+			"selectCurrency": "Select currency"
 		},
 		"organisms": {
 			"chargeLabels": {
@@ -815,6 +817,10 @@
 				"max": "Max",
 				"weightedSum": "Weighted Sum",
 				"avg": "Average"
+			},
+			"usageResetPeriod": {
+				"periodic": "Periodic",
+				"cumulative": "Cumulative"
 			}
 		}
 	},
