@@ -82,11 +82,11 @@ const CostSheetDetails = () => {
 			return await CostSheetApi.DeleteCostSheet(id!);
 		},
 		onSuccess: () => {
-			toast.success('Cost Sheet archived successfully');
+			toast.success(t('catalog:costSheets.toast.archived'));
 			navigate(RouteNames.costSheets);
 		},
 		onError: (error: Error) => {
-			toast.error(error.message || 'Failed to archive cost sheet');
+			toast.error(error.message || t('catalog:costSheets.toast.archiveFailed'));
 		},
 	});
 
@@ -128,34 +128,37 @@ const CostSheetDetails = () => {
 
 	const chargeColumns = useMemo(() => getChargeColumns(t('common:labels.na'), t), [t]);
 
+	const costSheetDetails = useMemo(
+		() => [
+			{ label: t('catalog:costSheets.drawer.costSheetName'), value: costSheetData?.name },
+			{ label: t('catalog:shared.lookupKey'), value: costSheetData?.lookup_key },
+			{
+				label: t('catalog:shared.chargeColumns.status'),
+				value: (
+					<Chip
+						label={formatEntityStatus(costSheetData?.status ?? '', t)}
+						variant={costSheetData?.status === ENTITY_STATUS.PUBLISHED ? 'success' : 'default'}
+					/>
+				),
+			},
+			{ label: t('catalog:shared.description'), value: costSheetData?.description || t('common:labels.na') },
+		],
+		[costSheetData, t],
+	);
+
 	if (isLoading) {
 		return <Loader />;
 	}
 
 	if (isError) {
-		toast.error('Error loading cost sheet data');
+		toast.error(t('catalog:costSheets.toast.loadError'));
 		return null;
 	}
 
 	if (!costSheetData) {
-		toast.error('No cost sheet data available');
+		toast.error(t('catalog:costSheets.toast.noDataError'));
 		return null;
 	}
-
-	const costSheetDetails = [
-		{ label: 'Cost Sheet Name', value: costSheetData?.name },
-		{ label: 'Lookup Key', value: costSheetData?.lookup_key },
-		{
-			label: 'Status',
-			value: (
-				<Chip
-					label={formatEntityStatus(costSheetData?.status ?? '', t)}
-					variant={costSheetData?.status === ENTITY_STATUS.PUBLISHED ? 'success' : 'default'}
-				/>
-			),
-		},
-		{ label: 'Description', value: costSheetData?.description || '--' },
-	];
 
 	return (
 		<Page
@@ -165,7 +168,7 @@ const CostSheetDetails = () => {
 				<>
 					<Button onClick={() => setCostSheetDrawerOpen(true)} variant={'outline'} className='flex gap-2'>
 						<Pencil />
-						Edit
+						{t('common:actions.edit')}
 					</Button>
 
 					<Button
@@ -174,7 +177,7 @@ const CostSheetDetails = () => {
 						variant={'outline'}
 						className='flex gap-2'>
 						<EyeOff />
-						Archive
+						{t('common:actions.archive')}
 					</Button>
 				</>
 			}>
@@ -202,13 +205,13 @@ const CostSheetDetails = () => {
 							title={t('catalog:costSheets.details.charges')}
 							cta={
 								<Button prefixIcon={<Plus />} onClick={() => navigate(`${RouteNames.costSheetCharges.replace(':costSheetId', id!)}`)}>
-									Add
+									{t('common:actions.add')}
 								</Button>
 							}
 						/>
 						<FlexpriceTable columns={chargeColumns} data={pricesResponse?.items ?? []} />
 						<ShortPagination
-							unit='charges'
+							unit={t('common:labels.charges')}
 							totalItems={pricesResponse?.pagination?.total ?? 0}
 							prefix={PAGINATION_PREFIX.COST_SHEET_CHARGES}
 						/>
@@ -216,10 +219,10 @@ const CostSheetDetails = () => {
 				) : (
 					<NoDataCard
 						title={t('catalog:costSheets.details.charges')}
-						subtitle='No charges added to the cost sheet yet'
+						subtitle={t('catalog:costSheets.details.noChargesLinked')}
 						cta={
 							<Button prefixIcon={<Plus />} onClick={() => navigate(`${RouteNames.costSheetCharges.replace(':costSheetId', id!)}`)}>
-								Add
+								{t('common:actions.add')}
 							</Button>
 						}
 					/>

@@ -128,7 +128,7 @@ const PlanEntitlementsTab = () => {
 	}
 
 	if (isError) {
-		toast.error('Error loading entitlements');
+		toast.error(t('catalog:plans.entitlements.toast.loadError'));
 		return null;
 	}
 
@@ -153,7 +153,7 @@ const PlanEntitlementsTab = () => {
 							title={t('catalog:plans.tabs.entitlements')}
 							cta={
 								<Button prefixIcon={<Plus />} onClick={() => setDrawerOpen(true)}>
-									Add
+									{t('common:actions.add')}
 								</Button>
 							}
 						/>
@@ -162,10 +162,10 @@ const PlanEntitlementsTab = () => {
 				) : (
 					<NoDataCard
 						title={t('catalog:plans.tabs.entitlements')}
-						subtitle='No entitlements added to the plan yet'
+						subtitle={t('catalog:plans.entitlements.noEntitlementsLinked')}
 						cta={
 							<Button prefixIcon={<Plus />} onClick={() => setDrawerOpen(true)}>
-								Add
+								{t('common:actions.add')}
 							</Button>
 						}
 					/>

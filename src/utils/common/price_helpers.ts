@@ -4,7 +4,7 @@ import { Price, PRICE_UNIT_TYPE } from '@/models/Price';
 import { BILLING_MODEL, PRICE_TYPE, TIER_MODE, CreatePriceTier, TransformQuantity } from '@/models/Price';
 import { PriceUnit } from '@/models/PriceUnit';
 import { getCurrencySymbol } from './helper_functions';
-import { formatLocalizedNumber } from '@/i18n/display/formatNumber';
+import { formatLocalizedNumber, formatLocalizedCurrency } from '@/i18n/display/formatNumber';
 import { ExtendedPriceOverride } from './price_override_helpers';
 
 /**
@@ -20,6 +20,7 @@ export interface NormalizedPriceDisplay {
 	tierMode: TIER_MODE; // Tier mode (VOLUME or SLAB)
 	transformQuantity: TransformQuantity | null; // Transform quantity for package billing
 	priceUnitType: PRICE_UNIT_TYPE; // FIAT or CUSTOM
+	currency?: string; // FIAT currency code when priceUnitType is FIAT
 }
 
 // Helper to get the appropriate symbol for display
@@ -127,6 +128,7 @@ export const normalizePriceDisplay = (
 		tierMode,
 		transformQuantity,
 		priceUnitType: price.price_unit_type,
+		currency: isCustomPriceUnit ? undefined : price.currency,
 	};
 };
 
@@ -137,25 +139,30 @@ export const normalizePriceDisplay = (
  * @returns Formatted price string for display
  */
 export const formatPriceDisplay = (normalized: NormalizedPriceDisplay): string => {
-	const { amount, symbol, billingModel, transformQuantity, tiers } = normalized;
+	const { amount, symbol, billingModel, transformQuantity, tiers, priceUnitType, currency } = normalized;
+
+	const formatFiatAmount = (value: string) =>
+		priceUnitType === PRICE_UNIT_TYPE.FIAT && currency
+			? formatLocalizedCurrency(value, currency)
+			: `${symbol}${formatLocalizedNumber(value)}`;
 
 	switch (billingModel) {
 		case BILLING_MODEL.FLAT_FEE:
-			return `${symbol}${formatLocalizedNumber(amount)}`;
+			return formatFiatAmount(amount);
 
 		case BILLING_MODEL.PACKAGE: {
 			const divideBy = transformQuantity?.divide_by || 1;
-			return `${symbol}${formatLocalizedNumber(amount)} / ${divideBy} units`;
+			return `${formatFiatAmount(amount)} / ${divideBy} units`;
 		}
 
 		case BILLING_MODEL.TIERED:
 		case 'SLAB_TIERED': {
 			const firstTier = tiers?.[0];
-			return `starts at ${symbol}${formatLocalizedNumber(firstTier?.unit_amount || '0')} per unit`;
+			return `starts at ${formatFiatAmount(firstTier?.unit_amount || '0')} per unit`;
 		}
 
 		default:
-			return `${symbol}${formatLocalizedNumber(amount)}`;
+			return formatFiatAmount(amount);
 	}
 };
 

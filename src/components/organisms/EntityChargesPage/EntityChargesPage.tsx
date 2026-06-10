@@ -31,21 +31,6 @@ export enum ENTITY_TYPE {
 
 // Using PriceInternalState enum instead of local type
 
-const CHARGE_OPTIONS: RectangleRadiogroupOption[] = [
-	{
-		label: 'Fixed charges',
-		value: PRICE_TYPE.FIXED,
-		icon: Repeat,
-		description: 'Billed on a fixed schedule (monthly, yearly, etc.)',
-	},
-	{
-		label: 'Usage Charges',
-		value: PRICE_TYPE.USAGE,
-		icon: Gauge,
-		description: 'Pay only for what customers actually use',
-	},
-];
-
 // ===== HELPER FUNCTIONS =====
 const createEmptyPrice = (type: PRICE_TYPE): InternalPrice => ({
 	amount: '',
@@ -158,7 +143,25 @@ interface EntityChargesPageProps {
 }
 
 const EntityChargesPage: React.FC<EntityChargesPageProps> = ({ entityType, entityId, entityName, onSuccess }) => {
-	const { t } = useTranslation(['catalog', 'common']);
+	const { t, i18n } = useTranslation(['catalog', 'common']);
+
+	const chargeOptions = useMemo((): RectangleRadiogroupOption[] => {
+		return [
+			{
+				label: t('catalog:entityChargesPage.chargeTypeOptions.fixed.label'),
+				value: PRICE_TYPE.FIXED,
+				icon: Repeat,
+				description: t('catalog:entityChargesPage.chargeTypeOptions.fixed.description'),
+			},
+			{
+				label: t('catalog:entityChargesPage.chargeTypeOptions.usage.label'),
+				value: PRICE_TYPE.USAGE,
+				icon: Gauge,
+				description: t('catalog:entityChargesPage.chargeTypeOptions.usage.description'),
+			},
+		];
+	}, [t, i18n.language]);
+
 	// ===== HOOKS & STATE =====
 	const navigate = useNavigate();
 	const { updateBreadcrumb } = useBreadcrumbsStore();
@@ -444,7 +447,7 @@ const EntityChargesPage: React.FC<EntityChargesPageProps> = ({ entityType, entit
 					<div>
 						<RectangleRadiogroup
 							title={t('entityChargesPage.selectChargeTypeTitle')}
-							options={CHARGE_OPTIONS}
+							options={chargeOptions}
 							onChange={(value) => handleAddNewPrice(value as PRICE_TYPE)}
 							aria-label={`Select charge type for your ${entityType.toLowerCase()}`}
 						/>
