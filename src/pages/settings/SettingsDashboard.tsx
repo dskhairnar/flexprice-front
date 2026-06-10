@@ -15,7 +15,7 @@ import type { HttpRejectedError } from '@/core/axios/types';
 import { formatRbacRole } from '@/i18n/display/apiEnums';
 
 const MEMBERS_QUERY_KEY = ['settings-team-members'];
-const MEMBERS_PAGE_SIZE = 20;
+const MEMBERS_PAGE_SIZE = 10;
 
 function MembersSection() {
 	const { t } = useTranslation(['settings', 'common']);

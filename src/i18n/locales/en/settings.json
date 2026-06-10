@@ -987,6 +987,7 @@
 			"viewLatestData": "View latest data",
 			"searchCustomersPlaceholder": "Search customers...",
 			"colCustomer": "Customer",
+			"colCurrency": "Currency",
 			"noSearchMatches": "No customers match your search.",
 			"loadingEllipsis": "...",
 			"filterThisMonth": "This month",
