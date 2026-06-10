@@ -1,13 +1,14 @@
 import type { TFunction } from 'i18next';
 import { ApiEnum, translateApiEnum } from '@/i18n/display/apiEnums';
-import { getIntlLocale } from '@/i18n/display/intlLocale';
 import { getCurrencySymbol as getCurrencyDisplaySymbol } from '@/constants/common';
+import { formatLocalizedCurrency, formatLocalizedNumber, resolveCurrencyCode } from '@/i18n/display/formatNumber';
+import { getIntlLocale } from '@/i18n/display/intlLocale';
 import { Price, PRICE_TYPE } from '@/models/Price';
 import { getAllISOCodes } from 'iso-country-currency';
 import { v4 as uuidv4 } from 'uuid';
 import toast from 'react-hot-toast';
 
-export { formatLocalizedCurrency, formatLocalizedNumber, resolveCurrencyCode } from '@/i18n/display/formatNumber';
+export { formatLocalizedCurrency, formatLocalizedNumber, resolveCurrencyCode };
 
 export function getCurrencySymbol(currency: string): string {
 	return getCurrencyDisplaySymbol(currency);
