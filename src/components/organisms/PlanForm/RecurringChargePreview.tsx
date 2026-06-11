@@ -2,11 +2,12 @@ import { Trash2 } from 'lucide-react';
 import { formatBillingPeriodForPrice } from '@/utils/common/helper_functions';
 import { getCurrencySymbol } from '@/utils/common/helper_functions';
 import { toSentenceCase } from '@/utils/common/helper_functions';
-import { Price, PRICE_UNIT_TYPE } from '@/models/Price';
+import { BILLING_MODEL, Price, PRICE_UNIT_TYPE } from '@/models/Price';
 import { FC } from 'react';
 import { Pencil } from 'lucide-react';
 import { InternalPrice } from './SetupChargesSection';
 import { formatAmount } from '@/components/atoms/Input/Input';
+import { ChargeValueCell } from '@/components/molecules';
 import { useTranslation } from 'react-i18next';
 
 interface Props {
@@ -48,6 +49,10 @@ const RecurringChargePreview: FC<Props> = ({ charge, onEditClicked, onDeleteClic
 	const displayCurrency =
 		charge.price_unit_type === PRICE_UNIT_TYPE.CUSTOM ? charge.price_unit_config?.price_unit || charge.currency : charge.currency;
 
+	// Flat fee charges render a simple "amount / period" string; package and tiered charges
+	// reuse ChargeValueCell, which knows how to format package sizes and tier summaries.
+	const isFlatFee = !charge.billing_model || charge.billing_model === BILLING_MODEL.FLAT_FEE;
+
 	return (
 		<div className='gap-2 w-full flex justify-between group min-h-9 items-center rounded-md border bg-background px-3 py-2 text-base ring-offset-background placeholder:text-muted-foreground hover:bg-gray-50 transition-colors mb-2'>
 			<div>
@@ -57,10 +62,14 @@ const RecurringChargePreview: FC<Props> = ({ charge, onEditClicked, onDeleteClic
 					<span>•</span>
 					<span>{toSentenceCase(charge.billing_period || '')}</span>
 					<span>•</span>
-					<span>
-						{displayInfo.symbol}
-						{formatAmount(displayInfo.amount)} / {formatBillingPeriodForPrice(charge.billing_period || '', t)}
-					</span>
+					{isFlatFee ? (
+						<span>
+							{displayInfo.symbol}
+							{formatAmount(displayInfo.amount)} / {formatBillingPeriodForPrice(charge.billing_period || '')}
+						</span>
+					) : (
+						<ChargeValueCell data={{ ...charge, currency: charge.currency } as any} />
+					)}
 				</div>
 			</div>
 
