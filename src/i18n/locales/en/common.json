@@ -853,17 +853,43 @@
 		"refreshPage": "Refresh Page"
 	},
 	"onboardingLanding": {
-		"welcomeHeading": "Welcome to Tirdad!",
+		"welcomeHeading": "Welcome to ترداد!",
 		"welcomeSubtext": "Let's get your pricing and billing started!",
 		"bookDemo": "Book a Demo",
 		"heroImageAlt": "Onboarding Hero",
 		"quickStart": "Quick Start",
-		"learnMore": "Learn more"
+		"learnMore": "Learn more",
+		"tutorials": {
+			"gettingStarted": {
+				"title": "Getting Started",
+				"description": "Learn the basics of Flexprice in 5 minutes"
+			},
+			"pricingPlans": {
+				"title": "Set Up Pricing Plans",
+				"description": "Create and configure your first pricing plan"
+			},
+			"usageMetering": {
+				"title": "Define Usage Metering",
+				"description": "Set up billable metrics to track customer usage"
+			},
+			"creditsWallets": {
+				"title": "Configure Credits & Wallets",
+				"description": "Manage prepaid wallets, free credits, and top-ups"
+			},
+			"billing": {
+				"title": "Billing",
+				"description": "Create customers, assign plans, and manage subscriptions"
+			},
+			"selfHosting": {
+				"title": "Self-Hosting & Configuration",
+				"description": "Set up and deploy Flexprice on your own infrastructure"
+			}
+		}
 	},
 	"tenantSetup": {
 		"loadingWorkspaceAria": "Loading workspace",
-		"flexpriceLogoAlt": "Tirdad",
-		"welcomeHeading": "Welcome to Tirdad",
+		"flexpriceLogoAlt": "ترداد",
+		"welcomeHeading": "Welcome to ترداد",
 		"welcomeSubtext": "Let's finish setting up your workspace — complete this form to get started.",
 		"orgNameLabel": "Organization name",
 		"orgNamePlaceholder": "Enter your organization name",
@@ -874,10 +900,54 @@
 		"rolePlaceholder": "Your role",
 		"teamSizeQuestion": "What's your team size?",
 		"teamSizePlaceholder": "Team size",
-		"pricingModelQuestion": "What pricing model are you choosing for Tirdad?",
+		"pricingModelQuestion": "What pricing model are you choosing for ترداد?",
 		"pricingModelPlaceholder": "How do you price today?",
 		"referralQuestion": "How did you find us?",
-		"referralPlaceholder": "Where did you hear about us?"
+		"referralPlaceholder": "Where did you hear about us?",
+		"options": {
+			"teamSize": {
+				"1-10": "1-10",
+				"11-20": "11-20",
+				"21-50": "21-50",
+				"50+": "50+"
+			},
+			"referral": {
+				"linkedin": "LinkedIn",
+				"x": "X (Formerly Twitter)",
+				"blogs": "Blogs",
+				"aiAssistants": "ChatGPT / Perplexity / Gemini",
+				"hackerNews": "HackerNews",
+				"productHunt": "Product Hunt",
+				"reddit": "Reddit"
+			},
+			"pricing": {
+				"usageBased": "Usage-Based",
+				"subscription": "Subscription",
+				"hybrid": "Hybrid Pricing",
+				"others": "Others"
+			},
+			"role": {
+				"executive": "CEO / CTO / Founder",
+				"engineering": "Engineering",
+				"productManager": "Product Manager",
+				"finance": "Finance",
+				"other": "Other"
+			}
+		},
+		"validation": {
+			"invalidUrl": "Please enter a valid URL",
+			"orgNameRequired": "Organization name is required",
+			"flexpriceOrgName": "Oops! That's us. Please enter your organization name instead.",
+			"flexpriceOrgNameToast": "That's us, please enter your organization name.",
+			"bannedWord": "Organization name cannot include the word “{{word}}”. Please choose another name.",
+			"referralRequired": "Please select how you found us",
+			"websiteRequired": "Organization website is required",
+			"roleRequired": "Role is required"
+		},
+		"toast": {
+			"success": "You're all set!",
+			"error": "Failed to complete onboarding. Please try again."
+		}
 	},
 	"pricingSetupPage": {
 		"closeReturnDashboardAria": "Close and return to dashboard",
@@ -900,7 +970,18 @@
 		"buildingPricing": "Building your pricing",
 		"creatingSubtitle": "This usually takes a few seconds",
 		"setupProgressAria": "Setup progress",
-		"redirectingToPlans": "Redirecting to your plans…"
+		"redirectingToPlans": "Redirecting to your plans…",
+		"stepLabels": {
+			"parsing": "Parsing your pricing...",
+			"creating_features": "Setting up features",
+			"creating_plans": "Creating plans",
+			"creating_prices": "Adding prices",
+			"creating_entitlements": "Applying limits",
+			"creating_credit_grants": "Adding credits",
+			"done": "Finishing up…"
+		},
+		"toastEnterDescription": "Please enter a pricing description first.",
+		"toastSetupSuccess": "Your pricing has been set up!"
 	},
 	"nav": {
 		"home": "Home",
@@ -935,7 +1016,7 @@
 		"logout": "Log out"
 	},
 	"fundingStrip": {
-		"announcement": "Tirdad Raises $1.5M SEED Round",
+		"announcement": "ترداد Raises $1.5M SEED Round",
 		"knowMore": "KNOW MORE"
 	}
 }

@@ -849,17 +849,43 @@
 		"refreshPage": "تحديث الصفحة"
 	},
 	"onboardingLanding": {
-		"welcomeHeading": "مرحباً بك في Tirdad!",
+		"welcomeHeading": "مرحباً بك في ترداد!",
 		"welcomeSubtext": "لنبدأ بتسعيرك وفوترتك!",
 		"bookDemo": "حجز عرض تجريبي",
 		"heroImageAlt": "صورة تعريفية للإعداد",
 		"quickStart": "بدء سريع",
-		"learnMore": "اعرف المزيد"
+		"learnMore": "اعرف المزيد",
+		"tutorials": {
+			"gettingStarted": {
+				"title": "البدء",
+				"description": "تعرّف على أساسيات Flexprice في 5 دقائق"
+			},
+			"pricingPlans": {
+				"title": "إعداد خطط التسعير",
+				"description": "أنشئ واضبط خطة التسعير الأولى"
+			},
+			"usageMetering": {
+				"title": "تحديد قياس الاستخدام",
+				"description": "أعدّ مقاييس قابلة للفوترة لتتبع استخدام العملاء"
+			},
+			"creditsWallets": {
+				"title": "تهيئة الأرصدة والمحافظ",
+				"description": "إدارة المحافظ المدفوعة مسبقاً والأرصدة المجانية وإعادة الشحن"
+			},
+			"billing": {
+				"title": "الفوترة",
+				"description": "إنشاء العملاء وتعيين الخطط وإدارة الاشتراكات"
+			},
+			"selfHosting": {
+				"title": "الاستضافة الذاتية والتهيئة",
+				"description": "إعداد ونشر Flexprice على بنيتك التحتية"
+			}
+		}
 	},
 	"tenantSetup": {
 		"loadingWorkspaceAria": "جارٍ تحميل مساحة العمل",
-		"flexpriceLogoAlt": "Tirdad",
-		"welcomeHeading": "مرحباً بك في Tirdad",
+		"flexpriceLogoAlt": "ترداد",
+		"welcomeHeading": "مرحباً بك في ترداد",
 		"welcomeSubtext": "لنكمّل إعداد مساحة عملك وأكمل هذا النموذج للبدء.",
 		"orgNameLabel": "اسم المنظمة",
 		"orgNamePlaceholder": "أدخل اسم منظمتك",
@@ -870,10 +896,54 @@
 		"rolePlaceholder": "دورك",
 		"teamSizeQuestion": "كم حجم فريقك؟",
 		"teamSizePlaceholder": "حجم الفريق",
-		"pricingModelQuestion": "ما نموذج التسعير الذي تختاره لـ Tirdad؟",
+		"pricingModelQuestion": "ما نموذج التسعير الذي تختاره لـ ترداد؟",
 		"pricingModelPlaceholder": "كيف تسعّر اليوم؟",
 		"referralQuestion": "كيف عرفت عنا؟",
-		"referralPlaceholder": "من أين سمعت بنا؟"
+		"referralPlaceholder": "من أين سمعت بنا؟",
+		"options": {
+			"teamSize": {
+				"1-10": "1-10",
+				"11-20": "11-20",
+				"21-50": "21-50",
+				"50+": "50+"
+			},
+			"referral": {
+				"linkedin": "LinkedIn",
+				"x": "X (تويتر سابقاً)",
+				"blogs": "المدونات",
+				"aiAssistants": "ChatGPT / Perplexity / Gemini",
+				"hackerNews": "HackerNews",
+				"productHunt": "Product Hunt",
+				"reddit": "Reddit"
+			},
+			"pricing": {
+				"usageBased": "حسب الاستخدام",
+				"subscription": "اشتراك",
+				"hybrid": "تسعير هجين",
+				"others": "أخرى"
+			},
+			"role": {
+				"executive": "الرئيس التنفيذي / المدير التقني / المؤسس",
+				"engineering": "الهندسة",
+				"productManager": "مدير المنتج",
+				"finance": "المالية",
+				"other": "أخرى"
+			}
+		},
+		"validation": {
+			"invalidUrl": "يرجى إدخال رابط صالح",
+			"orgNameRequired": "اسم المنظمة مطلوب",
+			"flexpriceOrgName": "عذراً! هذا اسمنا. يرجى إدخال اسم منظمتك بدلاً من ذلك.",
+			"flexpriceOrgNameToast": "هذا اسمنا، يرجى إدخال اسم منظمتك.",
+			"bannedWord": "لا يمكن أن يتضمن اسم المنظمة كلمة «{{word}}». يرجى اختيار اسم آخر.",
+			"referralRequired": "يرجى اختيار كيفية معرفتك بنا",
+			"websiteRequired": "موقع المنظمة مطلوب",
+			"roleRequired": "الدور مطلوب"
+		},
+		"toast": {
+			"success": "أنت جاهز!",
+			"error": "فشل إكمال الإعداد. يرجى المحاولة مجدداً."
+		}
 	},
 	"pricingSetupPage": {
 		"closeReturnDashboardAria": "إغلاق والعودة إلى لوحة التحكم",
@@ -896,7 +966,18 @@
 		"buildingPricing": "جاري بناء التسعير",
 		"creatingSubtitle": "يستغرق هذا عادةً بضع ثوانٍ",
 		"setupProgressAria": "تقدّم الإعداد",
-		"redirectingToPlans": "جاري التوجيه إلى خططك…"
+		"redirectingToPlans": "جاري التوجيه إلى خططك…",
+		"stepLabels": {
+			"parsing": "جارٍ تحليل التسعير…",
+			"creating_features": "جارٍ إعداد الميزات",
+			"creating_plans": "جارٍ إنشاء الخطط",
+			"creating_prices": "جارٍ إضافة الأسعار",
+			"creating_entitlements": "جارٍ تطبيق الحدود",
+			"creating_credit_grants": "جارٍ إضافة الأرصدة",
+			"done": "جارٍ الإنهاء…"
+		},
+		"toastEnterDescription": "يرجى إدخال وصف التسعير أولاً.",
+		"toastSetupSuccess": "تم إعداد التسعير!"
 	},
 	"nav": {
 		"home": "الرئيسية",
@@ -931,7 +1012,7 @@
 		"logout": "تسجيل الخروج"
 	},
 	"fundingStrip": {
-		"announcement": "Tirdad تحصل على تمويل بذري بقيمة 1.5 مليون دولار",
+		"announcement": "ترداد تحصل على تمويل بذري بقيمة 1.5 مليون دولار",
 		"knowMore": "اعرف المزيد"
 	},
 	"queryableDataArea": {

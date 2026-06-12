@@ -21,16 +21,6 @@ import { Button } from '@/components/ui';
 // Progress step labels
 // ============================================
 
-const STEP_LABELS: Record<SetupStep, string> = {
-	parsing: 'Parsing your pricing...',
-	creating_features: 'Setting up features',
-	creating_plans: 'Creating plans',
-	creating_prices: 'Adding prices',
-	creating_entitlements: 'Applying limits',
-	creating_credit_grants: 'Adding credits',
-	done: 'Finishing up…',
-};
-
 /** Template previews skip the API but show a longer “working” moment before cards (custom prompt stays LLM-paced). */
 const TEMPLATE_PREVIEW_DELAY_MS = 6000;
 
@@ -82,6 +72,19 @@ const PricingSetupPage = () => {
 
 	/** Steps shown during Create — omits limits/credits when the schema has none (matches orchestrator). */
 	const setupProgressSteps = useMemo(() => (schema ? getSetupProgressSteps(schema) : []), [schema]);
+
+	const stepLabels = useMemo<Record<SetupStep, string>>(
+		() => ({
+			parsing: t('pricingSetupPage.stepLabels.parsing'),
+			creating_features: t('pricingSetupPage.stepLabels.creating_features'),
+			creating_plans: t('pricingSetupPage.stepLabels.creating_plans'),
+			creating_prices: t('pricingSetupPage.stepLabels.creating_prices'),
+			creating_entitlements: t('pricingSetupPage.stepLabels.creating_entitlements'),
+			creating_credit_grants: t('pricingSetupPage.stepLabels.creating_credit_grants'),
+			done: t('pricingSetupPage.stepLabels.done'),
+		}),
+		[t],
+	);
 
 	const previewSummaryLine = useMemo(() => {
 		if (!schema) return '';
@@ -163,7 +166,7 @@ const PricingSetupPage = () => {
 		const raw = promptRef.current?.value ?? lastPromptDraftRef.current;
 		const promptText = raw.trim();
 		if (!promptText) {
-			toast.error('Please enter a pricing description first.');
+			toast.error(t('pricingSetupPage.toastEnterDescription'));
 			return;
 		}
 		lastPromptDraftRef.current = raw;
@@ -216,7 +219,7 @@ const PricingSetupPage = () => {
 				setCurrentStep(step);
 			});
 			setCompletedSteps(new Set(stepOrder));
-			toast.success('Your pricing has been set up!');
+			toast.success(t('pricingSetupPage.toastSetupSuccess'));
 			void queryClient.invalidateQueries({ queryKey: [SIDEBAR_PRICING_PROMO_QUERY_KEY], exact: false });
 			window.setTimeout(() => navigate(RouteNames.plan), POST_SETUP_NAVIGATE_DELAY_MS);
 		} catch (err) {
@@ -244,9 +247,9 @@ const PricingSetupPage = () => {
 
 	const creatingStatusLabel =
 		currentStep === 'done'
-			? STEP_LABELS.done
+			? stepLabels.done
 			: activeStepIdx >= 0 && setupProgressSteps[activeStepIdx]
-				? STEP_LABELS[setupProgressSteps[activeStepIdx]]
+				? stepLabels[setupProgressSteps[activeStepIdx]]
 				: null;
 
 	return (

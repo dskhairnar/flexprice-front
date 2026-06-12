@@ -172,7 +172,7 @@ export const getBillingModelLabel = (model: BILLING_MODEL | 'SLAB_TIERED', t: TF
 export const getTierModeLabel = (mode: TIER_MODE, t: TFunction): string =>
 	translateApiEnum(t, ApiEnum.tierMode, String(mode), { fallback: String(mode) });
 
-export const getPriceTableCharge = (price: Price & { pricing_unit?: PriceUnit }, normalizedPrice: boolean = true) => {
+export const getPriceTableCharge = (price: Price & { pricing_unit?: PriceUnit }) => {
 	const displaySymbol = getDisplaySymbol(price);
 	const displayAmount = getDisplayAmount(price);
 	const displayTiers = getDisplayTiers(price);
