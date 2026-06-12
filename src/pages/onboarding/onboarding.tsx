@@ -4,7 +4,7 @@ import { motion } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 import { ApiDocsContent } from '@/components/molecules';
 import { API_DOCS_TAGS } from '@/constants/apiDocsTags';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { logger } from '@/utils/common/Logger';
 
 export interface TutorialItem {
@@ -14,43 +14,46 @@ export interface TutorialItem {
 	imageUrl?: string;
 }
 
-const tutorials: TutorialItem[] = [
-	{
-		title: 'Getting Started',
-		description: 'Learn the basics of Flexprice in 5 minutes',
-		onClick: () => window.open('https://docs.flexprice.io', '_blank'),
-	},
-	{
-		title: 'Set Up Pricing Plans',
-		description: 'Create and configure your first pricing plan',
-		onClick: () => window.open('https://docs.flexprice.io/docs/product-catalogue/plans/pricing', '_blank'),
-	},
-	{
-		title: 'Define Usage Metering',
-		description: 'Set up billable metrics to track customer usage',
-		onClick: () => window.open('https://docs.flexprice.io/docs/wallet/create#creating-a-wallet', '_blank'),
-	},
-	{
-		title: 'Configure Credits & Wallets',
-		description: 'Manage prepaid wallets, free credits, and top-ups',
-		onClick: () => window.open('https://docs.flexprice.io/docs/wallet/create', '_blank'),
-	},
-	{
-		title: 'Billing',
-		description: 'Create customers, assign plans, and manage subscriptions',
-		onClick: () => window.open('https://docs.flexprice.io/docs/product-catalogue/features/create', '_blank'),
-	},
-	{
-		title: 'Self-Hosting & Configuration',
-		description: 'Set up and deploy Flexprice on your own infrastructure',
-		onClick: () => window.open('https://docs.flexprice.io/docs/getting-started/self-hosting-guide', '_blank'),
-	},
-];
-
 const ONBOARDING_STORAGE_KEY = 'flexprice_onboarding_completed_v1';
 
 const OnboardingPage = () => {
 	const { t } = useTranslation('common');
+
+	const tutorials = useMemo<TutorialItem[]>(
+		() => [
+			{
+				title: t('onboardingLanding.tutorials.gettingStarted.title'),
+				description: t('onboardingLanding.tutorials.gettingStarted.description'),
+				onClick: () => window.open('https://docs.flexprice.io', '_blank'),
+			},
+			{
+				title: t('onboardingLanding.tutorials.pricingPlans.title'),
+				description: t('onboardingLanding.tutorials.pricingPlans.description'),
+				onClick: () => window.open('https://docs.flexprice.io/guides/plan/pricing-plan-create', '_blank'),
+			},
+			{
+				title: t('onboardingLanding.tutorials.usageMetering.title'),
+				description: t('onboardingLanding.tutorials.usageMetering.description'),
+				onClick: () => window.open('https://docs.flexprice.io/docs/wallet/create#creating-a-wallet', '_blank'),
+			},
+			{
+				title: t('onboardingLanding.tutorials.creditsWallets.title'),
+				description: t('onboardingLanding.tutorials.creditsWallets.description'),
+				onClick: () => window.open('https://docs.flexprice.io/guides/wallet/customers-wallet', '_blank'),
+			},
+			{
+				title: t('onboardingLanding.tutorials.billing.title'),
+				description: t('onboardingLanding.tutorials.billing.description'),
+				onClick: () => window.open('https://docs.flexprice.io/docs/product-catalogue/features/create', '_blank'),
+			},
+			{
+				title: t('onboardingLanding.tutorials.selfHosting.title'),
+				description: t('onboardingLanding.tutorials.selfHosting.description'),
+				onClick: () => window.open('https://docs.flexprice.io/guides/self-hosted/guide', '_blank'),
+			},
+		],
+		[t],
+	);
 	const [showVideoModal, setShowVideoModal] = useState(() => {
 		// Check if onboarding has been completed
 		try {
