@@ -1,10 +1,12 @@
 import ReactDOM from 'react-dom/client';
 import App from './App.tsx';
 import './index.css';
+import './styles/currency-font.css';
 import PosthogProvider from './core/services/posthog/PosthogProvider.tsx';
 import SentryProvider from './core/services/sentry/SentryProvider.tsx';
 import VercelSpeedInsights from './core/services/vercel/vercel.tsx';
 import { config, initTypography } from './config/config.ts';
+import { initCurrencyFonts } from './config/currencyFonts.ts';
 import { registerWebMCPTools } from './agent/webmcp.ts';
 import { initBranding } from './config/branding.ts';
 import { initI18n } from './i18n/index.ts';
@@ -23,6 +25,7 @@ function DirectionWrapper({ children }: { children: React.ReactNode }) {
 
 (async () => {
 	initTypography();
+	await initCurrencyFonts();
 
 	// Use persisted locale (from localStorage via Zustand) rather than the config default
 	const { locale, direction } = useLocaleStore.getState();
