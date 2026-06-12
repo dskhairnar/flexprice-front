@@ -8,8 +8,7 @@ import { useParams, useNavigate } from 'react-router';
 import { CreditNote } from '@/models';
 import { CreateCreditNoteLineItemRequest, CreateCreditNoteParams, CREDIT_NOTE_REASON, CREDIT_NOTE_TYPE } from '@/types';
 import CreditNoteApi from '@/api/CreditNoteApi';
-import { PAYMENT_STATUS, formatCurrency, toSentenceCase } from '@/constants';
-import { CurrencyInputPrefix } from '@/i18n/display/CurrencyInputPrefix';
+import { PAYMENT_STATUS, formatCurrency, getCurrencySymbol, toSentenceCase } from '@/constants';
 import toast from 'react-hot-toast';
 import { RouteNames } from '@/core/routes/Routes';
 import { AddChargesButton } from '@/components/organisms/PlanForm/SetupChargesSection';
@@ -322,7 +321,7 @@ const AddCreditNotePage = () => {
 											value={item.amount.toString()}
 											onChange={(value) => handleAmountChange(item.id, value)}
 											min={0}
-											inputPrefix={<CurrencyInputPrefix currency={invoiceCurrency} />}
+											inputPrefix={getCurrencySymbol(invoiceCurrency)}
 											max={item.max_amount}
 											step={0.01}
 											className='max-w-40'

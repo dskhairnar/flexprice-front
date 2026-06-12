@@ -1,5 +1,10 @@
-import { DEFAULT_CURRENCY_CODE, getCurrencySymbolOverride } from '@/constants/currencyDefaults';
+import { DEFAULT_CURRENCY_CODE } from '@/constants/constants';
 import { getIntlDigitOptions, getIntlLocale } from './intlLocale';
+
+const CURRENCY_SYMBOL_OVERRIDES: Record<string, string> = {
+	USD: '$',
+	SAR: '\u20c1',
+};
 
 /** Normalize currency code with a non-translatable default when missing. */
 export function resolveCurrencyCode(currency?: string | null): string {
@@ -61,7 +66,7 @@ export function formatLocalizedCurrency(amount: number | string, currency: strin
 	try {
 		const formatter = new Intl.NumberFormat(locale, formatOpts);
 		const formatted = formatter.format(num ?? 0);
-		const symbolOverride = getCurrencySymbolOverride(currencyCode);
+		const symbolOverride = CURRENCY_SYMBOL_OVERRIDES[currencyCode];
 		if (symbolOverride) {
 			return formatter
 				.formatToParts(num ?? 0)
@@ -78,7 +83,7 @@ export function formatLocalizedCurrency(amount: number | string, currency: strin
 /** Currency symbol for a code, respecting locale conventions where applicable. */
 export function getLocalizedCurrencySymbol(currency: string, language?: string): string {
 	const currencyCode = resolveCurrencyCode(currency);
-	const symbolOverride = getCurrencySymbolOverride(currencyCode);
+	const symbolOverride = CURRENCY_SYMBOL_OVERRIDES[currencyCode];
 	if (symbolOverride) return symbolOverride;
 	const locale = getIntlLocale(language);
 	try {

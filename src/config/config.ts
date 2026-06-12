@@ -11,7 +11,6 @@ import {
 	Locale,
 } from './branding';
 import { RegionsConfig } from './authTemplates';
-import { withSaudiRiyalFontFamily } from '@/constants/currencyDefaults';
 
 export type { BrandConfig, AuthPageConfig, I18nConfig };
 
@@ -222,5 +221,5 @@ export const config: Config = {
 /** Sets `--font-sans` from `config.typography.fontFamily` (see `src/index.css`). Call once at startup. */
 export function initTypography(): void {
 	if (typeof document === 'undefined') return;
-	document.documentElement.style.setProperty('--font-sans', withSaudiRiyalFontFamily(config.typography.fontFamily));
+	document.documentElement.style.setProperty('--font-sans', config.typography.fontFamily);
 }
