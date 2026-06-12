@@ -15,7 +15,8 @@ import {
 	SUBSCRIPTION_STATUS,
 } from '@/models/Subscription';
 
-export { DEFAULT_CURRENCY_CODE } from '@/constants/currencyDefaults';
+/** ISO 4217 code when API omits currency (not user-facing copy). */
+export const DEFAULT_CURRENCY_CODE = 'USD';
 
 export enum BILLING_PERIOD {
 	DAILY = 'DAILY',

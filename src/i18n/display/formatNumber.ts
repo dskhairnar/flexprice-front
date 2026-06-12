@@ -1,8 +1,10 @@
-import { DEFAULT_CURRENCY_CODE, getCurrencySymbolOverride } from '@/constants/currencyDefaults';
+import { DEFAULT_CURRENCY_CODE } from '@/constants/constants';
 import { getIntlDigitOptions, getIntlLocale } from './intlLocale';
 
-/** Use a neutral locale for symbols so USD stays "$" in RTL locales (ar uses "US$" otherwise). */
-const CURRENCY_SYMBOL_LOCALE = 'en-US';
+const CURRENCY_SYMBOL_OVERRIDES: Record<string, string> = {
+	USD: '$',
+	SAR: '\u20c1',
+};
 
 /** Normalize currency code with a non-translatable default when missing. */
 export function resolveCurrencyCode(currency?: string | null): string {
@@ -62,28 +64,31 @@ export function formatLocalizedCurrency(amount: number | string, currency: strin
 	};
 
 	try {
-		const symbol = getLocalizedCurrencySymbol(currencyCode);
-		const parts = new Intl.NumberFormat(locale, formatOpts).formatToParts(num ?? 0);
-		return parts.map((part) => (part.type === 'currency' ? symbol : part.value)).join('');
+		const formatter = new Intl.NumberFormat(locale, formatOpts);
+		const formatted = formatter.format(num ?? 0);
+		const symbolOverride = CURRENCY_SYMBOL_OVERRIDES[currencyCode];
+		if (symbolOverride) {
+			return formatter
+				.formatToParts(num ?? 0)
+				.map((part) => (part.type === 'currency' ? symbolOverride : part.value))
+				.join('');
+		}
+		return formatted;
 	} catch {
-		const symbol = getLocalizedCurrencySymbol(currencyCode);
+		const symbol = getLocalizedCurrencySymbol(currencyCode, options.language);
 		return num === null ? `${symbol}0` : `${symbol}${formatLocalizedNumber(num, options)}`;
 	}
 }
 
-/** Currency symbol for a code (narrow symbol, locale-neutral so $ stays $ in Arabic UI). */
-export function getLocalizedCurrencySymbol(currency: string, _language?: string): string {
+/** Currency symbol for a code, respecting locale conventions where applicable. */
+export function getLocalizedCurrencySymbol(currency: string, language?: string): string {
 	const currencyCode = resolveCurrencyCode(currency);
-	const symbolOverride = getCurrencySymbolOverride(currencyCode);
+	const symbolOverride = CURRENCY_SYMBOL_OVERRIDES[currencyCode];
 	if (symbolOverride) return symbolOverride;
-
+	const locale = getIntlLocale(language);
 	try {
 		return (
-			new Intl.NumberFormat(CURRENCY_SYMBOL_LOCALE, {
-				style: 'currency',
-				currency: currencyCode,
-				currencyDisplay: 'narrowSymbol',
-			})
+			new Intl.NumberFormat(locale, { ...getIntlDigitOptions(language), style: 'currency', currency: currencyCode })
 				.formatToParts(0)
 				.find((part) => part.type === 'currency')?.value ?? currencyCode
 		);
