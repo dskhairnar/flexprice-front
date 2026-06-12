@@ -944,8 +944,8 @@
 		"flatFee": "رسوم ثابتة",
 		"noCouponApplied": "لم تُطبَّق قسيمة",
 		"tierRangeWithUnits": "{{range}} وحدة",
-		"perUnitLine": "{{symbol}}{{amount}} لكل وحدة",
-		"flatFeePlusLine": "+ {{symbol}}{{amount}} رسوم ثابتة",
+		"perUnitLine": "{{amount}} لكل وحدة",
+		"flatFeePlusLine": "+ {{amount}} رسوم ثابتة",
 		"override": {
 			"billingModelLine": "نموذج الفوترة: {{from}} → {{to}}",
 			"tierModeLine": "وضع الشرائح: {{from}} → {{to}}",

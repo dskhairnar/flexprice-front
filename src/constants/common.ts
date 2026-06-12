@@ -1,5 +1,6 @@
 import { formatLocalizedNumber } from '@/i18n/display/formatNumber';
 import { getIntlDigitOptions, getIntlLocale } from '@/i18n/display/intlLocale';
+import { getCurrencySymbolOverride } from '@/constants/currencyDefaults';
 import i18n from 'i18next';
 
 // =============================================================================
@@ -9,13 +10,6 @@ import i18n from 'i18next';
 // =============================================================================
 // CURRENCY FORMATTERS (locale-aware via active i18n language)
 // =============================================================================
-
-const CURRENCY_SYMBOL_OVERRIDES: Record<string, string> = {
-	USD: '$',
-	SAR: '\u20c1',
-};
-
-const getCurrencySymbolOverride = (currency: string): string | undefined => CURRENCY_SYMBOL_OVERRIDES[currency.toUpperCase()];
 
 export const formatCurrency = (amount: number | string, currency: string): string => {
 	const numAmount = typeof amount === 'string' ? parseFloat(amount) : amount;
