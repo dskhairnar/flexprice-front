@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
@@ -30,41 +30,56 @@ const isValidUrl = (s: string): boolean => {
 /** Banned substrings for organization names; extend as needed. */
 const BANNED_ORG_NAME_WORDS = ['test', 'demo', 'flexprice'];
 
-const teamSizeOptions: SelectOption[] = [
-	{ value: '1-10', label: '1-10' },
-	{ value: '11-20', label: '11-20' },
-	{ value: '21-50', label: '21-50' },
-	{ value: '50+', label: '50+' },
-];
+const TEAM_SIZE_VALUES = ['1-10', '11-20', '21-50', '50+'] as const;
 
-const referralSourceOptions: SelectOption[] = [
-	{ value: 'LinkedIn', label: 'LinkedIn' },
-	{ value: 'X', label: 'X (Formerly Twitter)' },
-	{ value: 'Blogs', label: 'Blogs' },
-	{ value: 'ChatGPT / Perplexity / Gemini', label: 'ChatGPT / Perplexity / Gemini' },
-	{ value: 'HackerNews', label: 'HackerNews' },
-	{ value: 'Product Hunt', label: 'Product Hunt' },
-	{ value: 'Reddit', label: 'Reddit' },
-];
+const REFERRAL_SOURCES = [
+	{ value: 'LinkedIn', i18nKey: 'linkedin' },
+	{ value: 'X', i18nKey: 'x' },
+	{ value: 'Blogs', i18nKey: 'blogs' },
+	{ value: 'ChatGPT / Perplexity / Gemini', i18nKey: 'aiAssistants' },
+	{ value: 'HackerNews', i18nKey: 'hackerNews' },
+	{ value: 'Product Hunt', i18nKey: 'productHunt' },
+	{ value: 'Reddit', i18nKey: 'reddit' },
+] as const;
 
-const pricingTypeOptions: SelectOption[] = [
-	{ value: 'Usage-Based', label: 'Usage-Based' },
-	{ value: 'Subscription', label: 'Subscription' },
-	{ value: 'Hybrid Pricing', label: 'Hybrid Pricing' },
-	{ value: 'Others', label: 'Others' },
-];
+const PRICING_TYPES = [
+	{ value: 'Usage-Based', i18nKey: 'usageBased' },
+	{ value: 'Subscription', i18nKey: 'subscription' },
+	{ value: 'Hybrid Pricing', i18nKey: 'hybrid' },
+	{ value: 'Others', i18nKey: 'others' },
+] as const;
 
-const roleOptions: SelectOption[] = [
-	{ value: 'CEO / CTO / Founder', label: 'CEO / CTO / Founder' },
-	{ value: 'Engineering', label: 'Engineering' },
-	{ value: 'Product Manager', label: 'Product Manager' },
-	{ value: 'Finance', label: 'Finance' },
-	{ value: 'Other', label: 'Other' },
-];
+const ROLES = [
+	{ value: 'CEO / CTO / Founder', i18nKey: 'executive' },
+	{ value: 'Engineering', i18nKey: 'engineering' },
+	{ value: 'Product Manager', i18nKey: 'productManager' },
+	{ value: 'Finance', i18nKey: 'finance' },
+	{ value: 'Other', i18nKey: 'other' },
+] as const;
 
 const OnboardingTenant = () => {
 	const navigate = useNavigate();
 	const { t } = useTranslation('common');
+
+	const teamSizeOptions = useMemo<SelectOption[]>(
+		() => TEAM_SIZE_VALUES.map((value) => ({ value, label: t(`tenantSetup.options.teamSize.${value}`) })),
+		[t],
+	);
+
+	const referralSourceOptions = useMemo<SelectOption[]>(
+		() => REFERRAL_SOURCES.map(({ value, i18nKey }) => ({ value, label: t(`tenantSetup.options.referral.${i18nKey}`) })),
+		[t],
+	);
+
+	const pricingTypeOptions = useMemo<SelectOption[]>(
+		() => PRICING_TYPES.map(({ value, i18nKey }) => ({ value, label: t(`tenantSetup.options.pricing.${i18nKey}`) })),
+		[t],
+	);
+
+	const roleOptions = useMemo<SelectOption[]>(
+		() => ROLES.map(({ value, i18nKey }) => ({ value, label: t(`tenantSetup.options.role.${i18nKey}`) })),
+		[t],
+	);
 	const { user, loading: userLoading } = useUser();
 	const [orgName, setOrgName] = useState('');
 	const [orgUrl, setOrgUrl] = useState('');
@@ -138,11 +153,11 @@ const OnboardingTenant = () => {
 		},
 		onSuccess: async () => {
 			await Promise.all([refetchQueries('user'), refetchQueries('tenant-onboarding'), refetchQueries('tenant')]);
-			toast.success("You're all set!");
+			toast.success(t('tenantSetup.toast.success'));
 			navigate(RouteNames.homeDashboard, { replace: true });
 		},
 		onError: (error: Error) => {
-			toast.error(error.message || 'Failed to complete onboarding. Please try again.');
+			toast.error(error.message || t('tenantSetup.toast.error'));
 		},
 	});
 
@@ -153,7 +168,7 @@ const OnboardingTenant = () => {
 			return;
 		}
 		if (!isValidUrl(trimmed)) {
-			setErrors((prev) => ({ ...prev, orgUrl: 'Please enter a valid URL' }));
+			setErrors((prev) => ({ ...prev, orgUrl: t('tenantSetup.validation.invalidUrl') }));
 		} else {
 			setErrors((prev) => ({ ...prev, orgUrl: undefined }));
 		}
@@ -163,27 +178,27 @@ const OnboardingTenant = () => {
 		const next: typeof errors = {};
 		const trimmedOrgName = orgName.trim();
 		if (!trimmedOrgName) {
-			next.orgName = 'Organization name is required';
+			next.orgName = t('tenantSetup.validation.orgNameRequired');
 		} else {
 			const lowerName = trimmedOrgName.toLowerCase();
 			if (lowerName === 'flexprice') {
-				next.orgName = "Oops! That's us. Please enter your organization name instead.";
-				toast("That's us, please enter your organization name.", { icon: '😅' });
+				next.orgName = t('tenantSetup.validation.flexpriceOrgName');
+				toast(t('tenantSetup.validation.flexpriceOrgNameToast'), { icon: '😅' });
 			} else {
 				const bannedMatch = BANNED_ORG_NAME_WORDS.find((word) => lowerName.includes(word.toLowerCase()));
 				if (bannedMatch) {
-					next.orgName = `Organization name cannot include the word “${bannedMatch}”. Please choose another name.`;
+					next.orgName = t('tenantSetup.validation.bannedWord', { word: bannedMatch });
 				}
 			}
 		}
-		if (!isValidReferral) next.referralSource = 'Please select how you found us';
+		if (!isValidReferral) next.referralSource = t('tenantSetup.validation.referralRequired');
 		const trimmedOrgUrl = orgUrl.trim();
 		if (!trimmedOrgUrl) {
-			next.orgUrl = 'Organization website is required';
+			next.orgUrl = t('tenantSetup.validation.websiteRequired');
 		} else if (!isValidUrl(trimmedOrgUrl)) {
-			next.orgUrl = 'Please enter a valid URL';
+			next.orgUrl = t('tenantSetup.validation.invalidUrl');
 		}
-		if (!isValidRole) next.role = 'Role is required';
+		if (!isValidRole) next.role = t('tenantSetup.validation.roleRequired');
 		setErrors(next);
 		return Object.keys(next).length === 0;
 	};
