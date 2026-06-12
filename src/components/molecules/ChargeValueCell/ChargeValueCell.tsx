@@ -67,10 +67,6 @@ const OverrideTooltip: FC<{
 	const { t } = useTranslation(['catalog', 'common']);
 	const detailSep = t('catalog:chargeValue.override.detailSep');
 	const changes: string[] = [];
-	const formatOverrideAmount = (normalized: NormalizedPriceDisplay, value: string) =>
-		normalized.priceUnitType === PRICE_UNIT_TYPE.FIAT && normalized.currency
-			? formatLocalizedCurrency(value, normalized.currency)
-			: `${normalized.symbol}${formatLocalizedNumber(value)}`;
 
 	if (overridden.billingModel !== original.billingModel) {
 		changes.push(
@@ -93,8 +89,8 @@ const OverrideTooltip: FC<{
 	if (overridden.amount !== original.amount) {
 		changes.push(
 			t('catalog:chargeValue.override.amountLine', {
-				from: formatOverrideAmount(original, original.amount),
-				to: formatOverrideAmount(overridden, overridden.amount),
+				from: `${original.symbol}${formatLocalizedNumber(original.amount)}`,
+				to: `${overridden.symbol}${formatLocalizedNumber(overridden.amount)}`,
 			}),
 		);
 	}
@@ -165,8 +161,8 @@ const OverrideTooltip: FC<{
 					if (originalTier.unit_amount !== newTier.unit_amount) {
 						tierChangesForThisTier.push(
 							t('catalog:chargeValue.override.tierDetailPerUnit', {
-								from: formatOverrideAmount(overridden, originalTier.unit_amount),
-								to: formatOverrideAmount(overridden, newTier.unit_amount),
+								from: `${overridden.symbol}${formatLocalizedNumber(originalTier.unit_amount)}`,
+								to: `${overridden.symbol}${formatLocalizedNumber(newTier.unit_amount)}`,
 							}),
 						);
 					}
@@ -174,8 +170,8 @@ const OverrideTooltip: FC<{
 					if ((originalTier.flat_amount || '0') !== (newTier.flat_amount || '0')) {
 						tierChangesForThisTier.push(
 							t('catalog:chargeValue.override.tierDetailFlatFee', {
-								from: formatOverrideAmount(overridden, originalTier.flat_amount || '0'),
-								to: formatOverrideAmount(overridden, newTier.flat_amount || '0'),
+								from: `${overridden.symbol}${formatLocalizedNumber(originalTier.flat_amount || '0')}`,
+								to: `${overridden.symbol}${formatLocalizedNumber(newTier.flat_amount || '0')}`,
 							}),
 						);
 					}
@@ -191,8 +187,8 @@ const OverrideTooltip: FC<{
 				} else {
 					const newFrom = index === 0 ? 0 : newTiers[index - 1]?.up_to || 0;
 					const newUpToDisplay = newTier.up_to === null || newTier.up_to === undefined ? '∞' : newTier.up_to.toString();
-					const perUnit = formatOverrideAmount(overridden, newTier.unit_amount);
-					const flatFee = formatOverrideAmount(overridden, newTier.flat_amount || '0');
+					const perUnit = `${overridden.symbol}${formatLocalizedNumber(newTier.unit_amount)}`;
+					const flatFee = `${overridden.symbol}${formatLocalizedNumber(newTier.flat_amount || '0')}`;
 					tierChanges.push(
 						t('catalog:chargeValue.override.tierAdded', {
 							header: t('catalog:chargeValue.override.tierHeader', { n: index + 1 }),
@@ -270,11 +266,7 @@ const TieredPricingTooltip: FC<{
 	hasOverrides: boolean;
 }> = ({ normalized, hasOverrides }) => {
 	const { t } = useTranslation(['catalog', 'common']);
-	const { tiers, tierMode } = normalized;
-	const formatTierAmount = (value: string | number | undefined) =>
-		normalized.priceUnitType === PRICE_UNIT_TYPE.FIAT && normalized.currency
-			? formatLocalizedCurrency(value ?? 0, normalized.currency)
-			: `${normalized.symbol}${formatLocalizedNumber(value ?? '0')}`;
+	const { tiers, tierMode, symbol } = normalized;
 
 	if (!tiers || tiers.length === 0) return null;
 
@@ -314,13 +306,15 @@ const TieredPricingTooltip: FC<{
 										<div className='text-end'>
 											<div className='!font-normal text-muted-foreground'>
 												{t('catalog:chargeValue.perUnitLine', {
-													amount: formatTierAmount(tier.unit_amount),
+													symbol,
+													amount: formatLocalizedNumber(tier.unit_amount),
 												})}
 											</div>
 											{Number(tier.flat_amount) > 0 && (
 												<div className='text-xs text-gray-500'>
 													{t('catalog:chargeValue.flatFeePlusLine', {
-														amount: formatTierAmount(tier.flat_amount || '0'),
+														symbol,
+														amount: formatLocalizedNumber(tier.flat_amount || '0'),
 													})}
 												</div>
 											)}

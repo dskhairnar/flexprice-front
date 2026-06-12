@@ -6,8 +6,7 @@ import { useParams, useNavigate } from 'react-router';
 import { useBreadcrumbsStore } from '@/store/useBreadcrumbsStore';
 import useUser from '@/hooks/useUser';
 import { currencyOptions } from '@/constants/constants';
-import { calculateCouponDiscount, formatLocalizedCurrency } from '@/utils/common/helper_functions';
-import { CurrencyInputPrefix } from '@/i18n/display/CurrencyInputPrefix';
+import { calculateCouponDiscount, formatLocalizedCurrency, getCurrencySymbol } from '@/utils/common/helper_functions';
 import InvoiceApi from '@/api/InvoiceApi';
 import toast from 'react-hot-toast';
 import { RouteNames } from '@/core/routes/Routes';
@@ -283,7 +282,7 @@ const CreateInvoicePage: FC = () => {
 											value={item.amount}
 											onChange={(value) => handleLineItemChange(index, 'amount', value)}
 											variant='formatted-number'
-											inputPrefix={<CurrencyInputPrefix currency={currency} />}
+											inputPrefix={getCurrencySymbol(currency)}
 											placeholder={t('creditNotes.amountPlaceholder')}
 										/>
 									</div>
@@ -293,7 +292,7 @@ const CreateInvoicePage: FC = () => {
 											value={`${(parseFloat(item.amount || '0') * parseFloat(item.quantity || '0')).toFixed(2)}`}
 											disabled
 											variant='formatted-number'
-											inputPrefix={<CurrencyInputPrefix currency={currency} />}
+											inputPrefix={getCurrencySymbol(currency)}
 											placeholder={t('creditNotes.amountPlaceholder')}
 										/>
 									</div>

@@ -1,7 +1,6 @@
 import { Button, Input, Select, Textarea, PaymentUrlSuccessDialog, DatePicker, Dialog } from '@/components/atoms';
 import { FC, useState, useEffect, useMemo } from 'react';
-import { formatLocalizedCurrency } from '@/utils/common/helper_functions';
-import { CurrencyInputPrefix } from '@/i18n/display/CurrencyInputPrefix';
+import { formatLocalizedCurrency, getCurrencySymbol } from '@/utils/common/helper_functions';
 import { PAYMENT_METHOD_TYPE, PAYMENT_DESTINATION_TYPE, Payment } from '@/models/Payment';
 import { WALLET_TYPE } from '@/models/Wallet';
 import PaymentApi from '@/api/PaymentApi';
@@ -368,7 +367,7 @@ const RecordPaymentTopup: FC<Props> = ({
 						label={t('payments.amount')}
 						placeholder={t('payments.amountPlaceholder')}
 						variant='formatted-number'
-						inputPrefix={<CurrencyInputPrefix currency={currency} />}
+						inputPrefix={getCurrencySymbol(currency)}
 						value={formData.amount.toString()}
 						onChange={(value) => setFormData({ ...formData, amount: Number(value) || 0 })}
 						error={errors.amount}
