@@ -20,6 +20,7 @@ import FeatureApi from '@/api/FeatureApi';
 import { ENTITY_STATUS } from '@/models/base';
 import { CurrencyPriceUnitSelector } from '@/components/molecules';
 import { CurrencyPriceUnitSelection, isPriceUnitOption } from '@/types/common';
+import { sanitizeTiersForApi } from '@/utils/common/tier_form_helpers';
 import { useTranslation } from 'react-i18next';
 
 /**
@@ -45,7 +46,7 @@ interface Props {
 
 export interface PriceTier {
 	from: number;
-	up_to: number | null;
+	up_to: number | null | '';
 	flat_amount?: string;
 	unit_amount?: string;
 }
@@ -288,7 +289,7 @@ const UsagePricingForm: FC<Props> = ({
 				}
 
 				// Validate tier ranges
-				if (tier.up_to !== null) {
+				if (tier.up_to !== null && tier.up_to !== '') {
 					if (tier.from > tier.up_to) {
 						setInputErrors((prev) => ({
 							...prev,
@@ -370,7 +371,7 @@ const UsagePricingForm: FC<Props> = ({
 				// TIERED: Set price_unit_tiers in price_unit_config
 				finalPriceUnitConfig = {
 					...priceUnitConfig,
-					price_unit_tiers: tieredPrices.map((tier) => ({
+					price_unit_tiers: sanitizeTiersForApi(tieredPrices).map((tier) => ({
 						up_to: tier.up_to ?? null,
 						unit_amount: tier.unit_amount || '0',
 						flat_amount: tier.flat_amount || '0',
@@ -423,7 +424,7 @@ const UsagePricingForm: FC<Props> = ({
 					? {
 							tiers: tieredPrices.map((tier) => ({
 								from: tier.from,
-								up_to: tier.up_to ?? null,
+								up_to: typeof tier.up_to === 'number' ? tier.up_to : null,
 								unit_amount: tier.unit_amount || '0',
 								flat_amount: tier.flat_amount || '0',
 							})) as unknown as NonNullable<Price['tiers']>,

@@ -8,6 +8,7 @@ import { getCurrencySymbol } from '@/utils/common/helper_functions';
 import { ExtendedPriceOverride } from '@/utils/common/price_override_helpers';
 import VolumeTieredPricingForm from '@/components/organisms/PlanForm/VolumeTieredPricingForm';
 import { PremiumFeatureIcon } from '../PremiumFeature/PremiumFeature';
+import { mapFormRowsToTiers, mapTiersToFormRows, sanitizeTiersForApi } from '@/utils/common/tier_form_helpers';
 import { useTranslation } from 'react-i18next';
 import type { LineItem } from '@/models/Subscription';
 import type { UpdateSubscriptionLineItemRequest } from '@/types/dto/Subscription';
@@ -228,12 +229,13 @@ const PriceOverrideDialog: FC<Props> = ({
 
 		// Handle tiers/price_unit_tiers based on price unit type and billing model
 		if ((overrideBillingModel === BILLING_MODEL.TIERED || overrideBillingModel === 'SLAB_TIERED') && overrideTiers.length > 0) {
+			const sanitizedTiers = sanitizeTiersForApi(overrideTiers);
 			if (isCustomPriceUnit) {
 				// For CUSTOM prices, use price_unit_tiers
-				override.price_unit_tiers = overrideTiers;
+				override.price_unit_tiers = sanitizedTiers;
 			} else {
 				// For FIAT prices, use tiers
-				override.tiers = overrideTiers;
+				override.tiers = sanitizedTiers;
 			}
 		}
 
@@ -559,55 +561,16 @@ const PriceOverrideDialog: FC<Props> = ({
 							<VolumeTieredPricingForm
 								tieredPrices={
 									overrideTiers.length > 0
-										? overrideTiers.map((tier, index) => {
-												// Calculate proper from and up_to values
-												let from = 0;
-												let up_to = null;
-
-												if (index === 0) {
-													from = 0;
-													up_to = overrideTiers[0]?.up_to || null;
-												} else {
-													from = overrideTiers[index - 1]?.up_to || 0;
-													up_to = overrideTiers[index]?.up_to || null;
-												}
-
-												return {
-													from,
-													up_to,
-													unit_amount: tier.unit_amount || '',
-													flat_amount: tier.flat_amount || '0',
-												};
-											})
+										? mapTiersToFormRows(overrideTiers)
 										: [{ from: 0, up_to: null, unit_amount: '', flat_amount: '0' }]
 								}
 								setTieredPrices={(setter) => {
-									// Handle both function and direct value cases
-									const newTiers =
-										typeof setter === 'function'
-											? setter(
-													overrideTiers.length > 0
-														? overrideTiers.map((tier, index) => ({
-																from: index === 0 ? 0 : overrideTiers[index - 1]?.up_to || 0,
-																up_to: tier.up_to || null,
-																unit_amount: tier.unit_amount || '',
-																flat_amount: tier.flat_amount || '0',
-															}))
-														: [{ from: 0, up_to: null, unit_amount: '', flat_amount: '0' }],
-												)
-											: setter;
-
-									// Convert the PriceTier format to CreatePriceTier format
-									// and properly handle the from/up_to values
-									const convertedTiers = newTiers.map((tier) => {
-										// Use the tier's own up_to value directly
-										return {
-											unit_amount: tier.unit_amount || '',
-											flat_amount: tier.flat_amount || '0',
-											up_to: tier.up_to,
-										};
-									});
-									setOverrideTiers(convertedTiers);
+									const formRows =
+										overrideTiers.length > 0
+											? mapTiersToFormRows(overrideTiers)
+											: [{ from: 0, up_to: null, unit_amount: '', flat_amount: '0' }];
+									const newTiers = typeof setter === 'function' ? setter(formRows) : setter;
+									setOverrideTiers(mapFormRowsToTiers(newTiers) as CreatePriceTier[]);
 								}}
 								currency={isCustomPriceUnit ? displaySymbol : price.currency}
 								tierMode={overrideBillingModel === BILLING_MODEL.TIERED ? TIER_MODE.VOLUME : TIER_MODE.SLAB}

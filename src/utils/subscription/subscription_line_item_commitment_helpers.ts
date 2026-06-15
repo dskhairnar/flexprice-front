@@ -23,6 +23,7 @@ import {
 	type BucketPriceContext,
 	type CommitmentTimeBucketDraft,
 } from '@/utils/common/commitment_time_bucket_draft';
+import { sanitizeTiersForApi } from '@/utils/common/tier_form_helpers';
 
 /** Default commitment type for new subscription charge window buckets. */
 export const SUBSCRIPTION_CHARGE_COMMITMENT_TYPE = CommitmentType.AMOUNT;
@@ -172,13 +173,11 @@ function bucketPriceChanged(draft: CommitmentTimeBucketDraft, existing?: Commitm
 	}
 
 	if (billing_model === BILLING_MODEL.TIERED) {
-		const draftTiers = (draft.bucket_tiers ?? [])
-			.filter((tier) => tier.unit_amount.trim() || tier.flat_amount?.trim())
-			.map((tier) => ({
-				up_to: tier.up_to ?? null,
-				unit_amount: removeFormatting(tier.unit_amount),
-				flat_amount: tier.flat_amount?.trim() ? removeFormatting(tier.flat_amount) : '0',
-			}));
+		const draftTiers = sanitizeTiersForApi(draft.bucket_tiers ?? []).map((tier) => ({
+			up_to: tier.up_to ?? null,
+			unit_amount: removeFormatting(tier.unit_amount),
+			flat_amount: tier.flat_amount?.trim() ? removeFormatting(tier.flat_amount) : '0',
+		}));
 		const existingTiers = (existingPrice.tiers ?? []).map((tier) => ({
 			up_to: tier.up_to ?? null,
 			unit_amount: tier.unit_amount ?? '',

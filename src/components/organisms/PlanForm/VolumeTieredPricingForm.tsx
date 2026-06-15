@@ -6,6 +6,7 @@ import { getCurrencySymbol } from '@/utils/common/helper_functions';
 import { PriceTier } from './UsagePricingForm';
 import { AddChargesButton } from './SetupChargesSection';
 import { TIER_MODE } from '@/models/Price';
+import { formatTierUpToValue, isInfinityTier } from '@/utils/common/tier_form_helpers';
 import { useTranslation } from 'react-i18next';
 
 interface Props {
@@ -56,7 +57,7 @@ const VolumeTieredPricingForm: FC<Props> = ({ setTieredPrices, tieredPrices, cur
 			if (lastTier.up_to === null) {
 				prev[prev.length - 1] = { ...lastTier, up_to: lastTier.from + 1 };
 			}
-			const newFrom = lastTier.up_to ?? lastTier.from + 1;
+			const newFrom = typeof lastTier.up_to === 'number' ? lastTier.up_to : lastTier.from + 1;
 
 			const newTier = {
 				from: newFrom,
@@ -170,9 +171,9 @@ const VolumeTieredPricingForm: FC<Props> = ({ setTieredPrices, tieredPrices, cur
 										<DecimalUsageInput
 											label=''
 											className='h-9 w-full min-w-0'
-											value={tier.up_to === null ? '∞' : tier.up_to.toString()}
+											value={formatTierUpToValue(tier.up_to, index === tieredPrices.length - 1)}
 											onChange={(e) => updateTier(index, 'up_to', e)}
-											disabled={tier.up_to === null}
+											disabled={isInfinityTier(tier.up_to, index, tieredPrices.length)}
 											precision={3}
 											min={0}
 											placeholder='∞'

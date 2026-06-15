@@ -17,6 +17,8 @@ export {
 	getTierModeLabel,
 } from './price_helpers';
 export type { NormalizedPriceDisplay } from './price_helpers';
+export { mapFormRowsToTiers, mapTiersToFormRows, sanitizeTiersForApi, formatTierUpToValue, isInfinityTier } from './tier_form_helpers';
+export type { TierDraftRow, TierUpTo } from './tier_form_helpers';
 export { default as formatCouponName } from './format_coupon_name';
 export type { ExtendedPriceOverride } from './price_override_helpers';
 export {

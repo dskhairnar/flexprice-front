@@ -8,14 +8,23 @@ import type { CommitmentTimeBucket, CommitmentTimeBucketPrice } from '@/types/dt
 import type { CommitmentTimePoint } from '@/types/dto/CommitmentTimeBucket';
 import { CommitmentType } from '@/types/dto/LineItemCommitmentConfig';
 import { validateCommitmentTimeBuckets, getCommitmentTimeBucketConstraints } from '@/utils/common/commitment_helpers';
+import {
+	type TierUpTo,
+	mapFormRowsToTiers,
+	mapTiersToFormRows,
+	normalizeTierUpToForForm,
+	sanitizeTiersForApi,
+} from '@/utils/common/tier_form_helpers';
 
 export const UNSET_TIME_VALUE = -1;
 
 /** UI select value; maps to TIERED + SLAB tier mode. */
 export type BillingModelSelectValue = BILLING_MODEL | 'SLAB_TIERED';
 
+export type BucketTierUpTo = TierUpTo;
+
 export type BucketTierDraft = {
-	up_to?: number | null;
+	up_to?: BucketTierUpTo;
 	unit_amount: string;
 	flat_amount?: string;
 };
@@ -154,7 +163,7 @@ export function bucketDefaultsFromPrice(price?: BucketPriceSource): CommitmentTi
 		transform_quantity_divide_by: price?.transform_quantity?.divide_by ? String(price.transform_quantity.divide_by) : undefined,
 		bucket_tiers: isTieredBillingModel(billing_model)
 			? (price?.tiers ?? []).map((tier) => ({
-					up_to: tier.up_to ?? null,
+					up_to: normalizeTierUpToForForm(tier.up_to),
 					unit_amount: tier.unit_amount ?? '',
 					flat_amount: tier.flat_amount ?? '0',
 				}))
@@ -190,22 +199,13 @@ export function isSlabBillingModel(model: BillingModelSelectValue): boolean {
 export const EMPTY_BUCKET_TIER_ROW = { from: 0, up_to: null as number | null, unit_amount: '', flat_amount: '0' };
 
 export function mapBucketTiersToFormTiers(tiers: BucketTierDraft[]) {
-	return tiers.map((tier, index, allTiers) => ({
-		from: index === 0 ? 0 : (allTiers[index - 1]?.up_to ?? 0),
-		up_to: tier.up_to ?? null,
-		unit_amount: tier.unit_amount || '',
-		flat_amount: tier.flat_amount ?? '0',
-	}));
+	return mapTiersToFormRows(tiers);
 }
 
 export function mapFormTiersToBucketTiers(
-	tiers: Array<{ up_to?: number | null; unit_amount?: string; flat_amount?: string }>,
+	tiers: Array<{ up_to?: BucketTierUpTo; unit_amount?: string; flat_amount?: string }>,
 ): BucketTierDraft[] {
-	return tiers.map((tier) => ({
-		up_to: tier.up_to,
-		unit_amount: tier.unit_amount || '',
-		flat_amount: tier.flat_amount ?? '0',
-	}));
+	return mapFormRowsToTiers(tiers) as BucketTierDraft[];
 }
 
 export function getBucketTierFormRows(tiers?: BucketTierDraft[]) {
@@ -237,7 +237,7 @@ function mapTiersToDraft(
 ): BucketTierDraft[] | undefined {
 	if (!tiers?.length) return undefined;
 	return tiers.map((tier) => ({
-		up_to: tier.up_to ?? null,
+		up_to: normalizeTierUpToForForm(tier.up_to),
 		unit_amount: tier.unit_amount ?? '',
 		flat_amount: tier.flat_amount ?? '0',
 	}));
@@ -293,13 +293,11 @@ export function timeBucketToDraft(bucket: CommitmentTimeBucket): CommitmentTimeB
 }
 
 function buildTiersFromDraft(draft: CommitmentTimeBucketDraft): CreatePriceTier[] {
-	return (draft.bucket_tiers ?? [])
-		.filter((tier) => tier.unit_amount.trim() || tier.flat_amount?.trim())
-		.map((tier) => ({
-			...(tier.up_to != null ? { up_to: tier.up_to } : {}),
-			unit_amount: removeFormatting(tier.unit_amount),
-			...(tier.flat_amount?.trim() ? { flat_amount: removeFormatting(tier.flat_amount) } : { flat_amount: '0' }),
-		}));
+	return sanitizeTiersForApi(draft.bucket_tiers ?? []).map((tier) => ({
+		...tier,
+		unit_amount: removeFormatting(tier.unit_amount),
+		flat_amount: tier.flat_amount?.trim() ? removeFormatting(tier.flat_amount) : '0',
+	}));
 }
 
 export function buildBucketPriceFromDraft(draft: CommitmentTimeBucketDraft, context: BucketPriceContext): CommitmentTimeBucketPrice {
