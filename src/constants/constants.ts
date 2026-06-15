@@ -35,6 +35,13 @@ export enum TIME_PERIOD {
 	LAST_30_DAYS = 'last-30-days',
 }
 
+/** ISO 4217 codes valid but absent from iso-country-currency (funds, SDRs, etc.). */
+type SupplementalIsoCurrency = { currency: string; symbol: string };
+
+const SUPPLEMENTAL_ISO_CURRENCIES: SupplementalIsoCurrency[] = [
+	{ currency: 'CLF', symbol: 'CLF' },
+];
+
 export const getCurrencyOptions = () => {
 	const codes = getAllISOCodes();
 	const map = new Map();
@@ -60,6 +67,13 @@ export const getCurrencyOptions = () => {
 			});
 		}
 	});
+
+	SUPPLEMENTAL_ISO_CURRENCIES.forEach(({ currency, symbol }) => {
+		if (!map.has(currency)) {
+			map.set(currency, { currency, symbol });
+		}
+	});
+
 	return Array.from(map.values());
 };
 
