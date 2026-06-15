@@ -240,7 +240,8 @@ const CustomerAnalyticsTab = () => {
 		if (date && endDate && endDate <= date) {
 			const newEndDate = new Date(date);
 			newEndDate.setDate(newEndDate.getDate() + 1);
-			setEndDate(newEndDate);
+			const today = new Date();
+			setEndDate(newEndDate > today ? today : newEndDate);
 		}
 	};
 
@@ -253,6 +254,7 @@ const CustomerAnalyticsTab = () => {
 		}
 	};
 
+	const maxEndDate = new Date();
 	const minEndDate = startDate ? new Date(new Date(startDate).setDate(startDate.getDate() + 1)) : undefined;
 
 	const maxStartDate = endDate ? new Date(new Date(endDate).setDate(endDate.getDate() - 1)) : undefined;
@@ -342,6 +344,7 @@ const CustomerAnalyticsTab = () => {
 								placeholder={t('tabPanels.analytics.endDatePlaceholder')}
 								label={t('tabPanels.analytics.endDateLabel')}
 								minDate={minEndDate}
+								maxDate={maxEndDate}
 							/>
 						</div>
 						<div className='ml-auto min-w-[200px]'>
