@@ -31,11 +31,10 @@ interface CommitmentConfigDialogProps {
 	isOpen: boolean;
 	onOpenChange: (isOpen: boolean) => void;
 	price: Price;
-	onSave?: (priceId: string, config: LineItemCommitmentConfig | null, timeBuckets?: CommitmentTimeBucket[]) => void;
+	onSave: (priceId: string, config: LineItemCommitmentConfig | null, timeBuckets?: CommitmentTimeBucket[]) => void;
 	currentConfig: LineItemCommitmentConfig | undefined;
 	currentTimeBuckets?: CommitmentTimeBucket[];
 	billingPeriod?: BILLING_PERIOD;
-	readOnly?: boolean;
 }
 
 const CommitmentConfigDialog: FC<CommitmentConfigDialogProps> = ({
@@ -46,7 +45,6 @@ const CommitmentConfigDialog: FC<CommitmentConfigDialogProps> = ({
 	currentConfig,
 	currentTimeBuckets,
 	billingPeriod,
-	readOnly = false,
 }) => {
 	const { t } = useTranslation('billing');
 	const [commitmentType, setCommitmentType] = useState<CommitmentType>(CommitmentType.AMOUNT);
@@ -107,7 +105,6 @@ const CommitmentConfigDialog: FC<CommitmentConfigDialogProps> = ({
 	}, [currentConfig, currentTimeBuckets, isOpen, showWindowCommitment, billingPeriod, clearValidation]);
 
 	const handleSave = () => {
-		if (readOnly || !onSave) return;
 		const config: Partial<LineItemCommitmentConfig> = {
 			commitment_type: commitmentType,
 			overage_factor: parseFloat(overageFactor) || 1.0,
@@ -155,7 +152,6 @@ const CommitmentConfigDialog: FC<CommitmentConfigDialogProps> = ({
 	};
 
 	const handleClear = () => {
-		if (readOnly || !onSave) return;
 		onSave(price.id, null);
 		onOpenChange(false);
 	};
@@ -175,7 +171,7 @@ const CommitmentConfigDialog: FC<CommitmentConfigDialogProps> = ({
 		<Dialog
 			isOpen={isOpen}
 			onOpenChange={onOpenChange}
-			title={readOnly ? t('commitmentConfig.view.title', { defaultValue: 'Commitment details' }) : t('commitmentConfig.title')}
+			title={t('commitmentConfig.title')}
 			description={t('commitmentConfig.description', { name: meterDisplayName })}
 			className='w-full max-w-4xl'>
 			<div className='space-y-6 min-w-0 overflow-x-hidden'>
@@ -185,7 +181,6 @@ const CommitmentConfigDialog: FC<CommitmentConfigDialogProps> = ({
 						setCommitmentType(value);
 						clearValidation();
 					}}
-					disabled={readOnly}
 				/>
 
 				<div className='grid grid-cols-2 gap-4 items-start'>
@@ -206,7 +201,6 @@ const CommitmentConfigDialog: FC<CommitmentConfigDialogProps> = ({
 									suffix={currencySymbol}
 									className='w-full'
 									error={showAmountError}
-									disabled={readOnly}
 								/>
 								<p className='text-xs text-gray-500'>{t('commitmentConfig.commitmentAmountHint')}</p>
 							</>
@@ -223,7 +217,6 @@ const CommitmentConfigDialog: FC<CommitmentConfigDialogProps> = ({
 									placeholder={t('commitmentConfig.commitmentQuantityPlaceholder')}
 									className='w-full'
 									error={showQuantityError}
-									disabled={readOnly}
 								/>
 								<p className='text-xs text-gray-500'>{t('commitmentConfig.commitmentQuantityHint')}</p>
 							</>
@@ -239,7 +232,6 @@ const CommitmentConfigDialog: FC<CommitmentConfigDialogProps> = ({
 								clearValidation();
 							}}
 							placeholder={t('commitmentConfig.sameAsBillingPlaceholder')}
-							disabled={readOnly}
 						/>
 						<p className='text-xs text-gray-500'>{t('commitmentConfig.commitmentPeriodHint')}</p>
 					</div>
@@ -257,7 +249,6 @@ const CommitmentConfigDialog: FC<CommitmentConfigDialogProps> = ({
 						placeholder={t('commitmentConfig.overageFactorPlaceholder')}
 						className='w-full'
 						error={commitmentErrorTarget === 'overageField' ? (validationError ?? undefined) : undefined}
-						disabled={readOnly}
 					/>
 					<p className='text-xs text-gray-500'>{t('commitmentConfig.overageFactorHint')}</p>
 				</div>
@@ -267,7 +258,7 @@ const CommitmentConfigDialog: FC<CommitmentConfigDialogProps> = ({
 						<label className='text-sm font-medium text-gray-700 block mb-1'>{t('commitmentConfig.enableTrueUp')}</label>
 						<p className='text-xs text-gray-500'>{t('commitmentConfig.enableTrueUpHint')}</p>
 					</div>
-					<Switch checked={enableTrueUp} onCheckedChange={setEnableTrueUp} disabled={readOnly} />
+					<Switch checked={enableTrueUp} onCheckedChange={setEnableTrueUp} />
 				</div>
 
 				{showWindowCommitment && (
@@ -284,7 +275,6 @@ const CommitmentConfigDialog: FC<CommitmentConfigDialogProps> = ({
 								setIsWindowCommitment(checked);
 								if (!checked) setTimeBuckets([]);
 							}}
-							disabled={readOnly}
 						/>
 					</div>
 				)}
@@ -298,37 +288,34 @@ const CommitmentConfigDialog: FC<CommitmentConfigDialogProps> = ({
 						currencySymbol={currencySymbol}
 						currency={price.currency}
 						bucketDefaults={bucketDefaults}
-						disabled={readOnly}
 					/>
 				)}
 
-				{!readOnly && validationError && commitmentErrorTarget === 'banner' && (
+				{validationError && commitmentErrorTarget === 'banner' && (
 					<div className='p-3 bg-red-50 border border-red-200 rounded-lg'>
 						<p className='text-sm text-red-700'>{validationError}</p>
 					</div>
 				)}
 
-				{!readOnly && hasExistingConfig && (
+				{hasExistingConfig && (
 					<div className='p-3 bg-blue-50 border border-blue-200 rounded-lg'>
 						<p className='text-sm text-blue-700'>{t('commitmentConfig.existingNotice')}</p>
 					</div>
 				)}
 
-				{!readOnly && (
-					<div className='flex gap-3 pt-4 border-t'>
-						<Button variant='outline' onClick={handleCancel} className='flex-1'>
-							{t('commitmentConfig.cancel')}
+				<div className='flex gap-3 pt-4 border-t'>
+					<Button variant='outline' onClick={handleCancel} className='flex-1'>
+						{t('commitmentConfig.cancel')}
+					</Button>
+					{hasExistingConfig && (
+						<Button variant='outline' onClick={handleClear} className='flex-1 text-red-600 hover:bg-red-50'>
+							{t('commitmentConfig.clearCommitment')}
 						</Button>
-						{hasExistingConfig && (
-							<Button variant='outline' onClick={handleClear} className='flex-1 text-red-600 hover:bg-red-50'>
-								{t('commitmentConfig.clearCommitment')}
-							</Button>
-						)}
-						<Button onClick={handleSave} className='flex-1'>
-							{hasExistingConfig ? t('commitmentConfig.updateCommitment') : t('commitmentConfig.saveCommitment')}
-						</Button>
-					</div>
-				)}
+					)}
+					<Button onClick={handleSave} className='flex-1'>
+						{hasExistingConfig ? t('commitmentConfig.updateCommitment') : t('commitmentConfig.saveCommitment')}
+					</Button>
+				</div>
 			</div>
 		</Dialog>
 	);

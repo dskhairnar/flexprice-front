@@ -53,12 +53,7 @@ const EventTrackerSection: FC<EventTrackerSectionProps> = ({ debugResponse, disp
 				<div className='absolute left-3 top-2 bottom-2 w-px bg-gray-100' />
 
 				<div className='mb-4'>
-					<EventTrackerStep
-						title={t('events.tracker.ingested')}
-						stepKey='ingested'
-						isIngested={true}
-						timestamp={displayEventTimestamp}
-					/>
+					<EventTrackerStep title={t('events.tracker.ingested')} stepKey='ingested' isIngested={true} timestamp={displayEventTimestamp} />
 				</div>
 
 				<Accordion type='single' collapsible className='border-none'>
@@ -97,9 +92,7 @@ const EventTrackerSection: FC<EventTrackerSectionProps> = ({ debugResponse, disp
 										value={tracker.attributed_to_customer}
 										title={t('labels.response')}
 										onCopy={() => {
-											navigator.clipboard.writeText(
-												JSON.stringify(tracker.attributed_to_customer ?? {}, null, 2),
-											);
+											navigator.clipboard.writeText(JSON.stringify(tracker.attributed_to_customer ?? {}, null, 2));
 											toast.success(t('common:toast.copySuccess'));
 										}}
 									/>
