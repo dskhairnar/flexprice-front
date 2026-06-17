@@ -131,7 +131,7 @@ const CustomerSubscriptionEditPage: React.FC = () => {
 
 	const inheritedSubscriptionRows = inheritedSubscriptionsData?.items ?? [];
 
-	const { mutate: updateLineItem, isPending: isUpdatingLineItem } = useMutation({
+	const { mutateAsync: updateLineItem, isPending: isUpdatingLineItem } = useMutation({
 		mutationFn: async ({ lineItemId, updateData }: { lineItemId: string; updateData: UpdateSubscriptionLineItemRequest }) => {
 			return await SubscriptionApi.updateSubscriptionLineItem(lineItemId, updateData);
 		},
@@ -161,14 +161,13 @@ const CustomerSubscriptionEditPage: React.FC = () => {
 		},
 	});
 
-	const { mutate: createLineItem } = useMutation({
+	const { mutateAsync: createLineItem, isPending: isCreatingLineItem } = useMutation({
 		mutationFn: async (payload: CreateSubscriptionLineItemRequest) => {
 			return await SubscriptionApi.createSubscriptionLineItem(subscriptionId!, payload);
 		},
 		onSuccess: () => {
 			toast.success(t('subscriptionEdit.toast.chargeAdded'));
 			invalidateSubscriptionEdit();
-			setIsAddChargeDialogOpen(false);
 		},
 		onError: (error: Error) => {
 			toast.error(error.message || t('subscriptionEdit.toast.chargeAddFailed'));
@@ -256,9 +255,10 @@ const CustomerSubscriptionEditPage: React.FC = () => {
 	);
 
 	const handleUsageLineItemUpdate = useCallback(
-		(updateData: UpdateSubscriptionLineItemRequest) => {
+		async (updateData: UpdateSubscriptionLineItemRequest) => {
 			if (!editingLineItem || editingLineItem.mode !== SUBSCRIPTION_LINE_ITEM_EDIT_MODE.USAGE_OVERRIDE) return;
-			updateLineItem({ lineItemId: editingLineItem.lineItem.id, updateData }, { onSuccess: () => setEditingLineItem(null) });
+			await updateLineItem({ lineItemId: editingLineItem.lineItem.id, updateData });
+			setEditingLineItem(null);
 		},
 		[editingLineItem, updateLineItem],
 	);
@@ -299,10 +299,10 @@ const CustomerSubscriptionEditPage: React.FC = () => {
 	}, []);
 
 	const handleAddChargeSave = useCallback(
-		(item: AddedSubscriptionLineItem) => {
+		async (item: AddedSubscriptionLineItem) => {
 			const { tempId, ...request } = item;
 			void tempId;
-			createLineItem(request as CreateSubscriptionLineItemRequest);
+			await createLineItem(request as CreateSubscriptionLineItemRequest);
 		},
 		[createLineItem],
 	);
@@ -402,8 +402,6 @@ const CustomerSubscriptionEditPage: React.FC = () => {
 							subscriptionCurrency={subscriptionDetails.currency}
 							subscriptionCurrentPeriodStart={subscriptionDetails.current_period_start}
 							subscriptionCurrentPeriodEnd={subscriptionDetails.current_period_end}
-							subscriptionCustomerId={subscriptionDetails.customer_id}
-							showCommitmentColumn
 						/>
 
 						{editingLineItem?.mode === SUBSCRIPTION_LINE_ITEM_EDIT_MODE.USAGE_OVERRIDE && (
@@ -436,6 +434,7 @@ const CustomerSubscriptionEditPage: React.FC = () => {
 							isOpen={isAddChargeDialogOpen}
 							onOpenChange={setIsAddChargeDialogOpen}
 							onSave={handleAddChargeSave}
+							isSaving={isCreatingLineItem}
 							defaultCurrency={subscriptionDetails?.currency}
 							defaultBillingPeriod={subscriptionDetails?.billing_period}
 							defaultStartDate={subscriptionDetails?.start_date}

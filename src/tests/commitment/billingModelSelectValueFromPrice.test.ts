@@ -1,5 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import { BILLING_MODEL } from '@/models/Price';
+import { BILLING_MODEL, PRICE_TYPE, PRICE_UNIT_TYPE } from '@/models/Price';
+import { INVOICE_CADENCE } from '@/models/Invoice';
+import { BILLING_PERIOD } from '@/constants/constants';
 import { billingModelSelectValueFromPrice, hydrateCommitmentTimeBucketsForDisplay } from '@/utils/common/commitment_time_bucket_draft';
 import { formatBucketPriceLabel } from '@/utils/subscription/subscription_line_item_commitment_helpers';
 
@@ -32,7 +34,14 @@ describe('commitment bucket flat billing display', () => {
 				end: { hour: 17, minute: 0 },
 				commitment_value: '100',
 				price: {
+					type: PRICE_TYPE.USAGE,
+					price_unit_type: PRICE_UNIT_TYPE.FIAT,
+					billing_period: BILLING_PERIOD.MONTHLY,
+					billing_period_count: 1,
 					billing_model: BILLING_MODEL.FLAT_FEE,
+					invoice_cadence: INVOICE_CADENCE.ARREAR,
+					currency: 'usd',
+					meter_id: 'meter_01',
 					amount: '2.50',
 					transform_quantity: { divide_by: 1, round: 'up' },
 				},

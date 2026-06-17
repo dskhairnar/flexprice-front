@@ -34,7 +34,7 @@ interface Props {
 	showEffectiveFrom?: boolean; // Optional prop to conditionally show effective_from date
 	/** When set (subscription line item edit), shows window commitment and merges into line item update. */
 	lineItem?: LineItem;
-	onLineItemUpdate?: (updateData: UpdateSubscriptionLineItemRequest) => void;
+	onLineItemUpdate?: (updateData: UpdateSubscriptionLineItemRequest) => void | Promise<void>;
 	isSaving?: boolean;
 }
 
@@ -255,7 +255,7 @@ const PriceOverrideDialog: FC<Props> = ({
 		return JSON.stringify(commitmentState) !== JSON.stringify(initialCommitmentState);
 	};
 
-	const handleOverride = () => {
+	const handleOverride = async () => {
 		const override = buildPriceOverride();
 
 		if (lineItem && onLineItemUpdate) {
@@ -271,8 +271,11 @@ const PriceOverrideDialog: FC<Props> = ({
 				onOpenChange(false);
 				return;
 			}
-			onLineItemUpdate(merged);
-			onOpenChange(false);
+			try {
+				await onLineItemUpdate(merged);
+			} catch {
+				// Keep dialog open so the user can fix and retry.
+			}
 			return;
 		}
 
@@ -499,10 +502,15 @@ const PriceOverrideDialog: FC<Props> = ({
 	const displaySymbol = getDisplaySymbol();
 	const chargeDisplayName = price.meter?.name || price.description || t('priceDialogs.thisChargeFallback');
 
+	const handleDialogOpenChange = (open: boolean) => {
+		if (!open && isSaving) return;
+		onOpenChange(open);
+	};
+
 	return (
 		<Dialog
 			isOpen={isOpen}
-			onOpenChange={onOpenChange}
+			onOpenChange={handleDialogOpenChange}
 			title={
 				<div className='flex items-center gap-2'>
 					<span>{t('priceDialogs.overrideTitle')}</span>
@@ -668,6 +676,7 @@ const PriceOverrideDialog: FC<Props> = ({
 						currency={lineItem.currency}
 						value={commitmentState}
 						onChange={setCommitmentState}
+						disabled={isSaving}
 					/>
 				)}
 
@@ -680,7 +689,11 @@ const PriceOverrideDialog: FC<Props> = ({
 							{t('priceDialogs.reset')}
 						</Button>
 					)}
-					<Button onClick={handleOverride} className='flex-1' disabled={isSaving || (!hasChanges() && !hasCommitmentChanges())}>
+					<Button
+						onClick={handleOverride}
+						className='flex-1'
+						disabled={isSaving || (!hasChanges() && !hasCommitmentChanges())}
+						isLoading={isSaving}>
 						{lineItem || isOverridden ? t('priceDialogs.updateOverride') : t('priceDialogs.overridePrice')}
 					</Button>
 				</div>

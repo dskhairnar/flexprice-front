@@ -161,7 +161,7 @@ export function bucketDefaultsFromPrice(price?: BucketPriceSource): CommitmentTi
 
 export function createDefaultSlabTiers(): BucketTierDraft[] {
 	return [
-		{ up_to: 5, unit_amount: '', flat_amount: '0' },
+		{ up_to: 1, unit_amount: '', flat_amount: '0' },
 		{ up_to: null, unit_amount: '', flat_amount: '0' },
 	];
 }

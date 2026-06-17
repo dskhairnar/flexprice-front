@@ -27,6 +27,7 @@ interface Props {
 	entityType?: PRICE_ENTITY_TYPE;
 	entityId?: string;
 	entityName?: string;
+	isSaving?: boolean;
 }
 
 const RecurringChargesForm = ({
@@ -38,6 +39,7 @@ const RecurringChargesForm = ({
 	entityType = PRICE_ENTITY_TYPE.PLAN,
 	entityId,
 	entityName,
+	isSaving = false,
 }: Props) => {
 	const { t } = useTranslation(['catalog', 'common']);
 	// Helper function to compute default values for price state
@@ -390,10 +392,10 @@ const RecurringChargesForm = ({
 			)}
 			<Spacer height={'16px'} />
 			<div className='flex justify-end'>
-				<Button onClick={onDeleteClicked} variant='secondary' className='me-4 text-zinc-900'>
+				<Button onClick={onDeleteClicked} variant='secondary' className='me-4 text-zinc-900' disabled={isSaving}>
 					{price.internal_state === PriceInternalState.EDIT ? t('common:actions.delete') : t('common:actions.cancel')}
 				</Button>
-				<Button onClick={handleSubmit} variant='default' className='me-4 font-normal'>
+				<Button onClick={handleSubmit} variant='default' className='me-4 font-normal' isLoading={isSaving} disabled={isSaving}>
 					{price.internal_state === PriceInternalState.EDIT ? t('common:actions.update') : t('common:actions.add')}
 				</Button>
 			</div>

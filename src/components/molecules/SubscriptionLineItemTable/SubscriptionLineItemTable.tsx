@@ -24,7 +24,6 @@ import {
 	formatCommitmentTimeBucketLabel,
 } from '@/utils/subscription/subscription_line_item_commitment_helpers';
 import { hydrateCommitmentTimeBucketsForDisplay } from '@/utils/common/commitment_time_bucket_draft';
-import { useCommitmentTimeBucketPrices } from '@/hooks/useCommitmentTimeBucketPrices';
 import type { Price } from '@/models/Price';
 import { getLocalizedCurrencySymbol } from '@/i18n/display/formatNumber';
 import { DEFAULT_CURRENCY_CODE } from '@/constants/constants';
@@ -441,12 +440,6 @@ const SubscriptionLineItemTable: FC<Props> = ({
 		return types.size > 1;
 	}, [data]);
 
-	const allCommitmentBuckets = useMemo(
-		() => (showCommitmentColumn ? (data ?? []).flatMap((item) => item.commitment_time_buckets ?? []) : []),
-		[data, showCommitmentColumn],
-	);
-	const { pricesById } = useCommitmentTimeBucketPrices(allCommitmentBuckets);
-
 	const columns: ColumnData<LineItemWithStatus>[] = useMemo(
 		() => [
 			{
@@ -537,14 +530,6 @@ const SubscriptionLineItemTable: FC<Props> = ({
 					);
 				},
 			},
-			...(showCommitmentColumn
-				? [
-						{
-							title: 'Commitment',
-							render: (row: LineItemWithStatus) => <CommitmentColumnCell row={row} pricesById={pricesById} />,
-						},
-					]
-				: []),
 			{
 				title: t('tableColumns.charge'),
 				render: (row) => {
@@ -566,7 +551,6 @@ const SubscriptionLineItemTable: FC<Props> = ({
 							width: '48px',
 							hideOnEmpty: true,
 							render: (row: LineItemWithStatus) => {
-								if (!lineItemHasWindowCommitment(row)) return null;
 								return <ViewCommitmentDropdown row={row} onView={setViewCommitmentLineItem} />;
 							},
 						},
@@ -597,17 +581,7 @@ const SubscriptionLineItemTable: FC<Props> = ({
 						},
 					]),
 		],
-		[
-			hasMultipleEntityTypes,
-			commitmentInfo,
-			handleEditClick,
-			handleTerminateClick,
-			readOnly,
-			phaseLabelsById,
-			showCommitmentColumn,
-			pricesById,
-			t,
-		],
+		[hasMultipleEntityTypes, commitmentInfo, handleEditClick, handleTerminateClick, readOnly, phaseLabelsById, showCommitmentColumn, t],
 	);
 
 	if (isLoading) {

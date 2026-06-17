@@ -120,7 +120,7 @@ const AddAddonDialog: React.FC<Props> = ({ isOpen, onOpenChange, subscriptionId,
 	);
 
 	// Add addon mutation
-	const { mutate: addAddon, isPending: isAddingAddon } = useMutation({
+	const { mutateAsync: addAddon, isPending: isAddingAddon } = useMutation({
 		mutationFn: async (payload: AddAddonRequest) => {
 			return await SubscriptionApi.addAddonToSubscription(payload);
 		},
@@ -130,16 +130,15 @@ const AddAddonDialog: React.FC<Props> = ({ isOpen, onOpenChange, subscriptionId,
 			refetchQueries(['subscriptionDetails', subscriptionId]);
 			refetchQueries(['subscriptionEdit', subscriptionId]);
 			refetchQueries(['subscriptionEntitlements', subscriptionId]);
-			setFormData({});
-			setErrors({});
-			onOpenChange(false);
 		},
 		onError: (error: Error) => {
 			toast.error(error.message || t('billing:subscriptions.addAddonDialog.toast.addonAddFailed'));
 		},
 	});
 
-	const handleSave = useCallback(() => {
+	const handleSave = useCallback(async () => {
+		if (isAddingAddon) return;
+
 		const validation = validateForm();
 
 		if (!validation.isValid) {
@@ -158,14 +157,42 @@ const AddAddonDialog: React.FC<Props> = ({ isOpen, onOpenChange, subscriptionId,
 			...(prorationBehavior ? { proration_behavior: prorationBehavior } : {}),
 		};
 
-		addAddon(addonData);
-	}, [formData, validateForm, subscriptionId, addAddon, lineItemCommitments, selectedAddonPrices, startDate, cadence, prorationBehavior]);
+		try {
+			await addAddon(addonData);
+			setFormData({});
+			setErrors({});
+			onOpenChange(false);
+		} catch {
+			// Keep dialog open so the user can fix and retry.
+		}
+	}, [
+		formData,
+		validateForm,
+		subscriptionId,
+		addAddon,
+		lineItemCommitments,
+		selectedAddonPrices,
+		startDate,
+		cadence,
+		prorationBehavior,
+		isAddingAddon,
+		onOpenChange,
+	]);
 
 	const handleCancel = useCallback(() => {
+		if (isAddingAddon) return;
 		setFormData({});
 		setErrors({});
 		onOpenChange(false);
-	}, [onOpenChange]);
+	}, [onOpenChange, isAddingAddon]);
+
+	const handleDialogOpenChange = useCallback(
+		(open: boolean) => {
+			if (!open && isAddingAddon) return;
+			onOpenChange(open);
+		},
+		[onOpenChange, isAddingAddon],
+	);
 
 	const handleAddonSelect = useCallback(
 		(addonId: string) => {
@@ -272,7 +299,7 @@ const AddAddonDialog: React.FC<Props> = ({ isOpen, onOpenChange, subscriptionId,
 		<Dialog
 			isOpen={isOpen}
 			showCloseButton={false}
-			onOpenChange={onOpenChange}
+			onOpenChange={handleDialogOpenChange}
 			title={t('common:actions.add')}
 			className='sm:max-w-[900px]'>
 			<div className='grid gap-4 mt-3'>
@@ -408,8 +435,8 @@ const AddAddonDialog: React.FC<Props> = ({ isOpen, onOpenChange, subscriptionId,
 				<Button variant='outline' onClick={handleCancel} disabled={isAddingAddon}>
 					{t('common:actions.cancel')}
 				</Button>
-				<Button onClick={handleSave} disabled={isAddingAddon}>
-					{isAddingAddon ? t('billing:subscriptions.addAddonDialog.adding') : t('common:actions.add')}
+				<Button onClick={handleSave} isLoading={isAddingAddon} disabled={isAddingAddon}>
+					{t('common:actions.add')}
 				</Button>
 			</div>
 		</Dialog>

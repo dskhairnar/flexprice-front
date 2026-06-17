@@ -4,9 +4,11 @@ import { INVOICE_CADENCE } from '@/models/Invoice';
 import { BILLING_PERIOD } from '@/constants/constants';
 import { CommitmentType } from '@/types/dto/LineItemCommitmentConfig';
 import type { CreateSubscriptionLineItemRequest } from '@/types/dto/Subscription';
+import type { LineItem } from '@/models/Subscription';
 import {
 	applyBaseCommitmentToLineItem,
 	applyWindowCommitmentToLineItem,
+	buildLineItemCommitmentUpdatePayload,
 	DEFAULT_SUBSCRIPTION_CHARGE_COMMITMENT_STATE,
 	lineItemWindowCommitmentStateFromBuckets,
 	subscriptionChargeCommitmentFromLineItem,
@@ -136,5 +138,49 @@ describe('subscription charge base commitment fields', () => {
 			enableTrueUp: true,
 			windowCommitment: true,
 		});
+	});
+});
+
+describe('buildLineItemCommitmentUpdatePayload', () => {
+	it('allows clearing all window commitment time buckets on edit', () => {
+		const lineItem = {
+			id: 'li_01',
+			currency: 'usd',
+			meter_id: 'meter_01',
+			billing_period: BILLING_PERIOD.MONTHLY,
+			price: {
+				type: PRICE_TYPE.USAGE,
+				meter_id: 'meter_01',
+				billing_period: BILLING_PERIOD.MONTHLY,
+				price_unit_type: PRICE_UNIT_TYPE.FIAT,
+				invoice_cadence: INVOICE_CADENCE.ARREAR,
+			},
+			commitment_time_buckets: [
+				{
+					id: 'bucket_01',
+					start: { hour: 9, minute: 0 },
+					end: { hour: 17, minute: 0 },
+					commitment_value: '50',
+				},
+			],
+		} as LineItem;
+
+		const result = buildLineItemCommitmentUpdatePayload(
+			{
+				...DEFAULT_SUBSCRIPTION_CHARGE_COMMITMENT_STATE,
+				commitmentType: CommitmentType.AMOUNT,
+				commitmentAmount: '50',
+				windowCommitment: true,
+				timeBuckets: [],
+			},
+			lineItem,
+			{ aggregation: { bucket_size: 'WINDOW_SIZE_HOUR' } } as never,
+		);
+
+		expect(result.ok).toBe(true);
+		if (result.ok) {
+			expect(result.payload.commitment_windowed).toBe(true);
+			expect(result.payload.commitment_time_buckets).toEqual([]);
+		}
 	});
 });

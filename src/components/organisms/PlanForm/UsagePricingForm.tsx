@@ -41,6 +41,7 @@ interface Props {
 	onMeterChange?: (feature: Feature | null) => void;
 	/** Rendered after form fields and before the action buttons */
 	formFooter?: ReactNode;
+	isSaving?: boolean;
 }
 
 export interface PriceTier {
@@ -91,6 +92,7 @@ const UsagePricingForm: FC<Props> = ({
 	entityId,
 	onMeterChange,
 	formFooter,
+	isSaving = false,
 }) => {
 	const { t } = useTranslation(['catalog', 'common']);
 	const [currency, setCurrency] = useState(price.currency || currencyOptions[0].value);
@@ -668,10 +670,10 @@ const UsagePricingForm: FC<Props> = ({
 
 			<Spacer height={'16px'} />
 			<div className='flex justify-end'>
-				<Button onClick={handleCancel} variant='secondary' className='me-4 text-zinc-900'>
+				<Button onClick={handleCancel} variant='secondary' className='me-4 text-zinc-900' disabled={isSaving}>
 					{price.internal_state === PriceInternalState.EDIT ? t('common:actions.delete') : t('common:actions.cancel')}
 				</Button>
-				<Button onClick={handleSubmit} variant='default' className='me-4 font-normal'>
+				<Button onClick={handleSubmit} variant='default' className='me-4 font-normal' isLoading={isSaving} disabled={isSaving}>
 					{price.internal_state === PriceInternalState.EDIT ? t('common:actions.update') : t('common:actions.add')}
 				</Button>
 			</div>

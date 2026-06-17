@@ -349,6 +349,7 @@ export function buildLineItemCommitmentUpdatePayload(
 	const validation = normalizeTimeBucketDraftsOrError(commitmentState.timeBuckets, commitmentState.commitmentType, bucketSize, {
 		requireCommitmentFields: true,
 		requireBucketPrice: true,
+		requireNonEmpty: false,
 		priceContext,
 	});
 
