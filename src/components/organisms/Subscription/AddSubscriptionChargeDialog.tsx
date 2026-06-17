@@ -244,6 +244,7 @@ const AddSubscriptionChargeDialog: React.FC<AddSubscriptionChargeDialogProps> = 
 						<SubscriptionChargeCommitmentSection
 							meterId={meterId}
 							currency={price.currency ?? defaultCurrency}
+							billingPeriod={defaultBillingPeriod}
 							value={commitmentState}
 							onChange={setCommitmentState}
 							sourcePrice={price}

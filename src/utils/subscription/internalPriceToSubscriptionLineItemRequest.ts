@@ -3,6 +3,16 @@ import type { CreateSubscriptionLineItemRequest, SubscriptionPriceCreateRequest 
 import type { InternalPrice } from '@/components/organisms/PlanForm/SetupChargesSection';
 import { PriceInternalState } from '@/components/organisms/PlanForm/UsagePricingForm';
 
+function normalizePriceCurrency(currency?: string): string | undefined {
+	const normalized = currency?.trim().toLowerCase();
+	return normalized || undefined;
+}
+
+function withPriceCurrency(price: SubscriptionPriceCreateRequest, currency?: string): SubscriptionPriceCreateRequest {
+	const normalized = normalizePriceCurrency(currency);
+	return normalized ? { ...price, currency: normalized } : price;
+}
+
 /** Item shape for subscription-added line (request + tempId). */
 export type AddedSubscriptionLineItemLike = CreateSubscriptionLineItemRequest & { tempId: string };
 
@@ -37,7 +47,7 @@ export function internalPriceToSubscriptionLineItemRequest(
 			price.price_unit_config = partial.price_unit_config;
 		}
 		return {
-			price,
+			price: withPriceCurrency(price, partial.currency),
 			quantity: 0,
 			display_name: partial.display_name,
 			start_date: partial.start_date,
@@ -73,7 +83,7 @@ export function internalPriceToSubscriptionLineItemRequest(
 	}
 
 	return {
-		price,
+		price: withPriceCurrency(price, partial.currency),
 		quantity: quantity ?? partial.min_quantity ?? 1,
 		display_name: partial.display_name,
 		start_date: partial.start_date,

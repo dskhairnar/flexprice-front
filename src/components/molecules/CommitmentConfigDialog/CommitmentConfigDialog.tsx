@@ -20,7 +20,7 @@ import { useTranslation } from 'react-i18next';
 import CommitmentTimeBucketsEditor from '@/components/molecules/CommitmentTimeBucketsEditor';
 import CommitmentTypeSelect from '@/components/molecules/CommitmentTypeSelect';
 import {
-	buildCommitmentTimeBucketDefaults,
+	bucketDefaultsFromPrice,
 	normalizeTimeBucketDraftsOrError,
 	timeBucketToDraft,
 	type CommitmentTimeBucketDraft,
@@ -76,16 +76,7 @@ const CommitmentConfigDialog: FC<CommitmentConfigDialogProps> = ({
 	const showTimeBucketEditor = showWindowCommitment && supportsCommitmentTimeBuckets(price) && isWindowCommitment;
 	const bucketPriceContext = useMemo(() => bucketPriceContextFromPrice(price), [price]);
 
-	const bucketDefaults = useMemo(
-		() =>
-			buildCommitmentTimeBucketDefaults(price, {
-				commitmentType,
-				commitmentValue: commitmentType === CommitmentType.AMOUNT ? commitmentAmount : commitmentQuantity,
-				overageFactor,
-				trueUpEnabled: enableTrueUp,
-			}),
-		[commitmentType, commitmentAmount, commitmentQuantity, overageFactor, enableTrueUp, price],
-	);
+	const bucketDefaults = useMemo(() => bucketDefaultsFromPrice(price), [price]);
 
 	const clearValidation = useCallback(() => {
 		setValidationError(null);

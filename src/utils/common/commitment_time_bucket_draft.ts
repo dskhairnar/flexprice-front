@@ -146,19 +146,9 @@ export function buildCommitmentTimeBucketDefaults(
 }
 
 export function bucketDefaultsFromPrice(price?: BucketPriceSource): CommitmentTimeBucketDefaults {
-	const billing_model = billingModelSelectValueFromPrice(price);
-
 	return {
-		billing_model,
+		billing_model: BILLING_MODEL.FLAT_FEE,
 		bucket_amount: price?.amount,
-		transform_quantity_divide_by: price?.transform_quantity?.divide_by ? String(price.transform_quantity.divide_by) : undefined,
-		bucket_tiers: isTieredBillingModel(billing_model)
-			? (price?.tiers ?? []).map((tier) => ({
-					up_to: tier.up_to ?? null,
-					unit_amount: tier.unit_amount ?? '',
-					flat_amount: tier.flat_amount ?? '0',
-				}))
-			: undefined,
 	};
 }
 
@@ -223,7 +213,7 @@ export function createEmptyTimeBucketDraft(defaults?: CommitmentTimeBucketDefaul
 		end: { hour: UNSET_TIME_VALUE, minute: UNSET_TIME_VALUE },
 		commitment_type: defaults?.commitment_type ?? CommitmentType.AMOUNT,
 		commitment_value: commitmentValue,
-		overage_factor: defaults?.overage_factor ?? '1.0',
+		overage_factor: defaults?.overage_factor ?? '',
 		true_up_enabled: defaults?.true_up_enabled ?? false,
 		bucket_amount: defaults?.bucket_amount,
 		billing_model,

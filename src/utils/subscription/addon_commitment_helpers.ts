@@ -26,9 +26,9 @@ export function buildCommitmentConfigOnSave(
 	const hasBuckets = (timeBuckets?.length ?? 0) > 0;
 
 	if (config.is_window_commitment && hasBuckets) {
+		const { commitment_time_buckets: _buckets, ...parentConfig } = config;
 		return {
-			is_window_commitment: true,
-			...(config.commitment_duration ? { commitment_duration: config.commitment_duration } : {}),
+			...parentConfig,
 			commitment_time_buckets: timeBuckets,
 		};
 	}
@@ -57,9 +57,9 @@ export function sanitizeAddonLineItemCommitmentsForApi(
 		const hasBuckets = buckets && buckets.length > 0;
 
 		if (config.is_window_commitment && hasBuckets && price) {
+			const { commitment_time_buckets: _buckets, ...parentConfig } = config;
 			sanitized[priceId] = {
-				is_window_commitment: true,
-				...(config.commitment_duration ? { commitment_duration: config.commitment_duration } : {}),
+				...parentConfig,
 				commitment_time_buckets: enrichCommitmentTimeBucketsForApi(buckets, config, price),
 			};
 		} else {

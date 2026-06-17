@@ -420,10 +420,10 @@ export const extractLineItemCommitments = (
 				price,
 				override.amount ? { amount: override.amount } : undefined,
 			);
+			const { commitment_time_buckets: _buckets, ...parentConfig } = override.commitment!;
 
 			commitments[priceId] = {
-				is_window_commitment: override.commitment!.is_window_commitment,
-				commitment_duration: override.commitment!.commitment_duration,
+				...parentConfig,
 				commitment_time_buckets: enrichedBuckets,
 			};
 			return;

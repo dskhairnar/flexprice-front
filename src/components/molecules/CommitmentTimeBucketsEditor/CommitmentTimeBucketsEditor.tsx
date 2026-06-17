@@ -244,6 +244,13 @@ const CommitmentTimeBucketsEditor: FC<Props> = ({
 						const sameTime = hasSameStartAndEnd(row, minutesEnabled);
 						const billingModel = row.billing_model ?? bucketDefaults?.billing_model ?? BILLING_MODEL.FLAT_FEE;
 						const isTiered = isTieredBillingModel(billingModel);
+						const isSlab = isSlabBillingModel(billingModel);
+						const tieredSectionLabel = isSlab
+							? t('billing:commitmentConfig.timeBuckets.slabTiers')
+							: t('billing:commitmentConfig.timeBuckets.volumeTiers');
+						const tieredPriceHint = isSlab
+							? t('billing:commitmentConfig.timeBuckets.bucketAmountSlabTieredHint')
+							: t('billing:commitmentConfig.timeBuckets.bucketAmountVolumeTieredHint');
 						const isPackage = billingModel === BILLING_MODEL.PACKAGE;
 						const rowCommitmentType = resolveDraftCommitmentType(row, defaultCommitmentType);
 						const commitmentValueLabel =
@@ -304,57 +311,23 @@ const CommitmentTimeBucketsEditor: FC<Props> = ({
 									<span className='shrink-0 pb-2 text-xs font-medium text-gray-400'>{t('billing:commitmentConfig.timeBuckets.utc')}</span>
 								</div>
 
-								<CommitmentTypeSelect
-									className='mt-4'
-									size='compact'
-									value={rowCommitmentType}
-									onChange={(commitment_type) => updateRow(index, { commitment_type })}
-									disabled={disabled}
-								/>
-
-								<div className='mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4'>
-									<div className='space-y-1 sm:col-span-2 xl:col-span-4'>
-										<label className='text-xs font-medium text-gray-600'>{t('billing:commitmentConfig.timeBuckets.billingModel')}</label>
-										<AtomSelect
-											value={billingModel}
-											options={billingModelOptions}
-											onChange={(value) => handleBillingModelChange(index, value as BillingModelSelectValue)}
-											disabled={disabled}
-											placeholder={t('billing:commitmentConfig.timeBuckets.billingModelPlaceholder')}
-										/>
-									</div>
-
-									{!isTiered && (
-										<div className='space-y-1'>
-											<label className='text-xs font-medium text-gray-600'>{t('billing:commitmentConfig.timeBuckets.bucketAmount')}</label>
-											<Input
-												type='formatted-number'
-												value={row.bucket_amount ?? ''}
-												onChange={(value) => updateRow(index, { bucket_amount: value })}
-												placeholder={t('billing:commitmentConfig.timeBuckets.bucketAmountPlaceholder')}
-												suffix={currencySymbol}
-												disabled={disabled}
-												className='w-full'
-											/>
-										</div>
+								<div className='mt-2 min-h-5'>
+									{sameTime && <p className='text-xs text-red-600'>{t('billing:commitmentConfig.timeBuckets.errors.sameTime')}</p>}
+									{!sameTime && stepErrorMessage && (startTimeError || endTimeError) && (
+										<p className='text-xs text-red-600'>{stepErrorMessage}</p>
 									)}
+								</div>
 
-									{isPackage && (
-										<div className='space-y-1'>
-											<label className='text-xs font-medium text-gray-600'>
-												{t('billing:commitmentConfig.timeBuckets.unitsPerPackage')}
-											</label>
-											<Input
-												type='integer'
-												value={row.transform_quantity_divide_by ?? ''}
-												onChange={(value) => updateRow(index, { transform_quantity_divide_by: value })}
-												placeholder='1'
-												disabled={disabled}
-												className='w-full'
-											/>
-										</div>
-									)}
+								<div className='mt-4 sm:grid-cols-[minmax(0,1fr)_11rem] sm:items-start'>
+									<CommitmentTypeSelect
+										size='compact'
+										value={rowCommitmentType}
+										onChange={(commitment_type) => updateRow(index, { commitment_type })}
+										disabled={disabled}
+									/>
+								</div>
 
+								<div className='mt-4 grid grid-cols-1 gap-2 sm:grid-cols-2'>
 									<div className='space-y-1'>
 										<label className='text-xs font-medium text-gray-600'>{commitmentValueLabel}</label>
 										<Input
@@ -366,17 +339,11 @@ const CommitmentTimeBucketsEditor: FC<Props> = ({
 											disabled={disabled}
 											className='w-full'
 										/>
-									</div>
-									<div className='space-y-1'>
-										<label className='text-xs font-medium text-gray-600'>{t('billing:commitmentConfig.timeBuckets.overageFactor')}</label>
-										<Input
-											type='number'
-											value={row.overage_factor ?? ''}
-											onChange={(value) => updateRow(index, { overage_factor: value })}
-											placeholder={overagePlaceholder}
-											disabled={disabled}
-											className='w-full'
-										/>
+										<p className='text-xs text-gray-500'>
+											{rowCommitmentType === CommitmentType.QUANTITY
+												? t('billing:commitmentConfig.commitmentQuantityHint')
+												: t('billing:commitmentConfig.commitmentAmountHint')}
+										</p>
 									</div>
 									<div className='space-y-1'>
 										<label className='text-xs font-medium text-gray-600'>{t('billing:commitmentConfig.timeBuckets.trueUpEnabled')}</label>
@@ -390,31 +357,89 @@ const CommitmentTimeBucketsEditor: FC<Props> = ({
 												disabled={disabled}
 											/>
 										</div>
+										<p className='text-xs text-gray-500'>{t('billing:commitmentConfig.enableTrueUpHint')}</p>
 									</div>
 								</div>
+								<div className='w-full'>
+									<label className='text-xs font-medium text-gray-600'>{t('billing:commitmentConfig.timeBuckets.overageFactor')}</label>
+									<Input
+										type='number'
+										value={row.overage_factor ?? ''}
+										onChange={(value) => updateRow(index, { overage_factor: value })}
+										placeholder={overagePlaceholder}
+										disabled={disabled}
+										className='w-full'
+									/>
+									<p className='text-xs text-gray-500'>{t('billing:commitmentConfig.overageFactorHint')}</p>
+								</div>
 
-								{isTiered && (
-									<div className='mt-4 space-y-2'>
-										<label className='text-xs font-medium text-gray-600'>{t('billing:commitmentConfig.timeBuckets.slabTiers')}</label>
-										<VolumeTieredPricingForm
-											tieredPrices={tierFormRows}
-											setTieredPrices={(setter) => {
-												const newTiers = typeof setter === 'function' ? setter(tierFormRows) : setter;
-												updateRow(index, {
-													bucket_tiers: mapFormTiersToBucketTiers(newTiers),
-													...(row.billing_model ? {} : { billing_model: billingModel }),
-												});
-											}}
-											currency={displayCurrency}
-											tierMode={isSlabBillingModel(billingModel) ? TIER_MODE.SLAB : TIER_MODE.VOLUME}
-										/>
+								<div className='mt-4 space-y-1'>
+									<label className='text-xs font-medium text-gray-600'>{t('billing:commitmentConfig.timeBuckets.billingModel')}</label>
+									<AtomSelect
+										value={billingModel}
+										options={billingModelOptions}
+										onChange={(value) => handleBillingModelChange(index, value as BillingModelSelectValue)}
+										disabled={disabled}
+										placeholder={t('billing:commitmentConfig.timeBuckets.billingModelPlaceholder')}
+									/>
+									<p className='text-xs text-gray-500'>{t('billing:commitmentConfig.timeBuckets.billingModelHint')}</p>
+								</div>
+
+								<div className='mt-4 grid grid-cols-1 gap-2 sm:grid-cols-2'>
+									<div className='space-y-1'>
+										<label className='text-xs font-medium text-gray-600'>{t('billing:commitmentConfig.timeBuckets.bucketAmount')}</label>
+										{isTiered ? (
+											<div className='flex h-10 w-full items-center rounded-[6px] border border-input bg-muted/30 px-3 text-sm text-muted-foreground'>
+												{tieredSectionLabel}
+											</div>
+										) : (
+											<Input
+												type='formatted-number'
+												value={row.bucket_amount ?? ''}
+												onChange={(value) => updateRow(index, { bucket_amount: value })}
+												placeholder={t('billing:commitmentConfig.timeBuckets.bucketAmountPlaceholder')}
+												suffix={currencySymbol}
+												disabled={disabled}
+												className='w-full'
+											/>
+										)}
+										<p className='text-xs text-gray-500'>
+											{isTiered ? tieredPriceHint : t('billing:commitmentConfig.timeBuckets.bucketAmountHint')}
+										</p>
 									</div>
-								)}
+									{isPackage && (
+										<div className='space-y-1'>
+											<label className='text-xs font-medium text-gray-600'>
+												{t('billing:commitmentConfig.timeBuckets.unitsPerPackage')}
+											</label>
+											<Input
+												type='integer'
+												value={row.transform_quantity_divide_by ?? ''}
+												onChange={(value) => updateRow(index, { transform_quantity_divide_by: value })}
+												placeholder='1'
+												disabled={disabled}
+												className='w-full'
+											/>
+											<p className='text-xs text-gray-500'>{t('billing:commitmentConfig.timeBuckets.unitsPerPackageHint')}</p>
+										</div>
+									)}
+								</div>
 
-								{sameTime && <p className='mt-3 text-xs text-red-600'>{t('billing:commitmentConfig.timeBuckets.errors.sameTime')}</p>}
-								{!sameTime && stepErrorMessage && (startTimeError || endTimeError) && (
-									<p className='mt-3 text-xs text-red-600'>{stepErrorMessage}</p>
-								)}
+								<div className={cn('mt-4 space-y-2', !isTiered && 'hidden')}>
+									<label className='text-xs font-medium text-gray-600'>{tieredSectionLabel}</label>
+									<VolumeTieredPricingForm
+										tieredPrices={tierFormRows}
+										setTieredPrices={(setter) => {
+											const newTiers = typeof setter === 'function' ? setter(tierFormRows) : setter;
+											updateRow(index, {
+												bucket_tiers: mapFormTiersToBucketTiers(newTiers),
+												...(row.billing_model ? {} : { billing_model: billingModel }),
+											});
+										}}
+										currency={displayCurrency}
+										tierMode={isSlabBillingModel(billingModel) ? TIER_MODE.SLAB : TIER_MODE.VOLUME}
+									/>
+								</div>
 							</div>
 						);
 					})}
