@@ -78,7 +78,14 @@ export function billingModelSelectValueFromPrice(price?: BucketPriceSource): Bil
 	if (hasTiers) {
 		return tierMode === TIER_MODE.SLAB ? 'SLAB_TIERED' : BILLING_MODEL.TIERED;
 	}
-	if (price.billing_model === BILLING_MODEL.PACKAGE || price.transform_quantity?.divide_by) {
+	if (price.billing_model === BILLING_MODEL.PACKAGE) {
+		return BILLING_MODEL.PACKAGE;
+	}
+	if (price.billing_model === BILLING_MODEL.FLAT_FEE) {
+		return BILLING_MODEL.FLAT_FEE;
+	}
+	// Legacy prices may omit billing_model but include transform_quantity
+	if (price.transform_quantity?.divide_by) {
 		return BILLING_MODEL.PACKAGE;
 	}
 
