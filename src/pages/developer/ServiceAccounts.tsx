@@ -6,8 +6,8 @@ import { User } from '@/models';
 import usePagination from '@/hooks/usePagination';
 import { formatDateShort } from '@/utils/common/helper_functions';
 import { Plus, Loader, Bot } from 'lucide-react';
-// import { useMemo, useState, useCallback } from 'react';
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useCallback } from 'react';
+// import { useMemo, useState } from 'react';
 import { toast } from 'react-hot-toast';
 import { EmptyPage } from '@/components/organisms';
 import { API_DOCS_TAGS } from '@/constants/apiDocsTags';
@@ -35,10 +35,10 @@ const ServiceAccountsPage = () => {
 		setIsDrawerOpen(true);
 	};
 
-	// const handleEdit = useCallback((account: User) => {
-	// 	setSelectedAccount(account);
-	// 	setIsDrawerOpen(true);
-	// }, []);
+	const handleEdit = useCallback((account: User) => {
+		setSelectedAccount(account);
+		setIsDrawerOpen(true);
+	}, []);
 
 	const serviceAccountColumns: ColumnData<User>[] = useMemo(
 		() => [
@@ -102,11 +102,11 @@ const ServiceAccountsPage = () => {
 						entityName={row.name || row.id}
 						deleteMutationFn={async () => UserApi.deleteUser(row.id)}
 						refetchQueryKey='service-accounts'
-						// edit={{
-						// 	enabled: true,
-						// 	onClick: () => handleEdit(row),
-						// }}
-						edit={{ enabled: false }}
+						edit={{
+							enabled: true,
+							onClick: () => handleEdit(row),
+						}}
+						// edit={{ enabled: false }}
 						archive={{
 							enabled: true,
 						}}
@@ -114,8 +114,8 @@ const ServiceAccountsPage = () => {
 				),
 			},
 		],
-		[t],
-		// [t, handleEdit],
+		// [t],
+		[t, handleEdit],
 	);
 
 	if (isLoadingServiceAccounts) {
