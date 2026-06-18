@@ -27,6 +27,11 @@
 			"email": "البريد الإلكتروني",
 			"createdAt": "تاريخ الإنشاء",
 			"updatedAt": "تاريخ التحديث"
+		},
+		"orgTypeFilter": {
+			"ariaLabel": "تصفية حسب نوع المؤسسة",
+			"parent": "أصل",
+			"child": "فرعي"
 		}
 	},
 	"detail": {

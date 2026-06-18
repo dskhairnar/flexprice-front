@@ -27,6 +27,11 @@
 			"email": "Email",
 			"createdAt": "Created At",
 			"updatedAt": "Updated At"
+		},
+		"orgTypeFilter": {
+			"ariaLabel": "Filter by organization type",
+			"parent": "Parent",
+			"child": "Child"
 		}
 	},
 	"detail": {
