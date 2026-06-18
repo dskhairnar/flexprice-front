@@ -163,10 +163,10 @@ const DeveloperPage = () => {
 			},
 			{
 				title: t('labels.createdAt'),
-				width: 160,
+				width: 150,
 				align: 'right',
 				render(rowData) {
-					return <span className='text-gray-600 pr-6'>{formatDateShort(rowData.created_at)}</span>;
+					return <span className='text-gray-600'>{formatDateShort(rowData.created_at)}</span>;
 				},
 			},
 		],
@@ -177,9 +177,7 @@ const DeveloperPage = () => {
 		() => [
 			...baseColumns,
 			{
-				width: '48px',
-				align: 'right',
-				hideOnEmpty: true,
+				fieldVariant: 'interactive',
 				render(rowData: SecretKey) {
 					return (
 						<div className='flex justify-end'>
