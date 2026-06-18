@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { formatBillingPeriodForPrice, getCurrencySymbol } from '@/utils/common/helper_functions';
 import { billlingPeriodOptions } from '@/constants/constants';
 import { InternalPrice } from './SetupChargesSection';
+import type { CreatePriceTier } from '@/models/Price';
 import { PriceInternalState, PriceTier, billingModels } from './UsagePricingForm';
 import VolumeTieredPricingForm from './VolumeTieredPricingForm';
 import { CheckboxRadioGroup, FormHeader, Input, Spacer, Button, Select, DatePicker } from '@/components/atoms';
@@ -36,6 +37,52 @@ const getDefaultTiers = (): PriceTier[] => [
 	{ from: 0, up_to: 1, unit_amount: '', flat_amount: '0' },
 	{ from: 1, up_to: null, unit_amount: '', flat_amount: '0' },
 ];
+
+type StoredPriceTier = CreatePriceTier & { from?: number };
+
+function mapStoredTiersToFormTiers(tiers: StoredPriceTier[]): PriceTier[] {
+	let tierStart = 0;
+	return tiers.map((tier) => {
+		const formTier: PriceTier = {
+			from: tier.from ?? tierStart,
+			up_to: tier.up_to ?? null,
+			unit_amount: tier.unit_amount,
+			flat_amount: tier.flat_amount || '0',
+		};
+		if (tier.up_to != null) {
+			tierStart = tier.up_to;
+		}
+		return formTier;
+	});
+}
+
+function syncBillingModelFormStateFromPrice(
+	price: Partial<InternalPrice>,
+	setBillingModel: (value: string) => void,
+	setPackagedFee: (value: { unit: string; price: string }) => void,
+	setTieredPrices: (value: PriceTier[]) => void,
+) {
+	setBillingModel(price.billing_model || BILLING_MODEL.FLAT_FEE);
+
+	if (price.billing_model === BILLING_MODEL.PACKAGE) {
+		const packageAmount = price.amount ?? price.price_unit_config?.amount ?? '';
+		setPackagedFee({
+			price: packageAmount,
+			unit: price.transform_quantity?.divide_by?.toString() || '',
+		});
+		return;
+	}
+
+	if (price.billing_model === BILLING_MODEL.TIERED) {
+		const storedTiers =
+			price.tiers && price.tiers.length > 0 ? (price.tiers as unknown as StoredPriceTier[]) : price.price_unit_config?.price_unit_tiers;
+
+		if (storedTiers?.length) {
+			setTieredPrices(mapStoredTiersToFormTiers(storedTiers));
+			setBillingModel(price.tier_mode === TIER_MODE.SLAB ? 'SLAB_TIERED' : BILLING_MODEL.TIERED);
+		}
+	}
+}
 
 const RecurringChargesForm = ({
 	price,
@@ -75,31 +122,27 @@ const RecurringChargesForm = ({
 	const [tieredPrices, setTieredPrices] = useState<PriceTier[]>(getDefaultTiers);
 	const [modelErrors, setModelErrors] = useState({ packagedModelError: '', tieredModelError: '' });
 
-	// Sync localPrice and startDate when price prop or entityName changes
+	// Hydrate form when editing an existing charge (avoid resetting in-progress new charge edits)
 	useEffect(() => {
+		if (price.internal_state !== PriceInternalState.EDIT) return;
+
 		setStartDate(price.start_date ? new Date(price.start_date) : undefined);
 
 		setLocalPrice((prev) => {
-			// Merge price changes, preserving user edits where appropriate
 			const updated = { ...prev, ...price };
 
-			// Apply display_name: always prefer price prop value if it exists (including empty string for explicit clearing)
-			// Only fallback to entityName if price.display_name is undefined/null and we don't have a previous value
 			if (price.display_name !== undefined && price.display_name !== null) {
 				updated.display_name = price.display_name;
 			} else if (entityName && (!prev.display_name || prev.display_name === '')) {
 				updated.display_name = entityName;
 			}
-			// If price.display_name is undefined/null and we have a prev value, keep it (preserves user edits)
 
-			// Apply min_quantity: for fixed charges, prefer price prop value, default to 1 if not set
 			if (price.type === PRICE_TYPE.FIXED) {
 				updated.min_quantity = price.min_quantity !== undefined ? price.min_quantity : (prev.min_quantity ?? 1);
 			} else if (price.min_quantity !== undefined) {
 				updated.min_quantity = price.min_quantity;
 			}
 
-			// Apply price_unit_type and price_unit_config
 			if (price.price_unit_type !== undefined) {
 				updated.price_unit_type = price.price_unit_type;
 			}
@@ -110,25 +153,7 @@ const RecurringChargesForm = ({
 			return updated;
 		});
 
-		// Hydrate billing-model-specific state from the price prop
-		setBillingModel(price.billing_model || BILLING_MODEL.FLAT_FEE);
-		if (price.billing_model === BILLING_MODEL.PACKAGE) {
-			setPackagedFee({
-				price: price.amount || '',
-				unit: price.transform_quantity?.divide_by?.toString() || '',
-			});
-		} else if (price.billing_model === BILLING_MODEL.TIERED && Array.isArray(price.tiers) && price.tiers.length > 0) {
-			setTieredPrices(
-				(price.tiers as unknown as PriceTier[]).map((tier) => ({
-					from: tier.from,
-					up_to: tier.up_to,
-					unit_amount: tier.unit_amount,
-					flat_amount: tier.flat_amount,
-				})),
-			);
-			// Surface SLAB tiered as its own selector option
-			setBillingModel(price.tier_mode === TIER_MODE.SLAB ? 'SLAB_TIERED' : BILLING_MODEL.TIERED);
-		}
+		syncBillingModelFormStateFromPrice(price, setBillingModel, setPackagedFee, setTieredPrices);
 	}, [price, entityName]);
 
 	const isPackage = billingModel === BILLING_MODEL.PACKAGE;
@@ -294,6 +319,7 @@ const RecurringChargesForm = ({
 
 		const priceWithEntity: Partial<InternalPrice> = {
 			...baseLocalPrice,
+			type: localPrice.type ?? PRICE_TYPE.FIXED,
 			billing_model: resolvedBillingModel,
 			price_unit_config: priceUnitConfig,
 			entity_type: entityType,

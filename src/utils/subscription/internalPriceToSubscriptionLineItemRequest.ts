@@ -1,4 +1,5 @@
 import { BILLING_MODEL, BILLING_PERIOD, INVOICE_CADENCE, PRICE_TYPE, TIER_MODE, PRICE_UNIT_TYPE } from '@/models';
+import type { CreatePriceTier } from '@/models/Price';
 import type { CreateSubscriptionLineItemRequest, SubscriptionPriceCreateRequest } from '@/types/dto/Subscription';
 import type { InternalPrice } from '@/components/organisms/PlanForm/SetupChargesSection';
 import { PriceInternalState } from '@/components/organisms/PlanForm/UsagePricingForm';
@@ -13,86 +14,136 @@ function withPriceCurrency(price: SubscriptionPriceCreateRequest, currency?: str
 	return normalized ? { ...price, currency: normalized } : price;
 }
 
-/** Item shape for subscription-added line (request + tempId). */
-export type AddedSubscriptionLineItemLike = CreateSubscriptionLineItemRequest & { tempId: string };
+type FormTierInput = CreatePriceTier & { from?: number };
+
+function mapFormTiersToCreateRequestTiers(tiers: FormTierInput[]): CreatePriceTier[] {
+	return tiers.map((tier) => ({
+		up_to: tier.up_to,
+		unit_amount: tier.unit_amount ?? '',
+		flat_amount: tier.flat_amount ?? '0',
+	}));
+}
+
+function getFixedChargeTiers(internalPrice: Partial<InternalPrice>): FormTierInput[] | undefined {
+	if (internalPrice.tiers?.length) {
+		return internalPrice.tiers as FormTierInput[];
+	}
+	if (internalPrice.price_unit_config?.price_unit_tiers?.length) {
+		return internalPrice.price_unit_config.price_unit_tiers;
+	}
+	return undefined;
+}
+
+function applyFixedChargePricingFields(price: SubscriptionPriceCreateRequest, internalPrice: Partial<InternalPrice>): void {
+	const billingModel = (internalPrice.billing_model as BILLING_MODEL) ?? BILLING_MODEL.FLAT_FEE;
+	const isCustomPriceUnit = internalPrice.price_unit_type === PRICE_UNIT_TYPE.CUSTOM;
+
+	if (isCustomPriceUnit && internalPrice.price_unit_config) {
+		price.price_unit_config = { ...internalPrice.price_unit_config };
+		delete price.amount;
+		delete price.tiers;
+		delete price.tier_mode;
+		if (internalPrice.transform_quantity) {
+			price.transform_quantity = internalPrice.transform_quantity;
+		}
+		return;
+	}
+
+	switch (billingModel) {
+		case BILLING_MODEL.FLAT_FEE:
+			if (internalPrice.amount != null && internalPrice.amount !== '') {
+				price.amount = internalPrice.amount;
+			}
+			break;
+		case BILLING_MODEL.PACKAGE:
+			if (internalPrice.amount != null && internalPrice.amount !== '') {
+				price.amount = internalPrice.amount;
+			}
+			if (internalPrice.transform_quantity) {
+				price.transform_quantity = internalPrice.transform_quantity;
+			}
+			break;
+		case BILLING_MODEL.TIERED: {
+			const tiers = getFixedChargeTiers(internalPrice);
+			price.tier_mode = (internalPrice.tier_mode as TIER_MODE) ?? TIER_MODE.VOLUME;
+			if (tiers?.length) {
+				price.tiers = mapFormTiersToCreateRequestTiers(tiers);
+			}
+			break;
+		}
+	}
+}
+
+/** Subscription line item in local form state (API request payload + client-side temp id). */
+export type AddedSubscriptionLineItem = CreateSubscriptionLineItemRequest & { tempId: string };
+
+export interface SubscriptionLineItemFormDefaults {
+	currency?: string;
+	billingPeriod?: string;
+}
 
 /**
  * Converts form state (InternalPrice from fixed-charge RecurringChargesForm or UsagePricingForm) into
  * CreateSubscriptionLineItemRequest for subscription-level line items.
  */
 export function internalPriceToSubscriptionLineItemRequest(
-	partial: Partial<InternalPrice>,
+	internalPrice: Partial<InternalPrice>,
 	quantity?: number,
 ): CreateSubscriptionLineItemRequest {
-	const isUsage = partial.type === PRICE_TYPE.USAGE;
+	const isUsage = internalPrice.type === PRICE_TYPE.USAGE;
 
 	if (isUsage) {
 		const price: SubscriptionPriceCreateRequest = {
 			type: PRICE_TYPE.USAGE,
-			price_unit_type: partial.price_unit_type ?? PRICE_UNIT_TYPE.FIAT,
-			billing_period: (partial.billing_period as BILLING_PERIOD) ?? BILLING_PERIOD.MONTHLY,
-			billing_period_count: partial.billing_period_count ?? 1,
-			billing_model: (partial.billing_model as BILLING_MODEL) ?? BILLING_MODEL.FLAT_FEE,
-			invoice_cadence: (partial.invoice_cadence as INVOICE_CADENCE) ?? INVOICE_CADENCE.ARREAR,
-			display_name: partial.display_name,
-			start_date: partial.start_date,
-			meter_id: partial.meter_id,
-			filter_values: partial.filter_values ?? undefined,
+			price_unit_type: internalPrice.price_unit_type ?? PRICE_UNIT_TYPE.FIAT,
+			billing_period: (internalPrice.billing_period as BILLING_PERIOD) ?? BILLING_PERIOD.MONTHLY,
+			billing_period_count: internalPrice.billing_period_count ?? 1,
+			billing_model: (internalPrice.billing_model as BILLING_MODEL) ?? BILLING_MODEL.FLAT_FEE,
+			invoice_cadence: (internalPrice.invoice_cadence as INVOICE_CADENCE) ?? INVOICE_CADENCE.ARREAR,
+			display_name: internalPrice.display_name,
+			start_date: internalPrice.start_date,
+			meter_id: internalPrice.meter_id,
+			filter_values: internalPrice.filter_values ?? undefined,
 		};
-		if (partial.amount != null) price.amount = partial.amount;
-		if (partial.tier_mode != null) price.tier_mode = partial.tier_mode as TIER_MODE;
-		if (partial.tiers?.length) price.tiers = partial.tiers;
-		if (partial.transform_quantity) price.transform_quantity = partial.transform_quantity;
-		if (partial.price_unit_type === PRICE_UNIT_TYPE.CUSTOM && partial.price_unit_config) {
-			price.price_unit_config = partial.price_unit_config;
+		if (internalPrice.amount != null) price.amount = internalPrice.amount;
+		if (internalPrice.tier_mode != null) price.tier_mode = internalPrice.tier_mode as TIER_MODE;
+		if (internalPrice.tiers?.length) price.tiers = internalPrice.tiers;
+		if (internalPrice.transform_quantity) price.transform_quantity = internalPrice.transform_quantity;
+		if (internalPrice.price_unit_type === PRICE_UNIT_TYPE.CUSTOM && internalPrice.price_unit_config) {
+			price.price_unit_config = internalPrice.price_unit_config;
 		}
 		return {
-			price: withPriceCurrency(price, partial.currency),
+			price: withPriceCurrency(price, internalPrice.currency),
 			quantity: 0,
-			display_name: partial.display_name,
-			start_date: partial.start_date,
+			display_name: internalPrice.display_name,
+			start_date: internalPrice.start_date,
 		};
 	}
 
-	// FIXED (fixed charge)
 	const price: SubscriptionPriceCreateRequest = {
-		type: partial.type ?? PRICE_TYPE.FIXED,
-		price_unit_type: partial.price_unit_type ?? PRICE_UNIT_TYPE.FIAT,
-		billing_period: (partial.billing_period as BILLING_PERIOD) ?? BILLING_PERIOD.MONTHLY,
-		billing_period_count: partial.billing_period_count ?? 1,
-		billing_model: (partial.billing_model as BILLING_MODEL) ?? BILLING_MODEL.FLAT_FEE,
-		invoice_cadence: (partial.invoice_cadence as INVOICE_CADENCE) ?? INVOICE_CADENCE.ARREAR,
-		amount: partial.amount,
-		display_name: partial.display_name,
-		min_quantity: partial.min_quantity,
-		start_date: partial.start_date,
+		type: internalPrice.type ?? PRICE_TYPE.FIXED,
+		price_unit_type: internalPrice.price_unit_type ?? PRICE_UNIT_TYPE.FIAT,
+		billing_period: (internalPrice.billing_period as BILLING_PERIOD) ?? BILLING_PERIOD.MONTHLY,
+		billing_period_count: internalPrice.billing_period_count ?? 1,
+		billing_model: (internalPrice.billing_model as BILLING_MODEL) ?? BILLING_MODEL.FLAT_FEE,
+		invoice_cadence: (internalPrice.invoice_cadence as INVOICE_CADENCE) ?? INVOICE_CADENCE.ARREAR,
+		display_name: internalPrice.display_name,
+		min_quantity: internalPrice.min_quantity,
+		start_date: internalPrice.start_date,
 	};
 
-	if (partial.price_unit_type === PRICE_UNIT_TYPE.CUSTOM && partial.price_unit_config) {
-		price.price_unit_config = { ...partial.price_unit_config };
-		if (partial.amount !== undefined) {
-			price.price_unit_config.amount = partial.amount;
-		}
-		delete price.amount;
-	} else {
-		price.amount = partial.amount;
-	}
+	applyFixedChargePricingFields(price, internalPrice);
 
-	if (partial.trial_period_days !== undefined) {
-		price.trial_period_days = partial.trial_period_days;
+	if (internalPrice.trial_period_days !== undefined) {
+		price.trial_period_days = internalPrice.trial_period_days;
 	}
 
 	return {
-		price: withPriceCurrency(price, partial.currency),
-		quantity: quantity ?? partial.min_quantity ?? 1,
-		display_name: partial.display_name,
-		start_date: partial.start_date,
+		price: withPriceCurrency(price, internalPrice.currency),
+		quantity: quantity ?? internalPrice.min_quantity ?? 1,
+		display_name: internalPrice.display_name,
+		start_date: internalPrice.start_date,
 	};
-}
-
-export interface SubscriptionLineItemToInternalPriceDefaults {
-	currency?: string;
-	billingPeriod?: string;
 }
 
 /**
@@ -100,74 +151,90 @@ export interface SubscriptionLineItemToInternalPriceDefaults {
  * Used when editing an existing subscription-level charge so RecurringChargesForm (fixed) or UsagePricingForm can be pre-filled.
  */
 export function subscriptionLineItemToInternalPrice(
-	item: AddedSubscriptionLineItemLike,
-	defaults?: SubscriptionLineItemToInternalPriceDefaults,
+	lineItem: AddedSubscriptionLineItem,
+	defaults?: SubscriptionLineItemFormDefaults,
 ): Partial<InternalPrice> {
-	const p = item.price;
-	if (!p) {
+	const subscriptionPrice = lineItem.price;
+	if (!subscriptionPrice) {
 		return {
-			display_name: item.display_name ?? '',
-			min_quantity: item.quantity ?? 1,
-			start_date: item.start_date,
+			display_name: lineItem.display_name ?? '',
+			min_quantity: lineItem.quantity ?? 1,
+			start_date: lineItem.start_date,
 			internal_state: PriceInternalState.EDIT,
 		};
 	}
-	const isUsage = p.type === PRICE_TYPE.USAGE;
-	const isCustom = p.price_unit_type === PRICE_UNIT_TYPE.CUSTOM;
-	const base: Partial<InternalPrice> = {
-		display_name: item.display_name ?? p.display_name ?? '',
-		billing_period: (p.billing_period as BILLING_PERIOD) ?? (defaults?.billingPeriod as BILLING_PERIOD) ?? BILLING_PERIOD.MONTHLY,
-		billing_period_count: p.billing_period_count ?? 1,
-		invoice_cadence: (p.invoice_cadence as INVOICE_CADENCE) ?? INVOICE_CADENCE.ARREAR,
-		billing_model: (p.billing_model as BILLING_MODEL) ?? BILLING_MODEL.FLAT_FEE,
-		type: (p.type as PRICE_TYPE) ?? PRICE_TYPE.FIXED,
-		min_quantity: item.quantity ?? p.min_quantity ?? 1,
-		start_date: item.start_date ?? p.start_date,
-		price_unit_type: p.price_unit_type ?? PRICE_UNIT_TYPE.FIAT,
+
+	const isUsage = subscriptionPrice.type === PRICE_TYPE.USAGE;
+	const isCustomPriceUnit = subscriptionPrice.price_unit_type === PRICE_UNIT_TYPE.CUSTOM;
+	const baseFields: Partial<InternalPrice> = {
+		display_name: lineItem.display_name ?? subscriptionPrice.display_name ?? '',
+		billing_period:
+			(subscriptionPrice.billing_period as BILLING_PERIOD) ?? (defaults?.billingPeriod as BILLING_PERIOD) ?? BILLING_PERIOD.MONTHLY,
+		billing_period_count: subscriptionPrice.billing_period_count ?? 1,
+		invoice_cadence: (subscriptionPrice.invoice_cadence as INVOICE_CADENCE) ?? INVOICE_CADENCE.ARREAR,
+		billing_model: (subscriptionPrice.billing_model as BILLING_MODEL) ?? BILLING_MODEL.FLAT_FEE,
+		type: (subscriptionPrice.type as PRICE_TYPE) ?? PRICE_TYPE.FIXED,
+		min_quantity: lineItem.quantity ?? subscriptionPrice.min_quantity ?? 1,
+		start_date: lineItem.start_date ?? subscriptionPrice.start_date,
+		price_unit_type: subscriptionPrice.price_unit_type ?? PRICE_UNIT_TYPE.FIAT,
 		internal_state: PriceInternalState.EDIT,
 	};
 
 	if (isUsage) {
-		const usageBase: Partial<InternalPrice> = {
-			...base,
+		const usagePriceFields: Partial<InternalPrice> = {
+			...baseFields,
 			type: PRICE_TYPE.USAGE,
-			meter_id: p.meter_id,
-			filter_values: p.filter_values,
-			tier_mode: p.tier_mode,
-			tiers: p.tiers as InternalPrice['tiers'],
-			transform_quantity: p.transform_quantity ?? undefined,
-			currency: (p as { currency?: string }).currency ?? defaults?.currency ?? 'USD',
+			meter_id: subscriptionPrice.meter_id,
+			filter_values: subscriptionPrice.filter_values,
+			tier_mode: subscriptionPrice.tier_mode,
+			tiers: subscriptionPrice.tiers as InternalPrice['tiers'],
+			transform_quantity: subscriptionPrice.transform_quantity ?? undefined,
+			currency: (subscriptionPrice as { currency?: string }).currency ?? defaults?.currency ?? 'USD',
 		};
-		const pWithMeter = p as SubscriptionPriceCreateRequest & { meter?: unknown };
-		if (pWithMeter.meter) {
-			(usageBase as Record<string, unknown>).meter = pWithMeter.meter;
+		const priceWithMeter = subscriptionPrice as SubscriptionPriceCreateRequest & { meter?: unknown };
+		if (priceWithMeter.meter) {
+			(usagePriceFields as Record<string, unknown>).meter = priceWithMeter.meter;
 		}
-		if (isCustom && p.price_unit_config) {
-			return { ...usageBase, price_unit_config: p.price_unit_config, amount: p.price_unit_config.amount ?? p.amount };
+		if (isCustomPriceUnit && subscriptionPrice.price_unit_config) {
+			return {
+				...usagePriceFields,
+				price_unit_config: subscriptionPrice.price_unit_config,
+				amount: subscriptionPrice.price_unit_config.amount ?? subscriptionPrice.amount,
+			};
 		}
-		return { ...usageBase, amount: p.amount };
+		return { ...usagePriceFields, amount: subscriptionPrice.amount };
 	}
 
 	const trialFields =
-		p.trial_period_days !== undefined
+		subscriptionPrice.trial_period_days !== undefined
 			? {
-					trial_period_days: p.trial_period_days,
-					isTrialPeriod: p.trial_period_days > 0,
+					trial_period_days: subscriptionPrice.trial_period_days,
+					isTrialPeriod: subscriptionPrice.trial_period_days > 0,
 				}
 			: {};
 
-	if (isCustom && p.price_unit_config) {
+	const packageAndTieredFields = {
+		transform_quantity: subscriptionPrice.transform_quantity ?? undefined,
+		tier_mode: subscriptionPrice.tier_mode,
+		tiers: subscriptionPrice.tiers as InternalPrice['tiers'],
+	};
+
+	if (isCustomPriceUnit && subscriptionPrice.price_unit_config) {
 		return {
-			...base,
+			...baseFields,
 			...trialFields,
-			price_unit_config: p.price_unit_config,
-			amount: p.price_unit_config.amount ?? p.amount,
+			...packageAndTieredFields,
+			price_unit_config: subscriptionPrice.price_unit_config,
+			amount: subscriptionPrice.price_unit_config.amount ?? subscriptionPrice.amount,
+			currency: (subscriptionPrice as { currency?: string }).currency ?? defaults?.currency ?? 'USD',
 		};
 	}
+
 	return {
-		...base,
+		...baseFields,
 		...trialFields,
-		amount: p.amount,
-		currency: (p as { currency?: string }).currency ?? defaults?.currency ?? 'USD',
+		...packageAndTieredFields,
+		amount: subscriptionPrice.amount,
+		currency: (subscriptionPrice as { currency?: string }).currency ?? defaults?.currency ?? 'USD',
 	};
 }

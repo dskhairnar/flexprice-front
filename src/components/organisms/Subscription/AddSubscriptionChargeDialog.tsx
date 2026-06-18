@@ -5,7 +5,6 @@ import Dialog from '@/components/atoms/Dialog';
 import { RecurringChargesForm } from '@/components/organisms/PlanForm';
 import UsagePricingForm, { PriceInternalState } from '@/components/organisms/PlanForm/UsagePricingForm';
 import type { InternalPrice } from '@/components/organisms/PlanForm/SetupChargesSection';
-import type { CreateSubscriptionLineItemRequest } from '@/types/dto/Subscription';
 import { RectangleRadiogroup, type RectangleRadiogroupOption } from '@/components/molecules';
 import { INVOICE_CADENCE } from '@/models/Invoice';
 import { BILLING_MODEL, PRICE_TYPE, PRICE_ENTITY_TYPE } from '@/models/Price';
@@ -14,6 +13,7 @@ import { Gauge, Repeat } from 'lucide-react';
 import {
 	internalPriceToSubscriptionLineItemRequest,
 	subscriptionLineItemToInternalPrice,
+	type AddedSubscriptionLineItem,
 } from '@/utils/subscription/internalPriceToSubscriptionLineItemRequest';
 import SubscriptionChargeCommitmentSection, {
 	DEFAULT_SUBSCRIPTION_CHARGE_COMMITMENT_STATE,
@@ -28,7 +28,7 @@ import {
 import { useMeterForCommitment } from '@/hooks/useMeterForCommitment';
 import { useTranslation } from 'react-i18next';
 
-export type AddedSubscriptionLineItem = CreateSubscriptionLineItemRequest & { tempId: string };
+export type { AddedSubscriptionLineItem };
 
 const CHARGE_OPTIONS: RectangleRadiogroupOption[] = [
 	{
