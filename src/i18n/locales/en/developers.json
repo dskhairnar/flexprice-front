@@ -6,6 +6,7 @@
 		"token": "Token",
 		"type": "Type",
 		"roles": "Roles",
+		"access": "Access",
 		"createdAt": "Created At",
 		"id": "ID",
 		"expiration": "Expiration",

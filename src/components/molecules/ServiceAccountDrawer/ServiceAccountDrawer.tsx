@@ -60,8 +60,19 @@ const ServiceAccountDrawer: FC<Props> = ({ isOpen, onOpenChange, data }) => {
 		}
 	}, [isOpen, data, isEditMode]);
 
+	const isSuperAdminSelected = selectedRoles.includes('super_admin');
+
 	const toggleRole = (roleValue: string) => {
-		setSelectedRoles((prev) => (prev.includes(roleValue) ? prev.filter((r) => r !== roleValue) : [...prev, roleValue]));
+		setSelectedRoles((prev) => {
+			if (prev.includes(roleValue)) {
+				return prev.filter((r) => r !== roleValue);
+			}
+			// Selecting super_admin clears all other roles
+			if (roleValue === 'super_admin') {
+				return ['super_admin'];
+			}
+			return [...prev, roleValue];
+		});
 	};
 
 	// --- Create mutation ---
@@ -165,20 +176,23 @@ const ServiceAccountDrawer: FC<Props> = ({ isOpen, onOpenChange, data }) => {
 							) : roleOptions.length === 0 ? (
 								<p className='text-sm text-gray-500'>{t('developers:serviceAccountDrawer.noRolesAvailable')}</p>
 							) : (
-								roleOptions.map((role) => (
-									<div key={role.value} className='flex items-center space-x-2'>
-										<Checkbox
-											id={`role-${role.value}`}
-											checked={selectedRoles.includes(role.value)}
-											onCheckedChange={() => toggleRole(role.value)}
-										/>
-										<label
-											htmlFor={`role-${role.value}`}
-											className='text-sm font-medium leading-none cursor-pointer peer-disabled:cursor-not-allowed peer-disabled:opacity-70'>
-											{role.label}
-										</label>
-									</div>
-								))
+								roleOptions.map((role) => {
+									const isDisabled = isSuperAdminSelected && role.value !== 'super_admin';
+									return (
+										<div key={role.value} className={`flex items-center space-x-2 ${isDisabled ? 'opacity-40 pointer-events-none' : ''}`}>
+											<Checkbox
+												id={`role-${role.value}`}
+												checked={selectedRoles.includes(role.value)}
+												onCheckedChange={() => toggleRole(role.value)}
+											/>
+											<label
+												htmlFor={`role-${role.value}`}
+												className={`text-sm font-medium leading-none ${isDisabled ? 'cursor-not-allowed' : 'cursor-pointer'}`}>
+												{role.label}
+											</label>
+										</div>
+									);
+								})
 							)}
 						</div>
 					</div>
