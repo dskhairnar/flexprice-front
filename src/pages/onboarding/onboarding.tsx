@@ -23,7 +23,7 @@ const tutorials: TutorialItem[] = [
 	{
 		title: 'Set Up Pricing Plans',
 		description: 'Create and configure your first pricing plan',
-		onClick: () => window.open('https://docs.flexprice.io/guides/plan/pricing-plan-create', '_blank'),
+		onClick: () => window.open('https://docs.flexprice.io/docs/product-catalogue/plans/pricing', '_blank'),
 	},
 	{
 		title: 'Define Usage Metering',
@@ -33,7 +33,7 @@ const tutorials: TutorialItem[] = [
 	{
 		title: 'Configure Credits & Wallets',
 		description: 'Manage prepaid wallets, free credits, and top-ups',
-		onClick: () => window.open('https://docs.flexprice.io/guides/wallet/customers-wallet', '_blank'),
+		onClick: () => window.open('https://docs.flexprice.io/docs/wallet/create', '_blank'),
 	},
 	{
 		title: 'Billing',
@@ -43,7 +43,7 @@ const tutorials: TutorialItem[] = [
 	{
 		title: 'Self-Hosting & Configuration',
 		description: 'Set up and deploy Flexprice on your own infrastructure',
-		onClick: () => window.open('https://docs.flexprice.io/guides/self-hosted/guide', '_blank'),
+		onClick: () => window.open('https://docs.flexprice.io/docs/getting-started/self-hosting-guide', '_blank'),
 	},
 ];
 
