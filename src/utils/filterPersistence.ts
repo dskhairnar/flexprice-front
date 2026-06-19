@@ -1,4 +1,5 @@
 import type { FilterCondition, SortOption } from '@/types/common/QueryBuilder';
+import type { CustomerOrgTypeFilterValue } from '@/constants/customerOrgTypeFilter';
 
 /** FilterCondition with valueDate as ISO string for JSON serialization */
 type SerializedFilterCondition = Omit<FilterCondition, 'valueDate'> & { valueDate?: string };
@@ -79,9 +80,55 @@ export function getSortsParamKey(key: string): string {
 	return `${key}_sorts`;
 }
 
+/** URL param key for customer org_type toolbar filter */
+export function getOrgTypeParamKey(key: string): string {
+	return `${key}_org_type`;
+}
+
+export function parsePersistedOrgTypeFilter(value: string | null): CustomerOrgTypeFilterValue | null {
+	return value === 'parent' || value === 'child' ? value : null;
+}
+
 /** SessionStorage key for a list's filter/sort state (survives tab switch, cleared when tab closes) */
 export function getFilterStateSessionKey(key: string): string {
 	return `filter_state_${key}`;
+}
+
+/** URL param key for pagination (matches usePagination prefix convention). */
+export function getPageParamKey(prefix: string): string {
+	return `${prefix}_page`;
+}
+
+function readRawSessionState(key: string): Record<string, string> {
+	if (typeof window === 'undefined') return {};
+	try {
+		const raw = sessionStorage.getItem(getFilterStateSessionKey(key));
+		if (!raw?.trim()) return {};
+		const parsed = JSON.parse(raw) as Record<string, string>;
+		return parsed && typeof parsed === 'object' ? parsed : {};
+	} catch {
+		return {};
+	}
+}
+
+export function readPageFromSession(key: string): number | null {
+	const page = Number(readRawSessionState(key).page);
+	return Number.isFinite(page) && page > 0 ? page : null;
+}
+
+export function writePageToSession(key: string, page: number): void {
+	if (typeof window === 'undefined') return;
+	try {
+		sessionStorage.setItem(
+			getFilterStateSessionKey(key),
+			JSON.stringify({
+				...readRawSessionState(key),
+				page: String(page),
+			}),
+		);
+	} catch {
+		// ignore quota or disabled storage
+	}
 }
 
 const EMPTY_FILTER_STATE: { filters: FilterCondition[] | null; sorts: SortOption[] | null } = {
@@ -121,6 +168,7 @@ export function writeFiltersAndSortsToSession(key: string, filters: FilterCondit
 		sessionStorage.setItem(
 			getFilterStateSessionKey(key),
 			JSON.stringify({
+				...readRawSessionState(key),
 				filters: serializeFilters(filters),
 				sorts: serializeSorts(sorts),
 			}),

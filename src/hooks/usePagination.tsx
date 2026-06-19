@@ -4,6 +4,8 @@ import { useEffect, useCallback } from 'react';
 interface UsePaginationProps {
 	initialLimit?: number;
 	prefix?: PAGINATION_PREFIX | string;
+	/** Used when the page query param is absent (e.g. restored from session). */
+	initialPage?: number;
 }
 
 export enum PAGINATION_PREFIX {
@@ -15,14 +17,16 @@ export enum PAGINATION_PREFIX {
 	CUSTOMER_SUBSCRIPTIONS = 'customer_subscriptions',
 	SUBSCRIPTION_LINE_ITEMS = 'subscription_line_items',
 	TASK_RUNS = 'task_runs',
+	FETCH_CUSTOMERS = 'fetchCustomers',
 }
 
-const usePagination = ({ initialLimit = 10, prefix }: UsePaginationProps = {}) => {
+const usePagination = ({ initialLimit = 10, prefix, initialPage }: UsePaginationProps = {}) => {
 	const [searchParams, setSearchParams] = useSearchParams();
 
 	// Determine the query parameter key based on prefix
 	const pageKey = prefix ? `${prefix}_page` : 'page';
-	const page = Number(searchParams.get(pageKey) || '1');
+	const pageParam = searchParams.get(pageKey);
+	const page = pageParam ? Number(pageParam) : (initialPage ?? 1);
 
 	const reset = useCallback(() => {
 		setSearchParams((prev) => {
@@ -45,17 +49,16 @@ const usePagination = ({ initialLimit = 10, prefix }: UsePaginationProps = {}) =
 
 	// Ensure `page` is set in the query parameters
 	useEffect(() => {
-		if (!searchParams.get(pageKey)) {
-			setSearchParams(
-				(prev) => {
-					const next = new URLSearchParams(prev);
-					next.set(pageKey, '1');
-					return next;
-				},
-				{ replace: true },
-			);
-		}
-	}, [searchParams, setSearchParams, pageKey]);
+		if (searchParams.get(pageKey)) return;
+		setSearchParams(
+			(prev) => {
+				const next = new URLSearchParams(prev);
+				next.set(pageKey, String(initialPage ?? 1));
+				return next;
+			},
+			{ replace: true },
+		);
+	}, [searchParams, setSearchParams, pageKey, initialPage]);
 
 	const limit = initialLimit;
 	const offset = limit > 0 ? Math.max((page - 1) * limit, 0) : 0;

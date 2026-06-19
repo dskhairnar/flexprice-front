@@ -4,6 +4,7 @@ import OrgTypeMetadataFilter from '@/components/molecules/Customer/OrgTypeMetada
 import { ColumnData } from '@/components/molecules/Table';
 import usePagination from '@/hooks/usePagination';
 import { usePaginationReset } from '@/hooks/usePaginationReset';
+import { readPageFromSession, writePageToSession } from '@/utils/filterPersistence';
 import useFilterSortingWithPersistence from '@/hooks/useFilterSortingWithPersistence';
 import { useQueryWithEmptyState } from '@/hooks/useQueryWithEmptyState';
 import { CustomerOrgTypeFilterValue } from '@/constants/customerOrgTypeFilter';
@@ -180,11 +181,8 @@ QueryBuilderWrapper.displayName = 'QueryBuilderWrapper';
 
 // Data area component - re-renders when query params change
 const DataArea = <T,>({
-	sanitizedFilters,
-	sanitizedSorts,
 	tableConfig,
 	paginationConfig,
-	reset,
 	emptyStateConfig,
 	onError,
 	data,
@@ -193,11 +191,8 @@ const DataArea = <T,>({
 	showEmptyPage,
 	shouldShowLoading,
 }: {
-	sanitizedFilters: any[];
-	sanitizedSorts: any[];
 	tableConfig: TableConfig<T>;
 	paginationConfig?: PaginationConfig;
-	reset: () => void;
 	emptyStateConfig?: EmptyStateConfig;
 	onError?: (error: any) => void;
 	data: { items: T[]; pagination: { total?: number } } | undefined;
@@ -206,9 +201,6 @@ const DataArea = <T,>({
 	showEmptyPage: boolean;
 	shouldShowLoading: boolean;
 }) => {
-	// Reset pagination when filters or sorts change
-	usePaginationReset(reset, sanitizedFilters, sanitizedSorts);
-
 	// Loading state - prioritize showing loading during transitions
 	if (shouldShowLoading) {
 		return <LoadingState />;
@@ -278,11 +270,20 @@ const QueryableDataArea = <T = any,>({
 	const [isInitialMount, setIsInitialMount] = useState(true);
 	const [isTransitionLoading, setIsTransitionLoading] = useState(false);
 	const prevQueryKeyRef = useRef<string>('');
+	const persistenceKey = queryConfig.filterPersistenceKey ?? dataConfig.queryKey;
+	const pagePrefix = (paginationConfig?.prefix ?? persistenceKey) as string;
+	const initialPageFromSession = useMemo(() => {
+		if (typeof window === 'undefined' || !persistenceKey) return undefined;
+		const pageKey = pagePrefix ? `${pagePrefix}_page` : 'page';
+		if (new URLSearchParams(window.location.search).get(pageKey)) return undefined;
+		return readPageFromSession(persistenceKey) ?? undefined;
+	}, [pagePrefix, persistenceKey]);
 
 	// Pagination
 	const { limit, offset, page, reset } = usePagination({
 		initialLimit: paginationConfig?.initialLimit ?? 10,
-		prefix: paginationConfig?.prefix as any,
+		prefix: pagePrefix,
+		initialPage: initialPageFromSession,
 	});
 
 	// Filter and sort state
@@ -350,6 +351,13 @@ const QueryableDataArea = <T = any,>({
 		[page, sanitizedFilters, sanitizedSorts, additionalQueryParamsKey],
 	);
 
+	usePaginationReset(reset, sanitizedFilters, sanitizedSorts, additionalQueryParamsKey);
+
+	useEffect(() => {
+		if (!persistenceKey) return;
+		writePageToSession(persistenceKey, page);
+	}, [persistenceKey, page]);
+
 	// Create fetch function with all params
 	const fetchData = useCallback(async () => {
 		return await dataConfig.fetchFn({
@@ -396,10 +404,6 @@ const QueryableDataArea = <T = any,>({
 
 	const onMainDataChangeRef = useRef(dataConfig.onMainDataChange);
 	onMainDataChangeRef.current = dataConfig.onMainDataChange;
-
-	useEffect(() => {
-		reset();
-	}, [filters, sorts, additionalQueryParamsKey]);
 
 	useLayoutEffect(() => {
 		onMainDataChangeRef.current?.(data);
@@ -468,11 +472,8 @@ const QueryableDataArea = <T = any,>({
 
 			{/* Data area - re-renders when query params change */}
 			<DataArea<T>
-				sanitizedFilters={sanitizedFilters}
-				sanitizedSorts={sanitizedSorts}
 				tableConfig={tableConfig}
 				paginationConfig={paginationConfig}
-				reset={reset}
 				emptyStateConfig={emptyStateConfig}
 				onError={onError}
 				data={data}

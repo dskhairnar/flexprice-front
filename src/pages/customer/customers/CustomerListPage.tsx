@@ -2,12 +2,13 @@ import { AddButton, Page, ActionButton, Chip } from '@/components/atoms';
 import { CreateCustomerDrawer, ApiDocsContent } from '@/components/molecules';
 import { ColumnData } from '@/components/molecules/Table';
 import { QueryableDataArea } from '@/components/organisms';
+import { PAGINATION_PREFIX } from '@/hooks/usePagination';
 import { buildGuides } from '@/constants/guides';
 import { API_DOCS_TAGS } from '@/constants/apiDocsTags';
-import { CustomerOrgTypeFilterValue } from '@/constants/customerOrgTypeFilter';
 import Customer from '@/models/Customer';
 import CustomerApi from '@/api/CustomerApi';
 import { useState, useMemo, useCallback, FC } from 'react';
+import { usePersistedOrgTypeFilter } from '@/hooks/usePersistedOrgTypeFilter';
 import {
 	FilterField,
 	FilterFieldType,
@@ -63,7 +64,7 @@ const CustomerListPage = () => {
 	const guides = useMemo(() => buildGuides(tGuide), [tGuide]);
 	const [activeCustomer, setactiveCustomer] = useState<Customer>();
 	const [customerDrawerOpen, setcustomerDrawerOpen] = useState(false);
-	const [orgTypeFilter, setOrgTypeFilter] = useState<CustomerOrgTypeFilterValue | null>(null);
+	const [orgTypeFilter, setOrgTypeFilter] = usePersistedOrgTypeFilter('fetchCustomers');
 	const showOrgTypeFilter = useTenantFeatureAllowlist();
 	const navigate = useNavigate();
 
@@ -290,6 +291,7 @@ const CustomerListPage = () => {
 				}}
 				paginationConfig={{
 					unit: t('list.paginationUnit'),
+					prefix: PAGINATION_PREFIX.FETCH_CUSTOMERS,
 				}}
 				emptyStateConfig={{
 					heading: t('list.emptyHeading'),

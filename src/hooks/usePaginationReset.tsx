@@ -10,34 +10,41 @@ import { TypedBackendSort } from '@/types/formatters/QueryBuilder';
  * @param filters - Current sanitized filters
  * @param sorts - Current sanitized sorts
  */
-export const usePaginationReset = (reset: () => void, filters: TypedBackendFilter[], sorts: TypedBackendSort[]) => {
+export const usePaginationReset = (
+	reset: () => void,
+	filters: TypedBackendFilter[],
+	sorts: TypedBackendSort[],
+	additionalQueryKey?: string,
+) => {
 	const prevFiltersRef = useRef<string | null>(null);
 	const prevSortsRef = useRef<string | null>(null);
+	const prevAdditionalQueryKeyRef = useRef<string | null>(null);
 	const isInitialMount = useRef(true);
 
 	useEffect(() => {
+		const currentFiltersKey = JSON.stringify(filters);
+		const currentSortsKey = JSON.stringify(sorts);
+		const currentAdditionalQueryKey = additionalQueryKey ?? '';
+
 		// Skip on initial mount - don't reset pagination when component first loads
 		if (isInitialMount.current) {
 			isInitialMount.current = false;
-			// Store initial values
-			prevFiltersRef.current = JSON.stringify(filters);
-			prevSortsRef.current = JSON.stringify(sorts);
+			prevFiltersRef.current = currentFiltersKey;
+			prevSortsRef.current = currentSortsKey;
+			prevAdditionalQueryKeyRef.current = currentAdditionalQueryKey;
 			return;
 		}
 
-		// Only stringify when we need to compare (not on every render)
-		const currentFiltersKey = JSON.stringify(filters);
-		const currentSortsKey = JSON.stringify(sorts);
-
-		// Only reset if filters or sorts actually changed
 		const filtersChanged = prevFiltersRef.current !== currentFiltersKey;
 		const sortsChanged = prevSortsRef.current !== currentSortsKey;
+		const additionalQueryChanged = prevAdditionalQueryKeyRef.current !== currentAdditionalQueryKey;
 
-		if (filtersChanged || sortsChanged) {
+		if (filtersChanged || sortsChanged || additionalQueryChanged) {
 			reset();
 			prevFiltersRef.current = currentFiltersKey;
 			prevSortsRef.current = currentSortsKey;
+			prevAdditionalQueryKeyRef.current = currentAdditionalQueryKey;
 		}
 		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [filters, sorts]); // Dependencies are arrays, but we compare by value
+	}, [filters, sorts, additionalQueryKey]); // Dependencies are arrays, but we compare by value
 };
