@@ -29,8 +29,8 @@ interface SubscriptionEntitlementsSectionProps {
 }
 
 const SubscriptionEntitlementsSection: FC<SubscriptionEntitlementsSectionProps> = ({ subscriptionId, readOnly = false }) => {
-	const { t } = useTranslation('common');
-	const { t: tCatalog } = useTranslation('catalog');
+	const { t: tc } = useTranslation('common');
+	const { t } = useTranslation('catalog');
 	const [addDrawerOpen, setAddDrawerOpen] = useState(false);
 	const [editDrawerOpen, setEditDrawerOpen] = useState(false);
 	const [selectedEntitlement, setSelectedEntitlement] = useState<EnrichedSubscriptionEntitlement | null>(null);
@@ -149,25 +149,28 @@ const SubscriptionEntitlementsSection: FC<SubscriptionEntitlementsSectionProps> 
 			return await EntitlementApi.delete(entitlementId);
 		},
 		onSuccess: () => {
-			toast.success(tCatalog('entitlements.subscriptionEdit.deleteSuccess'));
+			toast.success(t('entitlements.subscriptionEdit.deleteSuccess'));
 			invalidateEntitlements();
 			setIsDeleteDialogOpen(false);
 			setEntitlementToDelete(null);
 		},
 		onError: (error: Error) => {
-			toast.error(error.message || tCatalog('entitlements.subscriptionEdit.deleteFailed'));
+			toast.error(error.message || t('entitlements.subscriptionEdit.deleteFailed'));
 		},
 	});
+
+	const formatUsageLimit = (value: number | null | undefined) =>
+		value === null || value === undefined ? t('entitlements.overridesTable.unlimited') : String(value.toLocaleString());
 
 	const getFeatureTypeChip = (featureType: string) => {
 		const type = featureType?.toLowerCase();
 		switch (type) {
 			case 'metered':
-				return <Chip label={t('labels.metered')} variant='info' />;
+				return <Chip label={tc('labels.metered')} variant='info' />;
 			case 'boolean':
-				return <Chip label={t('labels.boolean')} variant='success' />;
+				return <Chip label={tc('labels.boolean')} variant='success' />;
 			case 'static':
-				return <Chip label={t('labels.static')} variant='warning' />;
+				return <Chip label={tc('labels.static')} variant='warning' />;
 			default:
 				return <Chip label={featureType} variant='info' />;
 		}
@@ -175,10 +178,10 @@ const SubscriptionEntitlementsSection: FC<SubscriptionEntitlementsSectionProps> 
 
 	const getSourceLabel = (row: EnrichedSubscriptionEntitlement) => {
 		if (row.isOverrideOfParent) {
-			return tCatalog('entitlements.subscriptionEdit.sourceOverride');
+			return t('entitlements.subscriptionEdit.sourceOverride');
 		}
 		if (row.hasSubscriptionOverride && !row.isOverrideOfParent) {
-			return tCatalog('entitlements.subscriptionEdit.sourceSubscription');
+			return t('entitlements.subscriptionEdit.sourceSubscription');
 		}
 		const source = getPrimarySourceLabel(row.sources);
 		const sourceKeys: Record<string, string> = {
@@ -186,7 +189,7 @@ const SubscriptionEntitlementsSection: FC<SubscriptionEntitlementsSectionProps> 
 			addon: 'entitlements.subscriptionEdit.sourceAddon',
 			subscription: 'entitlements.subscriptionEdit.sourceSubscription',
 		};
-		return tCatalog(sourceKeys[source] ?? 'entitlements.subscriptionEdit.sourcePlan');
+		return t(sourceKeys[source] ?? 'entitlements.subscriptionEdit.sourcePlan');
 	};
 
 	const getEntitlementValue = (row: EnrichedSubscriptionEntitlement) => {
@@ -200,7 +203,7 @@ const SubscriptionEntitlementsSection: FC<SubscriptionEntitlementsSectionProps> 
 			const valueText =
 				limit !== null && limit !== undefined
 					? `${limit.toLocaleString()}${resetPeriod ? ` / ${resetPeriod.toLowerCase()}` : ''}`
-					: t('labels.unlimited');
+					: tc('labels.unlimited');
 
 			const hasChangedValue = row.isOverrideOfParent && limit !== originalLimit;
 
@@ -217,14 +220,11 @@ const SubscriptionEntitlementsSection: FC<SubscriptionEntitlementsSectionProps> 
 									sideOffset={5}
 									className='bg-white border border-gray-200 shadow-lg text-sm text-gray-900 px-4 py-3 rounded-[6px] max-w-[300px]'>
 									<div className='space-y-2'>
-										<div className='font-medium text-gray-900'>{tCatalog('entitlements.overridesTable.overrideAppliedTitle')}</div>
+										<div className='font-medium text-gray-900'>{t('entitlements.overridesTable.overrideAppliedTitle')}</div>
 										<div className='text-sm text-gray-600'>
-											{tCatalog('entitlements.overridesTable.tooltipUsageLimit', {
-												from:
-													originalLimit === null
-														? tCatalog('entitlements.overridesTable.unlimited')
-														: String(originalLimit?.toLocaleString()),
-												to: limit === null ? tCatalog('entitlements.overridesTable.unlimited') : String(limit?.toLocaleString()),
+											{t('entitlements.overridesTable.tooltipUsageLimit', {
+												from: formatUsageLimit(originalLimit),
+												to: formatUsageLimit(limit),
 											})}
 										</div>
 									</div>
@@ -254,9 +254,9 @@ const SubscriptionEntitlementsSection: FC<SubscriptionEntitlementsSectionProps> 
 									sideOffset={5}
 									className='bg-white border border-gray-200 shadow-lg text-sm text-gray-900 px-4 py-3 rounded-[6px] max-w-[300px]'>
 									<div className='space-y-2'>
-										<div className='font-medium text-gray-900'>{tCatalog('entitlements.overridesTable.overrideAppliedTitle')}</div>
+										<div className='font-medium text-gray-900'>{t('entitlements.overridesTable.overrideAppliedTitle')}</div>
 										<div className='text-sm text-gray-600'>
-											{tCatalog('entitlements.overridesTable.tooltipStaticValue', { from: String(originalValue), to: String(value) })}
+											{t('entitlements.overridesTable.tooltipStaticValue', { from: String(originalValue), to: String(value) })}
 										</div>
 									</div>
 								</TooltipContent>
@@ -268,13 +268,9 @@ const SubscriptionEntitlementsSection: FC<SubscriptionEntitlementsSectionProps> 
 		}
 
 		if (featureType === FEATURE_TYPE.BOOLEAN) {
-			const value = entitlementData?.is_enabled ? t('labels.enabled') : t('labels.disabled');
+			const value = entitlementData?.is_enabled ? tc('labels.enabled') : tc('labels.disabled');
 			const originalValue =
-				row.originalIsEnabled === undefined
-					? undefined
-					: row.originalIsEnabled
-						? t('labels.enabled')
-						: t('labels.disabled');
+				row.originalIsEnabled === undefined ? undefined : row.originalIsEnabled ? tc('labels.enabled') : tc('labels.disabled');
 			const hasChanged = row.isOverrideOfParent && originalValue !== undefined && value !== originalValue;
 
 			return (
@@ -290,9 +286,9 @@ const SubscriptionEntitlementsSection: FC<SubscriptionEntitlementsSectionProps> 
 									sideOffset={5}
 									className='bg-white border border-gray-200 shadow-lg text-sm text-gray-900 px-4 py-3 rounded-[6px] max-w-[300px]'>
 									<div className='space-y-2'>
-										<div className='font-medium text-gray-900'>{tCatalog('entitlements.overridesTable.overrideAppliedTitle')}</div>
+										<div className='font-medium text-gray-900'>{t('entitlements.overridesTable.overrideAppliedTitle')}</div>
 										<div className='text-sm text-gray-600'>
-											{tCatalog('entitlements.overridesTable.tooltipStatus', { from: originalValue!, to: value })}
+											{t('entitlements.overridesTable.tooltipStatus', { from: originalValue!, to: value })}
 										</div>
 									</div>
 								</TooltipContent>
@@ -337,19 +333,19 @@ const SubscriptionEntitlementsSection: FC<SubscriptionEntitlementsSectionProps> 
 
 	const columns: ColumnData<EnrichedSubscriptionEntitlement>[] = [
 		{
-			title: tCatalog('entitlements.overridesTable.columnFeatureName'),
-			render: (row) => <span>{row.feature?.name || t('labels.unknownFeature')}</span>,
+			title: t('entitlements.overridesTable.columnFeatureName'),
+			render: (row) => <span>{row.feature?.name || tc('labels.unknownFeature')}</span>,
 		},
 		{
-			title: tCatalog('entitlements.subscriptionEdit.columnSource'),
+			title: t('entitlements.subscriptionEdit.columnSource'),
 			render: (row) => <span className='capitalize text-sm text-gray-600'>{getSourceLabel(row)}</span>,
 		},
 		{
-			title: tCatalog('entitlements.overridesTable.columnFeatureType'),
+			title: t('entitlements.overridesTable.columnFeatureType'),
 			render: (row) => getFeatureTypeChip(row.feature_type),
 		},
 		{
-			title: tCatalog('entitlements.overridesTable.columnValue'),
+			title: t('entitlements.overridesTable.columnValue'),
 			render: (row) => getEntitlementValue(row),
 		},
 		{
@@ -390,7 +386,7 @@ const SubscriptionEntitlementsSection: FC<SubscriptionEntitlementsSectionProps> 
 									}}
 									className='flex gap-2 items-center cursor-pointer'>
 									<Pencil className='h-4 w-4' />
-									<span>{tCatalog('entitlements.overridesTable.edit')}</span>
+									<span>{t('entitlements.overridesTable.edit')}</span>
 								</DropdownMenuItem>
 								{canDelete && (
 									<DropdownMenuItem
@@ -400,11 +396,7 @@ const SubscriptionEntitlementsSection: FC<SubscriptionEntitlementsSectionProps> 
 										}}
 										className='flex gap-2 items-center cursor-pointer text-red-600'>
 										<Trash2 className='h-4 w-4' />
-										<span>
-											{row.isOverrideOfParent
-												? tCatalog('entitlements.subscriptionEdit.resetAction')
-												: t('actions.delete')}
-										</span>
+										<span>{row.isOverrideOfParent ? t('entitlements.subscriptionEdit.resetAction') : tc('actions.delete')}</span>
 									</DropdownMenuItem>
 								)}
 							</DropdownMenuContent>
@@ -425,9 +417,9 @@ const SubscriptionEntitlementsSection: FC<SubscriptionEntitlementsSectionProps> 
 	if (isLoading) {
 		return (
 			<Card variant='notched'>
-				<CardHeader title={t('labels.entitlements')} />
+				<CardHeader title={tc('labels.entitlements')} />
 				<div className='flex justify-center items-center py-8'>
-					<span className='text-gray-500'>{t('labels.loadingEntitlements')}</span>
+					<span className='text-gray-500'>{tc('labels.loadingEntitlements')}</span>
 				</div>
 			</Card>
 		);
@@ -438,28 +430,28 @@ const SubscriptionEntitlementsSection: FC<SubscriptionEntitlementsSectionProps> 
 	}
 
 	const deleteDialogTitle = entitlementToDelete?.isOverrideOfParent
-		? tCatalog('entitlements.subscriptionEdit.resetConfirmTitle', { name: entitlementToDelete.feature?.name || t('labels.thisFeature') })
-		: tCatalog('entitlements.subscriptionEdit.deleteConfirmTitle', { name: entitlementToDelete?.feature?.name || t('labels.thisFeature') });
+		? t('entitlements.subscriptionEdit.resetConfirmTitle', { name: entitlementToDelete.feature?.name || tc('labels.thisFeature') })
+		: t('entitlements.subscriptionEdit.deleteConfirmTitle', { name: entitlementToDelete?.feature?.name || tc('labels.thisFeature') });
 
 	const deleteDialogDescription = entitlementToDelete?.isOverrideOfParent
-		? tCatalog('entitlements.subscriptionEdit.resetConfirmDescription')
-		: t('confirm.deleteDescription');
+		? t('entitlements.subscriptionEdit.resetConfirmDescription')
+		: tc('confirm.deleteDescription');
 
 	const deleteButtonLabel = entitlementToDelete?.isOverrideOfParent
-		? tCatalog('entitlements.subscriptionEdit.resetAction')
+		? t('entitlements.subscriptionEdit.resetAction')
 		: isDeletingEntitlement
-			? t('status.deleting')
-			: t('actions.delete');
+			? tc('status.deleting')
+			: tc('actions.delete');
 
 	return (
 		<>
 			{entitlements.length > 0 ? (
 				<Card variant='notched'>
 					<CardHeader
-						title={t('labels.entitlements')}
+						title={tc('labels.entitlements')}
 						cta={
 							<Button prefixIcon={<Plus />} onClick={() => setAddDrawerOpen(true)} disabled={readOnly}>
-								{t('actions.add')}
+								{tc('actions.add')}
 							</Button>
 						}
 					/>
@@ -467,11 +459,11 @@ const SubscriptionEntitlementsSection: FC<SubscriptionEntitlementsSectionProps> 
 				</Card>
 			) : (
 				<NoDataCard
-					title={t('labels.entitlements')}
-					subtitle={t('labels.noEntitlementsAddedYet')}
+					title={tc('labels.entitlements')}
+					subtitle={tc('labels.noEntitlementsAddedYet')}
 					cta={
 						<Button prefixIcon={<Plus />} onClick={() => setAddDrawerOpen(true)} disabled={readOnly}>
-							{t('actions.add')}
+							{tc('actions.add')}
 						</Button>
 					}
 				/>
@@ -504,7 +496,7 @@ const SubscriptionEntitlementsSection: FC<SubscriptionEntitlementsSectionProps> 
 				<div className='flex flex-col gap-4 items-end justify-center'>
 					<div className='flex gap-4'>
 						<Button variant='outline' onClick={cancelDelete} disabled={isDeletingEntitlement}>
-							{t('actions.cancel')}
+							{tc('actions.cancel')}
 						</Button>
 						<Button variant='destructive' onClick={confirmDelete} disabled={isDeletingEntitlement}>
 							{deleteButtonLabel}

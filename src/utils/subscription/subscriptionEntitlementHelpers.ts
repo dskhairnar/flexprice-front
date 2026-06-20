@@ -1,8 +1,5 @@
 import { EntitlementResponse } from '@/types/dto/Entitlement';
-import {
-	SubscriptionEntitlementFeature,
-	SubscriptionEntitlementSource,
-} from '@/types/dto/Subscription';
+import { SubscriptionEntitlementFeature, SubscriptionEntitlementSource } from '@/types/dto/Subscription';
 
 export interface EnrichedSubscriptionEntitlement {
 	feature: SubscriptionEntitlementFeature['feature'];
@@ -67,8 +64,7 @@ export const enrichSubscriptionEntitlements = (
 		const parentSource = getParentSource(item.sources);
 		const planEnt = planByFeatureId.get(featureId);
 
-		const parentEntitlementIdForOverride =
-			rawSubscriptionEnt?.parent_entitlement_id ?? parentSource?.entitlement_id ?? planEnt?.id;
+		const parentEntitlementIdForOverride = rawSubscriptionEnt?.parent_entitlement_id ?? parentSource?.entitlement_id ?? planEnt?.id;
 		const isOverrideOfParent = !!rawSubscriptionEnt?.parent_entitlement_id;
 
 		const originalFromPlan = planEnt ?? (parentSource ? undefined : undefined);
@@ -78,8 +74,7 @@ export const enrichSubscriptionEntitlements = (
 
 		// When parent is hidden by override, fall back to plan entitlements for original values
 		const resolvedOriginalUsageLimit = isOverrideOfParent && parentSource == null ? originalFromPlan?.usage_limit : originalUsageLimit;
-		const resolvedOriginalStaticValue =
-			isOverrideOfParent && parentSource == null ? originalFromPlan?.static_value : originalStaticValue;
+		const resolvedOriginalStaticValue = isOverrideOfParent && parentSource == null ? originalFromPlan?.static_value : originalStaticValue;
 		const resolvedOriginalIsEnabled = isOverrideOfParent && parentSource == null ? originalFromPlan?.is_enabled : originalIsEnabled;
 
 		return {

@@ -84,7 +84,13 @@ export interface EventDebugAttributedToCustomerResult {
 }
 
 export interface EventDebugFailurePoint {
-	failure_point_type: 'customer_lookup' | 'meter_lookup' | 'price_lookup' | 'subscription_line_item_lookup' | 'attributed_to_customer' | null;
+	failure_point_type:
+		| 'customer_lookup'
+		| 'meter_lookup'
+		| 'price_lookup'
+		| 'subscription_line_item_lookup'
+		| 'attributed_to_customer'
+		| null;
 	error?: EventDebugErrorResponse;
 }
 
