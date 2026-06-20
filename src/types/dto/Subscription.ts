@@ -749,6 +749,47 @@ export interface EntitlementOverrideRequest {
 }
 
 // =============================================================================
+// SUBSCRIPTION ENTITLEMENT (effective) TYPES
+// =============================================================================
+
+export interface SubscriptionEntitlementSource {
+	entity_type: string;
+	entity_id: string;
+	entitlement_id: string;
+	usage_limit?: number | null;
+	static_value?: string;
+	is_enabled?: boolean;
+}
+
+export interface SubscriptionEntitlementEffective {
+	is_enabled?: boolean;
+	usage_limit?: number | null;
+	usage_reset_period?: string;
+	/** Aggregated static feature values (backend field name) */
+	static_values?: string[];
+	/** Present on EntitlementSource rows, not on aggregated entitlement */
+	static_value?: string;
+	is_soft_limit?: boolean;
+}
+
+export interface SubscriptionEntitlementFeature {
+	feature: {
+		id: string;
+		name: string;
+		type: string;
+		[key: string]: unknown;
+	};
+	entitlement: SubscriptionEntitlementEffective;
+	sources: SubscriptionEntitlementSource[];
+}
+
+export interface GetSubscriptionEntitlementsResponse {
+	subscription_id: string;
+	plan_id: string;
+	features: SubscriptionEntitlementFeature[];
+}
+
+// =============================================================================
 // SUBSCRIPTION PHASE TYPES
 // =============================================================================
 

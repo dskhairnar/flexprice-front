@@ -218,7 +218,8 @@
 			"saveEditsFirst": "Please save your changes before submitting.",
 			"trialDays": "Enter a valid trial length in days (at least 1), or leave empty to use the plan default.",
 			"autoThresholdFixed": "Auto invoice threshold is not available when the plan includes fixed charges.",
-			"autoThresholdNonNegative": "Enter a valid auto invoice threshold (0 or greater), or leave empty to omit."
+			"autoThresholdNonNegative": "Enter a valid auto invoice threshold (0 or greater), or leave empty to omit.",
+			"entitlementOverridesWithProration": "Entitlement overrides cannot be combined with proration. Disable proration or remove entitlement overrides."
 		},
 		"billingCustomer": {
 			"loadFailed": "Could not load billing customer details.",

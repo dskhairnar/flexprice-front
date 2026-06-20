@@ -501,6 +501,11 @@ const CreateCustomerSubscriptionPage: React.FC = () => {
 			}
 		}
 
+		const hasEntitlementOverrides = Object.keys(subscriptionState.entitlementOverrides).length > 0;
+		if (hasEntitlementOverrides && subscriptionState.prorationCreateLineItems) {
+			return t('subscriptionCreate.validation.entitlementOverridesWithProration');
+		}
+
 		return null;
 	};
 

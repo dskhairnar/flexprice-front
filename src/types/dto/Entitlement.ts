@@ -62,6 +62,10 @@ export interface CreateEntitlementRequest {
 	static_value?: string;
 	entity_type: ENTITLEMENT_ENTITY_TYPE;
 	entity_id: string;
+	/** When overriding a plan/addon entitlement, links to the parent entitlement to replace (not stack). */
+	parent_entitlement_id?: string;
+	start_date?: string;
+	end_date?: string;
 }
 
 export interface UpdateEntitlementRequest {

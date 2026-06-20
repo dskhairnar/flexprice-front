@@ -1,17 +1,26 @@
 import { FC, useState, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query';
-import { Plus, Trash2 } from 'lucide-react';
+import { Plus, Trash2, Pencil, Info } from 'lucide-react';
 import { Button, Card, CardHeader, Chip, Dialog, NoDataCard } from '@/components/atoms';
-import { FlexpriceTable, ColumnData, AddEntitlementDrawer } from '@/components/molecules';
+import { FlexpriceTable, ColumnData, AddEntitlementDrawer, EditSubscriptionEntitlementDrawer } from '@/components/molecules';
 import SubscriptionApi from '@/api/SubscriptionApi';
 import EntitlementApi from '@/api/EntitlementApi';
 import { FEATURE_TYPE } from '@/models/Feature';
 import { ENTITLEMENT_ENTITY_TYPE } from '@/models/Entitlement';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui';
 import { BsThreeDotsVertical } from 'react-icons/bs';
 import toast from 'react-hot-toast';
-import { formatLocalizedNumber } from '@/utils/common/helper_functions';
+import { DataType, FilterOperator } from '@/types/common/QueryBuilder';
+import { ENTITY_STATUS, EXPAND } from '@/models';
+import { generateExpandQueryParams } from '@/utils/common/api_helper';
+import {
+	EnrichedSubscriptionEntitlement,
+	enrichSubscriptionEntitlements,
+	getPrimarySourceLabel,
+	getEffectiveStaticValue,
+} from '@/utils/subscription/subscriptionEntitlementHelpers';
 
 interface SubscriptionEntitlementsSectionProps {
 	subscriptionId: string;
@@ -20,14 +29,21 @@ interface SubscriptionEntitlementsSectionProps {
 }
 
 const SubscriptionEntitlementsSection: FC<SubscriptionEntitlementsSectionProps> = ({ subscriptionId, readOnly = false }) => {
-	const { t } = useTranslation(['common', 'catalog']);
-	const [drawerOpen, setDrawerOpen] = useState(false);
+	const { t } = useTranslation('common');
+	const { t: tCatalog } = useTranslation('catalog');
+	const [addDrawerOpen, setAddDrawerOpen] = useState(false);
+	const [editDrawerOpen, setEditDrawerOpen] = useState(false);
+	const [selectedEntitlement, setSelectedEntitlement] = useState<EnrichedSubscriptionEntitlement | null>(null);
 	const [dropdownOpen, setDropdownOpen] = useState<string | null>(null);
 	const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-	const [entitlementToDelete, setEntitlementToDelete] = useState<any | null>(null);
+	const [entitlementToDelete, setEntitlementToDelete] = useState<EnrichedSubscriptionEntitlement | null>(null);
 	const queryClient = useQueryClient();
 
-	// Fetch subscription entitlements
+	const invalidateEntitlements = () => {
+		queryClient.invalidateQueries({ queryKey: ['subscriptionEntitlements', subscriptionId] });
+		queryClient.invalidateQueries({ queryKey: ['subscriptionRawEntitlements', subscriptionId] });
+	};
+
 	const {
 		data: entitlementsData,
 		isLoading,
@@ -39,7 +55,7 @@ const SubscriptionEntitlementsSection: FC<SubscriptionEntitlementsSectionProps> 
 				return await SubscriptionApi.getSubscriptionEntitlements(subscriptionId);
 			} catch (error) {
 				console.error('Failed to fetch subscription entitlements:', error);
-				return { features: [] };
+				return { features: [], subscription_id: subscriptionId, plan_id: '' };
 			}
 		},
 		enabled: !!subscriptionId,
@@ -47,36 +63,101 @@ const SubscriptionEntitlementsSection: FC<SubscriptionEntitlementsSectionProps> 
 		refetchOnWindowFocus: false,
 	});
 
-	// Delete entitlement mutation
+	const planId = entitlementsData?.plan_id;
+
+	const { data: rawSubscriptionEntitlements } = useQuery({
+		queryKey: ['subscriptionRawEntitlements', subscriptionId],
+		queryFn: async () => {
+			try {
+				return await EntitlementApi.search({
+					entity_type: ENTITLEMENT_ENTITY_TYPE.SUBSCRIPTION,
+					entity_ids: [subscriptionId],
+					filters: [
+						{
+							field: 'status',
+							operator: FilterOperator.EQUAL,
+							data_type: DataType.STRING,
+							value: { string: ENTITY_STATUS.PUBLISHED },
+						},
+					],
+					expand: generateExpandQueryParams([EXPAND.FEATURES]),
+					limit: 1000,
+					offset: 0,
+				});
+			} catch (error) {
+				console.error('Failed to fetch raw subscription entitlements:', error);
+				return { items: [] };
+			}
+		},
+		enabled: !!subscriptionId,
+		retry: false,
+		refetchOnWindowFocus: false,
+	});
+
+	const { data: planEntitlements } = useQuery({
+		queryKey: ['planEntitlements', planId],
+		queryFn: async () => {
+			if (!planId) return { items: [] };
+			try {
+				return await EntitlementApi.search({
+					filters: [
+						{
+							field: 'entity_type',
+							operator: FilterOperator.EQUAL,
+							data_type: DataType.STRING,
+							value: { string: ENTITLEMENT_ENTITY_TYPE.PLAN },
+						},
+						{
+							field: 'entity_id',
+							operator: FilterOperator.EQUAL,
+							data_type: DataType.STRING,
+							value: { string: planId },
+						},
+						{
+							field: 'status',
+							operator: FilterOperator.EQUAL,
+							data_type: DataType.STRING,
+							value: { string: ENTITY_STATUS.PUBLISHED },
+						},
+					],
+					expand: generateExpandQueryParams([EXPAND.FEATURES]),
+					limit: 1000,
+					offset: 0,
+				});
+			} catch (error) {
+				console.error('Failed to fetch plan entitlements:', error);
+				return { items: [] };
+			}
+		},
+		enabled: !!planId,
+		retry: false,
+		refetchOnWindowFocus: false,
+	});
+
+	const entitlements = useMemo(
+		() =>
+			enrichSubscriptionEntitlements(
+				entitlementsData?.features ?? [],
+				rawSubscriptionEntitlements?.items ?? [],
+				planEntitlements?.items ?? [],
+			),
+		[entitlementsData?.features, rawSubscriptionEntitlements?.items, planEntitlements?.items],
+	);
+
 	const { mutate: deleteEntitlement, isPending: isDeletingEntitlement } = useMutation({
 		mutationFn: async (entitlementId: string) => {
 			return await EntitlementApi.delete(entitlementId);
 		},
 		onSuccess: () => {
-			toast.success('Entitlement deleted successfully');
-			queryClient.invalidateQueries({ queryKey: ['subscriptionEntitlements', subscriptionId] });
+			toast.success(tCatalog('entitlements.subscriptionEdit.deleteSuccess'));
+			invalidateEntitlements();
 			setIsDeleteDialogOpen(false);
 			setEntitlementToDelete(null);
 		},
 		onError: (error: Error) => {
-			toast.error(error.message || 'Failed to delete entitlement');
+			toast.error(error.message || tCatalog('entitlements.subscriptionEdit.deleteFailed'));
 		},
 	});
-
-	// Transform the subscription entitlements response to match the expected format
-	const entitlements = useMemo(() => {
-		if (!entitlementsData?.features) return [];
-
-		return entitlementsData.features.map((item: any) => {
-			return {
-				feature: item.feature,
-				feature_id: item.feature?.id || '',
-				feature_type: item.feature?.type || '',
-				entitlement: item.entitlement,
-				sources: item.sources || [],
-			};
-		});
-	}, [entitlementsData]);
 
 	const getFeatureTypeChip = (featureType: string) => {
 		const type = featureType?.toLowerCase();
@@ -92,37 +173,154 @@ const SubscriptionEntitlementsSection: FC<SubscriptionEntitlementsSectionProps> 
 		}
 	};
 
-	const getEntitlementValue = (entitlement: any) => {
-		const featureType = entitlement.feature_type;
-		const entitlementData = entitlement.entitlement;
+	const getSourceLabel = (row: EnrichedSubscriptionEntitlement) => {
+		if (row.isOverrideOfParent) {
+			return tCatalog('entitlements.subscriptionEdit.sourceOverride');
+		}
+		if (row.hasSubscriptionOverride && !row.isOverrideOfParent) {
+			return tCatalog('entitlements.subscriptionEdit.sourceSubscription');
+		}
+		const source = getPrimarySourceLabel(row.sources);
+		const sourceKeys: Record<string, string> = {
+			plan: 'entitlements.subscriptionEdit.sourcePlan',
+			addon: 'entitlements.subscriptionEdit.sourceAddon',
+			subscription: 'entitlements.subscriptionEdit.sourceSubscription',
+		};
+		return tCatalog(sourceKeys[source] ?? 'entitlements.subscriptionEdit.sourcePlan');
+	};
+
+	const getEntitlementValue = (row: EnrichedSubscriptionEntitlement) => {
+		const featureType = row.feature_type;
+		const entitlementData = row.entitlement;
 
 		if (featureType === FEATURE_TYPE.METERED) {
 			const limit = entitlementData?.usage_limit;
+			const originalLimit = row.originalUsageLimit;
 			const resetPeriod = entitlementData?.usage_reset_period;
-			return limit !== null && limit !== undefined
-				? `${formatLocalizedNumber(limit, { maximumFractionDigits: 0 })}${resetPeriod ? ` / ${resetPeriod.toLowerCase()}` : ''}`
-				: t('labels.unlimited');
-		} else if (featureType === FEATURE_TYPE.STATIC) {
-			return entitlementData?.static_value || '--';
-		} else if (featureType === FEATURE_TYPE.BOOLEAN) {
-			return entitlementData?.is_enabled ? t('labels.enabled') : t('labels.disabled');
+			const valueText =
+				limit !== null && limit !== undefined
+					? `${limit.toLocaleString()}${resetPeriod ? ` / ${resetPeriod.toLowerCase()}` : ''}`
+					: t('labels.unlimited');
+
+			const hasChangedValue = row.isOverrideOfParent && limit !== originalLimit;
+
+			return (
+				<div className='flex items-center gap-2'>
+					<span>{valueText}</span>
+					{hasChangedValue && (
+						<TooltipProvider delayDuration={0}>
+							<Tooltip>
+								<TooltipTrigger>
+									<Info className='h-4 w-4 text-orange-600 hover:text-orange-600 transition-colors duration-150' />
+								</TooltipTrigger>
+								<TooltipContent
+									sideOffset={5}
+									className='bg-white border border-gray-200 shadow-lg text-sm text-gray-900 px-4 py-3 rounded-[6px] max-w-[300px]'>
+									<div className='space-y-2'>
+										<div className='font-medium text-gray-900'>{tCatalog('entitlements.overridesTable.overrideAppliedTitle')}</div>
+										<div className='text-sm text-gray-600'>
+											{tCatalog('entitlements.overridesTable.tooltipUsageLimit', {
+												from:
+													originalLimit === null
+														? tCatalog('entitlements.overridesTable.unlimited')
+														: String(originalLimit?.toLocaleString()),
+												to: limit === null ? tCatalog('entitlements.overridesTable.unlimited') : String(limit?.toLocaleString()),
+											})}
+										</div>
+									</div>
+								</TooltipContent>
+							</Tooltip>
+						</TooltipProvider>
+					)}
+				</div>
+			);
 		}
+
+		if (featureType === FEATURE_TYPE.STATIC) {
+			const value = getEffectiveStaticValue(entitlementData) || '--';
+			const originalValue = row.originalStaticValue || '--';
+			const hasChanged = row.isOverrideOfParent && value !== originalValue;
+
+			return (
+				<div className='flex items-center gap-2'>
+					<span>{value}</span>
+					{hasChanged && (
+						<TooltipProvider delayDuration={0}>
+							<Tooltip>
+								<TooltipTrigger>
+									<Info className='h-4 w-4 text-orange-600 hover:text-orange-600 transition-colors duration-150' />
+								</TooltipTrigger>
+								<TooltipContent
+									sideOffset={5}
+									className='bg-white border border-gray-200 shadow-lg text-sm text-gray-900 px-4 py-3 rounded-[6px] max-w-[300px]'>
+									<div className='space-y-2'>
+										<div className='font-medium text-gray-900'>{tCatalog('entitlements.overridesTable.overrideAppliedTitle')}</div>
+										<div className='text-sm text-gray-600'>
+											{tCatalog('entitlements.overridesTable.tooltipStaticValue', { from: String(originalValue), to: String(value) })}
+										</div>
+									</div>
+								</TooltipContent>
+							</Tooltip>
+						</TooltipProvider>
+					)}
+				</div>
+			);
+		}
+
+		if (featureType === FEATURE_TYPE.BOOLEAN) {
+			const value = entitlementData?.is_enabled ? t('labels.enabled') : t('labels.disabled');
+			const originalValue =
+				row.originalIsEnabled === undefined
+					? undefined
+					: row.originalIsEnabled
+						? t('labels.enabled')
+						: t('labels.disabled');
+			const hasChanged = row.isOverrideOfParent && originalValue !== undefined && value !== originalValue;
+
+			return (
+				<div className='flex items-center gap-2'>
+					<span>{value}</span>
+					{hasChanged && (
+						<TooltipProvider delayDuration={0}>
+							<Tooltip>
+								<TooltipTrigger>
+									<Info className='h-4 w-4 text-orange-600 hover:text-orange-600 transition-colors duration-150' />
+								</TooltipTrigger>
+								<TooltipContent
+									sideOffset={5}
+									className='bg-white border border-gray-200 shadow-lg text-sm text-gray-900 px-4 py-3 rounded-[6px] max-w-[300px]'>
+									<div className='space-y-2'>
+										<div className='font-medium text-gray-900'>{tCatalog('entitlements.overridesTable.overrideAppliedTitle')}</div>
+										<div className='text-sm text-gray-600'>
+											{tCatalog('entitlements.overridesTable.tooltipStatus', { from: originalValue!, to: value })}
+										</div>
+									</div>
+								</TooltipContent>
+							</Tooltip>
+						</TooltipProvider>
+					)}
+				</div>
+			);
+		}
+
 		return '--';
 	};
 
-	const handleDelete = (entitlement: any) => {
+	const handleEdit = (entitlement: EnrichedSubscriptionEntitlement) => {
+		setDropdownOpen(null);
+		setSelectedEntitlement(entitlement);
+		setEditDrawerOpen(true);
+	};
+
+	const handleDelete = (entitlement: EnrichedSubscriptionEntitlement) => {
 		setDropdownOpen(null);
 		setEntitlementToDelete(entitlement);
 		setIsDeleteDialogOpen(true);
 	};
 
 	const confirmDelete = () => {
-		if (entitlementToDelete) {
-			// Find the subscription source to get the entitlement_id
-			const subscriptionSource = entitlementToDelete.sources?.find((source: any) => source.entity_type?.toLowerCase() === 'subscription');
-			if (subscriptionSource?.entitlement_id) {
-				deleteEntitlement(subscriptionSource.entitlement_id);
-			}
+		if (entitlementToDelete?.subscriptionEntitlementId) {
+			deleteEntitlement(entitlementToDelete.subscriptionEntitlementId);
 		}
 	};
 
@@ -131,29 +329,43 @@ const SubscriptionEntitlementsSection: FC<SubscriptionEntitlementsSectionProps> 
 		setEntitlementToDelete(null);
 	};
 
-	const columns: ColumnData<any>[] = [
+	const handleResetOverride = (entitlement: EnrichedSubscriptionEntitlement) => {
+		if (entitlement.subscriptionEntitlementId) {
+			deleteEntitlement(entitlement.subscriptionEntitlementId);
+		}
+	};
+
+	const columns: ColumnData<EnrichedSubscriptionEntitlement>[] = [
 		{
-			title: t('catalog:shared.entitlementColumns.featureName'),
-			render: (row: any) => <span>{row.feature?.name || t('labels.unknownFeature')}</span>,
+			title: tCatalog('entitlements.overridesTable.columnFeatureName'),
+			render: (row) => <span>{row.feature?.name || t('labels.unknownFeature')}</span>,
 		},
 		{
-			title: t('tableColumns.featureType'),
-			render: (row: any) => getFeatureTypeChip(row.feature_type),
+			title: tCatalog('entitlements.subscriptionEdit.columnSource'),
+			render: (row) => <span className='capitalize text-sm text-gray-600'>{getSourceLabel(row)}</span>,
 		},
 		{
-			title: t('catalog:shared.entitlementColumns.value'),
-			render: (row: any) => <span>{getEntitlementValue(row)}</span>,
+			title: tCatalog('entitlements.overridesTable.columnFeatureType'),
+			render: (row) => getFeatureTypeChip(row.feature_type),
+		},
+		{
+			title: tCatalog('entitlements.overridesTable.columnValue'),
+			render: (row) => getEntitlementValue(row),
 		},
 		{
 			title: '',
 			width: '30px',
 			fieldVariant: 'interactive',
 			hideOnEmpty: true,
-			render: (row: any) => {
-				// Only show actions if there's a subscription source
-				const hasSubscriptionSource = row.sources?.some((source: any) => source.entity_type?.toLowerCase() === 'subscription');
+			render: (row) => {
+				if (readOnly) {
+					return null;
+				}
 
-				if (!hasSubscriptionSource || readOnly) {
+				const canDelete = !!row.subscriptionEntitlementId;
+				const canEdit = true;
+
+				if (!canEdit && !canDelete) {
 					return null;
 				}
 
@@ -174,12 +386,27 @@ const SubscriptionEntitlementsSection: FC<SubscriptionEntitlementsSectionProps> 
 								<DropdownMenuItem
 									onSelect={(e) => {
 										e.preventDefault();
-										handleDelete(row);
+										handleEdit(row);
 									}}
-									className='flex gap-2 items-center cursor-pointer text-red-600'>
-									<Trash2 className='h-4 w-4' />
-									<span>{t('actions.delete')}</span>
+									className='flex gap-2 items-center cursor-pointer'>
+									<Pencil className='h-4 w-4' />
+									<span>{tCatalog('entitlements.overridesTable.edit')}</span>
 								</DropdownMenuItem>
+								{canDelete && (
+									<DropdownMenuItem
+										onSelect={(e) => {
+											e.preventDefault();
+											handleDelete(row);
+										}}
+										className='flex gap-2 items-center cursor-pointer text-red-600'>
+										<Trash2 className='h-4 w-4' />
+										<span>
+											{row.isOverrideOfParent
+												? tCatalog('entitlements.subscriptionEdit.resetAction')
+												: t('actions.delete')}
+										</span>
+									</DropdownMenuItem>
+								)}
 							</DropdownMenuContent>
 						</DropdownMenu>
 					</div>
@@ -188,11 +415,10 @@ const SubscriptionEntitlementsSection: FC<SubscriptionEntitlementsSectionProps> 
 		},
 	];
 
-	const handleDrawerClose = (value: boolean) => {
-		setDrawerOpen(value);
+	const handleAddDrawerClose = (value: boolean) => {
+		setAddDrawerOpen(value);
 		if (!value) {
-			// Refetch entitlements when drawer closes
-			queryClient.invalidateQueries({ queryKey: ['subscriptionEntitlements', subscriptionId] });
+			invalidateEntitlements();
 		}
 	};
 
@@ -211,6 +437,20 @@ const SubscriptionEntitlementsSection: FC<SubscriptionEntitlementsSectionProps> 
 		return null;
 	}
 
+	const deleteDialogTitle = entitlementToDelete?.isOverrideOfParent
+		? tCatalog('entitlements.subscriptionEdit.resetConfirmTitle', { name: entitlementToDelete.feature?.name || t('labels.thisFeature') })
+		: tCatalog('entitlements.subscriptionEdit.deleteConfirmTitle', { name: entitlementToDelete?.feature?.name || t('labels.thisFeature') });
+
+	const deleteDialogDescription = entitlementToDelete?.isOverrideOfParent
+		? tCatalog('entitlements.subscriptionEdit.resetConfirmDescription')
+		: t('confirm.deleteDescription');
+
+	const deleteButtonLabel = entitlementToDelete?.isOverrideOfParent
+		? tCatalog('entitlements.subscriptionEdit.resetAction')
+		: isDeletingEntitlement
+			? t('status.deleting')
+			: t('actions.delete');
+
 	return (
 		<>
 			{entitlements.length > 0 ? (
@@ -218,7 +458,7 @@ const SubscriptionEntitlementsSection: FC<SubscriptionEntitlementsSectionProps> 
 					<CardHeader
 						title={t('labels.entitlements')}
 						cta={
-							<Button prefixIcon={<Plus />} onClick={() => setDrawerOpen(true)} disabled={readOnly}>
+							<Button prefixIcon={<Plus />} onClick={() => setAddDrawerOpen(true)} disabled={readOnly}>
 								{t('actions.add')}
 							</Button>
 						}
@@ -230,7 +470,7 @@ const SubscriptionEntitlementsSection: FC<SubscriptionEntitlementsSectionProps> 
 					title={t('labels.entitlements')}
 					subtitle={t('labels.noEntitlementsAddedYet')}
 					cta={
-						<Button prefixIcon={<Plus />} onClick={() => setDrawerOpen(true)} disabled={readOnly}>
+						<Button prefixIcon={<Plus />} onClick={() => setAddDrawerOpen(true)} disabled={readOnly}>
 							{t('actions.add')}
 						</Button>
 					}
@@ -238,17 +478,25 @@ const SubscriptionEntitlementsSection: FC<SubscriptionEntitlementsSectionProps> 
 			)}
 
 			<AddEntitlementDrawer
-				isOpen={drawerOpen}
-				onOpenChange={handleDrawerClose}
+				isOpen={addDrawerOpen}
+				onOpenChange={handleAddDrawerClose}
 				entityType={ENTITLEMENT_ENTITY_TYPE.SUBSCRIPTION}
 				entityId={subscriptionId}
-				entitlements={entitlements as any}
+				entitlements={entitlements as never}
 			/>
 
-			{/* Delete Confirmation Dialog */}
+			<EditSubscriptionEntitlementDrawer
+				isOpen={editDrawerOpen}
+				onOpenChange={setEditDrawerOpen}
+				subscriptionId={subscriptionId}
+				entitlement={selectedEntitlement}
+				onSuccess={invalidateEntitlements}
+				onReset={handleResetOverride}
+			/>
+
 			<Dialog
-				title={`Are you sure you want to delete the entitlement for "${entitlementToDelete?.feature?.name || t('labels.thisFeature')}"?`}
-				description={t('confirm.deleteDescription')}
+				title={deleteDialogTitle}
+				description={deleteDialogDescription}
 				titleClassName='text-lg font-normal text-gray-800'
 				isOpen={isDeleteDialogOpen}
 				onOpenChange={setIsDeleteDialogOpen}
@@ -259,7 +507,7 @@ const SubscriptionEntitlementsSection: FC<SubscriptionEntitlementsSectionProps> 
 							{t('actions.cancel')}
 						</Button>
 						<Button variant='destructive' onClick={confirmDelete} disabled={isDeletingEntitlement}>
-							{isDeletingEntitlement ? t('status.deleting') : t('actions.delete')}
+							{deleteButtonLabel}
 						</Button>
 					</div>
 				</div>

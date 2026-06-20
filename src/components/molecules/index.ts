@@ -109,7 +109,7 @@ export { FeatureDrawer } from './FeatureDrawer';
 
 // Entitlements
 export { default as AddEntitlementDrawer } from './AddEntitlementDrawer';
-export { EntitlementOverridesTable, EditEntitlementDrawer } from './EntitlementOverrides';
+export { EntitlementOverridesTable, EditEntitlementDrawer, EditSubscriptionEntitlementDrawer } from './EntitlementOverrides';
 
 // Coupons & Discounts
 export { default as CouponTable } from './CouponTable';
