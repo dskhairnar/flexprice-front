@@ -31,6 +31,7 @@ const CouponDrawer: FC<Props> = ({ data, open, onOpenChange, trigger, refetchQue
 	const [formData, setFormData] = useState<Partial<CreateCouponRequest>>(
 		data || {
 			name: '',
+			coupon_code: '',
 			type: COUPON_TYPE.FIXED,
 			cadence: COUPON_CADENCE.ONCE,
 			currency: 'usd',
@@ -63,6 +64,7 @@ const CouponDrawer: FC<Props> = ({ data, open, onOpenChange, trigger, refetchQue
 		} else {
 			setFormData({
 				name: '',
+				coupon_code: '',
 				type: COUPON_TYPE.FIXED,
 				cadence: COUPON_CADENCE.ONCE,
 				currency: 'usd',
@@ -75,6 +77,10 @@ const CouponDrawer: FC<Props> = ({ data, open, onOpenChange, trigger, refetchQue
 
 		if (!formData.name?.trim()) {
 			newErrors.name = t('coupons.drawer.validation.nameRequired');
+		}
+
+		if (!isEdit && !formData.coupon_code?.trim()) {
+			newErrors.coupon_code = 'Coupon code is required';
 		}
 
 		if (!formData.type) {
@@ -169,6 +175,21 @@ const CouponDrawer: FC<Props> = ({ data, open, onOpenChange, trigger, refetchQue
 					});
 				}}
 			/>
+
+			{!isEdit && (
+				<>
+					<Spacer height={'20px'} />
+					<Input
+						id='coupon_code'
+						label={t('coupons.drawer.couponCode')}
+						placeholder={t('coupons.drawer.couponCodePlaceholder')}
+						value={formData.coupon_code}
+						error={errors.coupon_code as string | undefined}
+						onChange={(e) => setFormData({ ...formData, coupon_code: e })}
+						description={t('coupons.drawer.couponCodeHelp')}
+					/>
+				</>
+			)}
 
 			<Spacer height={'20px'} />
 			<Select
@@ -297,7 +318,7 @@ const CouponDrawer: FC<Props> = ({ data, open, onOpenChange, trigger, refetchQue
 			<Spacer height={'20px'} />
 			<Button
 				isLoading={isPending}
-				disabled={isPending || !formData.name?.trim() || !formData.type || !formData.cadence}
+				disabled={isPending || !formData.name?.trim() || !formData.type || !formData.cadence || (!isEdit && !formData.coupon_code?.trim())}
 				onClick={handleSave}>
 				{isEdit ? t('common:actions.save') : t('common:actions.create')}
 			</Button>

@@ -246,6 +246,9 @@
 			"cadenceOnce": "Once",
 			"cadenceRepeated": "Repeated",
 			"cadenceForever": "Forever",
+			"couponCode": "Coupon Code",
+			"couponCodePlaceholder": "e.g. SUMMER20",
+			"couponCodeHelp": "Human-readable code used to apply this coupon via API. Cannot be changed after creation.",
 			"validation": {
 				"nameRequired": "Name is required",
 				"typeRequired": "Type is required",
