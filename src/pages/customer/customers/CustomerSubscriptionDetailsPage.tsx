@@ -585,21 +585,15 @@ const CustomerSubscriptionDetailsPage: FC = () => {
 			)}
 
 			{subscription_id && (
-				<Card className='card mt-8'>
-					<FormHeader title={t('subscriptionDetail.couponAssociations')} variant='sub-header' titleClassName='font-semibold' />
-					<div className='mt-4'>
-						<CouponAssociationTable subscriptionId={subscription_id} />
-					</div>
-				</Card>
+				<div className='mt-8'>
+					<CouponAssociationTable subscriptionId={subscription_id} />
+				</div>
 			)}
 
 			{subscriptionTaxAssociations?.items && subscriptionTaxAssociations.items.length > 0 && (
-				<Card className='card mt-8'>
-					<FormHeader title={t('subscriptionDetail.taxAssociations')} variant='sub-header' titleClassName='font-semibold' />
-					<div className='mt-4'>
-						<TaxAssociationTable data={subscriptionTaxAssociations.items} refetchQueryKey='subscriptionTaxAssociations' />
-					</div>
-				</Card>
+				<div className='mt-8'>
+					<TaxAssociationTable data={subscriptionTaxAssociations.items} refetchQueryKey='subscriptionTaxAssociations' />
+				</div>
 			)}
 		</div>
 	);

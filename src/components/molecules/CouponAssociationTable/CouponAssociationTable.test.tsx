@@ -64,7 +64,15 @@ beforeAll(async () => {
 		fallbackLng: 'en',
 		ns: ['common'],
 		defaultNS: 'common',
-		resources: { en: { common: {} } },
+		resources: {
+			en: {
+				common: {
+					form: { remove: 'Remove' },
+					subscriptionEdit: { couponAssociations: 'Coupon Associations' },
+					coupons: { noAssociations: 'No coupons', scope: { subscription: 'Subscription', lineItem: 'Line Item' } },
+				},
+			},
+		},
 		interpolation: { escapeValue: false },
 	});
 	testI18n = instance;
@@ -108,13 +116,17 @@ describe('CouponAssociationTable', () => {
 		expect(screen.queryByRole('button', { name: /remove/i })).not.toBeInTheDocument();
 	});
 
-	it('renders Remove button per row when onRemove is provided', async () => {
+	it('renders row actions dropdown trigger when onRemove is provided', async () => {
 		const onRemove = vi.fn();
 		render(
 			<Wrapper>
 				<CouponAssociationTable subscriptionId='sub_1' onRemove={onRemove} />
 			</Wrapper>,
 		);
-		expect(await screen.findByRole('button', { name: /remove/i })).toBeInTheDocument();
+		await screen.findByText('Summer Sale');
+		// The three-dot trigger button has no text content (just SVG icon)
+		const allButtons = screen.getAllByRole('button');
+		const triggerBtn = allButtons.find((b) => !b.textContent?.trim());
+		expect(triggerBtn).toBeTruthy();
 	});
 });

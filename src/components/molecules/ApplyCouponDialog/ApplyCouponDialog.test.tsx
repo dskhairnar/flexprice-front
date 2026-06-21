@@ -9,14 +9,12 @@ import type { i18n as I18nInstance } from 'i18next';
 import { initReactI18next } from 'react-i18next';
 import ApplyCouponDialog from './ApplyCouponDialog';
 
-const { mockPreview, mockExecute } = vi.hoisted(() => ({
-	mockPreview: vi.fn(),
+const { mockExecute } = vi.hoisted(() => ({
 	mockExecute: vi.fn(),
 }));
 
 vi.mock('@/api/SubscriptionApi', () => ({
 	default: {
-		previewSubscriptionModify: mockPreview,
 		executeSubscriptionModify: mockExecute,
 	},
 }));
@@ -41,8 +39,20 @@ beforeAll(async () => {
 				common: { actions: { cancel: 'Cancel', back: 'Back', apply: 'Apply' } },
 				billing: {
 					subscriptions: {
-						applyCouponDialog: { couponCodeLabel: 'Coupon Code', title: 'Apply Coupon' },
-						quantityModify: { preview: 'Preview' },
+						applyCouponDialog: {
+							couponCodeLabel: 'Coupon Code',
+							title: 'Apply Coupon',
+							applyToLabel: 'Apply to',
+							subscriptionLevel: 'Subscription level',
+							lineItemLevel: 'Line item level',
+							lineItemLabel: 'Line item',
+							selectLineItemPlaceholder: 'Select a line item',
+							startDateOptional: 'Start date (optional)',
+							endDateOptional: 'End date (optional)',
+							pickStartDate: 'Pick start date',
+							pickEndDate: 'Pick end date',
+							couponCodePlaceholder: 'Enter coupon code',
+						},
 					},
 				},
 			},
@@ -61,43 +71,39 @@ const Wrapper = ({ children }: { children: React.ReactNode }) => (
 );
 
 describe('ApplyCouponDialog', () => {
-	it('renders coupon code input in form step', () => {
+	it('renders coupon code input with Apply button', () => {
 		render(
 			<Wrapper>
 				<ApplyCouponDialog subscriptionId='sub_1' lineItems={[]} open={true} onOpenChange={vi.fn()} onSuccess={vi.fn()} />
 			</Wrapper>,
 		);
 		expect(screen.getByLabelText(/coupon code/i)).toBeInTheDocument();
-		expect(screen.getByRole('button', { name: /preview/i })).toBeInTheDocument();
+		expect(screen.getByRole('button', { name: /apply/i })).toBeInTheDocument();
 	});
 
-	it('calls previewSubscriptionModify with correct payload on Preview click', async () => {
-		mockPreview.mockResolvedValue({ changed_resources: {} });
+	it('Apply button is disabled when coupon code is empty', () => {
+		render(
+			<Wrapper>
+				<ApplyCouponDialog subscriptionId='sub_1' lineItems={[]} open={true} onOpenChange={vi.fn()} onSuccess={vi.fn()} />
+			</Wrapper>,
+		);
+		expect(screen.getByRole('button', { name: /apply/i })).toBeDisabled();
+	});
+
+	it('calls executeSubscriptionModify with correct payload on Apply click', async () => {
+		mockExecute.mockResolvedValue({});
 		render(
 			<Wrapper>
 				<ApplyCouponDialog subscriptionId='sub_1' lineItems={[]} open={true} onOpenChange={vi.fn()} onSuccess={vi.fn()} />
 			</Wrapper>,
 		);
 		fireEvent.change(screen.getByLabelText(/coupon code/i), { target: { value: 'SUMMER20' } });
-		fireEvent.click(screen.getByRole('button', { name: /preview/i }));
+		fireEvent.click(screen.getByRole('button', { name: /apply/i }));
 		await waitFor(() => {
-			expect(mockPreview).toHaveBeenCalledWith('sub_1', {
+			expect(mockExecute).toHaveBeenCalledWith('sub_1', {
 				type: 'coupon',
 				coupon_params: expect.objectContaining({ action: 'add', coupon_code: 'SUMMER20' }),
 			});
 		});
-	});
-
-	it('shows preview panel after successful preview call', async () => {
-		mockPreview.mockResolvedValue({ changed_resources: { invoices: [] } });
-		render(
-			<Wrapper>
-				<ApplyCouponDialog subscriptionId='sub_1' lineItems={[]} open={true} onOpenChange={vi.fn()} onSuccess={vi.fn()} />
-			</Wrapper>,
-		);
-		fireEvent.change(screen.getByLabelText(/coupon code/i), { target: { value: 'TEST' } });
-		fireEvent.click(screen.getByRole('button', { name: /preview/i }));
-		expect(await screen.findByRole('button', { name: /apply/i })).toBeInTheDocument();
-		expect(screen.getByRole('button', { name: /back/i })).toBeInTheDocument();
 	});
 });

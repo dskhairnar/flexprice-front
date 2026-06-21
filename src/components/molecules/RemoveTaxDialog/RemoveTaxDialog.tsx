@@ -4,11 +4,8 @@ import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '
 import toast from 'react-hot-toast';
 import SubscriptionApi from '@/api/SubscriptionApi';
 import { SUBSCRIPTION_MODIFY_TYPE, SUB_MODIFY_TAX_ACTION } from '@/models';
-import type { ChangedResources } from '@/types/dto/Subscription';
 import type { TaxAssociationResponse } from '@/types/dto/tax';
 import { Trans, useTranslation } from 'react-i18next';
-
-type Step = 'confirm' | 'preview';
 
 interface Props {
 	subscriptionId: string;
@@ -20,9 +17,6 @@ interface Props {
 
 const RemoveTaxDialog: FC<Props> = ({ subscriptionId, association, open, onOpenChange, onSuccess }) => {
 	const { t } = useTranslation(['billing', 'common']);
-	const [step, setStep] = useState<Step>('confirm');
-	const [previewResult, setPreviewResult] = useState<ChangedResources | null>(null);
-	const [isPreviewing, setIsPreviewing] = useState(false);
 	const [isRemoving, setIsRemoving] = useState(false);
 
 	const buildPayload = useCallback(() => {
@@ -35,20 +29,6 @@ const RemoveTaxDialog: FC<Props> = ({ subscriptionId, association, open, onOpenC
 		};
 	}, [association.id]);
 
-	const handlePreview = useCallback(async () => {
-		setIsPreviewing(true);
-		try {
-			const result = await SubscriptionApi.previewSubscriptionModify(subscriptionId, buildPayload());
-			setPreviewResult(result.changed_resources ?? null);
-			setStep('preview');
-		} catch (err: unknown) {
-			const message = err instanceof Error ? err.message : 'Preview failed';
-			toast.error(message);
-		} finally {
-			setIsPreviewing(false);
-		}
-	}, [subscriptionId, buildPayload]);
-
 	const handleRemove = useCallback(async () => {
 		setIsRemoving(true);
 		try {
@@ -56,8 +36,6 @@ const RemoveTaxDialog: FC<Props> = ({ subscriptionId, association, open, onOpenC
 			toast.success('Tax removed successfully');
 			onSuccess();
 			onOpenChange(false);
-			setStep('confirm');
-			setPreviewResult(null);
 		} catch (err: unknown) {
 			const message = err instanceof Error ? err.message : 'Remove failed';
 			toast.error(message);
@@ -66,104 +44,33 @@ const RemoveTaxDialog: FC<Props> = ({ subscriptionId, association, open, onOpenC
 		}
 	}, [subscriptionId, buildPayload, onSuccess, onOpenChange]);
 
-	const handleBack = useCallback(() => {
-		setStep('confirm');
-		setPreviewResult(null);
-	}, []);
-
-	const handleOpenChange = useCallback(
-		(value: boolean) => {
-			if (!value) {
-				setStep('confirm');
-				setPreviewResult(null);
-			}
-			onOpenChange(value);
-		},
-		[onOpenChange],
-	);
-
 	const taxName = association.tax_rate?.name ?? association.tax_rate_id;
 
-	const hasInvoices = (previewResult?.invoices?.length ?? 0) > 0;
-	const hasLineItems = (previewResult?.line_items?.length ?? 0) > 0;
-	const hasNoBillingImpact = previewResult !== null && !hasInvoices && !hasLineItems;
-
 	return (
-		<Dialog open={open} onOpenChange={handleOpenChange}>
+		<Dialog open={open} onOpenChange={onOpenChange}>
 			<DialogContent className='w-full max-w-md bg-white'>
 				<DialogHeader>
 					<DialogTitle>{t('subscriptions.removeTaxDialog.title')}</DialogTitle>
 				</DialogHeader>
 
-				{step === 'confirm' && (
-					<div className='py-2'>
-						<p className='text-sm text-zinc-700'>
-							<Trans
-								ns='billing'
-								i18nKey='subscriptions.removeTaxDialog.confirmMessage'
-								values={{ name: taxName }}
-								components={{ bold: <span className='font-medium' /> }}
-							/>
-						</p>
-					</div>
-				)}
-
-				{step === 'preview' && (
-					<div className='space-y-4 py-2'>
-						<p className='text-sm font-medium text-zinc-700'>{t('subscriptions.modifyDialog.previewHeading')}</p>
-						{hasNoBillingImpact && <p className='text-sm text-muted-foreground'>{t('subscriptions.modifyDialog.noBillingImpact')}</p>}
-						{hasInvoices && (
-							<div className='space-y-1'>
-								<p className='text-xs font-medium text-zinc-500 uppercase tracking-wide'>
-									{t('subscriptions.modifyDialog.invoicesAffected')}
-								</p>
-								<ul className='space-y-1'>
-									{previewResult?.invoices?.map((inv) => (
-										<li key={inv.id} className='text-sm text-zinc-700'>
-											{inv.id} — {inv.action}
-										</li>
-									))}
-								</ul>
-							</div>
-						)}
-						{hasLineItems && (
-							<div className='space-y-1'>
-								<p className='text-xs font-medium text-zinc-500 uppercase tracking-wide'>
-									{t('subscriptions.modifyDialog.lineItemsAffected')}
-								</p>
-								<ul className='space-y-1'>
-									{previewResult?.line_items?.map((li) => (
-										<li key={li.id} className='text-sm text-zinc-700'>
-											{li.id} — {li.change_action}
-										</li>
-									))}
-								</ul>
-							</div>
-						)}
-					</div>
-				)}
+				<div className='py-2'>
+					<p className='text-sm text-zinc-700'>
+						<Trans
+							ns='billing'
+							i18nKey='subscriptions.removeTaxDialog.confirmMessage'
+							values={{ name: taxName }}
+							components={{ bold: <span className='font-medium' /> }}
+						/>
+					</p>
+				</div>
 
 				<DialogFooter>
-					{step === 'confirm' && (
-						<>
-							<Button variant='outline' onClick={() => handleOpenChange(false)} className='flex-1'>
-								{t('common:actions.cancel')}
-							</Button>
-							<Button variant='destructive' onClick={handlePreview} isLoading={isPreviewing} className='flex-1'>
-								{t('subscriptions.quantityModify.preview')}
-							</Button>
-						</>
-					)}
-					{step === 'preview' && (
-						<>
-							<Button variant='outline' onClick={handleBack} className='flex-1'>
-								{t('common:actions.back')}
-							</Button>
-							<Button variant='destructive' onClick={handleRemove} isLoading={isRemoving} className='flex-1'>
-								{t('subscriptions.tax.remove')}
-							</Button>
-						</>
-					)}
+					<Button variant='outline' onClick={() => onOpenChange(false)} className='flex-1'>
+						{t('common:actions.cancel')}
+					</Button>
+					<Button variant='destructive' onClick={handleRemove} isLoading={isRemoving} className='flex-1'>
+						{t('subscriptions.tax.remove')}
+					</Button>
 				</DialogFooter>
 			</DialogContent>
 		</Dialog>

@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next';
 import CouponApi from '@/api/CouponApi';
 import FlexpriceTable, { ColumnData } from '../Table';
 import { DropdownMenu } from '@/components/molecules';
-import { Chip } from '@/components/atoms';
+import { Chip, Card, CardHeader, AddButton, NoDataCard } from '@/components/atoms';
 import { formatDateShort, getCurrencySymbol } from '@/utils/common/helper_functions';
 import { RouteNames } from '@/core/routes/Routes';
 import { CouponAssociation } from '@/models/CouponAssociation';
@@ -14,6 +14,7 @@ import { TrashIcon } from 'lucide-react';
 
 interface Props {
 	subscriptionId: string;
+	onAdd?: () => void;
 	onRemove?: (association: CouponAssociation) => void;
 }
 
@@ -58,12 +59,16 @@ const RowActions: FC<RowActionsProps> = ({ row, onRemove }) => {
 	);
 };
 
-const CouponAssociationTable: FC<Props> = ({ subscriptionId, onRemove }) => {
+const CouponAssociationTable: FC<Props> = ({ subscriptionId, onAdd, onRemove }) => {
 	const { t } = useTranslation('common');
 
 	const { data } = useQuery({
 		queryKey: ['couponAssociations', subscriptionId],
-		queryFn: () => CouponApi.listCouponAssociations({ subscription_ids: [subscriptionId], active_only: true }),
+		queryFn: () =>
+			CouponApi.listCouponAssociations({
+				subscription_ids: [subscriptionId],
+				active_only: true,
+			}),
 		enabled: !!subscriptionId,
 	});
 
@@ -71,6 +76,9 @@ const CouponAssociationTable: FC<Props> = ({ subscriptionId, onRemove }) => {
 		const now = new Date();
 		return (data?.items ?? []).filter((a) => !a.end_date || new Date(a.end_date) > now);
 	}, [data?.items]);
+
+	const addButton = onAdd ? <AddButton onClick={onAdd} /> : undefined;
+	const title = t('subscriptionEdit.couponAssociations', 'Coupon Associations');
 
 	const columns: ColumnData<CouponAssociation>[] = [
 		{
@@ -123,13 +131,16 @@ const CouponAssociationTable: FC<Props> = ({ subscriptionId, onRemove }) => {
 
 	if (rows.length === 0) {
 		return (
-			<div className='py-8 text-center text-sm text-muted-foreground'>
-				{t('coupons.noAssociations', 'No coupons applied to this subscription.')}
-			</div>
+			<NoDataCard title={title} subtitle={t('coupons.noAssociations', 'No coupons applied to this subscription yet')} cta={addButton} />
 		);
 	}
 
-	return <FlexpriceTable columns={columns} data={rows} />;
+	return (
+		<Card variant='notched'>
+			<CardHeader title={title} cta={addButton} />
+			<FlexpriceTable columns={columns} data={rows} variant='no-bordered' />
+		</Card>
+	);
 };
 
 export default CouponAssociationTable;

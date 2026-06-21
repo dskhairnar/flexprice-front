@@ -1,4 +1,4 @@
-import { Loader, Page, Spacer, Card, FormHeader, Button } from '@/components/atoms';
+import { Loader, Page, Spacer } from '@/components/atoms';
 import {
 	SubscriptionEntitlementsSection,
 	SubscriptionAddonsSection,
@@ -53,7 +53,6 @@ import { ENTITY_STATUS, CreditGrant, CREDIT_GRANT_SCOPE } from '@/models';
 import { useSubscriptionEditCoreQuery } from '@/hooks/useSubscriptionEditCoreQuery';
 import { subscriptionEditInheritedQueryKey, subscriptionEditScopeQueryKey } from '@/utils/subscription/subscriptionEditQueryKeys';
 import type { CreateCreditGrantRequest } from '@/types/dto/CreditGrant';
-import { PlusIcon } from 'lucide-react';
 
 type EditingLineItemState =
 	| { mode: SUBSCRIPTION_LINE_ITEM_EDIT_MODE.USAGE_OVERRIDE; lineItem: LineItem }
@@ -163,7 +162,13 @@ const CustomerSubscriptionEditPage: React.FC = () => {
 	const { data: taxAssociationsData, refetch: refetchTaxAssociations } = useQuery({
 		queryKey: subscriptionId ? ['subscriptionTaxAssociations', subscriptionId] : ['disabled'],
 		queryFn: () =>
-			TaxApi.listTaxAssociations({ limit: 1000, offset: 0, entity_id: subscriptionId!, entity_type: TAXRATE_ENTITY_TYPE.SUBSCRIPTION }),
+			TaxApi.listTaxAssociations({
+				limit: 1000,
+				offset: 0,
+				entity_id: subscriptionId!,
+				entity_type: TAXRATE_ENTITY_TYPE.SUBSCRIPTION,
+				expand: generateExpandQueryParams([EXPAND.TAX_RATE]),
+			}),
 		enabled: !!subscriptionId,
 	});
 
@@ -471,38 +476,25 @@ const CustomerSubscriptionEditPage: React.FC = () => {
 
 						{/* Coupon Associations */}
 						{subscriptionId && (
-							<Card className='card mt-8'>
-								<div className='flex items-center justify-between p-6 pb-2'>
-									<FormHeader title={t('subscriptionEdit.couponAssociations')} variant='sub-header' titleClassName='font-semibold' />
-									<Button size='sm' variant='outline' onClick={() => setApplyCouponOpen(true)}>
-										<PlusIcon className='h-4 w-4 mr-1' />
-										{t('subscriptionEdit.addCoupon')}
-									</Button>
-								</div>
-								<div className='px-6 pb-6'>
-									<CouponAssociationTable subscriptionId={subscriptionId} onRemove={(assoc) => setRemoveCouponAssociation(assoc)} />
-								</div>
-							</Card>
+							<div className='mt-8'>
+								<CouponAssociationTable
+									subscriptionId={subscriptionId}
+									onAdd={() => setApplyCouponOpen(true)}
+									onRemove={(assoc) => setRemoveCouponAssociation(assoc)}
+								/>
+							</div>
 						)}
 
 						{/* Tax Associations */}
 						{subscriptionId && (
-							<Card className='card mt-8'>
-								<div className='flex items-center justify-between p-6 pb-2'>
-									<FormHeader title={t('subscriptionEdit.taxAssociations')} variant='sub-header' titleClassName='font-semibold' />
-									<Button size='sm' variant='outline' onClick={() => setApplyTaxOpen(true)}>
-										<PlusIcon className='h-4 w-4 mr-1' />
-										{t('subscriptionEdit.addTax')}
-									</Button>
-								</div>
-								<div className='px-6 pb-6'>
-									<TaxAssociationTable
-										data={taxAssociationsData?.items ?? []}
-										showDelete={false}
-										onRemove={(assoc) => setRemoveTaxAssociation(assoc)}
-									/>
-								</div>
-							</Card>
+							<div className='mt-8'>
+								<TaxAssociationTable
+									data={taxAssociationsData?.items ?? []}
+									showDelete={false}
+									onAdd={() => setApplyTaxOpen(true)}
+									onRemove={(assoc) => setRemoveTaxAssociation(assoc)}
+								/>
+							</div>
 						)}
 
 						{/* Coupon + Tax Dialogs */}

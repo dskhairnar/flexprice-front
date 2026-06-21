@@ -2,7 +2,7 @@ import { FC, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import FlexpriceTable, { ColumnData, RedirectCell } from '../Table';
 import { TaxAssociationResponse } from '@/types/dto/tax';
-import { Chip, ActionButton } from '@/components/atoms';
+import { Chip, ActionButton, Card, CardHeader, AddButton, NoDataCard } from '@/components/atoms';
 import { DropdownMenu } from '@/components/molecules';
 import { formatDateShort } from '@/utils/common/helper_functions';
 import TaxApi from '@/api/TaxApi';
@@ -13,6 +13,7 @@ import { TrashIcon } from 'lucide-react';
 
 interface Props {
 	data: TaxAssociationResponse[];
+	onAdd?: () => void;
 	showDelete?: boolean;
 	refetchQueryKey?: string;
 	onRemove?: (association: TaxAssociationResponse) => void;
@@ -52,13 +53,16 @@ const RowActions: FC<RowActionsProps> = ({ row, onRemove }) => {
 	);
 };
 
-const TaxAssociationTable: FC<Props> = ({ data, showDelete = true, refetchQueryKey = 'fetchTaxAssociations', onRemove }) => {
+const TaxAssociationTable: FC<Props> = ({ data, onAdd, showDelete = true, refetchQueryKey = 'fetchTaxAssociations', onRemove }) => {
 	const { t } = useTranslation('common');
 
 	const rows = useMemo(() => {
 		const now = new Date();
 		return data.filter((a) => !a.valid_to || new Date(a.valid_to) > now);
 	}, [data]);
+
+	const addButton = onAdd ? <AddButton onClick={onAdd} /> : undefined;
+	const title = t('subscriptionEdit.taxAssociations', 'Tax Associations');
 
 	const columns: ColumnData<TaxAssociationResponse>[] = [
 		{
@@ -126,17 +130,14 @@ const TaxAssociationTable: FC<Props> = ({ data, showDelete = true, refetchQueryK
 	];
 
 	if (rows.length === 0) {
-		return (
-			<div className='py-8 text-center text-sm text-muted-foreground'>
-				{t('tax.noAssociations', 'No taxes applied to this subscription.')}
-			</div>
-		);
+		return <NoDataCard title={title} subtitle={t('tax.noAssociations', 'No taxes applied to this subscription yet')} cta={addButton} />;
 	}
 
 	return (
-		<div>
-			<FlexpriceTable columns={columns} data={rows} />
-		</div>
+		<Card variant='notched'>
+			<CardHeader title={title} cta={addButton} />
+			<FlexpriceTable columns={columns} data={rows} variant='no-bordered' />
+		</Card>
 	);
 };
 
