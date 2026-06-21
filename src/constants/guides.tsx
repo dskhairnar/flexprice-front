@@ -15,27 +15,27 @@ export enum DOCS_LINKS {
 	CUSTOMER_ARCHIVE = 'https://docs.flexprice.io/docs/customers/archive',
 	SUBSCRIPTION_CREATE = 'https://docs.flexprice.io/docs/subscriptions/customers-create-subscription',
 
-	INVOICE_CREATE = 'https://docs.flexprice.io/api-reference/invoices/create-a-new-one-off-invoice',
+	INVOICE_CREATE = 'https://docs.flexprice.io/api-reference/invoices/create-one-off-invoice',
 	INVOICE_MANAGE = 'https://docs.flexprice.io/api-reference/invoices/update-an-invoice',
-	INVOICE_PARTIAL = 'https://docs.flexprice.io/api-reference/payments/create-a-new-payment#create-a-new-payment',
+	INVOICE_PARTIAL = 'https://docs.flexprice.io/api-reference/invoices/update-invoice-payment-status',
 
-	PAYMENT_CREATE = 'https://docs.flexprice.io/api-reference/payments/create-a-new-payment',
-	PAYMENT_UPDATE = 'https://docs.flexprice.io/api-reference/payments/update-a-new-payment',
-	PAYMENT_DELETE = 'https://docs.flexprice.io/api-reference/payments/delete-a-new-payment',
+	PAYMENT_CREATE = 'https://docs.flexprice.io/api-reference/payments/create-payment',
+	PAYMENT_UPDATE = 'https://docs.flexprice.io/api-reference/payments/update-payment',
+	PAYMENT_DELETE = 'https://docs.flexprice.io/api-reference/payments/delete-payment',
 
 	SECRET_LIST = 'https://docs.flexprice.io/api-reference/secrets/list-api-keys',
 	SECRET_CREATE = 'https://docs.flexprice.io/api-reference/secrets/create-a-new-api-key',
 	SECRET_DELETE = 'https://docs.flexprice.io/api-reference/secrets/delete-an-api-key',
 
 	CREDIT_CREATE = 'https://docs.flexprice.io/api-reference/credit-notes/create-a-new-credit-note',
-	CREDIT_PROCESS = 'https://docs.flexprice.io/api-reference/credit-notes/process-a-draft-credit-note',
+	CREDIT_PROCESS = 'https://docs.flexprice.io/api-reference/credit-notes/finalize-credit-note',
 	CREDIT_VOID = 'https://docs.flexprice.io/api-reference/credit-notes/void-a-credit-note',
 
 	TASK_LIST = 'https://docs.flexprice.io/api-reference/tasks/list-tasks',
 	TASK_CREATE = 'https://docs.flexprice.io/api-reference/tasks/create-a-new-task',
-	TASK_PROCESS = 'https://docs.flexprice.io/api-reference/tasks/process-a-task',
+	TASK_PROCESS = 'https://docs.flexprice.io/api-reference/tasks/get-task-processing-result',
 
-	TAX_OVERVIEW = 'https://docs.flexprice.io/api-reference/tax-associations/create-tax-associations',
+	TAX_OVERVIEW = 'https://docs.flexprice.io/api-reference/tax-associations/create-tax-association',
 	TAX_TYPES = 'https://docs.flexprice.io/api-reference/tax-associations/get-tax-association',
 	TAX_ASSOCIATIONS = 'https://docs.flexprice.io/api-reference/tax-associations/list-tax-associations',
 
@@ -45,9 +45,9 @@ export enum DOCS_LINKS {
 	ADDON_LIST = 'https://docs.flexprice.io/api-reference/addons/list-addons',
 	ADDON_DELETE = 'https://docs.flexprice.io/api-reference/addons/delete-addon',
 
-	COUPON_CREATE = 'https://docs.flexprice.io/api-reference/coupons/create-a-new-coupon',
-	COUPON_UPDATE = 'https://docs.flexprice.io/api-reference/coupons/update-a-coupon',
-	COUPON_DELETE = 'https://docs.flexprice.io/api-reference/coupons/delete-a-coupon',
+	COUPON_CREATE = 'https://docs.flexprice.io/api-reference/coupons/create-coupon',
+	COUPON_UPDATE = 'https://docs.flexprice.io/api-reference/coupons/update-coupon',
+	COUPON_DELETE = 'https://docs.flexprice.io/api-reference/coupons/delete-coupon',
 }
 
 export enum IMAGE_URLS {
