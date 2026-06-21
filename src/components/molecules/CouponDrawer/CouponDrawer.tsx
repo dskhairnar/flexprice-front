@@ -80,7 +80,7 @@ const CouponDrawer: FC<Props> = ({ data, open, onOpenChange, trigger, refetchQue
 		}
 
 		if (!isEdit && !formData.coupon_code?.trim()) {
-			newErrors.coupon_code = 'Coupon code is required';
+			newErrors.coupon_code = t('coupons.drawer.validation.couponCodeRequired');
 		}
 
 		if (!formData.type) {
