@@ -37,6 +37,8 @@ export interface SubscriptionEditChargesSectionProps {
 	commitmentInfo?: SubscriptionCommitmentInfo;
 	onApplyCouponToLineItem?: (lineItem: LineItem) => void;
 	onRemoveCouponFromLineItem?: (lineItem: LineItem) => void;
+	/** Set of line item IDs that currently have an active coupon — controls Remove coupon visibility */
+	lineItemIdsWithCoupon?: Set<string>;
 }
 
 const SubscriptionEditChargesSection: FC<SubscriptionEditChargesSectionProps> = ({
@@ -53,6 +55,7 @@ const SubscriptionEditChargesSection: FC<SubscriptionEditChargesSectionProps> = 
 	commitmentInfo,
 	onApplyCouponToLineItem,
 	onRemoveCouponFromLineItem,
+	lineItemIdsWithCoupon,
 }) => {
 	const { t } = useTranslation('common');
 	const { filters, sorts, setFilters, setSorts, sanitizedFilters, sanitizedSorts } = useFilterSorting({
@@ -146,6 +149,7 @@ const SubscriptionEditChargesSection: FC<SubscriptionEditChargesSectionProps> = 
 				showNoDataCard={false}
 				onApplyCoupon={onApplyCouponToLineItem}
 				onRemoveCoupon={onRemoveCouponFromLineItem}
+				lineItemIdsWithCoupon={lineItemIdsWithCoupon}
 			/>
 			<Spacer className='!h-2' />
 			<ShortPagination totalItems={totalLineItems} pageSize={limit} unit='charges' prefix={LINE_ITEMS_PAGINATION_PREFIX} />

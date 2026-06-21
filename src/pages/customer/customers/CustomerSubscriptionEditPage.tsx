@@ -16,7 +16,7 @@ import CreditGrantApi from '@/api/CreditGrantApi';
 import TaxApi from '@/api/TaxApi';
 import CouponApi from '@/api/CouponApi';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import toast from 'react-hot-toast';
 import { useTranslation } from 'react-i18next';
 import { useParams } from 'react-router';
@@ -176,6 +176,12 @@ const CustomerSubscriptionEditPage: React.FC = () => {
 	const invalidateCouponAssociations = () => {
 		if (subscriptionId) queryClient.invalidateQueries({ queryKey: ['couponAssociations', subscriptionId] });
 	};
+
+	const lineItemIdsWithCoupon = useMemo(
+		() =>
+			new Set((couponAssociationsData?.items ?? []).filter((a) => !!a.subscription_line_item_id).map((a) => a.subscription_line_item_id!)),
+		[couponAssociationsData?.items],
+	);
 
 	const invalidateTaxAssociations = () => {
 		if (subscriptionId) void refetchTaxAssociations();
@@ -429,6 +435,7 @@ const CustomerSubscriptionEditPage: React.FC = () => {
 								const assoc = couponAssociationsData?.items?.find((a) => a.subscription_line_item_id === lineItem.id);
 								if (assoc) setRemoveCouponAssociation(assoc);
 							}}
+							lineItemIdsWithCoupon={lineItemIdsWithCoupon}
 						/>
 
 						<SubscriptionEditCreditGrantsSection
