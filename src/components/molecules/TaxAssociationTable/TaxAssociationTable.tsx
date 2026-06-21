@@ -2,7 +2,7 @@ import { FC } from 'react';
 import { useTranslation } from 'react-i18next';
 import FlexpriceTable, { ColumnData, RedirectCell } from '../Table';
 import { TaxAssociationResponse } from '@/types/dto/tax';
-import { Chip, ActionButton } from '@/components/atoms';
+import { Chip, ActionButton, Button } from '@/components/atoms';
 import { formatDateShort } from '@/utils/common/helper_functions';
 import TaxApi from '@/api/TaxApi';
 import { formatEntityStatus } from '@/utils/common/format_chips';
@@ -14,9 +14,10 @@ interface Props {
 	data: TaxAssociationResponse[];
 	showDelete?: boolean;
 	refetchQueryKey?: string;
+	onRemove?: (association: TaxAssociationResponse) => void;
 }
 
-const TaxAssociationTable: FC<Props> = ({ data, showDelete = true, refetchQueryKey = 'fetchTaxAssociations' }) => {
+const TaxAssociationTable: FC<Props> = ({ data, showDelete = true, refetchQueryKey = 'fetchTaxAssociations', onRemove }) => {
 	const { t } = useTranslation('common');
 	const columns: ColumnData<TaxAssociationResponse>[] = [
 		{
@@ -49,8 +50,23 @@ const TaxAssociationTable: FC<Props> = ({ data, showDelete = true, refetchQueryK
 			render: (row) => formatDateShort(row.created_at),
 		},
 		{
+			title: 'Valid From',
+			render: (row) => (row.valid_from ? formatDateShort(row.valid_from) : '—'),
+		},
+		{
+			title: 'Valid To',
+			render: (row) => (row.valid_to ? formatDateShort(row.valid_to) : 'Forever'),
+		},
+		{
 			fieldVariant: 'interactive',
 			render(row) {
+				if (onRemove) {
+					return (
+						<Button variant='ghost' size='sm' aria-label={t('form.remove')} onClick={() => onRemove(row)}>
+							<TrashIcon className='h-4 w-4 text-destructive' />
+						</Button>
+					);
+				}
 				return (
 					<ActionButton
 						id={row?.id}
