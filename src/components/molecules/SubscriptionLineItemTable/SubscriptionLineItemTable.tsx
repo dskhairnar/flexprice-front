@@ -6,7 +6,7 @@ import { ChargeValueCell, ColumnData, FlexpriceTable, TerminateLineItemModal, Dr
 import { PriceTooltip } from '@/components/molecules/PriceTooltip';
 import { LineItem, SUBSCRIPTION_LINE_ITEM_ENTITY_TYPE } from '@/models/Subscription';
 import { FC, useState, useCallback, useMemo } from 'react';
-import { Trash2, Pencil, Info, Eye } from 'lucide-react';
+import { Trash2, Pencil, Info, Eye, Tag, TicketX } from 'lucide-react';
 import { ENTITY_STATUS } from '@/models/base';
 import {
 	formatBillingPeriodForDisplay,
@@ -45,6 +45,8 @@ interface Props {
 	noDataSubtitle?: string;
 	/** Show per-line-item window commitment buckets (details + edit pages). */
 	showCommitmentColumn?: boolean;
+	onApplyCoupon?: (lineItem: LineItem) => void;
+	onRemoveCoupon?: (lineItem: LineItem) => void;
 }
 
 interface LineItemWithStatus extends LineItem {
@@ -97,6 +99,8 @@ interface LineItemDropdownProps {
 	onEdit: (lineItem: LineItem) => void;
 	onTerminate: (lineItem: LineItem) => void;
 	onViewCommitment?: (lineItem: LineItem) => void;
+	onApplyCoupon?: (lineItem: LineItem) => void;
+	onRemoveCoupon?: (lineItem: LineItem) => void;
 }
 
 const LineItemDropdown: FC<LineItemDropdownProps> = ({
@@ -106,6 +110,8 @@ const LineItemDropdown: FC<LineItemDropdownProps> = ({
 	onEdit,
 	onTerminate,
 	onViewCommitment,
+	onApplyCoupon,
+	onRemoveCoupon,
 }) => {
 	const { t } = useTranslation('billing');
 	const [isOpen, setIsOpen] = useState(false);
@@ -156,6 +162,32 @@ const LineItemDropdown: FC<LineItemDropdownProps> = ({
 						},
 						disabled: isTerminateDisabled,
 					},
+					...(onApplyCoupon
+						? [
+								{
+									label: 'Apply coupon',
+									icon: <Tag />,
+									onSelect: (e: Event) => {
+										e.preventDefault();
+										setIsOpen(false);
+										onApplyCoupon(row);
+									},
+								},
+							]
+						: []),
+					...(onRemoveCoupon
+						? [
+								{
+									label: 'Remove coupon',
+									icon: <TicketX />,
+									onSelect: (e: Event) => {
+										e.preventDefault();
+										setIsOpen(false);
+										onRemoveCoupon(row);
+									},
+								},
+							]
+						: []),
 				]}
 			/>
 		</div>
@@ -375,6 +407,8 @@ const SubscriptionLineItemTable: FC<Props> = ({
 	showNoDataCard = true,
 	noDataSubtitle,
 	showCommitmentColumn = false,
+	onApplyCoupon,
+	onRemoveCoupon,
 }) => {
 	const { t } = useTranslation('common');
 	const [showTerminateModal, setShowTerminateModal] = useState(false);
@@ -575,13 +609,26 @@ const SubscriptionLineItemTable: FC<Props> = ({
 										onEdit={handleEditClick}
 										onTerminate={handleTerminateClick}
 										onViewCommitment={setViewCommitmentLineItem}
+										onApplyCoupon={onApplyCoupon}
+										onRemoveCoupon={onRemoveCoupon}
 									/>
 								);
 							},
 						},
 					]),
 		],
-		[hasMultipleEntityTypes, commitmentInfo, handleEditClick, handleTerminateClick, readOnly, phaseLabelsById, showCommitmentColumn, t],
+		[
+			hasMultipleEntityTypes,
+			commitmentInfo,
+			handleEditClick,
+			handleTerminateClick,
+			readOnly,
+			phaseLabelsById,
+			showCommitmentColumn,
+			t,
+			onApplyCoupon,
+			onRemoveCoupon,
+		],
 	);
 
 	if (isLoading) {

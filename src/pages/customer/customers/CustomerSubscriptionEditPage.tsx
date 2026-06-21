@@ -167,7 +167,7 @@ const CustomerSubscriptionEditPage: React.FC = () => {
 		enabled: !!subscriptionId,
 	});
 
-	useQuery({
+	const { data: couponAssociationsData } = useQuery({
 		queryKey: subscriptionId ? ['couponAssociations', subscriptionId] : ['disabled'],
 		queryFn: () => CouponApi.listCouponAssociations({ subscription_ids: [subscriptionId!], active_only: true }),
 		enabled: !!subscriptionId,
@@ -420,6 +420,14 @@ const CustomerSubscriptionEditPage: React.FC = () => {
 								overage_factor: subscriptionDetails?.overage_factor,
 								commitment_duration: subscriptionDetails?.commitment_duration,
 								currency: subscriptionDetails?.currency,
+							}}
+							onApplyCouponToLineItem={(lineItem) => {
+								setApplyCouponLineItemId(lineItem.id);
+								setApplyCouponOpen(true);
+							}}
+							onRemoveCouponFromLineItem={(lineItem) => {
+								const assoc = couponAssociationsData?.items?.find((a) => a.subscription_line_item_id === lineItem.id);
+								if (assoc) setRemoveCouponAssociation(assoc);
 							}}
 						/>
 

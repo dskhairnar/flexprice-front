@@ -35,6 +35,8 @@ export interface SubscriptionEditChargesSectionProps {
 	isAddChargeDisabled?: boolean;
 	readOnly?: boolean;
 	commitmentInfo?: SubscriptionCommitmentInfo;
+	onApplyCouponToLineItem?: (lineItem: LineItem) => void;
+	onRemoveCouponFromLineItem?: (lineItem: LineItem) => void;
 }
 
 const SubscriptionEditChargesSection: FC<SubscriptionEditChargesSectionProps> = ({
@@ -49,6 +51,8 @@ const SubscriptionEditChargesSection: FC<SubscriptionEditChargesSectionProps> = 
 	isAddChargeDisabled = false,
 	readOnly = false,
 	commitmentInfo,
+	onApplyCouponToLineItem,
+	onRemoveCouponFromLineItem,
 }) => {
 	const { t } = useTranslation('common');
 	const { filters, sorts, setFilters, setSorts, sanitizedFilters, sanitizedSorts } = useFilterSorting({
@@ -140,6 +144,8 @@ const SubscriptionEditChargesSection: FC<SubscriptionEditChargesSectionProps> = 
 				readOnly={readOnly}
 				phaseLabelsById={phaseLabelsById}
 				showNoDataCard={false}
+				onApplyCoupon={onApplyCouponToLineItem}
+				onRemoveCoupon={onRemoveCouponFromLineItem}
 			/>
 			<Spacer className='!h-2' />
 			<ShortPagination totalItems={totalLineItems} pageSize={limit} unit='charges' prefix={LINE_ITEMS_PAGINATION_PREFIX} />
