@@ -6,6 +6,7 @@ import SubscriptionApi from '@/api/SubscriptionApi';
 import { SUBSCRIPTION_MODIFY_TYPE, SUB_MODIFY_TAX_ACTION } from '@/models';
 import type { ChangedResources } from '@/types/dto/Subscription';
 import type { TaxAssociationResponse } from '@/types/dto/tax';
+import { Trans, useTranslation } from 'react-i18next';
 
 type Step = 'confirm' | 'preview';
 
@@ -18,6 +19,7 @@ interface Props {
 }
 
 const RemoveTaxDialog: FC<Props> = ({ subscriptionId, association, open, onOpenChange, onSuccess }) => {
+	const { t } = useTranslation(['billing', 'common']);
 	const [step, setStep] = useState<Step>('confirm');
 	const [previewResult, setPreviewResult] = useState<ChangedResources | null>(null);
 	const [isPreviewing, setIsPreviewing] = useState(false);
@@ -82,32 +84,39 @@ const RemoveTaxDialog: FC<Props> = ({ subscriptionId, association, open, onOpenC
 
 	const taxName = association.tax_rate?.name ?? association.tax_rate_id;
 
-	const hasInvoices = Array.isArray(previewResult?.invoices) && previewResult.invoices.length > 0;
-	const hasLineItems = Array.isArray(previewResult?.line_items) && previewResult.line_items.length > 0;
+	const hasInvoices = (previewResult?.invoices?.length ?? 0) > 0;
+	const hasLineItems = (previewResult?.line_items?.length ?? 0) > 0;
 	const hasNoBillingImpact = previewResult !== null && !hasInvoices && !hasLineItems;
 
 	return (
 		<Dialog open={open} onOpenChange={handleOpenChange}>
 			<DialogContent className='w-full max-w-md bg-white'>
 				<DialogHeader>
-					<DialogTitle>Remove Tax</DialogTitle>
+					<DialogTitle>{t('subscriptions.removeTaxDialog.title')}</DialogTitle>
 				</DialogHeader>
 
 				{step === 'confirm' && (
 					<div className='py-2'>
 						<p className='text-sm text-zinc-700'>
-							Remove tax <span className='font-medium'>{taxName}</span> from this subscription?
+							<Trans
+								ns='billing'
+								i18nKey='subscriptions.removeTaxDialog.confirmMessage'
+								values={{ name: taxName }}
+								components={{ bold: <span className='font-medium' /> }}
+							/>
 						</p>
 					</div>
 				)}
 
 				{step === 'preview' && (
 					<div className='space-y-4 py-2'>
-						<p className='text-sm font-medium text-zinc-700'>Preview</p>
-						{hasNoBillingImpact && <p className='text-sm text-muted-foreground'>No billing impact</p>}
+						<p className='text-sm font-medium text-zinc-700'>{t('subscriptions.modifyDialog.previewHeading')}</p>
+						{hasNoBillingImpact && <p className='text-sm text-muted-foreground'>{t('subscriptions.modifyDialog.noBillingImpact')}</p>}
 						{hasInvoices && (
 							<div className='space-y-1'>
-								<p className='text-xs font-medium text-zinc-500 uppercase tracking-wide'>Invoices affected</p>
+								<p className='text-xs font-medium text-zinc-500 uppercase tracking-wide'>
+									{t('subscriptions.modifyDialog.invoicesAffected')}
+								</p>
 								<ul className='space-y-1'>
 									{previewResult?.invoices?.map((inv) => (
 										<li key={inv.id} className='text-sm text-zinc-700'>
@@ -119,7 +128,9 @@ const RemoveTaxDialog: FC<Props> = ({ subscriptionId, association, open, onOpenC
 						)}
 						{hasLineItems && (
 							<div className='space-y-1'>
-								<p className='text-xs font-medium text-zinc-500 uppercase tracking-wide'>Line items affected</p>
+								<p className='text-xs font-medium text-zinc-500 uppercase tracking-wide'>
+									{t('subscriptions.modifyDialog.lineItemsAffected')}
+								</p>
 								<ul className='space-y-1'>
 									{previewResult?.line_items?.map((li) => (
 										<li key={li.id} className='text-sm text-zinc-700'>
@@ -136,20 +147,20 @@ const RemoveTaxDialog: FC<Props> = ({ subscriptionId, association, open, onOpenC
 					{step === 'confirm' && (
 						<>
 							<Button variant='outline' onClick={() => handleOpenChange(false)} className='flex-1'>
-								Cancel
+								{t('common:actions.cancel')}
 							</Button>
 							<Button variant='destructive' onClick={handlePreview} isLoading={isPreviewing} className='flex-1'>
-								Preview
+								{t('subscriptions.quantityModify.preview')}
 							</Button>
 						</>
 					)}
 					{step === 'preview' && (
 						<>
 							<Button variant='outline' onClick={handleBack} className='flex-1'>
-								Back
+								{t('common:actions.back')}
 							</Button>
 							<Button variant='destructive' onClick={handleRemove} isLoading={isRemoving} className='flex-1'>
-								Remove
+								{t('subscriptions.tax.remove')}
 							</Button>
 						</>
 					)}

@@ -9,6 +9,7 @@ import SubscriptionApi from '@/api/SubscriptionApi';
 import TaxApi from '@/api/TaxApi';
 import { SUBSCRIPTION_MODIFY_TYPE, SUB_MODIFY_TAX_ACTION } from '@/models';
 import type { ChangedResources } from '@/types/dto/Subscription';
+import { useTranslation } from 'react-i18next';
 
 type Step = 'form' | 'preview';
 
@@ -20,6 +21,7 @@ interface Props {
 }
 
 const ApplyTaxDialog: FC<Props> = ({ subscriptionId, open, onOpenChange, onSuccess }) => {
+	const { t } = useTranslation(['billing', 'common']);
 	const [step, setStep] = useState<Step>('form');
 	const [taxRateId, setTaxRateId] = useState('');
 	const [effectiveDate, setEffectiveDate] = useState<Date | undefined>(undefined);
@@ -100,42 +102,44 @@ const ApplyTaxDialog: FC<Props> = ({ subscriptionId, open, onOpenChange, onSucce
 		[onOpenChange],
 	);
 
-	const hasInvoices = Array.isArray(previewResult?.invoices) && previewResult.invoices.length > 0;
-	const hasLineItems = Array.isArray(previewResult?.line_items) && previewResult.line_items.length > 0;
+	const hasInvoices = (previewResult?.invoices?.length ?? 0) > 0;
+	const hasLineItems = (previewResult?.line_items?.length ?? 0) > 0;
 	const hasNoBillingImpact = previewResult !== null && !hasInvoices && !hasLineItems;
 
 	return (
 		<Dialog open={open} onOpenChange={handleOpenChange}>
 			<DialogContent className='w-full max-w-md bg-white'>
 				<DialogHeader>
-					<DialogTitle>Apply Tax</DialogTitle>
+					<DialogTitle>{t('subscriptions.applyTaxDialog.title')}</DialogTitle>
 				</DialogHeader>
 
 				{step === 'form' && (
 					<div className='space-y-4 py-2'>
 						<Select
-							label='Tax Rate'
+							label={t('subscriptions.applyTaxDialog.taxRateLabel')}
 							options={taxRateOptions}
 							value={taxRateId}
 							onChange={setTaxRateId}
-							placeholder='Select a tax rate'
+							placeholder={t('subscriptions.applyTaxDialog.selectTaxRatePlaceholder')}
 							required
 						/>
 
 						<div className='space-y-2'>
-							<Label className='text-sm font-medium'>Effective Date (optional)</Label>
-							<DatePicker date={effectiveDate} setDate={setEffectiveDate} placeholder='Pick a date' />
+							<Label className='text-sm font-medium'>{t('subscriptions.applyTaxDialog.effectiveDateOptional')}</Label>
+							<DatePicker date={effectiveDate} setDate={setEffectiveDate} placeholder={t('subscriptions.applyTaxDialog.pickDate')} />
 						</div>
 					</div>
 				)}
 
 				{step === 'preview' && (
 					<div className='space-y-4 py-2'>
-						<p className='text-sm font-medium text-zinc-700'>Preview</p>
-						{hasNoBillingImpact && <p className='text-sm text-muted-foreground'>No billing impact</p>}
+						<p className='text-sm font-medium text-zinc-700'>{t('subscriptions.modifyDialog.previewHeading')}</p>
+						{hasNoBillingImpact && <p className='text-sm text-muted-foreground'>{t('subscriptions.modifyDialog.noBillingImpact')}</p>}
 						{hasInvoices && (
 							<div className='space-y-1'>
-								<p className='text-xs font-medium text-zinc-500 uppercase tracking-wide'>Invoices affected</p>
+								<p className='text-xs font-medium text-zinc-500 uppercase tracking-wide'>
+									{t('subscriptions.modifyDialog.invoicesAffected')}
+								</p>
 								<ul className='space-y-1'>
 									{previewResult?.invoices?.map((inv) => (
 										<li key={inv.id} className='text-sm text-zinc-700'>
@@ -147,7 +151,9 @@ const ApplyTaxDialog: FC<Props> = ({ subscriptionId, open, onOpenChange, onSucce
 						)}
 						{hasLineItems && (
 							<div className='space-y-1'>
-								<p className='text-xs font-medium text-zinc-500 uppercase tracking-wide'>Line items affected</p>
+								<p className='text-xs font-medium text-zinc-500 uppercase tracking-wide'>
+									{t('subscriptions.modifyDialog.lineItemsAffected')}
+								</p>
 								<ul className='space-y-1'>
 									{previewResult?.line_items?.map((li) => (
 										<li key={li.id} className='text-sm text-zinc-700'>
@@ -164,20 +170,20 @@ const ApplyTaxDialog: FC<Props> = ({ subscriptionId, open, onOpenChange, onSucce
 					{step === 'form' && (
 						<>
 							<Button variant='outline' onClick={() => handleOpenChange(false)} className='flex-1'>
-								Cancel
+								{t('common:actions.cancel')}
 							</Button>
 							<Button onClick={handlePreview} isLoading={isPreviewing} disabled={!taxRateId} className='flex-1'>
-								Preview
+								{t('subscriptions.quantityModify.preview')}
 							</Button>
 						</>
 					)}
 					{step === 'preview' && (
 						<>
 							<Button variant='outline' onClick={handleBack} className='flex-1'>
-								Back
+								{t('common:actions.back')}
 							</Button>
 							<Button onClick={handleApply} isLoading={isApplying} className='flex-1'>
-								Apply
+								{t('common:actions.apply')}
 							</Button>
 						</>
 					)}

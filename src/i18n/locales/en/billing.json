@@ -437,6 +437,45 @@
 			"change": "Change",
 			"remove": "Remove",
 			"emptyState": "No subscription coupon applied"
+		},
+		"tax": {
+			"remove": "Remove"
+		},
+		"modifyDialog": {
+			"previewHeading": "Preview",
+			"noBillingImpact": "No billing impact",
+			"invoicesAffected": "Invoices affected",
+			"lineItemsAffected": "Line items affected"
+		},
+		"applyCouponDialog": {
+			"title": "Apply Coupon",
+			"couponCodeLabel": "Coupon Code",
+			"couponCodePlaceholder": "e.g. SUMMER20",
+			"applyToLabel": "Apply To",
+			"subscriptionLevel": "Subscription level",
+			"lineItemLevel": "Line item level",
+			"lineItemLabel": "Line Item",
+			"selectLineItemPlaceholder": "Select a line item",
+			"startDateOptional": "Start Date (optional)",
+			"pickStartDate": "Pick a start date",
+			"endDateOptional": "End Date (optional)",
+			"pickEndDate": "Pick an end date"
+		},
+		"removeCouponDialog": {
+			"title": "Remove Coupon",
+			"confirmMessage": "Remove <bold>{{name}}</bold> from this subscription?",
+			"confirmMessageWithCode": "Remove <bold>{{name}}</bold> ({{code}}) from this subscription?"
+		},
+		"removeTaxDialog": {
+			"title": "Remove Tax",
+			"confirmMessage": "Remove tax <bold>{{name}}</bold> from this subscription?"
+		},
+		"applyTaxDialog": {
+			"title": "Apply Tax",
+			"taxRateLabel": "Tax Rate",
+			"selectTaxRatePlaceholder": "Select a tax rate",
+			"effectiveDateOptional": "Effective Date (optional)",
+			"pickDate": "Pick a date"
 		}
 	},
 	"payments": {
