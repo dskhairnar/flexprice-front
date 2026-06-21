@@ -1,4 +1,4 @@
-import { FC } from 'react';
+import { FC, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import FlexpriceTable, { ColumnData, RedirectCell } from '../Table';
 import { TaxAssociationResponse } from '@/types/dto/tax';
@@ -19,6 +19,12 @@ interface Props {
 
 const TaxAssociationTable: FC<Props> = ({ data, showDelete = true, refetchQueryKey = 'fetchTaxAssociations', onRemove }) => {
 	const { t } = useTranslation('common');
+
+	const rows = useMemo(() => {
+		const now = new Date();
+		return data.filter((a) => !a.valid_to || new Date(a.valid_to) > now);
+	}, [data]);
+
 	const columns: ColumnData<TaxAssociationResponse>[] = [
 		{
 			title: t('tableColumns.taxId'),
@@ -89,7 +95,7 @@ const TaxAssociationTable: FC<Props> = ({ data, showDelete = true, refetchQueryK
 
 	return (
 		<div>
-			<FlexpriceTable showEmptyRow={true} columns={columns} data={data} />
+			<FlexpriceTable showEmptyRow={true} columns={columns} data={rows} />
 		</div>
 	);
 };

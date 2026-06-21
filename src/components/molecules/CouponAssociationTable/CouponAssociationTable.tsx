@@ -1,4 +1,4 @@
-import { FC } from 'react';
+import { FC, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router';
 import { useTranslation } from 'react-i18next';
@@ -23,19 +23,19 @@ const formatDiscount = (association: CouponAssociation): string => {
 	return `${getCurrencySymbol(c.currency)}${c.amount_off ?? '0.00'}`;
 };
 
-const isExpired = (endDate?: string): boolean => {
-	if (!endDate) return false;
-	return new Date(endDate) < new Date();
-};
-
 const CouponAssociationTable: FC<Props> = ({ subscriptionId, onRemove }) => {
 	const { t } = useTranslation('common');
 
 	const { data } = useQuery({
 		queryKey: ['couponAssociations', subscriptionId],
-		queryFn: () => CouponApi.listCouponAssociations({ subscription_ids: [subscriptionId], active_only: false }),
+		queryFn: () => CouponApi.listCouponAssociations({ subscription_ids: [subscriptionId], active_only: true }),
 		enabled: !!subscriptionId,
 	});
+
+	const rows = useMemo(() => {
+		const now = new Date();
+		return (data?.items ?? []).filter((a) => !a.end_date || new Date(a.end_date) > now);
+	}, [data?.items]);
 
 	const columns: ColumnData<CouponAssociation>[] = [
 		{
@@ -75,15 +75,6 @@ const CouponAssociationTable: FC<Props> = ({ subscriptionId, onRemove }) => {
 			title: 'End Date',
 			render: (row) => (row.end_date ? formatDateShort(row.end_date) : 'Forever'),
 		},
-		{
-			title: 'Status',
-			render: (row) =>
-				isExpired(row.end_date) ? (
-					<Chip variant='default' label={t('coupons.status.expired', 'Expired')} />
-				) : (
-					<Chip variant='success' label={t('status.active')} />
-				),
-		},
 		...(onRemove
 			? [
 					{
@@ -98,7 +89,7 @@ const CouponAssociationTable: FC<Props> = ({ subscriptionId, onRemove }) => {
 			: []),
 	];
 
-	return <FlexpriceTable showEmptyRow={true} columns={columns} data={data?.items ?? []} />;
+	return <FlexpriceTable showEmptyRow={true} columns={columns} data={rows} />;
 };
 
 export default CouponAssociationTable;
