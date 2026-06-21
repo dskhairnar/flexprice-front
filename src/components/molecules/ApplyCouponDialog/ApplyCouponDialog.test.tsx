@@ -34,9 +34,19 @@ beforeAll(async () => {
 	await instance.use(initReactI18next).init({
 		lng: 'en',
 		fallbackLng: 'en',
-		ns: ['common'],
+		ns: ['common', 'billing'],
 		defaultNS: 'common',
-		resources: { en: { common: {} } },
+		resources: {
+			en: {
+				common: { actions: { cancel: 'Cancel', back: 'Back', apply: 'Apply' } },
+				billing: {
+					subscriptions: {
+						applyCouponDialog: { couponCodeLabel: 'Coupon Code', title: 'Apply Coupon' },
+						quantityModify: { preview: 'Preview' },
+					},
+				},
+			},
+		},
 		interpolation: { escapeValue: false },
 	});
 	testI18n = instance;
