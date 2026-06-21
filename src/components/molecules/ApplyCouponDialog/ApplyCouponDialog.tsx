@@ -119,9 +119,9 @@ const ApplyCouponDialog: FC<Props> = ({ subscriptionId, lineItems, prefilledLine
 							placeholder: t('subscriptions.applyCouponDialog.couponCodePlaceholder', 'Search by name or code…'),
 						}}
 						extractors={{
-							valueExtractor: (c) => c.coupon_code ?? '',
-							labelExtractor: (c) => c.name,
-							descriptionExtractor: (c) => c.coupon_code ?? '',
+							valueExtractor: (c: Coupon) => c.coupon_code ?? '',
+							labelExtractor: (c: Coupon) => c.name,
+							descriptionExtractor: (c: Coupon) => c.coupon_code ?? '',
 						}}
 						display={{
 							label: t('subscriptions.applyCouponDialog.couponCodeLabel'),
