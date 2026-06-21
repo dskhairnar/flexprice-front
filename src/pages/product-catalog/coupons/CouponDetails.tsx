@@ -102,7 +102,61 @@ const CouponDetails = () => {
 		);
 	}
 
-	const displayDetails = [...details];
+	const details: Detail[] = [
+		{
+			label: 'Type',
+			value: (
+				<Chip
+					variant='default'
+					label={coupon.type === COUPON_TYPE.FIXED ? t('catalog:coupons.drawer.fixedAmount') : t('catalog:coupons.drawer.percentage')}
+				/>
+			),
+		},
+		{
+			label: 'Coupon Code',
+			value: coupon.coupon_code ? <code className='font-mono bg-muted px-1.5 py-0.5 rounded text-sm'>{coupon.coupon_code}</code> : '—',
+		},
+		{
+			label: 'Discount',
+			value:
+				coupon.type === COUPON_TYPE.FIXED
+					? `${getCurrencySymbol(coupon.currency)} ${coupon.amount_off || '0.00'}`
+					: `${coupon.percentage_off || '0'}%`,
+		},
+		{
+			label: 'Cadence',
+			value: coupon.cadence ? <Chip variant='default' label={formatCadenceChip(coupon.cadence)} /> : 'Not set',
+		},
+		{
+			label: 'Status',
+			value: <Chip variant={coupon.status === ENTITY_STATUS.PUBLISHED ? 'success' : 'default'} label={formatChips(coupon.status)} />,
+		},
+		{
+			label: 'Redemptions',
+			value: `${coupon.total_redemptions}/${coupon.max_redemptions || '∞'}`,
+		},
+		{
+			label: 'Duration in Periods',
+			value: coupon.duration_in_periods?.toString() || 'Not set',
+		},
+		{
+			label: 'Redeem After',
+			value: coupon.redeem_after ? formatDate(coupon.redeem_after) : 'Not set',
+		},
+		{
+			label: 'Redeem Before',
+			value: coupon.redeem_before ? formatDate(coupon.redeem_before) : 'Not set',
+		},
+		{
+			label: 'Created At',
+			value: formatDate(coupon.created_at),
+		},
+		{
+			label: 'Updated At',
+			value: formatDate(coupon.updated_at),
+		},
+	];
+
 	if (coupon.metadata && Object.keys(coupon.metadata).length > 0) {
 		displayDetails.push({
 			label: t('catalog:coupons.details.fields.metadata'),
