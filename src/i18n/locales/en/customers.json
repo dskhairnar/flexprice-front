@@ -539,6 +539,10 @@
 	"subscriptionEdit": {
 		"pageTitle": "Edit Subscription",
 		"pageHeading": "Edit Subscription",
+		"couponAssociations": "Coupon Associations",
+		"addCoupon": "Add Coupon",
+		"taxAssociations": "Tax Associations",
+		"addTax": "Add Tax",
 		"toast": {
 			"lineItemUpdated": "Line item updated successfully",
 			"lineItemUpdateFailed": "Failed to update line item",

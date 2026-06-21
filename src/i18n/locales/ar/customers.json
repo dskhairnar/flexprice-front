@@ -372,6 +372,10 @@
 	"subscriptionEdit": {
 		"pageTitle": "تعديل الاشتراك",
 		"pageHeading": "تعديل الاشتراك",
+		"couponAssociations": "ارتباطات الكوبون",
+		"addCoupon": "إضافة كوبون",
+		"taxAssociations": "ارتباطات الضريبة",
+		"addTax": "إضافة ضريبة",
 		"toast": {
 			"lineItemUpdated": "تم تحديث بند الخط بنجاح",
 			"lineItemUpdateFailed": "فشل في تحديث بند الخط",
