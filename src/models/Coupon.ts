@@ -14,5 +14,6 @@ export interface Coupon extends BaseModel {
 	cadence: COUPON_CADENCE;
 	duration_in_periods?: number;
 	currency: string;
+	coupon_code?: string;
 	metadata?: Metadata;
 }

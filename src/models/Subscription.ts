@@ -217,10 +217,24 @@ export enum SUBSCRIPTION_MODIFY_TYPE {
 	INHERITANCE = 'inheritance',
 	QUANTITY_CHANGE = 'quantity_change',
 	GROUPED_INVOICING = 'grouped_invoicing',
+	COUPON = 'coupon',
+	TAX = 'tax',
 }
 
 /** Payload `grouped_invoicing_params.action` for {@link SUBSCRIPTION_MODIFY_TYPE.GROUPED_INVOICING}. */
 export enum GROUPED_INVOICING_MODIFY_ACTION {
+	ADD = 'add',
+	REMOVE = 'remove',
+}
+
+/** Payload `coupon_params.action` for {@link SUBSCRIPTION_MODIFY_TYPE.COUPON}. */
+export enum SUB_MODIFY_COUPON_ACTION {
+	ADD = 'add',
+	REMOVE = 'remove',
+}
+
+/** Payload `tax_params.action` for {@link SUBSCRIPTION_MODIFY_TYPE.TAX}. */
+export enum SUB_MODIFY_TAX_ACTION {
 	ADD = 'add',
 	REMOVE = 'remove',
 }
