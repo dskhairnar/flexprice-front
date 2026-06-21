@@ -71,6 +71,33 @@ import type { CommitmentTimeBucket } from './CommitmentTimeBucket';
 import { AddonResponse } from './Addon';
 import { ADDON_ASSOCIATION_STATUS } from '@/models/AddonAssociation';
 
+// New unified coupon input for subscription creation
+export interface SubscriptionCouponInput {
+	coupon_code: string;
+	start_date?: string;
+	end_date?: string;
+	price_id?: string; // omit for subscription-level; set for line-item-level
+}
+
+// Coupon mid-cycle modify params
+export interface SubModifyCouponParams {
+	action: 'add' | 'remove';
+	coupon_code?: string; // required when action=add
+	association_id?: string; // required when action=remove
+	start_date?: string;
+	end_date?: string;
+	subscription_id?: string; // mutually exclusive with subscription_line_item_id
+	subscription_line_item_id?: string;
+}
+
+// Tax mid-cycle modify params
+export interface SubModifyTaxParams {
+	action: 'add' | 'remove';
+	tax_rate_id?: string; // required when action=add
+	association_id?: string; // required when action=remove
+	effective_date?: string;
+}
+
 export interface GetSubscriptionDetailsPayload {
 	subscription_id: string;
 	period_end?: string;
@@ -206,6 +233,8 @@ export interface ExecuteSubscriptionModifyRequest {
 	inheritance_params?: SubModifyInheritanceRequest;
 	quantity_change_params?: SubModifyQuantityChangeRequest;
 	grouped_invoicing_params?: SubModifyGroupedInvoicingParams;
+	coupon_params?: SubModifyCouponParams;
+	tax_params?: SubModifyTaxParams;
 }
 
 export interface ChangedLineItem {
@@ -315,6 +344,8 @@ export interface CreateSubscriptionRequest {
 	// Coupons
 	coupons?: string[];
 	line_item_coupons?: Record<string, string[]>;
+	// Preferred (new): unified coupon input using coupon_code
+	subscription_coupons?: SubscriptionCouponInput[];
 
 	// Price overrides
 	override_line_items?: OverrideLineItemRequest[];
