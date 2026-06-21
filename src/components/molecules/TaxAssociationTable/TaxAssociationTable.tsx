@@ -1,8 +1,9 @@
-import { FC, useMemo } from 'react';
+import { FC, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import FlexpriceTable, { ColumnData, RedirectCell } from '../Table';
 import { TaxAssociationResponse } from '@/types/dto/tax';
-import { Chip, ActionButton, Button } from '@/components/atoms';
+import { Chip, ActionButton } from '@/components/atoms';
+import { DropdownMenu } from '@/components/molecules';
 import { formatDateShort } from '@/utils/common/helper_functions';
 import TaxApi from '@/api/TaxApi';
 import { formatEntityStatus } from '@/utils/common/format_chips';
@@ -16,6 +17,40 @@ interface Props {
 	refetchQueryKey?: string;
 	onRemove?: (association: TaxAssociationResponse) => void;
 }
+
+interface RowActionsProps {
+	row: TaxAssociationResponse;
+	onRemove: (row: TaxAssociationResponse) => void;
+}
+
+const RowActions: FC<RowActionsProps> = ({ row, onRemove }) => {
+	const { t } = useTranslation('common');
+	const [isOpen, setIsOpen] = useState(false);
+	const handleClick = (e: React.MouseEvent) => {
+		e.preventDefault();
+		e.stopPropagation();
+		setIsOpen((v) => !v);
+	};
+	return (
+		<div data-interactive='true' onClick={handleClick}>
+			<DropdownMenu
+				isOpen={isOpen}
+				onOpenChange={setIsOpen}
+				options={[
+					{
+						label: t('form.remove'),
+						icon: <TrashIcon />,
+						onSelect: (e: Event) => {
+							e.preventDefault();
+							setIsOpen(false);
+							onRemove(row);
+						},
+					},
+				]}
+			/>
+		</div>
+	);
+};
 
 const TaxAssociationTable: FC<Props> = ({ data, showDelete = true, refetchQueryKey = 'fetchTaxAssociations', onRemove }) => {
 	const { t } = useTranslation('common');
@@ -65,13 +100,10 @@ const TaxAssociationTable: FC<Props> = ({ data, showDelete = true, refetchQueryK
 		},
 		{
 			fieldVariant: 'interactive',
+			width: '48px',
 			render(row) {
 				if (onRemove) {
-					return (
-						<Button variant='ghost' size='sm' aria-label={t('form.remove')} onClick={() => onRemove(row)}>
-							<TrashIcon className='h-4 w-4 text-destructive' />
-						</Button>
-					);
+					return <RowActions row={row} onRemove={onRemove} />;
 				}
 				return (
 					<ActionButton
@@ -93,9 +125,17 @@ const TaxAssociationTable: FC<Props> = ({ data, showDelete = true, refetchQueryK
 		},
 	];
 
+	if (rows.length === 0) {
+		return (
+			<div className='py-8 text-center text-sm text-muted-foreground'>
+				{t('tax.noAssociations', 'No taxes applied to this subscription.')}
+			</div>
+		);
+	}
+
 	return (
 		<div>
-			<FlexpriceTable showEmptyRow={true} columns={columns} data={rows} />
+			<FlexpriceTable columns={columns} data={rows} />
 		</div>
 	);
 };

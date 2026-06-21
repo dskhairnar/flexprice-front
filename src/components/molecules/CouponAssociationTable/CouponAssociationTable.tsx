@@ -1,10 +1,11 @@
-import { FC, useMemo } from 'react';
+import { FC, useMemo, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router';
 import { useTranslation } from 'react-i18next';
 import CouponApi from '@/api/CouponApi';
 import FlexpriceTable, { ColumnData } from '../Table';
-import { Chip, Button } from '@/components/atoms';
+import { DropdownMenu } from '@/components/molecules';
+import { Chip } from '@/components/atoms';
 import { formatDateShort, getCurrencySymbol } from '@/utils/common/helper_functions';
 import { RouteNames } from '@/core/routes/Routes';
 import { CouponAssociation } from '@/models/CouponAssociation';
@@ -21,6 +22,40 @@ const formatDiscount = (association: CouponAssociation): string => {
 	if (!c) return '—';
 	if (c.type === COUPON_TYPE.PERCENTAGE) return `${c.percentage_off ?? 0}%`;
 	return `${getCurrencySymbol(c.currency)}${c.amount_off ?? '0.00'}`;
+};
+
+interface RowActionsProps {
+	row: CouponAssociation;
+	onRemove: (row: CouponAssociation) => void;
+}
+
+const RowActions: FC<RowActionsProps> = ({ row, onRemove }) => {
+	const { t } = useTranslation('common');
+	const [isOpen, setIsOpen] = useState(false);
+	const handleClick = (e: React.MouseEvent) => {
+		e.preventDefault();
+		e.stopPropagation();
+		setIsOpen((v) => !v);
+	};
+	return (
+		<div data-interactive='true' onClick={handleClick}>
+			<DropdownMenu
+				isOpen={isOpen}
+				onOpenChange={setIsOpen}
+				options={[
+					{
+						label: t('form.remove'),
+						icon: <TrashIcon />,
+						onSelect: (e: Event) => {
+							e.preventDefault();
+							setIsOpen(false);
+							onRemove(row);
+						},
+					},
+				]}
+			/>
+		</div>
+	);
 };
 
 const CouponAssociationTable: FC<Props> = ({ subscriptionId, onRemove }) => {
@@ -79,17 +114,22 @@ const CouponAssociationTable: FC<Props> = ({ subscriptionId, onRemove }) => {
 			? [
 					{
 						fieldVariant: 'interactive' as const,
-						render: (row: CouponAssociation) => (
-							<Button variant='ghost' size='sm' aria-label={t('form.remove')} onClick={() => onRemove(row)}>
-								<TrashIcon className='h-4 w-4 text-destructive' />
-							</Button>
-						),
+						width: '48px',
+						render: (row: CouponAssociation) => <RowActions row={row} onRemove={onRemove} />,
 					},
 				]
 			: []),
 	];
 
-	return <FlexpriceTable showEmptyRow={true} columns={columns} data={rows} />;
+	if (rows.length === 0) {
+		return (
+			<div className='py-8 text-center text-sm text-muted-foreground'>
+				{t('coupons.noAssociations', 'No coupons applied to this subscription.')}
+			</div>
+		);
+	}
+
+	return <FlexpriceTable columns={columns} data={rows} />;
 };
 
 export default CouponAssociationTable;
