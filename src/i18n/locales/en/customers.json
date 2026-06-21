@@ -245,6 +245,7 @@
 		"renewalDate": "Renewal date",
 		"subscriptionsInheritance": "Subscriptions Inheritance",
 		"taxAssociations": "Tax Associations",
+		"couponAssociations": "Coupon Associations",
 		"subscriptionPhases": "Subscription Phases",
 		"phaseHeading": "Phase {{index}}",
 		"phaseStart": "Start",

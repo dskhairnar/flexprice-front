@@ -19,6 +19,7 @@ import { useParams, Link } from 'react-router';
 import { INVOICE_TYPE } from '@/models/Invoice';
 import { TAXRATE_ENTITY_TYPE } from '@/models/Tax';
 import TaxAssociationTable from '@/components/molecules/TaxAssociationTable';
+import CouponAssociationTable from '@/components/molecules/CouponAssociationTable/CouponAssociationTable';
 import { Subscription as SubscriptionType, SUBSCRIPTION_STATUS, SUBSCRIPTION_TYPE } from '@/models/Subscription';
 import { EXPAND } from '@/models';
 import { DataType, FilterOperator } from '@/types/common/QueryBuilder';
@@ -579,6 +580,15 @@ const CustomerSubscriptionDetailsPage: FC = () => {
 					/>
 					<div className='mt-4 rounded-[6px] border border-gray-300'>
 						<FlexpriceTable data={inheritedSubscriptionRows} columns={inheritedSubscriptionsColumns} />
+					</div>
+				</Card>
+			)}
+
+			{subscription_id && (
+				<Card className='card mt-8'>
+					<FormHeader title={t('subscriptionDetail.couponAssociations')} variant='sub-header' titleClassName='font-semibold' />
+					<div className='mt-4'>
+						<CouponAssociationTable subscriptionId={subscription_id} />
 					</div>
 				</Card>
 			)}

@@ -244,6 +244,7 @@
 		"renewalDate": "تاريخ التجديد",
 		"subscriptionsInheritance": "وراثة الاشتراكات",
 		"taxAssociations": "ارتباطات الضرائب",
+		"couponAssociations": "ارتباطات القسيمة",
 		"subscriptionPhases": "مراحل الاشتراك",
 		"phaseHeading": "مرحلة {{index}}",
 		"phaseStart": "البداية",
