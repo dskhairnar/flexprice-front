@@ -1,13 +1,17 @@
 import { FC, useState, useCallback } from 'react';
-import { Button, Input, DatePicker } from '@/components/atoms';
+import { Button, DatePicker, Select } from '@/components/atoms';
+import AsyncSearchableSelect from '@/components/atoms/Select/AsyncSearchableSelect';
+import type { SelectOption } from '@/components/atoms';
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Select as ShadcnSelect, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import toast from 'react-hot-toast';
 import SubscriptionApi from '@/api/SubscriptionApi';
+import CouponApi from '@/api/CouponApi';
 import type { SubscriptionLineItemResponse } from '@/types/dto/Subscription';
 import { SUBSCRIPTION_MODIFY_TYPE } from '@/types/dto/Subscription';
+import { ENTITY_STATUS } from '@/models';
+import type { Coupon } from '@/models';
 import { useTranslation } from 'react-i18next';
 
 type CouponScope = 'subscription' | 'line_item';
@@ -21,27 +25,54 @@ interface Props {
 	onSuccess: () => void;
 }
 
+const SCOPE_OPTIONS: SelectOption[] = [
+	{ value: 'subscription', label: 'Subscription Level' },
+	{ value: 'line_item', label: 'Line Item Level' },
+];
+
 const ApplyCouponDialog: FC<Props> = ({ subscriptionId, lineItems, prefilledLineItemId, open, onOpenChange, onSuccess }) => {
 	const { t } = useTranslation(['billing', 'common']);
-	const [couponCode, setCouponCode] = useState('');
+	const [selectedCoupon, setSelectedCoupon] = useState<Coupon | undefined>(undefined);
 	const [scope, setScope] = useState<CouponScope>(prefilledLineItemId ? 'line_item' : 'subscription');
 	const [selectedLineItemId, setSelectedLineItemId] = useState<string>(prefilledLineItemId ?? '');
 	const [startDate, setStartDate] = useState<Date | undefined>(undefined);
 	const [endDate, setEndDate] = useState<Date | undefined>(undefined);
 	const [isApplying, setIsApplying] = useState(false);
 
+	const couponSearchFn = useCallback(async (query: string) => {
+		const result = await CouponApi.getAllCoupons({ limit: 200, offset: 0 });
+		const lower = query.toLowerCase();
+		return result.items
+			.filter((c) => c.status === ENTITY_STATUS.PUBLISHED && c.coupon_code)
+			.filter((c) => !query || c.name.toLowerCase().includes(lower) || (c.coupon_code ?? '').toLowerCase().includes(lower))
+			.map((c) => ({
+				value: c.coupon_code!,
+				label: c.name,
+				description: c.coupon_code,
+				data: c,
+			}));
+	}, []);
+
 	const buildPayload = useCallback(() => {
 		return {
 			type: SUBSCRIPTION_MODIFY_TYPE.COUPON,
 			coupon_params: {
 				action: 'add' as const,
-				coupon_code: couponCode,
+				coupon_code: selectedCoupon?.coupon_code ?? '',
 				...(scope === 'line_item' && selectedLineItemId ? { subscription_line_item_id: selectedLineItemId } : {}),
 				...(startDate ? { start_date: startDate.toISOString() } : {}),
 				...(endDate ? { end_date: endDate.toISOString() } : {}),
 			},
 		};
-	}, [couponCode, scope, selectedLineItemId, startDate, endDate]);
+	}, [selectedCoupon, scope, selectedLineItemId, startDate, endDate]);
+
+	const reset = useCallback(() => {
+		setSelectedCoupon(undefined);
+		setScope(prefilledLineItemId ? 'line_item' : 'subscription');
+		setSelectedLineItemId(prefilledLineItemId ?? '');
+		setStartDate(undefined);
+		setEndDate(undefined);
+	}, [prefilledLineItemId]);
 
 	const handleApply = useCallback(async () => {
 		setIsApplying(true);
@@ -50,93 +81,94 @@ const ApplyCouponDialog: FC<Props> = ({ subscriptionId, lineItems, prefilledLine
 			toast.success('Coupon applied successfully');
 			onSuccess();
 			onOpenChange(false);
-			setCouponCode('');
-			setScope(prefilledLineItemId ? 'line_item' : 'subscription');
-			setSelectedLineItemId(prefilledLineItemId ?? '');
-			setStartDate(undefined);
-			setEndDate(undefined);
+			reset();
 		} catch (err: unknown) {
 			const message = err instanceof Error ? err.message : 'Apply failed';
 			toast.error(message);
 		} finally {
 			setIsApplying(false);
 		}
-	}, [subscriptionId, buildPayload, onSuccess, onOpenChange, prefilledLineItemId]);
+	}, [subscriptionId, buildPayload, onSuccess, onOpenChange, reset]);
 
 	const handleOpenChange = useCallback(
 		(value: boolean) => {
-			if (!value) {
-				setCouponCode('');
-				setScope(prefilledLineItemId ? 'line_item' : 'subscription');
-				setSelectedLineItemId(prefilledLineItemId ?? '');
-				setStartDate(undefined);
-				setEndDate(undefined);
-			}
+			if (!value) reset();
 			onOpenChange(value);
 		},
-		[onOpenChange, prefilledLineItemId],
+		[onOpenChange, reset],
 	);
+
+	const lineItemOptions: SelectOption[] = lineItems.map((item) => ({
+		value: item.id,
+		label: item.display_name || item.id,
+	}));
+
+	const canApply = !!selectedCoupon?.coupon_code && (scope === 'subscription' || !!selectedLineItemId);
 
 	return (
 		<Dialog open={open} onOpenChange={handleOpenChange}>
-			<DialogContent className='w-full max-w-md bg-white'>
+			<DialogContent className='w-full max-w-lg bg-white'>
 				<DialogHeader>
 					<DialogTitle>{t('subscriptions.applyCouponDialog.title')}</DialogTitle>
 				</DialogHeader>
 
 				<div className='space-y-4 py-2'>
-					<Input
-						id='coupon-code'
-						label={t('subscriptions.applyCouponDialog.couponCodeLabel')}
-						placeholder={t('subscriptions.applyCouponDialog.couponCodePlaceholder')}
-						value={couponCode}
-						onChange={(value: string) => setCouponCode(value)}
-						required
+					<AsyncSearchableSelect<Coupon>
+						search={{
+							searchFn: couponSearchFn,
+							placeholder: t('subscriptions.applyCouponDialog.couponCodePlaceholder', 'Search by name or code…'),
+						}}
+						extractors={{
+							valueExtractor: (c) => c.coupon_code ?? '',
+							labelExtractor: (c) => c.name,
+							descriptionExtractor: (c) => c.coupon_code ?? '',
+						}}
+						display={{
+							label: t('subscriptions.applyCouponDialog.couponCodeLabel'),
+							placeholder: t('subscriptions.applyCouponDialog.couponCodePlaceholder', 'Search by name or code…'),
+							side: 'bottom',
+							align: 'start',
+						}}
+						options={{ hideSelectedTick: false }}
+						value={selectedCoupon}
+						onChange={setSelectedCoupon}
 					/>
 
-					<div className='space-y-2'>
-						<Label className='text-sm font-medium'>{t('subscriptions.applyCouponDialog.applyToLabel')}</Label>
-						<RadioGroup value={scope} onValueChange={(value) => setScope(value as CouponScope)} disabled={!!prefilledLineItemId}>
-							<div className='flex items-center space-x-2'>
-								<RadioGroupItem value='subscription' id='scope-subscription' disabled={!!prefilledLineItemId} />
-								<Label htmlFor='scope-subscription' className='font-normal cursor-pointer'>
-									{t('subscriptions.applyCouponDialog.subscriptionLevel')}
-								</Label>
-							</div>
-							<div className='flex items-center space-x-2'>
-								<RadioGroupItem value='line_item' id='scope-line-item' disabled={!!prefilledLineItemId} />
-								<Label htmlFor='scope-line-item' className='font-normal cursor-pointer'>
-									{t('subscriptions.applyCouponDialog.lineItemLevel')}
-								</Label>
-							</div>
-						</RadioGroup>
-					</div>
+					<Select
+						label={t('subscriptions.applyCouponDialog.applyToLabel')}
+						options={SCOPE_OPTIONS}
+						value={scope}
+						onChange={(val) => setScope(val as CouponScope)}
+						disabled={!!prefilledLineItemId}
+					/>
 
 					{scope === 'line_item' && (
-						<div className='space-y-1'>
+						<div className='space-y-1.5'>
 							<Label className='text-sm font-medium'>{t('subscriptions.applyCouponDialog.lineItemLabel')}</Label>
-							<Select value={selectedLineItemId} onValueChange={setSelectedLineItemId} disabled={!!prefilledLineItemId}>
+							<ShadcnSelect value={selectedLineItemId} onValueChange={setSelectedLineItemId} disabled={!!prefilledLineItemId}>
 								<SelectTrigger>
 									<SelectValue placeholder={t('subscriptions.applyCouponDialog.selectLineItemPlaceholder')} />
 								</SelectTrigger>
 								<SelectContent>
-									{lineItems.map((item) => (
-										<SelectItem key={item.id} value={item.id}>
-											{item.display_name || item.id}
+									{lineItemOptions.map((item) => (
+										<SelectItem key={item.value} value={item.value}>
+											{item.label}
 										</SelectItem>
 									))}
 								</SelectContent>
-							</Select>
+							</ShadcnSelect>
 						</div>
 					)}
 
-					<div className='space-y-2'>
-						<Label className='text-sm font-medium'>{t('subscriptions.applyCouponDialog.startDateOptional')}</Label>
-						<DatePicker date={startDate} setDate={setStartDate} placeholder={t('subscriptions.applyCouponDialog.pickStartDate')} />
-					</div>
-					<div className='space-y-2'>
-						<Label className='text-sm font-medium'>{t('subscriptions.applyCouponDialog.endDateOptional')}</Label>
-						<DatePicker date={endDate} setDate={setEndDate} placeholder={t('subscriptions.applyCouponDialog.pickEndDate')} />
+					<div className='grid grid-cols-2 gap-4'>
+						<div className='space-y-1.5'>
+							<Label className='text-sm font-medium'>{t('subscriptions.applyCouponDialog.startDateOptional')}</Label>
+							<DatePicker date={startDate} setDate={setStartDate} placeholder={t('subscriptions.applyCouponDialog.pickStartDate')} />
+						</div>
+						<div className='space-y-1.5'>
+							<Label className='text-sm font-medium'>{t('subscriptions.applyCouponDialog.endDateOptional')}</Label>
+							<DatePicker date={endDate} setDate={setEndDate} placeholder={t('subscriptions.applyCouponDialog.pickEndDate')} />
+						</div>
 					</div>
 				</div>
 
@@ -144,7 +176,7 @@ const ApplyCouponDialog: FC<Props> = ({ subscriptionId, lineItems, prefilledLine
 					<Button variant='outline' onClick={() => handleOpenChange(false)} className='flex-1'>
 						{t('common:actions.cancel')}
 					</Button>
-					<Button onClick={handleApply} isLoading={isApplying} disabled={!couponCode.trim()} className='flex-1'>
+					<Button onClick={handleApply} isLoading={isApplying} disabled={!canApply} className='flex-1'>
 						{t('common:actions.apply')}
 					</Button>
 				</DialogFooter>

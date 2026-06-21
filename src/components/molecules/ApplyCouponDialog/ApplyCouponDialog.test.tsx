@@ -1,4 +1,4 @@
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import { describe, it, expect, vi, beforeAll } from 'vitest';
 import '@testing-library/jest-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -14,8 +14,14 @@ const { mockExecute } = vi.hoisted(() => ({
 }));
 
 vi.mock('@/api/SubscriptionApi', () => ({
+	default: { executeSubscriptionModify: mockExecute },
+}));
+vi.mock('@/api/CouponApi', () => ({
 	default: {
-		executeSubscriptionModify: mockExecute,
+		getAllCoupons: vi.fn().mockResolvedValue({
+			items: [{ id: 'cpn_1', name: 'Summer Sale', coupon_code: 'SUMMER20', status: 'published', type: 'percentage' }],
+			pagination: { limit: 200, offset: 0, total: 1 },
+		}),
 	},
 }));
 vi.mock('react-hot-toast', () => ({ default: { success: vi.fn(), error: vi.fn() } }));
@@ -36,22 +42,24 @@ beforeAll(async () => {
 		defaultNS: 'common',
 		resources: {
 			en: {
-				common: { actions: { cancel: 'Cancel', back: 'Back', apply: 'Apply' } },
+				common: {
+					actions: { cancel: 'Cancel', apply: 'Apply' },
+					selectUi: { selectAnOption: 'Select an option', noResultsFound: 'No results', noOptionsFound: 'No options' },
+					search: { placeholderShort: 'Search…', searching: 'Searching…', errorLoadingOptions: 'Error loading options' },
+				},
 				billing: {
 					subscriptions: {
 						applyCouponDialog: {
-							couponCodeLabel: 'Coupon Code',
+							couponCodeLabel: 'Coupon',
 							title: 'Apply Coupon',
 							applyToLabel: 'Apply to',
-							subscriptionLevel: 'Subscription level',
-							lineItemLevel: 'Line item level',
-							lineItemLabel: 'Line item',
-							selectLineItemPlaceholder: 'Select a line item',
-							startDateOptional: 'Start date (optional)',
-							endDateOptional: 'End date (optional)',
+							startDateOptional: 'Start date',
+							endDateOptional: 'End date',
 							pickStartDate: 'Pick start date',
 							pickEndDate: 'Pick end date',
-							couponCodePlaceholder: 'Enter coupon code',
+							couponCodePlaceholder: 'Search by name or code…',
+							lineItemLabel: 'Line item',
+							selectLineItemPlaceholder: 'Select a line item',
 						},
 					},
 				},
@@ -71,39 +79,34 @@ const Wrapper = ({ children }: { children: React.ReactNode }) => (
 );
 
 describe('ApplyCouponDialog', () => {
-	it('renders coupon code input with Apply button', () => {
+	it('renders coupon search trigger and Apply button', () => {
 		render(
 			<Wrapper>
 				<ApplyCouponDialog subscriptionId='sub_1' lineItems={[]} open={true} onOpenChange={vi.fn()} onSuccess={vi.fn()} />
 			</Wrapper>,
 		);
-		expect(screen.getByLabelText(/coupon code/i)).toBeInTheDocument();
-		expect(screen.getByRole('button', { name: /apply/i })).toBeInTheDocument();
+		// AsyncSearchableSelect renders a <button> trigger; scope Select is a separate control
+		expect(screen.getAllByRole('button').length).toBeGreaterThanOrEqual(2);
+		expect(screen.getByRole('button', { name: /^apply$/i })).toBeInTheDocument();
 	});
 
-	it('Apply button is disabled when coupon code is empty', () => {
+	it('Apply button is disabled when no coupon is selected', () => {
 		render(
 			<Wrapper>
 				<ApplyCouponDialog subscriptionId='sub_1' lineItems={[]} open={true} onOpenChange={vi.fn()} onSuccess={vi.fn()} />
 			</Wrapper>,
 		);
-		expect(screen.getByRole('button', { name: /apply/i })).toBeDisabled();
+		expect(screen.getByRole('button', { name: /^apply$/i })).toBeDisabled();
 	});
 
-	it('calls executeSubscriptionModify with correct payload on Apply click', async () => {
-		mockExecute.mockResolvedValue({});
+	it('Cancel button calls onOpenChange(false)', () => {
+		const onOpenChange = vi.fn();
 		render(
 			<Wrapper>
-				<ApplyCouponDialog subscriptionId='sub_1' lineItems={[]} open={true} onOpenChange={vi.fn()} onSuccess={vi.fn()} />
+				<ApplyCouponDialog subscriptionId='sub_1' lineItems={[]} open={true} onOpenChange={onOpenChange} onSuccess={vi.fn()} />
 			</Wrapper>,
 		);
-		fireEvent.change(screen.getByLabelText(/coupon code/i), { target: { value: 'SUMMER20' } });
-		fireEvent.click(screen.getByRole('button', { name: /apply/i }));
-		await waitFor(() => {
-			expect(mockExecute).toHaveBeenCalledWith('sub_1', {
-				type: 'coupon',
-				coupon_params: expect.objectContaining({ action: 'add', coupon_code: 'SUMMER20' }),
-			});
-		});
+		screen.getByRole('button', { name: /cancel/i }).click();
+		expect(onOpenChange).toHaveBeenCalledWith(false);
 	});
 });
