@@ -136,7 +136,7 @@ const GroupsPage = () => {
 						buttonLabel: t('groups.listPage.emptyState.createButton'),
 						buttonAction: handleOnAdd,
 						tags: API_DOCS_TAGS.Groups,
-						tutorials: guides.groups.tutorials,
+						tutorials: guides?.groups?.tutorials ?? [],
 					}}
 				/>
 			</div>

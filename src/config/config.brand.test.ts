@@ -187,6 +187,8 @@ describe('config object', () => {
 		expect(Array.isArray(config.allowedLocales)).toBe(true);
 		expect(config.documentation.apiReference.enabled).toBe(true);
 		expect(config.documentation.sidebarDocumentation.enabled).toBe(true);
+		expect(config.documentation.guides.enabled).toBe(true);
+		expect(config.documentation.onboarding.enabled).toBe(true);
 	});
 });
 

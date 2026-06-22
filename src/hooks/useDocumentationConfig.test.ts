@@ -18,6 +18,8 @@ vi.mock('@/config/config', () => ({
 		documentation: {
 			apiReference: { enabled: true },
 			sidebarDocumentation: { enabled: true },
+			guides: { enabled: true },
+			onboarding: { enabled: true },
 		},
 	},
 }));
@@ -28,6 +30,8 @@ describe('useDocumentationConfig', () => {
 		const { result } = renderHook(() => useDocumentationConfig());
 		expect(result.current.apiReferenceEnabled).toBe(true);
 		expect(result.current.sidebarDocumentationEnabled).toBe(true);
+		expect(result.current.guidesEnabled).toBe(true);
+		expect(result.current.onboardingEnabled).toBe(true);
 	});
 
 	it('disables both documentation surfaces for Arabic locale', async () => {
@@ -38,5 +42,7 @@ describe('useDocumentationConfig', () => {
 		const { result } = renderHook(() => useDocumentationConfig());
 		expect(result.current.apiReferenceEnabled).toBe(false);
 		expect(result.current.sidebarDocumentationEnabled).toBe(false);
+		expect(result.current.guidesEnabled).toBe(false);
+		expect(result.current.onboardingEnabled).toBe(false);
 	});
 });

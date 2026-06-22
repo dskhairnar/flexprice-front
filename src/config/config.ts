@@ -80,11 +80,19 @@ export interface DocumentationConfig {
 	sidebarDocumentation: {
 		enabled: boolean;
 	};
+	guides: {
+		enabled: boolean;
+	};
+	onboarding: {
+		enabled: boolean;
+	};
 }
 
 const documentationConfig: DocumentationConfig = {
 	apiReference: { enabled: true },
 	sidebarDocumentation: { enabled: true },
+	guides: { enabled: true },
+	onboarding: { enabled: true },
 };
 
 /** Primary defaults to **Geist** (Google Fonts in `src/index.css`). Override via `VITE_FONT_CONFIG` or `VITE_FONT_PRIMARY`. */

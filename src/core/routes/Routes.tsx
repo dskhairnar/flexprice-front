@@ -2,6 +2,7 @@ import MainLayout from '@/layouts/MainLayout';
 import { createBrowserRouter, Navigate } from 'react-router';
 import AuthMiddleware from '../auth/AuthProvider';
 import { useUser } from '@/hooks/UserContext';
+import { useDocumentationConfig } from '@/hooks/useDocumentationConfig';
 import { TenantMetadataKey } from '@/models/Tenant';
 import { Suspense } from 'react';
 import { Loader } from '@/components/atoms';
@@ -196,9 +197,25 @@ export const RouteNames = {
 
 const DefaultRoute = () => {
 	const { user } = useUser();
+	const { onboardingEnabled } = useDocumentationConfig();
 	const onboardingMetadata = user?.tenant?.metadata?.[TenantMetadataKey.ONBOARDING_COMPLETED];
 	const onboardingCompleted = onboardingMetadata === 'true';
-	return <Navigate to={onboardingCompleted ? RouteNames.homeDashboard : RouteNames.onboarding} />;
+
+	// Skip tenant onboarding when disabled via config (e.g. self-hosted / white-label).
+	if (!onboardingEnabled || onboardingCompleted) {
+		return <Navigate to={RouteNames.homeDashboard} />;
+	}
+
+	return <Navigate to={RouteNames.onboarding} />;
+};
+
+/** Redirects away from tenant onboarding when it is disabled via config. */
+const OnboardingRoute = () => {
+	const { onboardingEnabled } = useDocumentationConfig();
+	if (!onboardingEnabled) {
+		return <Navigate to={RouteNames.homeDashboard} replace />;
+	}
+	return <OnboardingTenant />;
 };
 
 export const MainRouter: any = createBrowserRouter([
@@ -233,7 +250,7 @@ export const MainRouter: any = createBrowserRouter([
 	},
 	{
 		path: RouteNames.onboarding,
-		element: <OnboardingTenant />,
+		element: <OnboardingRoute />,
 	},
 	{
 		path: RouteNames.pricingSetup,

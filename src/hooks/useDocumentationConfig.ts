@@ -10,5 +10,7 @@ export function useDocumentationConfig() {
 	return {
 		apiReferenceEnabled: config.documentation.apiReference.enabled && !hideForArabic,
 		sidebarDocumentationEnabled: config.documentation.sidebarDocumentation.enabled && !hideForArabic,
+		guidesEnabled: config.documentation.guides.enabled && !hideForArabic,
+		onboardingEnabled: config.documentation.onboarding.enabled && !hideForArabic,
 	};
 }
