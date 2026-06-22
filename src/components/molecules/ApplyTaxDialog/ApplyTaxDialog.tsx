@@ -7,7 +7,8 @@ import toast from 'react-hot-toast';
 import { useQuery } from '@tanstack/react-query';
 import SubscriptionApi from '@/api/SubscriptionApi';
 import TaxApi from '@/api/TaxApi';
-import { SUBSCRIPTION_MODIFY_TYPE, SUB_MODIFY_TAX_ACTION } from '@/models';
+import { SUB_MODIFY_TAX_ACTION, SUBSCRIPTION_MODIFY_TYPE } from '@/models';
+import type { ExecuteSubscriptionModifyRequest, SubModifyTaxParams } from '@/types/dto/Subscription';
 import { TAXRATE_ENTITY_TYPE } from '@/models/Tax';
 import { EXPAND } from '@/models';
 import { generateExpandQueryParams } from '@/utils/common/api_helper';
@@ -60,14 +61,17 @@ const ApplyTaxDialog: FC<Props> = ({ subscriptionId, open, onOpenChange, onSucce
 
 	const allApplied = !!taxRatesData && taxRatesData.items.length > 0 && taxRateOptions.length === 0;
 
-	const buildPayload = useCallback(() => {
+	const buildPayload = useCallback((): ExecuteSubscriptionModifyRequest => {
+		const tax_params: SubModifyTaxParams = {
+			action: SUB_MODIFY_TAX_ACTION.ADD,
+			tax_rate_id: taxRateId,
+		};
+		if (effectiveDate) {
+			tax_params.effective_date = effectiveDate.toISOString();
+		}
 		return {
 			type: SUBSCRIPTION_MODIFY_TYPE.TAX,
-			tax_params: {
-				action: SUB_MODIFY_TAX_ACTION.ADD,
-				tax_rate_id: taxRateId,
-				...(effectiveDate ? { effective_date: effectiveDate.toISOString() } : {}),
-			},
+			tax_params,
 		};
 	}, [taxRateId, effectiveDate]);
 

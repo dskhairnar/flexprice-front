@@ -8,8 +8,8 @@ import { Select as ShadcnSelect, SelectContent, SelectItem, SelectTrigger, Selec
 import toast from 'react-hot-toast';
 import SubscriptionApi from '@/api/SubscriptionApi';
 import CouponApi from '@/api/CouponApi';
-import type { SubscriptionLineItemResponse } from '@/types/dto/Subscription';
-import { SUBSCRIPTION_MODIFY_TYPE } from '@/types/dto/Subscription';
+import type { ExecuteSubscriptionModifyRequest, SubModifyCouponParams, SubscriptionLineItemResponse } from '@/types/dto/Subscription';
+import { SUB_MODIFY_COUPON_ACTION, SUBSCRIPTION_MODIFY_TYPE } from '@/types/dto';
 import { ENTITY_STATUS } from '@/models';
 import type { Coupon } from '@/models';
 import { useTranslation } from 'react-i18next';
@@ -53,16 +53,23 @@ const ApplyCouponDialog: FC<Props> = ({ subscriptionId, lineItems, prefilledLine
 			}));
 	}, []);
 
-	const buildPayload = useCallback(() => {
+	const buildPayload = useCallback((): ExecuteSubscriptionModifyRequest => {
+		const coupon_params: SubModifyCouponParams = {
+			action: SUB_MODIFY_COUPON_ACTION.ADD,
+			coupon_code: selectedCoupon?.coupon_code ?? '',
+		};
+		if (scope === 'line_item' && selectedLineItemId) {
+			coupon_params.subscription_line_item_id = selectedLineItemId;
+		}
+		if (startDate) {
+			coupon_params.start_date = startDate.toISOString();
+		}
+		if (endDate) {
+			coupon_params.end_date = endDate.toISOString();
+		}
 		return {
 			type: SUBSCRIPTION_MODIFY_TYPE.COUPON,
-			coupon_params: {
-				action: 'add' as const,
-				coupon_code: selectedCoupon?.coupon_code ?? '',
-				...(scope === 'line_item' && selectedLineItemId ? { subscription_line_item_id: selectedLineItemId } : {}),
-				...(startDate ? { start_date: startDate.toISOString() } : {}),
-				...(endDate ? { end_date: endDate.toISOString() } : {}),
-			},
+			coupon_params,
 		};
 	}, [selectedCoupon, scope, selectedLineItemId, startDate, endDate]);
 

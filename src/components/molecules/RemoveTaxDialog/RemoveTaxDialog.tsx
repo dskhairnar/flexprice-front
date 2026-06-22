@@ -3,7 +3,8 @@ import { Button } from '@/components/atoms';
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import toast from 'react-hot-toast';
 import SubscriptionApi from '@/api/SubscriptionApi';
-import { SUBSCRIPTION_MODIFY_TYPE, SUB_MODIFY_TAX_ACTION } from '@/models';
+import { SUB_MODIFY_TAX_ACTION, SUBSCRIPTION_MODIFY_TYPE } from '@/models';
+import type { ExecuteSubscriptionModifyRequest, SubModifyTaxParams } from '@/types/dto/Subscription';
 import type { TaxAssociationResponse } from '@/types/dto/tax';
 import { Trans, useTranslation } from 'react-i18next';
 
@@ -19,13 +20,14 @@ const RemoveTaxDialog: FC<Props> = ({ subscriptionId, association, open, onOpenC
 	const { t } = useTranslation(['billing', 'common']);
 	const [isRemoving, setIsRemoving] = useState(false);
 
-	const buildPayload = useCallback(() => {
+	const buildPayload = useCallback((): ExecuteSubscriptionModifyRequest => {
+		const tax_params: SubModifyTaxParams = {
+			action: SUB_MODIFY_TAX_ACTION.REMOVE,
+			tax_association_id: association.id,
+		};
 		return {
 			type: SUBSCRIPTION_MODIFY_TYPE.TAX,
-			tax_params: {
-				action: SUB_MODIFY_TAX_ACTION.REMOVE,
-				association_id: association.id,
-			},
+			tax_params,
 		};
 	}, [association.id]);
 

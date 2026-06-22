@@ -83,7 +83,7 @@ export interface SubscriptionCouponInput {
 export interface SubModifyCouponParams {
 	action: 'add' | 'remove';
 	coupon_code?: string; // required when action=add
-	association_id?: string; // required when action=remove
+	coupon_association_id?: string; // required when action=remove
 	start_date?: string;
 	end_date?: string;
 	subscription_id?: string; // mutually exclusive with subscription_line_item_id
@@ -94,7 +94,7 @@ export interface SubModifyCouponParams {
 export interface SubModifyTaxParams {
 	action: 'add' | 'remove';
 	tax_rate_id?: string; // required when action=add
-	association_id?: string; // required when action=remove
+	tax_association_id?: string; // required when action=remove
 	effective_date?: string;
 }
 

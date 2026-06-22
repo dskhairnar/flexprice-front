@@ -3,8 +3,9 @@ import { Button } from '@/components/atoms';
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import toast from 'react-hot-toast';
 import SubscriptionApi from '@/api/SubscriptionApi';
-import { SUBSCRIPTION_MODIFY_TYPE, SUB_MODIFY_COUPON_ACTION } from '@/models';
+import { SUB_MODIFY_COUPON_ACTION, SUBSCRIPTION_MODIFY_TYPE } from '@/models';
 import type { CouponAssociation } from '@/models/CouponAssociation';
+import type { ExecuteSubscriptionModifyRequest, SubModifyCouponParams } from '@/types/dto/Subscription';
 import { Trans, useTranslation } from 'react-i18next';
 
 interface Props {
@@ -19,13 +20,14 @@ const RemoveCouponDialog: FC<Props> = ({ subscriptionId, association, open, onOp
 	const { t } = useTranslation(['billing', 'common']);
 	const [isRemoving, setIsRemoving] = useState(false);
 
-	const buildPayload = useCallback(() => {
+	const buildPayload = useCallback((): ExecuteSubscriptionModifyRequest => {
+		const coupon_params: SubModifyCouponParams = {
+			action: SUB_MODIFY_COUPON_ACTION.REMOVE,
+			coupon_association_id: association.id,
+		};
 		return {
 			type: SUBSCRIPTION_MODIFY_TYPE.COUPON,
-			coupon_params: {
-				action: SUB_MODIFY_COUPON_ACTION.REMOVE,
-				association_id: association.id,
-			},
+			coupon_params,
 		};
 	}, [association.id]);
 
