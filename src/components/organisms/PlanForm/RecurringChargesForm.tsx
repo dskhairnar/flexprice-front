@@ -30,6 +30,7 @@ interface Props {
 	entityType?: PRICE_ENTITY_TYPE;
 	entityId?: string;
 	entityName?: string;
+	isSaving?: boolean;
 }
 
 // Tiers used when a tiered fixed charge form is first opened
@@ -393,7 +394,7 @@ const RecurringChargesForm = ({
 						<div className='flex items-center gap-1.5'>
 							<span className='text-[#64748B]'>
 								{t('catalog:plans.organisms.recurringForm.perBilling', {
-									period: formatBillingPeriodForPrice(localPrice.billing_period || ''),
+									period: formatBillingPeriodForPrice(localPrice.billing_period || '', t),
 								})}
 							</span>
 							<Popover open={calculatorOpen} onOpenChange={setCalculatorOpen}>
@@ -456,7 +457,7 @@ const RecurringChargesForm = ({
 									setPackagedFee({ ...packagedFee, unit: e });
 								}
 							}}
-							suffix={`/ units / ${formatBillingPeriodForPrice(localPrice.billing_period || '')}`}
+							suffix={`/ units / ${formatBillingPeriodForPrice(localPrice.billing_period || '', t)}`}
 						/>
 					</div>
 					{modelErrors.packagedModelError && <p className='text-red-500 text-sm'>{modelErrors.packagedModelError}</p>}

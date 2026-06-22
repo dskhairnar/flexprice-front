@@ -27,6 +27,7 @@ import { hydrateCommitmentTimeBucketsForDisplay } from '@/utils/common/commitmen
 import type { Price } from '@/models/Price';
 import { getLocalizedCurrencySymbol } from '@/i18n/display/formatNumber';
 import { DEFAULT_CURRENCY_CODE } from '@/constants/constants';
+import { useCommitmentTimeBucketPrices } from '@/hooks/useCommitmentTimeBucketPrices';
 
 interface Props {
 	data: LineItem[];
@@ -415,7 +416,9 @@ const SubscriptionLineItemTable: FC<Props> = ({
 	onRemoveCoupon,
 	lineItemIdsWithCoupon,
 }) => {
-	const { t } = useTranslation('common');
+	const { t } = useTranslation(['common', 'billing']);
+	const allCommitmentBuckets = useMemo(() => (data ?? []).flatMap((item) => item.commitment_time_buckets ?? []), [data]);
+	const { pricesById } = useCommitmentTimeBucketPrices(allCommitmentBuckets);
 	const [showTerminateModal, setShowTerminateModal] = useState(false);
 	const [selectedLineItem, setSelectedLineItem] = useState<LineItem | null>(null);
 	const [viewCommitmentLineItem, setViewCommitmentLineItem] = useState<LineItem | null>(null);
@@ -583,6 +586,14 @@ const SubscriptionLineItemTable: FC<Props> = ({
 					);
 				},
 			},
+			...(showCommitmentColumn
+				? [
+						{
+							title: t('billing:addAddonDialog.columns.commitment'),
+							render: (row: LineItemWithStatus) => <CommitmentColumnCell row={row} pricesById={pricesById} />,
+						},
+					]
+				: []),
 			...(readOnly
 				? [
 						{
@@ -631,6 +642,7 @@ const SubscriptionLineItemTable: FC<Props> = ({
 			readOnly,
 			phaseLabelsById,
 			showCommitmentColumn,
+			pricesById,
 			t,
 			onApplyCoupon,
 			onRemoveCoupon,
