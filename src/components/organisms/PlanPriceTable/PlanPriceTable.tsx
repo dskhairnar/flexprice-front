@@ -17,7 +17,6 @@ import { PriceApi } from '@/api/PriceApi';
 import toast from 'react-hot-toast';
 import { useNavigate } from 'react-router';
 import { RouteNames } from '@/core/routes/Routes';
-import { BILLING_PERIOD } from '@/constants/constants';
 import { formatBillingPeriodForDisplay } from '@/utils';
 import { formatPriceStatus } from '@/utils/common/format_chips';
 import { ChargeValueCell } from '@/components/molecules';
