@@ -1,7 +1,5 @@
-import { config } from '@/config/config';
-import { Locale } from '@/config/branding';
+import { isGuidesEnabled } from '@/hooks/usePlatformConfig';
 import { TutorialItem } from '@/pages';
-import { useLocaleStore } from '@/store/useLocaleStore';
 import type { TFunction } from 'i18next';
 
 /** Doc deep links opened from tutorial cards */
@@ -91,7 +89,7 @@ const openGuide = (url: string) => {
 	window.open(url, '_blank');
 };
 
-export type GuidesMap = Record<string, { tutorials: TutorialItem[] | undefined }>;
+export type GuidesMap = Record<string, { tutorials: TutorialItem[] }>;
 
 const GUIDE_SECTIONS = [
 	'features',
@@ -108,22 +106,17 @@ const GUIDE_SECTIONS = [
 	'taxes',
 ] as const;
 
-function areGuidesEnabled(): boolean {
-	if (!config.documentation.guides.enabled) return false;
-	return useLocaleStore.getState().locale !== Locale.Ar;
-}
-
 function disabledGuidesMap(): GuidesMap {
-	return Object.fromEntries(GUIDE_SECTIONS.map((section) => [section, { tutorials: undefined }])) as GuidesMap;
+	return Object.fromEntries(GUIDE_SECTIONS.map((section) => [section, { tutorials: [] }])) as GuidesMap;
 }
 
 /**
  * Localized empty-state / tutorial cards. Pass `t` from `useTranslation('guides')`
  * (or a combined hook where `guides` is loaded).
- * Returns null tutorial data when guides are disabled via config or Arabic locale.
+ * Returns empty tutorials when `platform.guides.enabled` is false.
  */
 export function buildGuides(t: TFunction<'guides'>): GuidesMap {
-	if (!areGuidesEnabled()) {
+	if (!isGuidesEnabled()) {
 		return disabledGuidesMap();
 	}
 

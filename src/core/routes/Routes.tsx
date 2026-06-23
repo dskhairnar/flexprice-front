@@ -2,7 +2,7 @@ import MainLayout from '@/layouts/MainLayout';
 import { createBrowserRouter, Navigate } from 'react-router';
 import AuthMiddleware from '../auth/AuthProvider';
 import { useUser } from '@/hooks/UserContext';
-import { useDocumentationConfig } from '@/hooks/useDocumentationConfig';
+import { isOnboardingEnabled } from '@/hooks/usePlatformConfig';
 import { TenantMetadataKey } from '@/models/Tenant';
 import { Suspense } from 'react';
 import { Loader } from '@/components/atoms';
@@ -197,25 +197,17 @@ export const RouteNames = {
 
 const DefaultRoute = () => {
 	const { user } = useUser();
-	const { onboardingEnabled } = useDocumentationConfig();
 	const onboardingMetadata = user?.tenant?.metadata?.[TenantMetadataKey.ONBOARDING_COMPLETED];
 	const onboardingCompleted = onboardingMetadata === 'true';
-
-	// Skip tenant onboarding when disabled via config (e.g. self-hosted / white-label).
-	if (!onboardingEnabled || onboardingCompleted) {
-		return <Navigate to={RouteNames.homeDashboard} />;
-	}
-
-	return <Navigate to={RouteNames.onboarding} />;
+	const shouldShowOnboarding = isOnboardingEnabled() && !onboardingCompleted;
+	return <Navigate to={shouldShowOnboarding ? RouteNames.onboarding : RouteNames.homeDashboard} />;
 };
 
-/** Redirects away from tenant onboarding when it is disabled via config. */
-const OnboardingRoute = () => {
-	const { onboardingEnabled } = useDocumentationConfig();
-	if (!onboardingEnabled) {
+const OnboardingRouteGuard = ({ children }: { children: React.ReactNode }) => {
+	if (!isOnboardingEnabled()) {
 		return <Navigate to={RouteNames.homeDashboard} replace />;
 	}
-	return <OnboardingTenant />;
+	return children;
 };
 
 export const MainRouter: any = createBrowserRouter([
@@ -250,11 +242,19 @@ export const MainRouter: any = createBrowserRouter([
 	},
 	{
 		path: RouteNames.onboarding,
-		element: <OnboardingRoute />,
+		element: (
+			<OnboardingRouteGuard>
+				<OnboardingTenant />
+			</OnboardingRouteGuard>
+		),
 	},
 	{
 		path: RouteNames.pricingSetup,
-		element: <PricingSetupPage />,
+		element: (
+			<OnboardingRouteGuard>
+				<PricingSetupPage />
+			</OnboardingRouteGuard>
+		),
 	},
 	{
 		path: RouteNames.checkout,

@@ -5,6 +5,7 @@ interface ImportMetaEnv {
 	readonly VITE_FONT_CONFIG?: string;
 	readonly VITE_FONT_PRIMARY?: string;
 	readonly VITE_FONT_FALLBACK?: string;
+	readonly VITE_PLATFORM_CONFIG?: string;
 }
 
 declare const __APP_VERSION__: string;

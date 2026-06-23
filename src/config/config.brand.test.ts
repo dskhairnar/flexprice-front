@@ -185,10 +185,49 @@ describe('config object', () => {
 		expect(config.i18n).toBeDefined();
 		expect(config.regions).toBeDefined();
 		expect(Array.isArray(config.allowedLocales)).toBe(true);
-		expect(config.documentation.apiReference.enabled).toBe(true);
-		expect(config.documentation.sidebarDocumentation.enabled).toBe(true);
-		expect(config.documentation.guides.enabled).toBe(true);
-		expect(config.documentation.onboarding.enabled).toBe(true);
+		expect(config.platform).toBeDefined();
+		expect(typeof config.platform.apiReference.enabled).toBe('boolean');
+		expect(typeof config.platform.sidebarDocumentation.enabled).toBe('boolean');
+		expect(typeof config.platform.guides.enabled).toBe('boolean');
+		expect(typeof config.platform.onboarding.enabled).toBe('boolean');
+	});
+});
+
+describe('parsePlatformConfig', () => {
+	it('defaults all platform features to enabled when env is unset', async () => {
+		const { parsePlatformConfig } = await import('./config');
+		const result = parsePlatformConfig();
+		expect(result.apiReference.enabled).toBe(true);
+		expect(result.sidebarDocumentation.enabled).toBe(true);
+		expect(result.guides.enabled).toBe(true);
+		expect(result.onboarding.enabled).toBe(true);
+	});
+
+	it('applies per-feature overrides from VITE_PLATFORM_CONFIG JSON', async () => {
+		const { parsePlatformConfig } = await import('./config');
+		const result = parsePlatformConfig(
+			'{"apiReference":{"enabled":false},"sidebarDocumentation":{"enabled":false},"guides":{"enabled":false},"onboarding":{"enabled":false}}',
+		);
+		expect(result.apiReference.enabled).toBe(false);
+		expect(result.sidebarDocumentation.enabled).toBe(false);
+		expect(result.guides.enabled).toBe(false);
+		expect(result.onboarding.enabled).toBe(false);
+	});
+
+	it('leaves unspecified keys enabled when only some features are set in env', async () => {
+		const { parsePlatformConfig } = await import('./config');
+		const result = parsePlatformConfig('{"guides":{"enabled":false}}');
+		expect(result.apiReference.enabled).toBe(true);
+		expect(result.sidebarDocumentation.enabled).toBe(true);
+		expect(result.guides.enabled).toBe(false);
+		expect(result.onboarding.enabled).toBe(true);
+	});
+
+	it('falls back to defaults when JSON is invalid', async () => {
+		const { parsePlatformConfig } = await import('./config');
+		const result = parsePlatformConfig('{not-json');
+		expect(result.guides.enabled).toBe(true);
+		expect(result.onboarding.enabled).toBe(true);
 	});
 });
 

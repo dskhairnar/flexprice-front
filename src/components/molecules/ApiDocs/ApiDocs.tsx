@@ -8,17 +8,12 @@ import { Code2 } from 'lucide-react';
 import { fetchAndExtractSnippetsByTags } from './fetch_api_docs';
 import { useQuery } from '@tanstack/react-query';
 import axios from 'axios';
-import { useDocumentationConfig } from '@/hooks/useDocumentationConfig';
+import { isApiReferenceEnabled } from '@/hooks/usePlatformConfig';
 
-const ApiDocs: FC = () => {
+const ApiDocsDrawer: FC = () => {
 	const { t } = useTranslation('common');
-	const { apiReferenceEnabled } = useDocumentationConfig();
 	const [isDocsOpen, setIsDocsOpen] = useState(false);
 	const { snippets } = useApiDocsStore();
-
-	if (!apiReferenceEnabled) {
-		return null;
-	}
 
 	return (
 		<DocsDrawer
@@ -35,6 +30,14 @@ const ApiDocs: FC = () => {
 	);
 };
 
+const ApiDocs: FC = () => {
+	if (!isApiReferenceEnabled()) {
+		return null;
+	}
+
+	return <ApiDocsDrawer />;
+};
+
 interface ApiDocsContentProps {
 	tags?: string[];
 	snippets?: ApiDocsSnippet[];
@@ -45,8 +48,7 @@ export const fetchApidocsJson = async (): Promise<any> => {
 	return data;
 };
 
-export const ApiDocsContent = ({ tags, snippets: snippetsProp }: ApiDocsContentProps) => {
-	const { apiReferenceEnabled } = useDocumentationConfig();
+const ApiDocsContentActive = ({ tags, snippets: snippetsProp }: ApiDocsContentProps) => {
 	const { setPageDocs, clearPageDocs } = useDocs();
 	const [snippets, setSnippets] = useState<ApiDocsSnippet[]>(snippetsProp || []);
 
@@ -55,15 +57,13 @@ export const ApiDocsContent = ({ tags, snippets: snippetsProp }: ApiDocsContentP
 		queryFn: fetchApidocsJson,
 		staleTime: 1000 * 60 * 60 * 24,
 		gcTime: 1000 * 60 * 60 * 24,
-		enabled: apiReferenceEnabled && !snippetsProp && !!tags,
+		enabled: !snippetsProp && !!tags,
 	});
 
 	useEffect(() => {
-		if (!apiReferenceEnabled) return;
-
-		const fetchSnippets = async (tags: string[]) => {
-			if (!snippetsProp && tags && docs) {
-				const fetchedSnippets = await fetchAndExtractSnippetsByTags(tags, docs);
+		const fetchSnippets = async (tagList: string[]) => {
+			if (!snippetsProp && tagList && docs) {
+				const fetchedSnippets = await fetchAndExtractSnippetsByTags(tagList, docs);
 				setSnippets(fetchedSnippets);
 			}
 		};
@@ -71,16 +71,23 @@ export const ApiDocsContent = ({ tags, snippets: snippetsProp }: ApiDocsContentP
 		if (tags && !snippetsProp) {
 			fetchSnippets(tags);
 		}
-	}, [apiReferenceEnabled, tags, docs, snippetsProp]);
+	}, [tags, docs, snippetsProp]);
 
 	useEffect(() => {
-		if (!apiReferenceEnabled) return;
-
 		setPageDocs(snippets);
 		return () => clearPageDocs();
-	}, [apiReferenceEnabled, snippets, setPageDocs, clearPageDocs]);
+	}, [snippets, setPageDocs, clearPageDocs]);
 
 	return null;
+};
+
+/** Registers page API snippets for the breadcrumb drawer; no-op when api reference is disabled in config. */
+export const ApiDocsContent = ({ tags, snippets: snippetsProp }: ApiDocsContentProps) => {
+	if (!isApiReferenceEnabled()) {
+		return null;
+	}
+
+	return <ApiDocsContentActive tags={tags} snippets={snippetsProp} />;
 };
 
 export default ApiDocs;
