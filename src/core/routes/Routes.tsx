@@ -2,6 +2,7 @@ import MainLayout from '@/layouts/MainLayout';
 import { createBrowserRouter, Navigate } from 'react-router';
 import AuthMiddleware from '../auth/AuthProvider';
 import { useUser } from '@/hooks/UserContext';
+import { isOnboardingEnabled } from '@/hooks/usePlatformConfig';
 import { TenantMetadataKey } from '@/models/Tenant';
 import { Suspense } from 'react';
 import { Loader } from '@/components/atoms';
@@ -198,7 +199,15 @@ const DefaultRoute = () => {
 	const { user } = useUser();
 	const onboardingMetadata = user?.tenant?.metadata?.[TenantMetadataKey.ONBOARDING_COMPLETED];
 	const onboardingCompleted = onboardingMetadata === 'true';
-	return <Navigate to={onboardingCompleted ? RouteNames.homeDashboard : RouteNames.onboarding} />;
+	const shouldShowOnboarding = isOnboardingEnabled() && !onboardingCompleted;
+	return <Navigate to={shouldShowOnboarding ? RouteNames.onboarding : RouteNames.homeDashboard} />;
+};
+
+const OnboardingRouteGuard = ({ children }: { children: React.ReactNode }) => {
+	if (!isOnboardingEnabled()) {
+		return <Navigate to={RouteNames.homeDashboard} replace />;
+	}
+	return children;
 };
 
 export const MainRouter: any = createBrowserRouter([
@@ -233,11 +242,19 @@ export const MainRouter: any = createBrowserRouter([
 	},
 	{
 		path: RouteNames.onboarding,
-		element: <OnboardingTenant />,
+		element: (
+			<OnboardingRouteGuard>
+				<OnboardingTenant />
+			</OnboardingRouteGuard>
+		),
 	},
 	{
 		path: RouteNames.pricingSetup,
-		element: <PricingSetupPage />,
+		element: (
+			<OnboardingRouteGuard>
+				<PricingSetupPage />
+			</OnboardingRouteGuard>
+		),
 	},
 	{
 		path: RouteNames.checkout,

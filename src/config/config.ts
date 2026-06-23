@@ -73,19 +73,65 @@ interface FeaturesConfig {
 	tenantFeatureAllowlist: string[];
 }
 
-export interface DocumentationConfig {
+export interface PlatformConfig {
 	apiReference: {
 		enabled: boolean;
 	};
 	sidebarDocumentation: {
 		enabled: boolean;
 	};
+	guides: {
+		enabled: boolean;
+	};
+	onboarding: {
+		enabled: boolean;
+	};
 }
 
-const documentationConfig: DocumentationConfig = {
-	apiReference: { enabled: true },
-	sidebarDocumentation: { enabled: true },
-};
+const PLATFORM_FEATURE_DEFAULTS = {
+	apiReference: true,
+	sidebarDocumentation: true,
+	guides: true,
+	onboarding: true,
+} as const;
+
+type PlatformFeatureKey = keyof typeof PLATFORM_FEATURE_DEFAULTS;
+
+interface PlatformConfigJson {
+	apiReference?: { enabled?: boolean };
+	sidebarDocumentation?: { enabled?: boolean };
+	guides?: { enabled?: boolean };
+	onboarding?: { enabled?: boolean };
+}
+
+function parsePlatformFeatureEnabled(parsed: PlatformConfigJson | undefined, key: PlatformFeatureKey): boolean {
+	const fromEnv = parsed?.[key]?.enabled;
+	if (typeof fromEnv === 'boolean') return fromEnv;
+	return PLATFORM_FEATURE_DEFAULTS[key];
+}
+
+/** Parse `VITE_PLATFORM_CONFIG` JSON. Keys: apiReference, sidebarDocumentation, guides, onboarding. Omitted keys default to `enabled: true`. */
+export function parsePlatformConfig(rawPlatformConfig?: string): PlatformConfig {
+	let parsed: PlatformConfigJson | undefined;
+	const raw = rawPlatformConfig?.trim();
+
+	if (raw) {
+		try {
+			parsed = JSON.parse(raw) as PlatformConfigJson;
+		} catch {
+			// invalid JSON — use defaults for all features
+		}
+	}
+
+	return {
+		apiReference: { enabled: parsePlatformFeatureEnabled(parsed, 'apiReference') },
+		sidebarDocumentation: { enabled: parsePlatformFeatureEnabled(parsed, 'sidebarDocumentation') },
+		guides: { enabled: parsePlatformFeatureEnabled(parsed, 'guides') },
+		onboarding: { enabled: parsePlatformFeatureEnabled(parsed, 'onboarding') },
+	};
+}
+
+const platformConfig = parsePlatformConfig(import.meta.env.VITE_PLATFORM_CONFIG);
 
 /** Primary defaults to **Geist** (Google Fonts in `src/index.css`). Override via `VITE_FONT_CONFIG` or `VITE_FONT_PRIMARY`. */
 export interface TypographyConfig {
@@ -182,8 +228,8 @@ export interface Config {
 	regions: RegionsConfig;
 	allowedLocales: Locale[];
 	typography: TypographyConfig;
+	platform: PlatformConfig;
 	features: FeaturesConfig;
-	documentation: DocumentationConfig;
 }
 
 function parseAppEnv(): APP_ENV {
@@ -244,10 +290,10 @@ export const config: Config = {
 	regions: regionsConfig,
 	allowedLocales: allowedLocalesConfig,
 	typography: typographyConfig,
+	platform: platformConfig,
 	features: {
 		tenantFeatureAllowlist,
 	},
-	documentation: documentationConfig,
 };
 
 /** Sets `--font-sans` from `config.typography.fontFamily` (see `src/index.css`). Call once at startup. */
