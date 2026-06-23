@@ -31,7 +31,7 @@ const SidebarFooter = () => {
 	const { loading, user } = useUser();
 	const { open: sidebarOpen } = useSidebar();
 	const showPricingPromo = useShouldShowSidebarPricingPromo();
-	const sidebarDocumentationEnabled = config.platform.sidebarDocumentation.enabled;
+	const sidebarDocumentationEnabled = config.platform.sidebar_documentation.enabled;
 
 	if (loading) return <Skeleton className='w-full h-10' />;
 

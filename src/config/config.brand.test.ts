@@ -186,8 +186,8 @@ describe('config object', () => {
 		expect(config.regions).toBeDefined();
 		expect(Array.isArray(config.allowedLocales)).toBe(true);
 		expect(config.platform).toBeDefined();
-		expect(typeof config.platform.apiReference.enabled).toBe('boolean');
-		expect(typeof config.platform.sidebarDocumentation.enabled).toBe('boolean');
+		expect(typeof config.platform.api_reference.enabled).toBe('boolean');
+		expect(typeof config.platform.sidebar_documentation.enabled).toBe('boolean');
 		expect(typeof config.platform.guides.enabled).toBe('boolean');
 		expect(typeof config.platform.onboarding.enabled).toBe('boolean');
 	});
@@ -197,8 +197,8 @@ describe('parsePlatformConfig', () => {
 	it('defaults all platform features to enabled when env is unset', async () => {
 		const { parsePlatformConfig } = await import('./config');
 		const result = parsePlatformConfig();
-		expect(result.apiReference.enabled).toBe(true);
-		expect(result.sidebarDocumentation.enabled).toBe(true);
+		expect(result.api_reference.enabled).toBe(true);
+		expect(result.sidebar_documentation.enabled).toBe(true);
 		expect(result.guides.enabled).toBe(true);
 		expect(result.onboarding.enabled).toBe(true);
 	});
@@ -206,10 +206,10 @@ describe('parsePlatformConfig', () => {
 	it('applies per-feature overrides from VITE_PLATFORM_CONFIG JSON', async () => {
 		const { parsePlatformConfig } = await import('./config');
 		const result = parsePlatformConfig(
-			'{"apiReference":{"enabled":false},"sidebarDocumentation":{"enabled":false},"guides":{"enabled":false},"onboarding":{"enabled":false}}',
+			'{"api_reference":{"enabled":false},"sidebar_documentation":{"enabled":false},"guides":{"enabled":false},"onboarding":{"enabled":false}}',
 		);
-		expect(result.apiReference.enabled).toBe(false);
-		expect(result.sidebarDocumentation.enabled).toBe(false);
+		expect(result.api_reference.enabled).toBe(false);
+		expect(result.sidebar_documentation.enabled).toBe(false);
 		expect(result.guides.enabled).toBe(false);
 		expect(result.onboarding.enabled).toBe(false);
 	});
@@ -217,8 +217,8 @@ describe('parsePlatformConfig', () => {
 	it('leaves unspecified keys enabled when only some features are set in env', async () => {
 		const { parsePlatformConfig } = await import('./config');
 		const result = parsePlatformConfig('{"guides":{"enabled":false}}');
-		expect(result.apiReference.enabled).toBe(true);
-		expect(result.sidebarDocumentation.enabled).toBe(true);
+		expect(result.api_reference.enabled).toBe(true);
+		expect(result.sidebar_documentation.enabled).toBe(true);
 		expect(result.guides.enabled).toBe(false);
 		expect(result.onboarding.enabled).toBe(true);
 	});
