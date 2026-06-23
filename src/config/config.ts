@@ -68,11 +68,6 @@ interface RestrictionsConfig {
 	rawEnvs: string;
 }
 
-interface FeaturesConfig {
-	/** Tenant IDs allowed to use gated UI features (e.g. customer org_type metadata filter). */
-	tenantFeatureAllowlist: string[];
-}
-
 export interface PlatformConfig {
 	apiReference: {
 		enabled: boolean;
@@ -210,6 +205,11 @@ function parseTenantFeatureAllowlist(): string[] {
 }
 
 const tenantFeatureAllowlist = parseTenantFeatureAllowlist();
+
+interface FeaturesConfig {
+	/** Tenant IDs allowed to use gated UI features (e.g. customer org_type metadata filter). */
+	tenantFeatureAllowlist: string[];
+}
 
 export interface Config {
 	app: AppConfig;
