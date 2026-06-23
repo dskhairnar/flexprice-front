@@ -69,10 +69,10 @@ interface RestrictionsConfig {
 }
 
 export interface PlatformConfig {
-	apiReference: {
+	api_reference: {
 		enabled: boolean;
 	};
-	sidebarDocumentation: {
+	sidebar_documentation: {
 		enabled: boolean;
 	};
 	guides: {
@@ -84,8 +84,8 @@ export interface PlatformConfig {
 }
 
 const PLATFORM_FEATURE_DEFAULTS = {
-	apiReference: true,
-	sidebarDocumentation: true,
+	api_reference: true,
+	sidebar_documentation: true,
 	guides: true,
 	onboarding: true,
 } as const;
@@ -93,8 +93,8 @@ const PLATFORM_FEATURE_DEFAULTS = {
 type PlatformFeatureKey = keyof typeof PLATFORM_FEATURE_DEFAULTS;
 
 interface PlatformConfigJson {
-	apiReference?: { enabled?: boolean };
-	sidebarDocumentation?: { enabled?: boolean };
+	api_reference?: { enabled?: boolean };
+	sidebar_documentation?: { enabled?: boolean };
 	guides?: { enabled?: boolean };
 	onboarding?: { enabled?: boolean };
 }
@@ -105,7 +105,7 @@ function parsePlatformFeatureEnabled(parsed: PlatformConfigJson | undefined, key
 	return PLATFORM_FEATURE_DEFAULTS[key];
 }
 
-/** Parse `VITE_PLATFORM_CONFIG` JSON. Keys: apiReference, sidebarDocumentation, guides, onboarding. Omitted keys default to `enabled: true`. */
+/** Parse `VITE_PLATFORM_CONFIG` JSON. Keys: api_reference, sidebar_documentation, guides, onboarding. Omitted keys default to `enabled: true`. */
 export function parsePlatformConfig(rawPlatformConfig?: string): PlatformConfig {
 	let parsed: PlatformConfigJson | undefined;
 	const raw = rawPlatformConfig?.trim();
@@ -119,8 +119,8 @@ export function parsePlatformConfig(rawPlatformConfig?: string): PlatformConfig 
 	}
 
 	return {
-		apiReference: { enabled: parsePlatformFeatureEnabled(parsed, 'apiReference') },
-		sidebarDocumentation: { enabled: parsePlatformFeatureEnabled(parsed, 'sidebarDocumentation') },
+		api_reference: { enabled: parsePlatformFeatureEnabled(parsed, 'api_reference') },
+		sidebar_documentation: { enabled: parsePlatformFeatureEnabled(parsed, 'sidebar_documentation') },
 		guides: { enabled: parsePlatformFeatureEnabled(parsed, 'guides') },
 		onboarding: { enabled: parsePlatformFeatureEnabled(parsed, 'onboarding') },
 	};

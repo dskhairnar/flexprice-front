@@ -31,7 +31,7 @@ const ApiDocsDrawer: FC = () => {
 };
 
 const ApiDocs: FC = () => {
-	if (!config.platform.apiReference.enabled) {
+	if (!config.platform.api_reference.enabled) {
 		return null;
 	}
 
@@ -83,7 +83,7 @@ const ApiDocsContentActive = ({ tags, snippets: snippetsProp }: ApiDocsContentPr
 
 /** Registers page API snippets for the breadcrumb drawer; no-op when api reference is disabled in config. */
 export const ApiDocsContent = ({ tags, snippets: snippetsProp }: ApiDocsContentProps) => {
-	if (!config.platform.apiReference.enabled) {
+	if (!config.platform.api_reference.enabled) {
 		return null;
 	}
 
