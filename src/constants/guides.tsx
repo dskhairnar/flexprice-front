@@ -1,3 +1,4 @@
+import { isGuidesEnabled } from '@/hooks/usePlatformConfig';
 import { TutorialItem } from '@/pages';
 import type { TFunction } from 'i18next';
 
@@ -90,11 +91,35 @@ const openGuide = (url: string) => {
 
 export type GuidesMap = Record<string, { tutorials: TutorialItem[] }>;
 
+const GUIDE_SECTIONS = [
+	'features',
+	'addons',
+	'coupons',
+	'plans',
+	'groups',
+	'customers',
+	'invoices',
+	'payments',
+	'secrets',
+	'creditNotes',
+	'importExport',
+	'taxes',
+] as const;
+
+function disabledGuidesMap(): GuidesMap {
+	return Object.fromEntries(GUIDE_SECTIONS.map((section) => [section, { tutorials: [] }])) as GuidesMap;
+}
+
 /**
  * Localized empty-state / tutorial cards. Pass `t` from `useTranslation('guides')`
  * (or a combined hook where `guides` is loaded).
+ * Returns empty tutorials when `platform.guides.enabled` is false.
  */
 export function buildGuides(t: TFunction<'guides'>): GuidesMap {
+	if (!isGuidesEnabled()) {
+		return disabledGuidesMap();
+	}
+
 	return {
 		features: {
 			tutorials: [
