@@ -2,7 +2,7 @@ import MainLayout from '@/layouts/MainLayout';
 import { createBrowserRouter, Navigate } from 'react-router';
 import AuthMiddleware from '../auth/AuthProvider';
 import { useUser } from '@/hooks/UserContext';
-import { isOnboardingEnabled } from '@/hooks/usePlatformConfig';
+import { config } from '@/config/config';
 import { TenantMetadataKey } from '@/models/Tenant';
 import { Suspense } from 'react';
 import { Loader } from '@/components/atoms';
@@ -199,12 +199,12 @@ const DefaultRoute = () => {
 	const { user } = useUser();
 	const onboardingMetadata = user?.tenant?.metadata?.[TenantMetadataKey.ONBOARDING_COMPLETED];
 	const onboardingCompleted = onboardingMetadata === 'true';
-	const shouldShowOnboarding = isOnboardingEnabled() && !onboardingCompleted;
+	const shouldShowOnboarding = config.platform.onboarding.enabled && !onboardingCompleted;
 	return <Navigate to={shouldShowOnboarding ? RouteNames.onboarding : RouteNames.homeDashboard} />;
 };
 
 const OnboardingRouteGuard = ({ children }: { children: React.ReactNode }) => {
-	if (!isOnboardingEnabled()) {
+	if (!config.platform.onboarding.enabled) {
 		return <Navigate to={RouteNames.homeDashboard} replace />;
 	}
 	return children;

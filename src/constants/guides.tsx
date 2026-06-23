@@ -1,5 +1,5 @@
 import { Locale } from '@/config/branding';
-import { isGuidesEnabled } from '@/hooks/usePlatformConfig';
+import { config } from '@/config/config';
 import { TutorialItem } from '@/pages';
 import { useLocaleStore } from '@/store/useLocaleStore';
 import type { TFunction } from 'i18next';
@@ -109,7 +109,7 @@ const GUIDE_SECTIONS = [
 ] as const;
 
 function areGuidesEnabled(): boolean {
-	if (!isGuidesEnabled()) return false;
+	if (!config.platform.guides.enabled) return false;
 	return useLocaleStore.getState().locale !== Locale.Ar;
 }
 
