@@ -8,7 +8,7 @@ import { Code2 } from 'lucide-react';
 import { fetchAndExtractSnippetsByTags } from './fetch_api_docs';
 import { useQuery } from '@tanstack/react-query';
 import axios from 'axios';
-import { isApiReferenceEnabled } from '@/hooks/usePlatformConfig';
+import { config } from '@/config/config';
 
 const ApiDocsDrawer: FC = () => {
 	const { t } = useTranslation('common');
@@ -31,7 +31,7 @@ const ApiDocsDrawer: FC = () => {
 };
 
 const ApiDocs: FC = () => {
-	if (!isApiReferenceEnabled()) {
+	if (!config.platform.apiReference.enabled) {
 		return null;
 	}
 
@@ -83,7 +83,7 @@ const ApiDocsContentActive = ({ tags, snippets: snippetsProp }: ApiDocsContentPr
 
 /** Registers page API snippets for the breadcrumb drawer; no-op when api reference is disabled in config. */
 export const ApiDocsContent = ({ tags, snippets: snippetsProp }: ApiDocsContentProps) => {
-	if (!isApiReferenceEnabled()) {
+	if (!config.platform.apiReference.enabled) {
 		return null;
 	}
 
