@@ -10,7 +10,7 @@ import AuthService from '@/core/auth/AuthService';
 import { getCommandPaletteActionEventName, CommandPaletteActionId } from '@/core/actions';
 import useUser from '@/hooks/useUser';
 import { useShouldShowSidebarPricingPromo } from '@/hooks/useShouldShowSidebarPricingPromo';
-import { useDocumentationConfig } from '@/hooks/useDocumentationConfig';
+import { config } from '@/config/config';
 import SidebarPricingPromoCard from './SidebarPricingPromoCard';
 
 const SidebarFooter = () => {
@@ -31,7 +31,7 @@ const SidebarFooter = () => {
 	const { loading, user } = useUser();
 	const { open: sidebarOpen } = useSidebar();
 	const showPricingPromo = useShouldShowSidebarPricingPromo();
-	const { sidebarDocumentationEnabled } = useDocumentationConfig();
+	const sidebarDocumentationEnabled = config.platform.sidebarDocumentation.enabled;
 
 	if (loading) return <Skeleton className='w-full h-10' />;
 
