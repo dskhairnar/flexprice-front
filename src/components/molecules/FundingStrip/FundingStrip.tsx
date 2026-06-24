@@ -1,21 +1,15 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { config, AUTH_PROVIDER } from '@/config/config';
-import { Locale } from '@/config/branding';
-import { useLocaleStore } from '@/store/useLocaleStore';
-import { isCurrentUsRegion } from '@/utils/region/regionUtils';
 
 const FUNDING_URL =
 	'https://entrepreneur.economictimes.indiatimes.com/news/funding/flexprice-secures-15-million-in-seed-funding-to-revolutionize-ai-billing-solutions/131320984';
 
+const isFlexpriceIoHostname = (hostname: string): boolean => hostname === 'flexprice.io' || hostname.endsWith('.flexprice.io');
+
 const FundingStrip: React.FC = () => {
 	const { t } = useTranslation('common');
-	const locale = useLocaleStore((s) => s.locale);
 
-	const showForProdSupabase = config.app.isProd && config.auth.provider === AUTH_PROVIDER.Supabase;
-	const showForArabicUs = locale === Locale.Ar && isCurrentUsRegion();
-
-	if (!showForProdSupabase && !showForArabicUs) {
+	if (typeof window === 'undefined' || !isFlexpriceIoHostname(window.location.hostname)) {
 		return null;
 	}
 
