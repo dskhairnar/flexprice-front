@@ -50,6 +50,7 @@ import { generateExpandQueryParams } from '@/utils/common/api_helper';
 import { EXPAND } from '@/models/expand';
 import { GetPriceResponse } from '@/types/dto/Price';
 import { useTranslation } from 'react-i18next';
+import { config } from '@/config/config';
 
 const AGGREGATION_TYPE_I18N_KEY: Record<METER_AGGREGATION_TYPE, string> = {
 	[METER_AGGREGATION_TYPE.SUM]: 'sum',
@@ -271,7 +272,7 @@ const FeatureDetails = () => {
 	}, []);
 
 	const curlCommand = `curl --request POST \\
---url https://api.cloud.flexprice.io/v1/events \\
+--url ${config.api.baseUrl}/v1/events \\
 --header 'Content-Type: application/json' \\
 --header 'x-api-key: <your_api_key>' \\
 --data '{

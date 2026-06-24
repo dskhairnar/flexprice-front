@@ -22,6 +22,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { z } from 'zod';
 import type { TFunction } from 'i18next';
 import { useTranslation } from 'react-i18next';
+import { config } from '@/config/config';
 
 const getFeatureTypeOptions = (t: TFunction): SelectOption[] => [
 	{
@@ -900,7 +901,7 @@ const CodePreviewSection = ({ meter }: { meter: Partial<CreateMeterRequest> | un
 		const aggregationField = meter.aggregation?.field ? `,\n\t\t\t "${meter.aggregation.field}":"__VALUE__"` : '';
 
 		return `curl --request POST \\
-	--url https://api.cloud.flexprice.io/v1/events \\
+	--url ${config.api.baseUrl}/v1/events \\
 	--header 'Content-Type: application/json' \\
 	--header 'x-api-key: <your_api_key>' \\
 	--data '{
