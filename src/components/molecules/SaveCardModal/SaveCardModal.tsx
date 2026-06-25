@@ -48,9 +48,9 @@ const SaveCardModal: FC<SaveCardModalProps> = ({ isOpen, onOpenChange, customerI
 					setupUrl: response.checkout_url,
 					isCopied: false,
 				});
-				toast.success('Setup link created successfully!');
+				toast.success(t('common:toast.setupLinkCreated'));
 			} else {
-				toast.error('Failed to generate payment setup link');
+				toast.error(t('common:toast.setupLinkFailed'));
 			}
 		},
 		onError: (error: Error) => {
@@ -60,7 +60,7 @@ const SaveCardModal: FC<SaveCardModalProps> = ({ isOpen, onOpenChange, customerI
 
 	const handleGetLink = () => {
 		if (!activeEnvironment?.id) {
-			toast.error('No active environment found');
+			toast.error(t('common:toast.noActiveEnvironment'));
 			return;
 		}
 		createSetupIntent();
@@ -70,7 +70,7 @@ const SaveCardModal: FC<SaveCardModalProps> = ({ isOpen, onOpenChange, customerI
 		try {
 			await navigator.clipboard.writeText(setupUrlPopup.setupUrl);
 			setSetupUrlPopup((prev) => ({ ...prev, isCopied: true }));
-			toast.success('Setup URL copied to clipboard!');
+			toast.success(t('common:toast.setupUrlCopied'));
 
 			// Reset copy status after 2 seconds
 			setTimeout(() => {
@@ -78,7 +78,7 @@ const SaveCardModal: FC<SaveCardModalProps> = ({ isOpen, onOpenChange, customerI
 			}, 2000);
 		} catch (error) {
 			console.error('Failed to copy setup URL:', error);
-			toast.error('Failed to copy setup URL. Please try again or copy manually.');
+			toast.error(t('common:toast.copySetupUrlFailed'));
 		}
 	};
 

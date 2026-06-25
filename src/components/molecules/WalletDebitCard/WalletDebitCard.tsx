@@ -49,7 +49,7 @@ const DebitCard: FC<DebitCardProps> = ({ walletId, currency, conversion_rate = 1
 			return WalletApi.debitWallet(payload);
 		},
 		onSuccess: async () => {
-			toast.success('Wallet debited successfully');
+			toast.success(t('common:toast.walletDebited'));
 			onSuccess?.();
 			setDebitPayload({
 				credits: undefined,
@@ -66,12 +66,12 @@ const DebitCard: FC<DebitCardProps> = ({ walletId, currency, conversion_rate = 1
 	const handleDebit = useCallback(() => {
 		// Comprehensive validation before debit
 		if (!walletId) {
-			toast.error('Wallet ID is required');
+			toast.error(t('common:toast.walletIdRequired'));
 			return;
 		}
 
 		if (!debitPayload.credits || debitPayload.credits <= 0) {
-			toast.error('Please enter a valid credits amount');
+			toast.error(t('common:toast.invalidCreditsAmount'));
 			return;
 		}
 
@@ -82,7 +82,7 @@ const DebitCard: FC<DebitCardProps> = ({ walletId, currency, conversion_rate = 1
 			idempotency_key: debitPayload.reference_id || uuidv4(),
 			transaction_reason: WALLET_TRANSACTION_REASON.MANUAL_BALANCE_DEBIT,
 		});
-	}, [walletId, debitPayload, debitWallet]);
+	}, [walletId, debitPayload, debitWallet, t]);
 
 	// Update payload with type-safe setter
 	const updateDebitPayload = useCallback((updates: Partial<DebitPayload>) => {

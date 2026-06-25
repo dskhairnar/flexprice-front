@@ -86,7 +86,7 @@ const CostAnalyticsPage: React.FC = () => {
 	}, []);
 
 	if (costError) {
-		toast.error('Error fetching cost data');
+		toast.error(t('common:toast.errorFetchingCost'));
 	}
 
 	const handleDateRangeChange = ({ startDate: newStartDate, endDate: newEndDate }: { startDate?: Date; endDate?: Date }) => {

@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { useParams } from 'react-router';
+import { useTranslation } from 'react-i18next';
 import { useQuery } from '@tanstack/react-query';
 import { PlanPriceTable } from '@/components/organisms';
 import { PlanApi } from '@/api';
@@ -9,6 +10,7 @@ import toast from 'react-hot-toast';
 import { DataType, FilterOperator } from '@/types/common/QueryBuilder';
 
 const PlanOverviewTab = () => {
+	const { t } = useTranslation();
 	const { planId } = useParams<{ planId: string }>();
 
 	const {
@@ -31,9 +33,9 @@ const PlanOverviewTab = () => {
 
 	useEffect(() => {
 		if (isPlanError) {
-			toast.error('Error loading plan data');
+			toast.error(t('common:toast.errorLoadingPlan'));
 		}
-	}, [isPlanError]);
+	}, [isPlanError, t]);
 
 	if (isPlanLoading) {
 		return <Loader />;

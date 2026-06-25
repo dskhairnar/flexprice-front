@@ -256,7 +256,7 @@ const SubscriptionForm = ({
 
 	const handleBillingPeriodChange = (value: string) => {
 		if (!selectedPlanPrices?.items) {
-			toast.error('Invalid billing period.');
+			toast.error(t('common:toast.invalidBillingPeriod'));
 			return;
 		}
 

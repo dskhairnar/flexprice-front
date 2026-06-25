@@ -53,7 +53,7 @@ const SubscriptionEntitlementsSection: FC<SubscriptionEntitlementsSectionProps> 
 			return await EntitlementApi.delete(entitlementId);
 		},
 		onSuccess: () => {
-			toast.success('Entitlement deleted successfully');
+			toast.success(t('common:toast.entitlementDeleted'));
 			queryClient.invalidateQueries({ queryKey: ['subscriptionEntitlements', subscriptionId] });
 			setIsDeleteDialogOpen(false);
 			setEntitlementToDelete(null);

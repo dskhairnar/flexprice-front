@@ -20,7 +20,7 @@ const TerminateWalletModal: FC<WalletTerminalProps> = ({ isOpen, onOpenChange, w
 			return await WalletApi.terminateWallet(wallet?.id as string);
 		},
 		async onSuccess() {
-			toast.success('Wallet terminated successfully');
+			toast.success(t('common:toast.walletTerminated'));
 			await refetchQueries(['fetchWallets']);
 			await refetchQueries(['fetchWallet']);
 			onOpenChange(false);

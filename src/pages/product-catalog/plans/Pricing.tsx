@@ -562,7 +562,7 @@ const PricingPage = () => {
 	}
 
 	if (isError) {
-		toast.error('Error fetching plans');
+		toast.error(t('common:toast.errorFetchingPlans'));
 		return null;
 	}
 

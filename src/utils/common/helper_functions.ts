@@ -1,4 +1,4 @@
-import type { TFunction } from 'i18next';
+import i18n, { type TFunction } from 'i18next';
 import { ApiEnum, translateApiEnum } from '@/i18n/display/apiEnums';
 import { DEFAULT_CURRENCY_CODE } from '@/constants/constants';
 import { getCurrencySymbol as getCurrencyDisplaySymbol } from '@/constants/common';
@@ -244,7 +244,7 @@ export const copyToClipboard = async (textToCopy: string, toastMessage: string):
 		await navigator.clipboard.writeText(textToCopy);
 		toast.success(toastMessage);
 	} catch (error) {
-		toast.error('Failed to copy to clipboard. Please try again.');
+		toast.error(i18n.t('common:toast.copyFailedRetry'));
 		throw error;
 	}
 };

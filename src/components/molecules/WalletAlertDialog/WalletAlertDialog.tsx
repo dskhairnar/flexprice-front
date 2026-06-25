@@ -81,7 +81,7 @@ const WalletAlertDialog: React.FC<WalletAlertDialogProps> = ({ open, alertSettin
 			const hasAnyThreshold = localAlertSettings.critical || localAlertSettings.warning || localAlertSettings.info;
 
 			if (!hasAnyThreshold) {
-				toast.error('Please configure at least one threshold level');
+				toast.error(t('common:toast.configureOneThreshold'));
 				return;
 			}
 
@@ -90,7 +90,7 @@ const WalletAlertDialog: React.FC<WalletAlertDialogProps> = ({ open, alertSettin
 				if (threshold) {
 					const value = parseFloat(threshold.threshold);
 					if (isNaN(value)) {
-						toast.error(`Please enter a valid ${name} threshold value`);
+						toast.error(t('common:toast.invalidNamedThreshold', { name }));
 						return false;
 					}
 				}

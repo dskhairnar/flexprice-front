@@ -29,7 +29,7 @@ const EmailVerification = () => {
 			}
 		},
 		onSuccess: () => {
-			toast.success('Verification email has been resent. Please check your inbox.');
+			toast.success(t('common:toast.verificationEmailResent'));
 		},
 		onError: (error: Error) => {
 			toast.error(error.message || 'Failed to resend verification email');
@@ -38,7 +38,7 @@ const EmailVerification = () => {
 
 	const handleResend = () => {
 		if (!email) {
-			toast.error('Email address is missing');
+			toast.error(t('common:toast.emailMissing'));
 			return;
 		}
 		resendVerification();

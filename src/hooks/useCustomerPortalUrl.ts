@@ -1,4 +1,5 @@
 import { useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import CustomerApi from '@/api/CustomerApi';
 import { RouteNames } from '@/core/routes/Routes';
 import toast from 'react-hot-toast';
@@ -10,6 +11,7 @@ import { logger } from '@/utils/common/Logger';
  * @returns Object with portalUrl and copyToClipboard function
  */
 export const useCustomerPortalUrl = (customerExternalId: string | undefined) => {
+	const { t } = useTranslation();
 	const portalUrl = useMemo(() => {
 		if (!customerExternalId) return null;
 
@@ -31,12 +33,12 @@ export const useCustomerPortalUrl = (customerExternalId: string | undefined) => 
 	 */
 	const copyToClipboard = async () => {
 		if (!customerExternalId) {
-			toast.error('Customer external ID is missing');
+			toast.error(t('common:toast.customerExternalIdMissing'));
 			return;
 		}
 
 		if (!portalUrl) {
-			toast.error('Unable to generate portal URL');
+			toast.error(t('common:toast.unablePortalUrl'));
 			return;
 		}
 
@@ -44,7 +46,7 @@ export const useCustomerPortalUrl = (customerExternalId: string | undefined) => 
 			// Create dashboard session to get token
 			const sessionData = await CustomerApi.createDashboardSession(customerExternalId);
 			if (!sessionData?.token) {
-				toast.error('Unable to create dashboard session.');
+				toast.error(t('common:toast.unableDashboardSession'));
 				return;
 			}
 
@@ -54,10 +56,10 @@ export const useCustomerPortalUrl = (customerExternalId: string | undefined) => 
 
 			// Copy to clipboard
 			await navigator.clipboard.writeText(urlWithToken.toString());
-			toast.success('Customer portal link copied to clipboard!');
+			toast.success(t('common:toast.customerPortalLinkCopied'));
 		} catch (error) {
 			logger.error('Failed to copy customer portal link', error);
-			toast.error('Failed to copy customer portal link. Please try again.');
+			toast.error(t('common:toast.copyPortalLinkFailed'));
 		}
 	};
 
@@ -66,12 +68,12 @@ export const useCustomerPortalUrl = (customerExternalId: string | undefined) => 
 	 */
 	const openInNewTab = async () => {
 		if (!customerExternalId) {
-			toast.error('Customer external ID is missing');
+			toast.error(t('common:toast.customerExternalIdMissing'));
 			return;
 		}
 
 		if (!portalUrl) {
-			toast.error('Unable to generate portal URL');
+			toast.error(t('common:toast.unablePortalUrl'));
 			return;
 		}
 
@@ -79,7 +81,7 @@ export const useCustomerPortalUrl = (customerExternalId: string | undefined) => 
 			// Create dashboard session to get token
 			const sessionData = await CustomerApi.createDashboardSession(customerExternalId);
 			if (!sessionData?.token) {
-				toast.error('Unable to create dashboard session.');
+				toast.error(t('common:toast.unableDashboardSession'));
 				return;
 			}
 
@@ -91,7 +93,7 @@ export const useCustomerPortalUrl = (customerExternalId: string | undefined) => 
 			window.open(urlWithToken.toString(), '_blank', 'noopener,noreferrer');
 		} catch (error) {
 			logger.error('Failed to open customer portal', error);
-			toast.error('Failed to open customer portal. Please try again.');
+			toast.error(t('common:toast.openPortalFailed'));
 		}
 	};
 

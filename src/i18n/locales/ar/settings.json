@@ -317,6 +317,7 @@
 			"clientSecretRequired": "سرّ العميل مطلوب",
 			"apiKeyRequired": "مفتاح API مطلوب",
 			"apiKeyRequiredUpper": "مفتاح API مطلوب",
+			"companyIdRequired": "معرّف الشركة مطلوب",
 			"siteRequired": "الموقع مطلوب",
 			"webhookUsernameRequired": "اسم مستخدم الويب هوك مطلوب",
 			"webhookPasswordRequired": "كلمة مرور الويب هوك مطلوبة",
@@ -408,6 +409,7 @@
 			"sessionTokenHint": "مطلوب فقط للأوراق المؤقتة",
 			"securityNote": "ملاحظة أمنية",
 			"securityFlexprice": "تُخزَّن بياناتك بأمان في حاويات S3 تديرها Flexprice. الملفات مُشفّرة في السكون وتُنزَّل عبر روابط آمنة.",
+			"security{{brandName}}": "تُخزَّن بياناتك بأمان في حاويات S3 المُدارة من {{brandName}}. الملفات مُشفّرة في السكون وتُنزَّل عبر روابط آمنة.",
 			"securityAws": "تُشفَّر بيانات AWS وتُخزَّن بأمان. يُفضّل استخدام أدوار IAM بأقل صلاحيات لـ S3."
 		},
 		"zohoBooks": {
@@ -556,7 +558,15 @@
 			"invoiceSyncHint": "ادفع فواتير Flexprice إلى Whop كمدفوعات send_invoice",
 			"webhookIntroPrefix": "سجّل هذا العنوان في لوحة Whop ضمن Webhooks. سيتابع Flexprice",
 			"webhookEventName": "invoice.paid",
-			"webhookIntroSuffix": "لتحديث حالة الفاتورة تلقائياً عند الدفع."
+			"webhookIntroSuffix": "لتحديث حالة الفاتورة تلقائياً عند الدفع.",
+			"connect{{brandName}}ToWhopToSyncInvoicesHint": "اربط {{brandName}} بـ Whop لمزامنة الفواتير.",
+			"nameYourWhopConnectionPlaceholder": "اسم اتصال Whop",
+			"aFriendlyNameForThisConnectionHint": "اسم ودي لتحديد هذا الاتصال.",
+			"apiKey": "مفتاح API",
+			"productIdOptionalPlaceholder": "prod_... — اتركه فارغاً للإنشاء التلقائي",
+			"productIdOptionalHint": "منتج Whop المستخدم للفواتير. اتركه فارغاً ليقوم {{brandName}} بإنشائه تلقائياً.",
+			"push{{brandName}}InvoicesToWhopAs": "إرسال فواتير {{brandName}} إلى Whop كمدفوعات send_invoice",
+			"webhookRegisterHintHtml": "سجّل هذا العنوان في لوحة تحكم Whop ضمن Webhooks. سيستمع {{brandName}} إلى أحداث <code>invoice.paid</code> لتعليم الفواتير كمدفوعة تلقائياً."
 		}
 	},
 	"insightsTools": {
@@ -894,6 +904,31 @@
 						"webhooksPaddle": {
 							"title": "تكامل الويبهوك",
 							"paragraphs": ["استقبل إشعارات فورية عن أحداث الدفع عبر الويبهوك؛ اشترك في حدث transactions.completed لمتابعة حالة الدفع."]
+						}
+					}
+				},
+				"whop": {
+					"name": "Whop",
+					"description": "مزامنة الفواتير مع Whop مع تحديثات تلقائية لحالة الدفع.",
+					"sections": {
+						"overview": {
+							"title": "نظرة عامة",
+							"paragraphs": [
+								"يتيح لك تكامل Whop في {{brandName}} إرسال الفواتير مباشرةً إلى Whop كمدفوعات send_invoice لمرة واحدة. يمكن للعملاء الدفع عبر صفحة الدفع المستضافة على Whop، ويتم تحديث {{brandName}} تلقائياً عند استلام الدفعة."
+							]
+						},
+						"invoiceSync": {
+							"title": "مزامنة الفواتير",
+							"paragraphs": [
+								"عند تفعيل مزامنة الفواتير، يقوم {{brandName}} تلقائياً بإنشاء فاتورة مقابلة في Whop عند اعتماد أي فاتورة في {{brandName}}. يضمن التكامل وجود منتج Whop الخاص بك (وينشئ واحداً عند الحاجة).",
+								"يمكنك أيضاً تعليم فاتورة Whop كمدفوعة من {{brandName}}، مما يستدعي واجهة mark_paid في Whop نيابةً عنك."
+							]
+						},
+						"webhooks": {
+							"title": "تكامل الويبهوك",
+							"paragraphs": [
+								"سجّل عنوان webhook الخاص بـ {{brandName}} في إعدادات مطوّري Whop لاستقبال أحداث invoice.paid. عندما يُطلق Whop هذا الحدث، يقوم {{brandName}} تلقائياً بتعليم الفاتورة المقابلة كمدفوعة وتسجيل الدفعة."
+							]
 						}
 					}
 				}
