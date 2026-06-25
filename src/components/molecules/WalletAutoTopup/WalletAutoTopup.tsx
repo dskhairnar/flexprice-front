@@ -44,11 +44,11 @@ const WalletAutoTopup: React.FC<WalletAutoTopupProps> = ({ open, autoTopupConfig
 	const handleSave = () => {
 		if (localConfig.enabled) {
 			if (!localConfig.threshold || isNaN(parseFloat(localConfig.threshold))) {
-				toast.error('Please enter a valid threshold value');
+				toast.error(t('common:toast.invalidThreshold'));
 				return;
 			}
 			if (!localConfig.amount || isNaN(parseFloat(localConfig.amount)) || parseFloat(localConfig.amount) <= 0) {
-				toast.error('Please enter a valid amount value greater than 0');
+				toast.error(t('common:toast.invalidAmountGtZero'));
 				return;
 			}
 		}

@@ -105,7 +105,7 @@ const IntegrationMappingCard: FC<IntegrationMappingCardProps> = ({
 				method,
 			}),
 		onSuccess: () => {
-			toast.success('Integration sync triggered successfully');
+			toast.success(t('common:toast.integrationSyncTriggered'));
 		},
 		onError: (error: Error) => {
 			toast.error(error.message || 'Failed to trigger sync');
@@ -121,7 +121,7 @@ const IntegrationMappingCard: FC<IntegrationMappingCardProps> = ({
 				provider_entity_id: providerEntityId,
 			}),
 		onSuccess: () => {
-			toast.success('Integration linked successfully');
+			toast.success(t('common:toast.integrationLinked'));
 			setLinkDialogOpen(false);
 			setProviderEntityId('');
 			setLinkTarget(null);
@@ -182,7 +182,7 @@ const IntegrationMappingCard: FC<IntegrationMappingCardProps> = ({
 			return;
 		}
 		if (!providerEntityId.trim()) {
-			toast.error('Provider Entity ID is required');
+			toast.error(t('common:toast.providerEntityIdRequired'));
 			return;
 		}
 		linkIntegration();

@@ -235,7 +235,7 @@ const SubscriptionAddonsSection: FC<SubscriptionAddonsSectionProps> = ({
 			});
 		},
 		onSuccess: () => {
-			toast.success('Addon cancelled successfully');
+			toast.success(t('common:toast.addonCancelled'));
 			queryClient.invalidateQueries({ queryKey: ['subscriptionActiveAddons', subscriptionId] });
 			void refetchQueries(['subscriptionEdit', subscriptionId]);
 			queryClient.invalidateQueries({ queryKey: ['subscriptionEntitlements', subscriptionId] });

@@ -150,7 +150,7 @@ const SubscriptionEntitlementsSection: FC<SubscriptionEntitlementsSectionProps> 
 			return await EntitlementApi.delete(entitlementId);
 		},
 		onSuccess: () => {
-			toast.success(t('entitlements.subscriptionEdit.deleteSuccess'));
+			toast.success(t('common:toast.entitlementDeleted'));
 			invalidateEntitlements();
 			setIsDeleteDialogOpen(false);
 			setEntitlementToDelete(null);

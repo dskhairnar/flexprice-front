@@ -73,7 +73,7 @@ const SubscriptionActionButton: React.FC<Props> = ({ subscription }) => {
 	// 		}),
 	// 	onSuccess: async () => {
 	// 		setState((prev) => ({ ...prev, isPauseModalOpen: false }));
-	// 		toast.success('Subscription paused successfully');
+	// 		toast.success(t('common:toast.subscriptionPaused'));
 	// 		await refetchQueries(['subscriptionDetails']);
 	// 		await refetchQueries(['subscriptions']);
 	// 	},
@@ -90,7 +90,7 @@ const SubscriptionActionButton: React.FC<Props> = ({ subscription }) => {
 	// 		}),
 	// 	onSuccess: async () => {
 	// 		setState((prev) => ({ ...prev, isResumeModalOpen: false }));
-	// 		toast.success('Subscription resumed successfully');
+	// 		toast.success(t('common:toast.subscriptionResumed'));
 	// 		await refetchQueries(['subscriptionDetails']);
 	// 		await refetchQueries(['subscriptions']);
 	// 	},
@@ -116,7 +116,7 @@ const SubscriptionActionButton: React.FC<Props> = ({ subscription }) => {
 			}),
 		onSuccess: async () => {
 			resetCancelState();
-			toast.success('Subscription cancelled successfully');
+			toast.success(t('common:toast.subscriptionCancelled'));
 			await refetchQueries(['subscriptionDetails']);
 			await refetchQueries(['subscriptions']);
 		},
@@ -133,7 +133,7 @@ const SubscriptionActionButton: React.FC<Props> = ({ subscription }) => {
 			}),
 		onSuccess: async () => {
 			setState((prev) => ({ ...prev, isActivateModalOpen: false }));
-			toast.success('Subscription activated successfully');
+			toast.success(t('common:toast.subscriptionActivated'));
 			await refetchQueries(['subscriptionDetails']);
 			await refetchQueries(['subscriptions']);
 			await refetchQueries(['subscriptionInvoices']);

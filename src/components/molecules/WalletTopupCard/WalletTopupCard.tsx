@@ -98,12 +98,12 @@ const TopupCard: FC<TopupCardProps> = ({ walletId, currency, conversion_rate = 1
 		const { credits_type, credits_to_add, expiry_date_utc } = topupPayload;
 
 		if (!credits_type) {
-			toast.error('Please select a credits type');
+			toast.error(t('common:toast.selectCreditsType'));
 			return false;
 		}
 
 		if (!credits_to_add || credits_to_add <= 0) {
-			toast.error('Please enter a valid credits amount');
+			toast.error(t('common:toast.invalidCreditsAmount'));
 			return false;
 		}
 
@@ -112,21 +112,21 @@ const TopupCard: FC<TopupCardProps> = ({ walletId, currency, conversion_rate = 1
 
 			if (minExpiryDate) {
 				if (expiryDateOnly.getTime() < minExpiryDate.getTime()) {
-					toast.error('Expiry date must be after the current subscription period end');
+					toast.error(t('common:toast.expiryAfterPeriodEnd'));
 					return false;
 				}
 			} else {
 				const today = new Date();
 				today.setHours(0, 0, 0, 0);
 				if (expiryDateOnly.getTime() < today.getTime()) {
-					toast.error('Expiry date cannot be in the past');
+					toast.error(t('common:toast.expiryInPast'));
 					return false;
 				}
 			}
 		}
 
 		return true;
-	}, [topupPayload, minExpiryDate]);
+	}, [topupPayload, minExpiryDate, t]);
 
 	// Wallet topup mutation with improved error handling
 	const { isPending, mutate: topupWallet } = useMutation({
@@ -155,9 +155,9 @@ const TopupCard: FC<TopupCardProps> = ({ walletId, currency, conversion_rate = 1
 			// Show different message based on transaction type
 			const transactionReason = getTransactionReason();
 			if (transactionReason === WALLET_TRANSACTION_REASON.PURCHASED_CREDIT_INVOICED) {
-				toast.success('Invoice created successfully. Credits will be added once the invoice is paid.');
+				toast.success(t('common:toast.invoiceCreatedCredits'));
 			} else {
-				toast.success('Wallet topped up successfully');
+				toast.success(t('common:toast.walletToppedUp'));
 			}
 			onSuccess?.();
 			setTopupPayload({

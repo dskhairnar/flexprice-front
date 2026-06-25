@@ -126,7 +126,7 @@ const CustomerWalletTab = () => {
 		onSuccess: async () => {
 			setShowAutoTopupModal(false);
 			await refetchQueries(['fetchWallets', customerId!]);
-			toast.success('Auto top-up settings updated successfully');
+			toast.success(t('common:toast.autoTopupUpdated'));
 		},
 		onError: (error: Error) => {
 			logger.error('Failed to update auto top-up settings', error);
@@ -207,7 +207,7 @@ const CustomerWalletTab = () => {
 
 	// Handle errors
 	if (isError || isTransactionError) {
-		toast.error('An error occurred while fetching wallet details');
+		toast.error(t('common:toast.errorFetchingWallet'));
 	}
 
 	// Render wallet details
@@ -288,10 +288,10 @@ const CustomerWalletTab = () => {
 						});
 						setShowAlertDialog(false);
 						refetchQueries(['fetchWallets', customerId!]);
-						toast.success('Alert settings updated successfully');
+						toast.success(t('common:toast.alertSettingsUpdated'));
 					} catch (e) {
 						logger.error('Failed to update alert settings', e);
-						toast.error('Failed to update alert settings');
+						toast.error(t('common:toast.alertSettingsUpdateFailed'));
 					}
 				}}
 				onClose={() => setShowAlertDialog(false)}

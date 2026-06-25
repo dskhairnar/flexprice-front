@@ -1,0 +1,39 @@
+@font-face {
+	font-family: 'Thmanyah Sans';
+	font-style: normal;
+	font-weight: 300;
+	font-display: swap;
+	src: url('/woff2/thmanyahsans-Light.woff2') format('woff2');
+}
+
+@font-face {
+	font-family: 'Thmanyah Sans';
+	font-style: normal;
+	font-weight: 400;
+	font-display: swap;
+	src: url('/woff2/thmanyahsans-Regular.woff2') format('woff2');
+}
+
+@font-face {
+	font-family: 'Thmanyah Sans';
+	font-style: normal;
+	font-weight: 500;
+	font-display: swap;
+	src: url('/woff2/thmanyahsans-Medium.woff2') format('woff2');
+}
+
+@font-face {
+	font-family: 'Thmanyah Sans';
+	font-style: normal;
+	font-weight: 700;
+	font-display: swap;
+	src: url('/woff2/thmanyahsans-Bold.woff2') format('woff2');
+}
+
+@font-face {
+	font-family: 'Thmanyah Sans';
+	font-style: normal;
+	font-weight: 900;
+	font-display: swap;
+	src: url('/woff2/thmanyahsans-Black.woff2') format('woff2');
+}

@@ -42,7 +42,7 @@ const ExportDetails = () => {
 	const { mutate: toggleTask, isPending: isTogglingTask } = useMutation({
 		mutationFn: ({ id, enabled }: { id: string; enabled: boolean }) => TaskApi.updateScheduledTask(id, { enabled }),
 		onSuccess: () => {
-			toast.success('Export task updated successfully');
+			toast.success(t('common:toast.exportTaskUpdated'));
 			refetchExport();
 		},
 		onError: (error: Error) => {
@@ -55,7 +55,7 @@ const ExportDetails = () => {
 		mutationFn: ({ id, startTime, endTime }: { id: string; startTime?: string; endTime?: string }) =>
 			TaskApi.forceRunScheduledTask(id, startTime && endTime ? { start_time: startTime, end_time: endTime } : undefined),
 		onSuccess: () => {
-			toast.success('Export task started successfully');
+			toast.success(t('common:toast.exportTaskStarted'));
 			setIsForceRunDrawerOpen(false);
 		},
 		onError: (error: Error) => {
@@ -67,7 +67,7 @@ const ExportDetails = () => {
 	const { mutate: deleteTask, isPending: isDeletingTask } = useMutation({
 		mutationFn: (id: string) => TaskApi.deleteScheduledTask(id),
 		onSuccess: () => {
-			toast.success('Export task deleted successfully');
+			toast.success(t('common:toast.exportTaskDeleted'));
 			navigate(`/tools/exports/s3/${connectionId}/export`);
 		},
 		onError: (error: Error) => {

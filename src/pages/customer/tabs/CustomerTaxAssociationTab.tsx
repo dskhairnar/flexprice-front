@@ -49,7 +49,7 @@ const CustomerTaxAssociationTab = () => {
 	const createTaxAssociationMutation = useMutation({
 		mutationFn: (payload: CreateTaxAssociationRequest) => TaxApi.createTaxAssociation(payload),
 		onSuccess: () => {
-			toast.success('Tax association created successfully');
+			toast.success(t('common:toast.taxAssociationCreated'));
 			setDialogOpen(false);
 			refetch();
 		},
@@ -75,7 +75,7 @@ const CustomerTaxAssociationTab = () => {
 	}
 
 	if (isError) {
-		toast.error('Error fetching tax associations');
+		toast.error(t('common:toast.errorFetchingTaxAssoc'));
 	}
 
 	if (!taxAssociationsData?.items?.length) {

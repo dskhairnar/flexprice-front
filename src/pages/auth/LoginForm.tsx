@@ -69,7 +69,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ switchTab }) => {
 
 	const handleLogin = async () => {
 		if (!email || !password) {
-			toast.error('Please enter both email and password');
+			toast.error(t('common:toast.enterEmailPassword'));
 			return;
 		}
 
@@ -90,7 +90,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ switchTab }) => {
 
 			userContext.setUser(data);
 			navigate('/');
-			toast.success('Login successful');
+			toast.success(t('common:toast.loginSuccessful'));
 		} else {
 			localLogin();
 		}

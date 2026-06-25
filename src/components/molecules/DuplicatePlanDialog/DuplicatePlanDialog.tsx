@@ -80,7 +80,7 @@ const DuplicatePlanDialog: FC<DuplicatePlanDialogProps> = ({
 	const { mutate: clonePlan, isPending } = useMutation({
 		mutationFn: (payload: ClonePlanRequest) => PlanApi.clonePlan(planId, payload),
 		onSuccess: (data) => {
-			toast.success('Plan duplicated successfully');
+			toast.success(t('common:toast.planDuplicated'));
 			onOpenChange(false);
 			refetchQueries(refetchQueryKeys);
 			navigate(`${RouteNames.plan}/${data.id}`);

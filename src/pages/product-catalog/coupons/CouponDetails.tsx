@@ -96,7 +96,7 @@ const CouponDetails = () => {
 	}
 
 	if (isError || !coupon) {
-		toast.error('Error loading coupon details');
+		toast.error(t('common:toast.errorLoadingCoupon'));
 		return (
 			<Page heading={t('common:errors.loadFailedShort')}>
 				<div className='flex items-center justify-center h-64'>

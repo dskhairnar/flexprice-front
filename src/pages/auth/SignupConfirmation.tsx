@@ -33,7 +33,7 @@ const SignupConfirmation = () => {
 			}
 
 			if (!session) {
-				toast.error('No session found');
+				toast.error(t('common:toast.noSession'));
 				navigate('/auth');
 				return;
 			}

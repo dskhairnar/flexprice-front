@@ -6,6 +6,7 @@ import { cn } from '@/lib/utils';
 import { ApiDocsContent } from '@/components/molecules';
 import { API_DOCS_TAGS } from '@/constants/apiDocsTags';
 import { Download, Database, Cloud } from 'lucide-react';
+import { brandTranslationOptions } from '@/config/branding';
 
 interface ExportProvider {
 	name: string;
@@ -19,20 +20,21 @@ interface ExportProvider {
 
 const Exports = () => {
 	const { t } = useTranslation('settings');
+	const brandOpts = brandTranslationOptions();
 	const navigate = useNavigate();
 
 	const exportProviders: ExportProvider[] = useMemo(
 		() => [
 			{
-				name: t('insightsTools.exports.providerAmazonS3Name'),
-				description: t('insightsTools.exports.providerAmazonS3Description'),
+				name: t('insightsTools.exports.providerAmazonS3Name', brandOpts),
+				description: t('insightsTools.exports.providerAmazonS3Description', brandOpts),
 				icon: Cloud,
 				logo: 'https://upload.wikimedia.org/wikipedia/commons/b/bc/Amazon-S3-Logo.svg',
 				tags: [t('insightsTools.exports.tagStorage'), t('insightsTools.exports.tagDataWarehouse'), t('insightsTools.exports.tagAnalytics')],
 				route: '/tools/exports/s3',
 			},
 		],
-		[t],
+		[t, brandOpts],
 	);
 
 	const handleProviderClick = (provider: ExportProvider) => {
@@ -47,7 +49,7 @@ const Exports = () => {
 			<div className='mb-14'>
 				<FormHeader title={t('insightsTools.exports.overviewSectionTitle')} variant='sub-header' />
 				<div className='card space-y-4'>
-					<p className='text-gray-600'>{t('insightsTools.exports.overviewIntro')}</p>
+					<p className='text-gray-600'>{t('insightsTools.exports.overviewIntro', brandOpts)}</p>
 					<div className='grid grid-cols-1 md:grid-cols-3 gap-4'>
 						<div className='flex items-center gap-3 p-3 rounded-lg border border-gray-200 bg-white'>
 							<Download className='w-6 h-6 text-gray-600' />

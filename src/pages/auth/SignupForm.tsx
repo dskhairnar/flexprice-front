@@ -63,7 +63,7 @@ const SignupForm: React.FC<SignupFormProps> = ({ switchTab }) => {
 		},
 		onSuccess: (data) => {
 			if (config.app.env !== APP_ENV.SelfHosted) {
-				toast.success('Account created successfully! Please check your email to confirm your account.');
+				toast.success(t('common:toast.accountCreated'));
 				switchTab(AuthTab.LOGIN);
 			} else {
 				// Store token in a consistent format
