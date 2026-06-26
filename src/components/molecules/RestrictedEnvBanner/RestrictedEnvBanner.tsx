@@ -6,6 +6,7 @@ import { useRestrictedEnvs, EnvRestrictionState } from '@/hooks/useRestrictedEnv
 import useUser from '@/hooks/useUser';
 import { ENVIRONMENT_TYPE } from '@/models/Environment';
 import ContactUsDialog from '../ContactUsDialog/ContactUsDialog';
+import { isFlexpriceContactEnabled } from '@/utils/hostname/isFlexpriceIoHostname';
 
 function daysLeft(expiresAt: string): number {
 	return Math.max(0, Math.ceil((new Date(expiresAt).getTime() - Date.now()) / (1000 * 60 * 60 * 24)));
@@ -41,6 +42,7 @@ const RestrictedEnvBanner: React.FC = () => {
 	const { environments } = useEnvironment();
 	const { isTenantRestricted, getRestrictionResultsForTenant } = useRestrictedEnvs();
 	const [isContactDialogOpen, setIsContactDialogOpen] = useState(false);
+	const showContactOptions = isFlexpriceContactEnabled();
 
 	const tenantId = user?.tenant?.id ?? '';
 	const tenantEntries = useMemo(() => getRestrictionResultsForTenant(tenantId), [tenantId, getRestrictionResultsForTenant]);
@@ -76,19 +78,25 @@ const RestrictedEnvBanner: React.FC = () => {
 						borderColor: '#E3ECFF',
 					}}>
 					<span className='text-sm' style={{ color: '#184FC7' }}>
-						{t('environment.restrictedBanner.grace', { envType: envTypeLabel, count: days, dayWord })}{' '}
-						<button
-							type='button'
-							onClick={() => setIsContactDialogOpen(true)}
-							className='inline-flex items-center gap-1 underline hover:opacity-80'
-							style={{ color: '#184FC7' }}>
-							{t('environment.restrictedBanner.contactUs')}
-							<ExternalLink className='h-3.5 w-3.5 shrink-0' aria-hidden />
-						</button>
-						.
+						{showContactOptions ? (
+							<>
+								{t('environment.restrictedBanner.grace', { envType: envTypeLabel, count: days, dayWord })}{' '}
+								<button
+									type='button'
+									onClick={() => setIsContactDialogOpen(true)}
+									className='inline-flex items-center gap-1 underline hover:opacity-80'
+									style={{ color: '#184FC7' }}>
+									{t('environment.restrictedBanner.contactUs')}
+									<ExternalLink className='h-3.5 w-3.5 shrink-0' aria-hidden />
+								</button>
+								.
+							</>
+						) : (
+							t('environment.restrictedBanner.graceOnly', { envType: envTypeLabel, count: days, dayWord })
+						)}
 					</span>
 				</div>
-				<ContactUsDialog isOpen={isContactDialogOpen} onOpenChange={setIsContactDialogOpen} />
+				{showContactOptions && <ContactUsDialog isOpen={isContactDialogOpen} onOpenChange={setIsContactDialogOpen} />}
 			</>
 		);
 	}
@@ -103,19 +111,25 @@ const RestrictedEnvBanner: React.FC = () => {
 						borderColor: '#FFDDDD',
 					}}>
 					<span className='text-sm' style={{ color: '#C81B1B' }}>
-						{t('environment.restrictedBanner.suspended', { envType: envTypeLabel })}{' '}
-						<button
-							type='button'
-							onClick={() => setIsContactDialogOpen(true)}
-							className='inline-flex items-center gap-1 underline hover:opacity-80'
-							style={{ color: '#C81B1B' }}>
-							{t('environment.restrictedBanner.contactUs')}
-							<ExternalLink className='h-3.5 w-3.5 shrink-0' aria-hidden />
-						</button>
-						.
+						{showContactOptions ? (
+							<>
+								{t('environment.restrictedBanner.suspended', { envType: envTypeLabel })}{' '}
+								<button
+									type='button'
+									onClick={() => setIsContactDialogOpen(true)}
+									className='inline-flex items-center gap-1 underline hover:opacity-80'
+									style={{ color: '#C81B1B' }}>
+									{t('environment.restrictedBanner.contactUs')}
+									<ExternalLink className='h-3.5 w-3.5 shrink-0' aria-hidden />
+								</button>
+								.
+							</>
+						) : (
+							t('environment.restrictedBanner.suspendedOnly', { envType: envTypeLabel })
+						)}
 					</span>
 				</div>
-				<ContactUsDialog isOpen={isContactDialogOpen} onOpenChange={setIsContactDialogOpen} />
+				{showContactOptions && <ContactUsDialog isOpen={isContactDialogOpen} onOpenChange={setIsContactDialogOpen} />}
 			</>
 		);
 	}

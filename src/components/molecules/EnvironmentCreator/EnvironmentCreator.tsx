@@ -8,6 +8,7 @@ import EnvironmentApi from '@/api/EnvironmentApi';
 import toast from 'react-hot-toast';
 import { Mail, CalendarDays, AlertTriangle } from 'lucide-react';
 import { SANDBOX_AUTO_CANCELLATION_DAYS } from '@/constants/constants';
+import { isFlexpriceContactEnabled } from '@/utils/hostname/isFlexpriceIoHostname';
 
 interface Props {
 	isOpen: boolean;
@@ -130,7 +131,7 @@ const EnvironmentCreator: React.FC<Props> = ({ isOpen, onOpenChange, onEnvironme
 				)}
 
 				{/* Production Contact Options */}
-				{isProduction && (
+				{isProduction && isFlexpriceContactEnabled() && (
 					<div className='space-y-6 pt-2'>
 						<div className='text-center'>
 							<p className='text-sm text-gray-600 mb-6'>

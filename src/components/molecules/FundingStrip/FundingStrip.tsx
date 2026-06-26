@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 const FUNDING_URL =
 	'https://entrepreneur.economictimes.indiatimes.com/news/funding/flexprice-secures-15-million-in-seed-funding-to-revolutionize-ai-billing-solutions/131320984';
 
-const isFlexpriceIoHostname = (hostname: string): boolean => hostname === 'flexprice.io' || hostname.endsWith('.flexprice.io');
+import { isFlexpriceIoHostname } from '@/utils/hostname/isFlexpriceIoHostname';
 
 const FundingStrip: React.FC = () => {
 	const { t } = useTranslation('common');
