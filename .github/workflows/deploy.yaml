@@ -29,6 +29,11 @@ on:
       - private
       - private-staging
 
+# One deploy run per branch at a time; a newer push cancels any in-progress run.
+concurrency:
+  group: deploy-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   deploy:
     name: Deploy
