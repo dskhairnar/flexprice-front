@@ -82,7 +82,7 @@ export function getLocalizedCurrencySymbol(currency: string, language?: string):
 	if (override) return override;
 	try {
 		return (
-			new Intl.NumberFormat(locale, { ...getIntlDigitOptions(language), style: 'currency', currency: currencyCode })
+			new Intl.NumberFormat(getIntlLocale(language), { ...getIntlDigitOptions(language), style: 'currency', currency: currencyCode })
 				.formatToParts(0)
 				.find((part) => part.type === 'currency')?.value ?? currencyCode
 		);

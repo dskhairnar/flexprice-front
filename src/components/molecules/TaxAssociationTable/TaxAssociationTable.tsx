@@ -7,7 +7,6 @@ import { DropdownMenu } from '@/components/molecules';
 import { formatDateShort } from '@/utils/common/helper_functions';
 import TaxApi from '@/api/TaxApi';
 import { RouteNames } from '@/core/routes/Routes';
-import { ENTITY_STATUS } from '@/models/base';
 import { TrashIcon } from 'lucide-react';
 
 interface Props {
