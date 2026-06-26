@@ -1,6 +1,6 @@
 import { config } from '@/config/config';
 import { FC, useState, useEffect } from 'react';
-import { useTranslation } from 'react-i18next';
+import { Trans, useTranslation } from 'react-i18next';
 import { Button, Input, Sheet, Spacer } from '@/components/atoms';
 import { Switch } from '@/components/ui';
 import { useMutation } from '@tanstack/react-query';
@@ -91,7 +91,7 @@ const WhopConnectionDrawer: FC<WhopConnectionDrawerProps> = ({ isOpen, onOpenCha
 		if (!formData.name.trim()) newErrors.name = t('connection.validation.nameRequired');
 		if (!connection) {
 			if (!formData.api_key.trim()) newErrors.api_key = t('connection.validation.apiKeyRequiredUpper');
-			if (!formData.company_id.trim()) newErrors.company_id = t('connection.whop.companyIdRequired');
+			if (!formData.company_id.trim()) newErrors.company_id = t('connection.validation.companyIdRequired');
 		}
 		setErrors(newErrors);
 		return Object.keys(newErrors).length === 0;
@@ -184,18 +184,18 @@ const WhopConnectionDrawer: FC<WhopConnectionDrawerProps> = ({ isOpen, onOpenCha
 				{/* Connection Name */}
 				<Input
 					label={t('integrationDrawer.connectionName')}
-					placeholder={t('connection.whop.connectionPlaceholder')}
+					placeholder={t('connection.whop.nameYourWhopConnectionPlaceholder')}
 					value={formData.name}
 					onChange={(value) => handleChange('name', value)}
 					error={errors.name}
-					description={t('connection.whop.connectionHint')}
+					description={t('connection.whop.aFriendlyNameForThisConnectionHint')}
 				/>
 
 				{/* Credentials — only shown when creating */}
 				{!connection && (
 					<>
 						<Input
-							label={t('connection.labels.apiKey')}
+							label={t('connection.whop.apiKey')}
 							placeholder={t('connection.whop.apiKeyPlaceholder')}
 							type='password'
 							value={formData.api_key}
@@ -217,10 +217,10 @@ const WhopConnectionDrawer: FC<WhopConnectionDrawerProps> = ({ isOpen, onOpenCha
 				{/* Product ID — shown on create and edit (not a secret) */}
 				<Input
 					label={t('connection.whop.productIdOptional')}
-					placeholder={t('connection.whop.productIdPlaceholder')}
+					placeholder={t('connection.whop.productIdOptionalPlaceholder')}
 					value={formData.product_id}
 					onChange={(value) => handleChange('product_id', value)}
-					description={t('connection.whop.productIdHint')}
+					description={t('connection.whop.productIdOptionalHint')}
 				/>
 
 				{/* Sync configuration */}
@@ -242,8 +242,7 @@ const WhopConnectionDrawer: FC<WhopConnectionDrawerProps> = ({ isOpen, onOpenCha
 				<div className='p-4 bg-blue-50 border border-blue-200 rounded-lg'>
 					<h3 className='text-sm font-medium text-blue-800 mb-2'>{t('connection.webhook.sectionTitle')}</h3>
 					<p className='text-xs text-blue-700 mb-3'>
-						{t('connection.whop.webhookIntroPrefix')} <code className='font-mono'>{t('connection.whop.webhookEventName')}</code>{' '}
-						{t('connection.whop.webhookIntroSuffix')}
+						<Trans ns='settings' i18nKey='connection.whop.webhookRegisterHintHtml' components={{ code: <code className='font-mono' /> }} />
 					</p>
 					<div>
 						<label className='text-sm font-medium text-blue-800 mb-2 block'>{t('connection.webhook.url')}</label>

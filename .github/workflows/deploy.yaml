@@ -28,7 +28,6 @@ on:
       - develop
       - private
       - private-staging
-      - demo
 
 # One deploy run per branch at a time; a newer push cancels any in-progress run.
 concurrency:
