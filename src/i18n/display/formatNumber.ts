@@ -1,4 +1,4 @@
-import { DEFAULT_CURRENCY_CODE } from '@/constants/constants';
+import { DEFAULT_CURRENCY_CODE, getCurrencySymbolOverride } from '@/constants/currencyDefaults';
 import { getIntlDigitOptions, getIntlLocale } from './intlLocale';
 
 /** Use a neutral locale for symbols so USD stays "$" in RTL locales (ar uses "US$" otherwise). */
@@ -74,6 +74,8 @@ export function formatLocalizedCurrency(amount: number | string, currency: strin
 /** Currency symbol for a code (narrow symbol, locale-neutral so $ stays $ in Arabic UI). */
 export function getLocalizedCurrencySymbol(currency: string, _language?: string): string {
 	const currencyCode = resolveCurrencyCode(currency);
+	const override = getCurrencySymbolOverride(currencyCode);
+	if (override) return override;
 	try {
 		return (
 			new Intl.NumberFormat(CURRENCY_SYMBOL_LOCALE, {

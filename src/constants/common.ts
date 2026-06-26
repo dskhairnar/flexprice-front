@@ -1,6 +1,5 @@
 import { formatLocalizedCurrency, formatLocalizedNumber, getLocalizedCurrencySymbol } from '@/i18n/display/formatNumber';
 import { getIntlDigitOptions, getIntlLocale } from '@/i18n/display/intlLocale';
-import { getCurrencySymbolOverride } from '@/constants/currencyDefaults';
 import i18n from 'i18next';
 
 // =============================================================================
@@ -12,12 +11,7 @@ import i18n from 'i18next';
 // =============================================================================
 
 export const formatCurrency = (amount: number | string, currency: string): string => {
-	const formatted = formatLocalizedCurrency(amount, currency, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-	const symbolOverride = getCurrencySymbolOverride(currency);
-	if (!symbolOverride) return formatted;
-
-	const defaultSymbol = getLocalizedCurrencySymbol(currency);
-	return formatted.replace(defaultSymbol, symbolOverride);
+	return formatLocalizedCurrency(amount, currency, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 };
 
 export const formatAmount = (amount: number | string, currency?: string): string => {
@@ -28,8 +22,6 @@ export const formatAmount = (amount: number | string, currency?: string): string
 };
 
 export const getCurrencySymbol = (currency: string): string => {
-	const symbolOverride = getCurrencySymbolOverride(currency);
-	if (symbolOverride) return symbolOverride;
 	return getLocalizedCurrencySymbol(currency);
 };
 
