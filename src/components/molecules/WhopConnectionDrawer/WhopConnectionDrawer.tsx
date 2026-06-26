@@ -178,7 +178,7 @@ const WhopConnectionDrawer: FC<WhopConnectionDrawerProps> = ({ isOpen, onOpenCha
 					? t('integrationDrawer.title.edit', { providerName: 'Whop' })
 					: t('integrationDrawer.title.connect', { providerName: 'Whop' })
 			}
-			description={t('connection.whop.connectFlexpriceToWhopToSyncInvoicesHint')}
+			description={t('connection.whop.connect{{brandName}}ToWhopToSyncInvoicesHint')}
 			size='lg'>
 			<div className='space-y-6 mt-4'>
 				{/* Connection Name */}
@@ -231,7 +231,7 @@ const WhopConnectionDrawer: FC<WhopConnectionDrawerProps> = ({ isOpen, onOpenCha
 						<div className='flex items-center justify-between p-3 bg-white border border-gray-200 rounded-lg'>
 							<div>
 								<label className='text-sm font-medium text-gray-700'>{t('connection.labels.invoices')}</label>
-								<p className='text-xs text-gray-500'>{t('connection.whop.pushFlexpriceInvoicesToWhopAs')}</p>
+								<p className='text-xs text-gray-500'>{t('connection.whop.push{{brandName}}InvoicesToWhopAs')}</p>
 							</div>
 							<Switch checked={formData.sync_config.invoice} onCheckedChange={handleSyncConfigChange} />
 						</div>

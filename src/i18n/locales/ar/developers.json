@@ -88,7 +88,7 @@
 	},
 	"secretKeyDrawer": {
 		"title": "إنشاء مفتاح API",
-		"description": "أنشئ مفتاح API جديداً للوصول إلى واجهة Flexprice",
+		"description": "أنشئ مفتاح API جديداً للوصول إلى واجهة {{brandName}}",
 		"createFailed": "فشل إنشاء مفتاح API. يرجى المحاولة مجدداً.",
 		"inheritedPrefix": "موروث من حساب الخدمة:",
 		"fullAccess": {

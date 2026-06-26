@@ -22,6 +22,7 @@ import NomodConnectionDrawer from '@/components/molecules/NomodConnectionDrawer'
 import MoyasarConnectionDrawer from '@/components/molecules/MoyasarConnectionDrawer';
 import WhopConnectionDrawer from '@/components/molecules/WhopConnectionDrawer';
 import IntegrationDrawer from '@/components/molecules/IntegrationDrawer/IntegrationDrawer';
+import { isFlexpriceContactEnabled } from '@/utils/hostname/isFlexpriceIoHostname';
 
 /** UI preview only: shows one card in connected state without real API data. Set to `null` to turn off. */
 const PREVIEW_CONNECTED_PROVIDER: string | null = null;
@@ -409,7 +410,7 @@ const IntegrationCard = ({ integration, connected, connection, isPreviewConnecti
 									</span>
 								)}
 								<div className='ml-auto'>
-									{integration.docsUrl ? (
+									{integration.docsUrl && isFlexpriceContactEnabled() ? (
 										<a
 											href={integration.docsUrl}
 											target='_blank'

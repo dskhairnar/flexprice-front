@@ -662,6 +662,7 @@
 		"sort": "ترتيب",
 		"na": "--",
 		"notSet": "غير محدد",
+		"none": "بدون",
 		"notApplicable": "غير منطبق",
 		"unknown": "غير معروف",
 		"creditGrants": "منح الرصيد",
@@ -962,7 +963,7 @@
 		"tutorials": {
 			"gettingStarted": {
 				"title": "البدء",
-				"description": "تعرّف على أساسيات Flexprice في 5 دقائق"
+				"description": "تعرّف على أساسيات {{brandName}} في 5 دقائق"
 			},
 			"pricingPlans": {
 				"title": "إعداد خطط التسعير",
@@ -982,7 +983,7 @@
 			},
 			"selfHosting": {
 				"title": "الاستضافة الذاتية والتهيئة",
-				"description": "إعداد ونشر Flexprice على بنيتك التحتية"
+				"description": "إعداد ونشر {{brandName}} على بنيتك التحتية"
 			}
 		}
 	},
