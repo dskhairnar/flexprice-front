@@ -661,7 +661,11 @@
 		"paymentLinkCopied": "Payment link copied to clipboard",
 		"paymentLinkCopyFailed": "Failed to copy payment link. Please try again."
 	},
+	"errors": {
+		"loadFailedShort": "Failed to load"
+	},
 	"labels": {
+		"remove": "Remove",
 		"payload": "Payload",
 		"sort": "Sort",
 		"na": "--",
@@ -751,6 +755,8 @@
 	"dashboardHome": {
 		"pageTitle": "Home",
 		"eventsMonitoring": "Events Monitoring",
+		"subscriptionsChartTooltip_one": "{{count}} subscription",
+		"subscriptionsChartTooltip_other": "{{count}} subscriptions",
 		"eventsMonitoringDescription": "Event processing metrics and lag information",
 		"monitoringLoadFailed": "Failed to load monitoring data. Please try again later.",
 		"updatedJustNow": "Updated just now",

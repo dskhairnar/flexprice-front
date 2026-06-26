@@ -1160,5 +1160,6 @@
 		"sectionIndia": "India hosting",
 		"benefitIn1": "Faster if you and your users are based in India",
 		"benefitIn2": "Hosted in Mumbai, India (ap-south-1)"
-	}
+	},
+	"currency": "Currency"
 }

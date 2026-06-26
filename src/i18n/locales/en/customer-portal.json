@@ -97,7 +97,8 @@
 		"columnProperties": "Properties",
 		"propertyCount_one": "{{count}} property",
 		"propertyCount_other": "{{count}} properties",
-		"noProperties": "No properties"
+		"noProperties": "No properties",
+		"valuePlaceholder": "Unnamed event"
 	},
 	"invoices": {
 		"searchPlaceholder": "Search invoices...",
