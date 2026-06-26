@@ -26,7 +26,8 @@ on:
     branches:
       - main
       - develop
-      - demo
+      - private
+      - private-staging
 
 jobs:
   deploy:
