@@ -532,6 +532,9 @@
 	"subscriptionEdit": {
 		"pageTitle": "Edit Subscription",
 		"pageHeading": "Edit Subscription",
+		"lineItemsQueryBuilder": {
+			"billingPeriod": "Billing period"
+		},
 		"toast": {
 			"lineItemUpdated": "Line item updated successfully",
 			"lineItemUpdateFailed": "Failed to update line item",

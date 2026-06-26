@@ -2,9 +2,9 @@ import { Button, Input, Label, Select, SelectOption, DatePicker } from '@/compon
 import Dialog from '@/components/atoms/Dialog';
 import { CREDIT_GRANT_CADENCE, CREDIT_GRANT_EXPIRATION_TYPE, CREDIT_GRANT_PERIOD, CREDIT_GRANT_SCOPE } from '@/models';
 import { CreateCreditGrantRequest } from '@/types/dto/CreditGrant';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import RectangleRadiogroup, { RectangleRadiogroupOption } from '../RectangleRadiogroup';
-import { creditGrantPeriodOptions } from '@/constants/constants';
+import { getLocalizedCreditGrantPeriodOptions } from '@/utils/common/helper_functions';
 import { cn } from '@/lib/utils';
 import { useTranslation } from 'react-i18next';
 
@@ -69,6 +69,7 @@ const EditSubscriptionCreditGrantModal: React.FC<Props> = ({
 	subscriptionCurrentPeriodEnd,
 }) => {
 	const { t } = useTranslation('billing');
+	const localizedGrantPeriodOptions = useMemo(() => getLocalizedCreditGrantPeriodOptions(t), [t]);
 	const [errors, setErrors] = useState<FormErrors>({});
 	const [formData, setFormData] = useState<Partial<CreateCreditGrantRequest>>({
 		scope: CREDIT_GRANT_SCOPE.SUBSCRIPTION,
@@ -366,7 +367,7 @@ const EditSubscriptionCreditGrantModal: React.FC<Props> = ({
 						<Select
 							label={t('creditGrant.modal.grantPeriod')}
 							error={errors.period}
-							options={creditGrantPeriodOptions}
+							options={localizedGrantPeriodOptions}
 							value={formData.period}
 							onChange={(value) => handleFieldChange('period', value as CREDIT_GRANT_PERIOD)}
 						/>

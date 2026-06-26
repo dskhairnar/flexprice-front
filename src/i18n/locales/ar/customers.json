@@ -366,6 +366,9 @@
 	"subscriptionEdit": {
 		"pageTitle": "تعديل الاشتراك",
 		"pageHeading": "تعديل الاشتراك",
+		"lineItemsQueryBuilder": {
+			"billingPeriod": "فترة الفوترة"
+		},
 		"toast": {
 			"lineItemUpdated": "تم تحديث بند الخط بنجاح",
 			"lineItemUpdateFailed": "فشل في تحديث بند الخط",

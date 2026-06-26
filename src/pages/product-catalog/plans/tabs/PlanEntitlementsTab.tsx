@@ -6,7 +6,7 @@ import { Plus } from 'lucide-react';
 import { EntitlementApi } from '@/api';
 import { FlexpriceTable, ColumnData, RedirectCell, AddEntitlementDrawer } from '@/components/molecules';
 import { getFeatureTypeChips } from '@/components/molecules/CustomerUsageTable/CustomerUsageTable';
-import { formatLocalizedNumber } from '@/utils/common/helper_functions';
+import { formatLocalizedNumber, formatEntitlementUsageResetPeriod, getEntitlementUnitLabel } from '@/utils/common/helper_functions';
 import { Entitlement, ENTITY_STATUS, FEATURE_TYPE, ENTITLEMENT_ENTITY_TYPE, EXPAND, ENTITLEMENT_USAGE_RESET_PERIOD } from '@/models';
 import { EntitlementResponse } from '@/types';
 import { RouteNames } from '@/core/routes/Routes';
@@ -24,8 +24,7 @@ const PlanEntitlementsTab = () => {
 	const getFeatureValue = (entitlement: Entitlement) => {
 		const value = entitlement.usage_limit?.toFixed() || '';
 		const unlimited = t('common:labels.unlimited');
-		const unitLabel = t('catalog:features.form.unitDefault');
-		const unitsLabel = t('catalog:features.form.unitsDefault');
+		const numericValue = value ? Number(value) : 0;
 
 		switch (entitlement.feature_type) {
 			case FEATURE_TYPE.STATIC:
@@ -35,11 +34,7 @@ const PlanEntitlementsTab = () => {
 					<span className='flex items-end gap-1'>
 						{formatLocalizedNumber(value || unlimited, { maximumFractionDigits: 0 })}
 						<span className='text-[#64748B] text-sm font-normal font-sans'>
-							{value
-								? Number(value) > 0
-									? entitlement.feature?.unit_plural || unitsLabel
-									: entitlement.feature?.unit_singular || unitLabel
-								: entitlement.feature?.unit_plural || unitsLabel}
+							{value ? getEntitlementUnitLabel(entitlement.feature, numericValue, t) : getEntitlementUnitLabel(entitlement.feature, 0, t)}
 						</span>
 					</span>
 				);
@@ -86,7 +81,7 @@ const PlanEntitlementsTab = () => {
 				render(row) {
 					const period = row?.usage_reset_period as ENTITLEMENT_USAGE_RESET_PERIOD | '' | null;
 					return period && Object.values(ENTITLEMENT_USAGE_RESET_PERIOD).includes(period as ENTITLEMENT_USAGE_RESET_PERIOD)
-						? period
+						? formatEntitlementUsageResetPeriod(period, t)
 						: t('common:labels.na');
 				},
 			},

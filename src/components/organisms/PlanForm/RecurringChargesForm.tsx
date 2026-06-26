@@ -1,6 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { formatBillingPeriodForPrice, getCurrencySymbol } from '@/utils/common/helper_functions';
-import { billlingPeriodOptions } from '@/constants/constants';
+import { formatBillingPeriodForPrice, getCurrencySymbol, getLocalizedBillingPeriodOptions } from '@/utils/common/helper_functions';
 import { InternalPrice } from './SetupChargesSection';
 import { PriceInternalState } from './UsagePricingForm';
 import { CheckboxRadioGroup, FormHeader, Input, Spacer, Button, Select, DatePicker } from '@/components/atoms';
@@ -39,7 +38,8 @@ const RecurringChargesForm = ({
 	entityId,
 	entityName,
 }: Props) => {
-	const { t } = useTranslation(['catalog', 'common']);
+	const { t } = useTranslation(['catalog', 'common', 'billing']);
+	const localizedBillingPeriodOptions = useMemo(() => getLocalizedBillingPeriodOptions(t), [t]);
 	// Helper function to compute default values for price state
 	const computePriceDefaults = (priceProp: Partial<InternalPrice>, entityNameProp?: string) => {
 		return {
@@ -140,7 +140,7 @@ const RecurringChargesForm = ({
 			newErrors.amount = 'Price is required';
 		}
 		if (!localPrice.billing_period) {
-			newErrors.billing_period = 'Billing Period is required';
+			newErrors.billing_period = t('plans.organisms.recurringForm.billingPeriodRequired');
 		}
 		if (!localPrice.currency) {
 			newErrors.currency = 'Currency is required';
@@ -237,7 +237,7 @@ const RecurringChargesForm = ({
 			<Spacer height={'8px'} />
 			<Select
 				value={localPrice.billing_period}
-				options={billlingPeriodOptions}
+				options={localizedBillingPeriodOptions}
 				onChange={(value) => setLocalPrice({ ...localPrice, billing_period: value as BILLING_PERIOD })}
 				label={t('catalog:plans.organisms.priceForm.billingPeriod')}
 				error={errors.billing_period}

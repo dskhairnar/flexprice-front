@@ -824,8 +824,8 @@
 		"addEntitlements": "Add entitlements",
 		"creditsHeading": "Credits",
 		"creditsAmount": "{{formatted}} credits",
-		"oneTime": "one-time",
-		"recurring": "recurring",
+		"oneTime": "One-time",
+		"recurring": "Recurring",
 		"previewBooleanNotIncluded": "{{name}} not included"
 	},
 	"taxAssociation": {

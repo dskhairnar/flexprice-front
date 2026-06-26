@@ -1,6 +1,6 @@
 import { FC } from 'react';
 import { Pencil, Trash2 } from 'lucide-react';
-import { toSentenceCase } from '@/utils/common/helper_functions';
+import { formatBillingPeriodForDisplay } from '@/utils/common/helper_functions';
 import { InternalPrice } from './SetupChargesSection';
 import { ChargeValueCell } from '@/components/molecules';
 import { PRICE_UNIT_TYPE } from '@/models/Price';
@@ -15,7 +15,7 @@ interface Props {
 }
 
 const UsageChargePreview: FC<Props> = ({ charge: price, index, onDelete, onEdit, disabled }) => {
-	const { t } = useTranslation('catalog');
+	const { t } = useTranslation(['catalog', 'billing']);
 	// Get display currency (price unit code for custom, currency for FIAT)
 	const displayCurrency =
 		price.price_unit_type === PRICE_UNIT_TYPE.CUSTOM ? price.price_unit_config?.price_unit || price.currency : price.currency;
@@ -29,7 +29,7 @@ const UsageChargePreview: FC<Props> = ({ charge: price, index, onDelete, onEdit,
 				<div className='flex gap-2 items-center text-zinc-500 text-xs'>
 					<span>{displayCurrency}</span>
 					<span>•</span>
-					<span>{toSentenceCase(price.billing_period || '')}</span>
+					<span>{formatBillingPeriodForDisplay(price.billing_period || '', t)}</span>
 					{price.billing_model && (
 						<>
 							<span>•</span>

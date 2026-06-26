@@ -1,7 +1,5 @@
 import { Trash2 } from 'lucide-react';
-import { formatBillingPeriodForPrice } from '@/utils/common/helper_functions';
-import { getCurrencySymbol } from '@/utils/common/helper_functions';
-import { toSentenceCase } from '@/utils/common/helper_functions';
+import { formatBillingPeriodForDisplay, formatBillingPeriodForPrice, getCurrencySymbol } from '@/utils/common/helper_functions';
 import { Price, PRICE_UNIT_TYPE } from '@/models/Price';
 import { FC } from 'react';
 import { Pencil } from 'lucide-react';
@@ -17,7 +15,7 @@ interface Props {
 }
 
 const RecurringChargePreview: FC<Props> = ({ charge, onEditClicked, onDeleteClicked, disabled }) => {
-	const { t } = useTranslation('catalog');
+	const { t } = useTranslation(['catalog', 'billing']);
 	// Helper to get the appropriate amount and symbol for display
 	const getDisplayInfo = () => {
 		const isCustom = charge.price_unit_type === PRICE_UNIT_TYPE.CUSTOM;
@@ -55,7 +53,7 @@ const RecurringChargePreview: FC<Props> = ({ charge, onEditClicked, onDeleteClic
 				<div className='flex gap-2 items-center text-zinc-500 text-xs'>
 					<span>{displayCurrency}</span>
 					<span>•</span>
-					<span>{toSentenceCase(charge.billing_period || '')}</span>
+					<span>{formatBillingPeriodForDisplay(charge.billing_period || '', t)}</span>
 					<span>•</span>
 					<span>
 						{displayInfo.symbol}
