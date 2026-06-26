@@ -339,9 +339,13 @@ const GroupOverviewTab = () => {
 		() => [
 			{ field: CHARGE_FILTER_FIELD.DISPLAY_NAME, label: 'Display name', direction: SortDirection.ASC },
 			{ field: CHARGE_FILTER_FIELD.AMOUNT, label: 'Amount', direction: SortDirection.ASC },
-			{ field: 'billing_period', label: 'Billing period', direction: SortDirection.ASC },
+			{
+				field: 'billing_period',
+				label: t('catalog:plans.organisms.planPriceTable.queryBuilder.billingPeriod'),
+				direction: SortDirection.ASC,
+			},
 		],
-		[],
+		[t],
 	);
 	const initialSorts = useMemo(() => [{ field: CHARGE_FILTER_FIELD.AMOUNT, label: 'Amount', direction: SortDirection.ASC }], []);
 	const { filters, setFilters, sorts, setSorts } = useFilterSorting({

@@ -1,10 +1,10 @@
 import { getCurrencySymbol as getCurrencyDisplaySymbol } from '@/constants/common';
 import i18n, { type TFunction } from 'i18next';
 import { ApiEnum, translateApiEnum } from '@/i18n/display/apiEnums';
-import { DEFAULT_CURRENCY_CODE } from '@/constants/constants';
+import { DEFAULT_CURRENCY_CODE, billlingPeriodOptions, creditGrantPeriodOptions } from '@/constants/constants';
 import { formatLocalizedCurrency, formatLocalizedNumber, resolveCurrencyCode } from '@/i18n/display/formatNumber';
 import { getIntlDigitOptions, getIntlLocale } from '@/i18n/display/intlLocale';
-import { Price, PRICE_TYPE } from '@/models/Price';
+import { BILLING_MODEL, Price, PRICE_TYPE } from '@/models/Price';
 import { getAllISOCodes } from 'iso-country-currency';
 import { v4 as uuidv4 } from 'uuid';
 import toast from 'react-hot-toast';
@@ -35,6 +35,89 @@ export const formatBillingPeriodForPrice = (billingPeriod: string, t: TFunction)
 /** Adjective form for tables (e.g. "Monthly"). Reuses billing list page keys. */
 export const formatBillingPeriodForDisplay = (billingPeriod: string, t: TFunction) =>
 	translateApiEnum(t, ApiEnum.billingPeriod, billingPeriod, { fallback: '--' });
+
+/** Localized billing period options for select dropdowns (e.g. Daily, Monthly). */
+export const getLocalizedBillingPeriodOptions = (t: TFunction) =>
+	billlingPeriodOptions.map((option) => ({
+		...option,
+		label: translateApiEnum(t, ApiEnum.billingPeriod, option.value, { fallback: option.label }),
+	}));
+
+/** Localized grant-period options for credit grant forms. */
+export const getLocalizedCreditGrantPeriodOptions = (t: TFunction) =>
+	creditGrantPeriodOptions.map((option) => ({
+		...option,
+		label: translateApiEnum(t, ApiEnum.billingPeriod, option.value, { fallback: option.label }),
+	}));
+
+/** Entitlement usage-reset column/dropdown label (e.g. Daily, Monthly). */
+export const formatEntitlementUsageResetPeriod = (period: string, t: TFunction) =>
+	t(`catalog:entitlements.usageResetPeriod.${period}`, {
+		defaultValue: formatBillingPeriodForDisplay(period, t),
+	});
+
+function isLatinUnitLabel(text: string): boolean {
+	if (!text) return false;
+	for (const char of text) {
+		const code = char.codePointAt(0) ?? 0;
+		const isBasicLatin = code <= 0x7f;
+		const isLatinExtended = code >= 0xc0 && code <= 0x24f;
+		if (!isBasicLatin && !isLatinExtended) return false;
+	}
+	return true;
+}
+
+/** Prefer i18n unit labels when feature units are not Latin (e.g. stored in another locale). */
+export const getEntitlementUnitLabel = (
+	feature: { unit_plural?: string | null; unit_singular?: string | null } | undefined,
+	count: number,
+	t: TFunction,
+): string => {
+	const unitsDefault = t('catalog:features.form.unitsDefault');
+	const unitDefault = t('catalog:features.form.unitDefault');
+	const plural = feature?.unit_plural?.trim();
+	const singular = feature?.unit_singular?.trim();
+	const usePlural = Boolean(plural && isLatinUnitLabel(plural));
+	const useSingular = Boolean(singular && isLatinUnitLabel(singular));
+	if (count > 1) return usePlural ? plural! : unitsDefault;
+	if (count === 1) return useSingular ? singular! : unitDefault;
+	return usePlural ? plural! : unitsDefault;
+};
+
+/** Show locale-appropriate default credit grant title when the stored name is a known default in any language. */
+export const resolveCreditGrantDisplayName = (name: string, t: TFunction): string => {
+	const localizedDefault = t('catalog:plans.creditGrants.defaultName');
+	const enDefault = i18n.getFixedT('en', 'catalog')('plans.creditGrants.defaultName');
+	const arDefault = i18n.getFixedT('ar', 'catalog')('plans.creditGrants.defaultName');
+	if (name === enDefault || name === arDefault) return localizedDefault;
+	return name;
+};
+
+export const SLAB_TIERED_BILLING_MODEL = 'SLAB_TIERED' as const;
+
+/** Localized billing model options with descriptions for usage pricing forms. */
+export const getLocalizedUsageBillingModelOptions = (t: TFunction) => [
+	{
+		value: BILLING_MODEL.FLAT_FEE,
+		label: translateApiEnum(t, ApiEnum.billingModel, BILLING_MODEL.FLAT_FEE, { fallback: 'Flat Fee' }),
+		description: t('catalog:plans.organisms.usageForm.billingModelDescriptions.flatFee'),
+	},
+	{
+		value: BILLING_MODEL.PACKAGE,
+		label: translateApiEnum(t, ApiEnum.billingModel, BILLING_MODEL.PACKAGE, { fallback: 'Package' }),
+		description: t('catalog:plans.organisms.usageForm.billingModelDescriptions.package'),
+	},
+	{
+		value: BILLING_MODEL.TIERED,
+		label: translateApiEnum(t, ApiEnum.billingModel, BILLING_MODEL.TIERED, { fallback: 'Volume Tiered' }),
+		description: t('catalog:plans.organisms.usageForm.billingModelDescriptions.volumeTiered'),
+	},
+	{
+		value: SLAB_TIERED_BILLING_MODEL,
+		label: translateApiEnum(t, ApiEnum.billingModel, SLAB_TIERED_BILLING_MODEL, { fallback: 'Slab Tiered' }),
+		description: t('catalog:plans.organisms.usageForm.billingModelDescriptions.slabTiered'),
+	},
+];
 
 export const formatInvoiceCadence = (cadence: string, t: TFunction) =>
 	translateApiEnum(t, ApiEnum.invoiceCadence, cadence, { fallback: '--' });

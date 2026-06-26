@@ -4,7 +4,7 @@ import { CREDIT_GRANT_CADENCE, CREDIT_GRANT_EXPIRATION_TYPE, CREDIT_GRANT_PERIOD
 import { InternalCreditGrantRequest } from '@/types/dto/CreditGrant';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import RectangleRadiogroup, { RectangleRadiogroupOption } from '../RectangleRadiogroup';
-import { creditGrantPeriodOptions } from '@/constants/constants';
+import { getLocalizedCreditGrantPeriodOptions } from '@/utils/common/helper_functions';
 import { cn } from '@/lib/utils';
 import { useTranslation } from 'react-i18next';
 
@@ -47,6 +47,8 @@ const CreditGrantModal: React.FC<Props> = ({ data, isOpen, onOpenChange, onSave,
 		],
 		[t, i18n.language],
 	);
+
+	const localizedGrantPeriodOptions = useMemo(() => getLocalizedCreditGrantPeriodOptions(t), [t, i18n.language]);
 
 	const [errors, setErrors] = useState<FormErrors>({});
 	const [formData, setFormData] = useState<Partial<InternalCreditGrantRequest>>(data || getEmptyCreditGrant());
@@ -308,7 +310,7 @@ const CreditGrantModal: React.FC<Props> = ({ data, isOpen, onOpenChange, onSave,
 						<Label label={t('billing:creditGrant.modal.grantPeriod')} />
 						<Select
 							error={errors.period}
-							options={creditGrantPeriodOptions}
+							options={localizedGrantPeriodOptions}
 							value={formData.period}
 							onChange={(value) => handleFieldChange('period', value as CREDIT_GRANT_PERIOD)}
 						/>

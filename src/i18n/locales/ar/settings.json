@@ -410,7 +410,7 @@
 			"sessionTokenHint": "مطلوب فقط للأوراق المؤقتة",
 			"securityNote": "ملاحظة أمنية",
 			"security{{brandName}}": "تُخزَّن بياناتك بأمان في حاويات S3 تديرها {{brandName}}. الملفات مُشفّرة في السكون وتُنزَّل عبر روابط آمنة.",
-			"security{{brandName}}": "تُخزَّن بياناتك بأمان في حاويات S3 المُدارة من {{brandName}}. الملفات مُشفّرة في السكون وتُنزَّل عبر روابط آمنة.",
+			"securityFlexpriceManaged": "تُخزَّن بياناتك بأمان في حاويات S3 المُدارة من {{brandName}}. الملفات مُشفّرة في السكون وتُنزَّل عبر روابط آمنة.",
 			"securityAws": "تُشفَّر بيانات AWS وتُخزَّن بأمان. يُفضّل استخدام أدوار IAM بأقل صلاحيات لـ S3."
 		},
 		"zohoBooks": {
@@ -848,7 +848,9 @@
 					"sections": {
 						"overview": {
 							"title": "نظرة عامة",
-							"paragraphs": ["يتيح تطبيق {{brandName}} لـ Nomod إصدار الفواتير وتحصيل المدفوعات عبر روابط دفع Nomod مع ربط سلس بـ {{brandName}}."]
+							"paragraphs": [
+								"يتيح تطبيق {{brandName}} لـ Nomod إصدار الفواتير وتحصيل المدفوعات عبر روابط دفع Nomod مع ربط سلس بـ {{brandName}}."
+							]
 						},
 						"invoiceSync": {
 							"title": "مزامنة الفواتير",
@@ -870,7 +872,9 @@
 					"sections": {
 						"overview": {
 							"title": "نظرة عامة",
-							"paragraphs": ["يتيح تطبيق {{brandName}} لـ Moyasar إصدار الفواتير وتحصيل المدفوعات عبر بوابة Moyasar مع ربط سلس بـ {{brandName}}."]
+							"paragraphs": [
+								"يتيح تطبيق {{brandName}} لـ Moyasar إصدار الفواتير وتحصيل المدفوعات عبر بوابة Moyasar مع ربط سلس بـ {{brandName}}."
+							]
 						},
 						"invoiceSync": {
 							"title": "مزامنة الفواتير",
@@ -892,7 +896,9 @@
 					"sections": {
 						"overview": {
 							"title": "نظرة عامة",
-							"paragraphs": ["يتيح تطبيق {{brandName}} لـ Paddle إصدار الفواتير وتحصيل المدفوعات عبر بوابة Paddle مع ربط سلس بـ {{brandName}}."]
+							"paragraphs": [
+								"يتيح تطبيق {{brandName}} لـ Paddle إصدار الفواتير وتحصيل المدفوعات عبر بوابة Paddle مع ربط سلس بـ {{brandName}}."
+							]
 						},
 						"invoiceSync": {
 							"title": "مزامنة الفواتير",

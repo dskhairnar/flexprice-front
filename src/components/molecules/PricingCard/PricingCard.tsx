@@ -3,8 +3,13 @@ import type { TFunction } from 'i18next';
 import { useTranslation } from 'react-i18next';
 import { Check, Coins, Eye, Gauge, Info, Mail, MessageSquare, Phone, Sparkles, Zap, type LucideIcon } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger, Button } from '@/components/ui';
-import { formatBillingPeriodForPrice } from '@/utils';
-import { formatLocalizedCurrency, formatLocalizedNumber, resolveCurrencyCode } from '@/utils/common/helper_functions';
+import {
+	formatBillingPeriodForPrice,
+	formatLocalizedCurrency,
+	formatLocalizedNumber,
+	resolveCreditGrantDisplayName,
+	resolveCurrencyCode,
+} from '@/utils/common/helper_functions';
 import { Link, useNavigate } from 'react-router';
 import { RouteNames } from '@/core/routes/Routes';
 import { PlanType } from '@/constants/planTypes';
@@ -584,8 +589,12 @@ const PricingCard: React.FC<PricingCardProps> = ({
 													formatted: formatLocalizedNumber(g.credits, { maximumFractionDigits: 0 }),
 												})}
 											</span>
-											{!isBoilerplateCreditGrantName(g.name) && <span className='text-slate-600'> · {g.name}</span>}
-											{g.cadence === 'recurring' && g.period && <span className='text-slate-500'> /{g.period}</span>}
+											{!isBoilerplateCreditGrantName(g.name) && (
+												<span className='text-slate-600'> · {resolveCreditGrantDisplayName(g.name, t)}</span>
+											)}
+											{g.cadence === 'recurring' && g.period && (
+												<span className='text-slate-500'> /{formatBillingPeriodForPrice(g.period, t)}</span>
+											)}
 											{g.cadence === 'onetime' && (
 												<span className='text-slate-500'>
 													{' · '}

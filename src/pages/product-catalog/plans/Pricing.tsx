@@ -6,7 +6,6 @@ import EntitlementApi from '@/api/EntitlementApi';
 import { FilterOperator, DataType } from '@/types/common/QueryBuilder';
 import { useQuery } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
-import { billlingPeriodOptions } from '@/constants/constants';
 import { useState, useMemo } from 'react';
 import { PlanResponse, PriceResponse, EntitlementResponse } from '@/types';
 import { GetAllPlansResponse } from '@/api/PlanApi';
@@ -30,7 +29,7 @@ import CreditGrantApi from '@/api/CreditGrantApi';
 import { generateExpandQueryParams } from '@/utils/common/api_helper';
 import { EXPAND } from '@/models/expand';
 import { useTranslation } from 'react-i18next';
-import { ApiEnum, translateApiEnum } from '@/i18n/display/apiEnums';
+import { getLocalizedBillingPeriodOptions } from '@/utils/common/helper_functions';
 
 type PriceType = {
 	currency: string;
@@ -181,14 +180,7 @@ const PricingPage = () => {
 	const [selectedCurrency, setSelectedCurrency] = useState<string>('');
 	const [planDrawerOpen, setPlanDrawerOpen] = useState<boolean>(false);
 
-	const localizedBillingPeriodOptions = useMemo(
-		() =>
-			billlingPeriodOptions.map((option) => ({
-				...option,
-				label: translateApiEnum(t, ApiEnum.billingPeriod, option.value, { fallback: option.label }),
-			})),
-		[t],
-	);
+	const localizedBillingPeriodOptions = useMemo(() => getLocalizedBillingPeriodOptions(t), [t]);
 
 	// Fetch plans
 	const fetchPlans = async () => {

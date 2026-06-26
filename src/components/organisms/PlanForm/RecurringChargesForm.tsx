@@ -1,9 +1,13 @@
 import { useState, useEffect, useMemo } from 'react';
-import { formatBillingPeriodForPrice, getCurrencySymbol } from '@/utils/common/helper_functions';
-import { billlingPeriodOptions } from '@/constants/constants';
+import {
+	formatBillingPeriodForPrice,
+	getCurrencySymbol,
+	getLocalizedBillingPeriodOptions,
+	getLocalizedUsageBillingModelOptions,
+} from '@/utils/common/helper_functions';
 import { InternalPrice } from './SetupChargesSection';
 import type { CreatePriceTier } from '@/models/Price';
-import { PriceInternalState, PriceTier, billingModels } from './UsagePricingForm';
+import { PriceInternalState, PriceTier } from './UsagePricingForm';
 import VolumeTieredPricingForm from './VolumeTieredPricingForm';
 import { CheckboxRadioGroup, FormHeader, Input, Spacer, Button, Select, DatePicker } from '@/components/atoms';
 import { Label } from '@/components/ui/label';
@@ -96,7 +100,9 @@ const RecurringChargesForm = ({
 	entityName,
 	isSaving = false,
 }: Props) => {
-	const { t } = useTranslation(['catalog', 'common']);
+	const { t } = useTranslation(['catalog', 'common', 'billing']);
+	const localizedBillingPeriodOptions = useMemo(() => getLocalizedBillingPeriodOptions(t), [t]);
+	const localizedBillingModelOptions = useMemo(() => getLocalizedUsageBillingModelOptions(t), [t]);
 	// Helper function to compute default values for price state
 	const computePriceDefaults = (priceProp: Partial<InternalPrice>, entityNameProp?: string) => {
 		return {
@@ -206,7 +212,7 @@ const RecurringChargesForm = ({
 		const newModelErrors = { packagedModelError: '', tieredModelError: '' };
 
 		if (!localPrice.billing_period) {
-			newErrors.billing_period = 'Billing Period is required';
+			newErrors.billing_period = t('plans.organisms.recurringForm.billingPeriodRequired');
 		}
 		if (!localPrice.currency) {
 			newErrors.currency = 'Currency is required';
@@ -366,7 +372,7 @@ const RecurringChargesForm = ({
 			<Spacer height={'8px'} />
 			<Select
 				value={localPrice.billing_period}
-				options={billlingPeriodOptions}
+				options={localizedBillingPeriodOptions}
 				onChange={(value) => setLocalPrice({ ...localPrice, billing_period: value as BILLING_PERIOD })}
 				label={t('catalog:plans.organisms.priceForm.billingPeriod')}
 				error={errors.billing_period}
@@ -374,7 +380,7 @@ const RecurringChargesForm = ({
 			<Spacer height={'8px'} />
 			<Select
 				value={billingModel}
-				options={billingModels}
+				options={localizedBillingModelOptions}
 				onChange={setBillingModel}
 				label={t('catalog:plans.organisms.usageForm.billingModel')}
 				placeholder={t('catalog:plans.organisms.usageForm.billingModelPlaceholder')}

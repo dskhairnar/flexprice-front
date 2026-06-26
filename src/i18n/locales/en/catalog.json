@@ -527,7 +527,8 @@
 				"trialToggleTitle": "Start with a free trial",
 				"trialToggleHint": "Enable this option to add a free trial period for the subscription.",
 				"trialPeriodTitle": "Trial Period",
-				"trialDaysPlaceholder": "Number of trial days"
+				"trialDaysPlaceholder": "Number of trial days",
+				"billingPeriodRequired": "Billing Period is required"
 			},
 			"usageForm": {
 				"feature": "Feature",
@@ -536,7 +537,13 @@
 				"billingModelPlaceholder": "Billing Model",
 				"selectBillingPeriod": "Select The Billing Period",
 				"per": "per",
-				"amountPlaceholder": "0.00"
+				"amountPlaceholder": "0.00",
+				"billingModelDescriptions": {
+					"flatFee": "Charge a fixed amount for each unit of usage.",
+					"package": "Charge by package, bundle or group of units.",
+					"volumeTiered": "All units price based on final tier reached.",
+					"slabTiered": "Tiers apply progressively as quantity increases."
+				}
 			},
 			"priceForm": {
 				"displayName": "Display Name",
