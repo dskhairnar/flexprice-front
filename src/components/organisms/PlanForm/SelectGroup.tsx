@@ -1,5 +1,6 @@
 import { FC, useMemo, useCallback } from 'react';
 import { useQuery } from '@tanstack/react-query';
+import { useTranslation } from 'react-i18next';
 import { SearchableSelect, SelectOption } from '@/components/atoms';
 import { GroupApi } from '@/api/GroupApi';
 import { GROUP_ENTITY_TYPE, Group } from '@/models/Group';
@@ -31,6 +32,7 @@ const SelectGroup: FC<Props> = ({
 	hiddenIfEmpty = false,
 	showLookupKey = true,
 }) => {
+	const { t } = useTranslation('common');
 	// Query for fetching groups (filtered by entity_type via payload)
 	const {
 		data: groupsData,
@@ -47,16 +49,17 @@ const SelectGroup: FC<Props> = ({
 	});
 
 	const groupOptions: SelectOption[] = useMemo(() => {
-		if (!groupsData?.items) return [{ label: 'None', value: '' }];
+		const noneOption = { label: t('labels.none'), value: '' };
+		if (!groupsData?.items) return [noneOption];
 
 		return [
-			{ label: 'None', value: '' },
+			noneOption,
 			...groupsData.items.map((group: Group) => ({
 				label: showLookupKey ? `${group.name} (${group.lookup_key})` : group.name,
 				value: group.id,
 			})),
 		];
-	}, [groupsData, showLookupKey]);
+	}, [groupsData, showLookupKey, t]);
 
 	// Check if component should be hidden when empty
 	const shouldHide = useMemo(() => {

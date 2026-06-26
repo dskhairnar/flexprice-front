@@ -170,7 +170,8 @@
 			"uploadFailed": "{{filename}} upload failed"
 		},
 		"importFileLabel": "Import file",
-		"chooseFile": "Choose File to Upload"
+		"chooseFile": "Choose File to Upload",
+		"maxFileSizeHint": "Maximum file size: 5 MB."
 	},
 	"bulkImports": {
 		"title": "Bulk Imports",

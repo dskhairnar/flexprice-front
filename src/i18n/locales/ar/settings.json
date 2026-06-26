@@ -170,7 +170,8 @@
 			"uploadFailed": "فشل رفع {{filename}}"
 		},
 		"importFileLabel": "ملف الاستيراد",
-		"chooseFile": "اختر ملفاً للرفع"
+		"chooseFile": "اختر ملفاً للرفع",
+		"maxFileSizeHint": "الحد الأقصى لحجم الملف: 5 ميغابايت."
 	},
 	"bulkImports": {
 		"title": "الاستيراد الجماعي",
@@ -275,8 +276,8 @@
 			"description": "عنوان مخصّص لتخزين متوافق مع S3 (مثل MinIO، DigitalOcean Spaces)"
 		},
 		"flexpriceManaged": {
-			"title": "تخزين مُدار من Flexprice",
-			"body": "يُخزَّن التصدير تلقائياً في حاويات S3 تديرها Flexprice. لا حاجة لإعداد تصدير إضافي. نزّل الملفات من جدول تشغيل المهام."
+			"title": "تخزين مُدار من {{brandName}}",
+			"body": "يُخزَّن التصدير تلقائياً في حاويات S3 تديرها {{brandName}}. لا حاجة لإعداد تصدير إضافي. نزّل الملفات من جدول تشغيل المهام."
 		},
 		"enabled": "تفعيل مهمة التصدير هذه",
 		"buttons": {
@@ -348,7 +349,7 @@
 		},
 		"sync": {
 			"title": "إعدادات المزامنة",
-			"description": "حدد البيانات المراد مزامنتها بين {{partner}} و Flexprice",
+			"description": "حدد البيانات المراد مزامنتها بين {{partner}} و {{brandName}}",
 			"pushTo": "دفع إلى {{partner}}",
 			"pushToHubSpot": "دفع إلى HubSpot",
 			"inboundWebhook": "مزامنة واردة (يتطلب إعداد ويب هوك)"
@@ -396,7 +397,7 @@
 			"description": "أدخل بيانات AWS للاتصال بـ S3. انقر حفظ عند الانتهاء.",
 			"connectionNameHint": "اسم وصفي لاتصال S3",
 			"connectionNamePlaceholder": "أدخل اسم الاتصال",
-			"flexpriceManaged": "تخزين مُدار من Flexprice",
+			"flexpriceManaged": "تخزين مُدار من {{brandName}}",
 			"flexpriceManagedHint": "لا حاجة لإعداد AWS",
 			"awsAccessKey": "معرّف AWS Access Key",
 			"awsAccessKeyPlaceholder": "أدخل معرّف Access Key",
@@ -408,7 +409,7 @@
 			"sessionTokenPlaceholder": "أدخل رمز الجلسة",
 			"sessionTokenHint": "مطلوب فقط للأوراق المؤقتة",
 			"securityNote": "ملاحظة أمنية",
-			"securityFlexprice": "تُخزَّن بياناتك بأمان في حاويات S3 تديرها Flexprice. الملفات مُشفّرة في السكون وتُنزَّل عبر روابط آمنة.",
+			"security{{brandName}}": "تُخزَّن بياناتك بأمان في حاويات S3 تديرها {{brandName}}. الملفات مُشفّرة في السكون وتُنزَّل عبر روابط آمنة.",
 			"security{{brandName}}": "تُخزَّن بياناتك بأمان في حاويات S3 المُدارة من {{brandName}}. الملفات مُشفّرة في السكون وتُنزَّل عبر روابط آمنة.",
 			"securityAws": "تُشفَّر بيانات AWS وتُخزَّن بأمان. يُفضّل استخدام أدوار IAM بأقل صلاحيات لـ S3."
 		},
@@ -424,15 +425,15 @@
 			"accountsServerPlaceholder": "https://accounts.zoho.in",
 			"accountsServerHint": "الافتراضي الهند (.in). استخدم منطقة أخرى عند الحاجة (مثل accounts.zoho.com).",
 			"webhookSection": "إعداد الويب هوك",
-			"webhookBody": "في Zoho Books، أنشئ ويب هوك للفواتير وجهات الاتصال واضبط هذا العنوان لكل منهما. استخدم نفس السرّ هنا وفي Zoho حتى يتحقق Flexprice من X-Zoho-Webhook-Signature.",
+			"webhookBody": "في Zoho Books، أنشئ ويب هوك للفواتير وجهات الاتصال واضبط هذا العنوان لكل منهما. استخدم نفس السرّ هنا وفي Zoho حتى يتحقق {{brandName}} من X-Zoho-Webhook-Signature.",
 			"webhookSecret": "سرّ الويب هوك",
 			"webhookSecretPlaceholderEdit": "اتركه فارغاً للإبقاء على السرّ، أو أدخل سراً جديداً للتدوير",
 			"webhookSecretPlaceholderCreate": "نفس القيمة في إعدادات الويب هوك في Zoho",
 			"webhookSecretDescEdit": "مُخزَّن مشفّراً. اتركه فارغاً عند التحديث للإبقاء على السرّ الحالي.",
-			"webhookSecretDescCreate": "مطلوب. يجب أن يطابق سرّ Zoho ليتحقق Flexprice من التوقيع. يُخزَّن مشفّراً مع الاتصال.",
+			"webhookSecretDescCreate": "مطلوب. يجب أن يطابق سرّ Zoho ليتحقق {{brandName}} من التوقيع. يُخزَّن مشفّراً مع الاتصال.",
 			"oauthRedirectTitle": "عنوان إعادة توجيه OAuth",
 			"oauthRedirectBody": "يجب أن يطابق هذا العنوان بالضبط «Authorized Redirect URI» في تطبيق Zoho وإعداد إعادة التوجيه في الخادم.",
-			"webhookBodyHtml": "في Zoho Books، أنشئ ويب هوك للفواتير وجهات الاتصال واضبط هذا العنوان لكل منهما. استخدم نفس السرّ هنا وفي Zoho حتى يتحقق Flexprice من <header>X-Zoho-Webhook-Signature</header>.",
+			"webhookBodyHtml": "في Zoho Books، أنشئ ويب هوك للفواتير وجهات الاتصال واضبط هذا العنوان لكل منهما. استخدم نفس السرّ هنا وفي Zoho حتى يتحقق {{brandName}} من <header>X-Zoho-Webhook-Signature</header>.",
 			"credentialsHidden": "بيانات OAuth مشفّرة ومخفية. لتحديثها احذف الاتصال وأنشئ اتصالاً جديداً.",
 			"selectTenantForUrl": "اختر المستأجر والبيئة لتوليد الرابط",
 			"toastUpdated": "تم تحديث اتصال Zoho Books بنجاح"
@@ -452,7 +453,7 @@
 			"incomeAccountPlaceholder": "79",
 			"incomeAccountHint": "حساب الإيرادات للعناصر في QuickBooks. يافتراضياً 79.",
 			"pushToQb": "دفع إلى QuickBooks",
-			"webhookPaymentEnabled": "اضبط الويب هوك في تطبيق QuickBooks لتمكين مطابقة المدفوعات مع Flexprice.",
+			"webhookPaymentEnabled": "اضبط الويب هوك في تطبيق QuickBooks لتمكين مطابقة المدفوعات مع {{brandName}}.",
 			"webhookPaymentDisabled": "فعّل مزامنة الدفع لضبط الويب هوك.",
 			"webhookVerifierOptional": "مُحقّق الويب هوك (اختياري)",
 			"webhookVerifierPlaceholder": "أدخل الرمز من QuickBooks",
@@ -543,7 +544,7 @@
 			"webhookEventTransactionsCompleted": "transactions.completed"
 		},
 		"whop": {
-			"description": "اربط Flexprice بـ Whop لمزامنة الفواتير.",
+			"description": "اربط {{brandName}} بـ Whop لمزامنة الفواتير.",
 			"connectionPlaceholder": "سمِّ اتصال Whop",
 			"connectionHint": "اسم ودي لهذا الاتصال.",
 			"apiKeyPlaceholder": "apik_...",
@@ -554,9 +555,9 @@
 			"companyIdRequired": "معرّف الشركة مطلوب",
 			"productIdOptional": "معرّف المنتج (اختياري)",
 			"productIdPlaceholder": "prod_... — اتركه فارغاً للإنشاء التلقائي",
-			"productIdHint": "منتج Whop المستخدم للفواتير. اتركه فارغاً لينشئ Flexprice واحداً تلقائياً.",
-			"invoiceSyncHint": "ادفع فواتير Flexprice إلى Whop كمدفوعات send_invoice",
-			"webhookIntroPrefix": "سجّل هذا العنوان في لوحة Whop ضمن Webhooks. سيتابع Flexprice",
+			"productIdHint": "منتج Whop المستخدم للفواتير. اتركه فارغاً لينشئ {{brandName}} واحداً تلقائياً.",
+			"invoiceSyncHint": "ادفع فواتير {{brandName}} إلى Whop كمدفوعات send_invoice",
+			"webhookIntroPrefix": "سجّل هذا العنوان في لوحة Whop ضمن Webhooks. سيتابع {{brandName}}",
 			"webhookEventName": "invoice.paid",
 			"webhookIntroSuffix": "لتحديث حالة الفاتورة تلقائياً عند الدفع.",
 			"connect{{brandName}}ToWhopToSyncInvoicesHint": "اربط {{brandName}} بـ Whop لمزامنة الفواتير.",
@@ -614,7 +615,7 @@
 			"addS3Connection": "إضافة اتصال S3",
 			"s3FeaturesTitle": "مزايا تصدير S3",
 			"s3FeatureDataExportTitle": "تصدير البيانات",
-			"s3FeatureDataExportBody": "صدِّر الأحداث والفواتير وبيانات Flexprice الأخرى تلقائياً إلى حاوية S3 وفق جدول.",
+			"s3FeatureDataExportBody": "صدِّر الأحداث والفواتير وبيانات {{brandName}} الأخرى تلقائياً إلى حاوية S3 وفق جدول.",
 			"s3FeatureSchedulingTitle": "جدولة مرنة",
 			"s3FeatureSchedulingBody": "اختر جدولة تصدير كل ساعة أو يومياً حسب احتياجات المعالجة.",
 			"s3FeatureSecureTitle": "تخزين آمن",
@@ -622,7 +623,7 @@
 			"s3FeatureFormatsTitle": "خيارات تنسيق البيانات",
 			"s3FeatureFormatsBody": "صدِّر بياناتك بأنسجة متعددة مع ضغط وحدود حجم ملفات لأفضل كفاءة تخزين.",
 			"overviewSectionTitle": "نظرة عامة",
-			"overviewIntro": "صدِّر بيانات Flexprice إلى أنظمة تخزين خارجية لأغراض التخزين التحليلي والنسخ الاحتياطي. اضبط تصديراً آلياً مع جدولة مرنة ونقل آمن.",
+			"overviewIntro": "صدِّر بيانات {{brandName}} إلى أنظمة تخزين خارجية لأغراض التخزين التحليلي والنسخ الاحتياطي. اضبط تصديراً آلياً مع جدولة مرنة ونقل آمن.",
 			"highlightAutomatedExportsTitle": "تصدير آلي",
 			"highlightAutomatedExportsBody": "جدولة تصدير منتظم للبيانات",
 			"highlightMultipleFormatsTitle": "تنسيقات متعددة",
@@ -631,7 +632,7 @@
 			"highlightSecureStorageBody": "نقل وتخزين مُشفَّر",
 			"exportProvidersTitle": "مزوّدو التصدير",
 			"providerAmazonS3Name": "Amazon S3",
-			"providerAmazonS3Description": "صدِّر بيانات Flexprice إلى Amazon S3 لأغراض التخزين التحليلي والنسخ الاحتياطي.",
+			"providerAmazonS3Description": "صدِّر بيانات {{brandName}} إلى Amazon S3 لأغراض التخزين التحليلي والنسخ الاحتياطي.",
 			"tagStorage": "تخزين",
 			"tagDataWarehouse": "مستودع بيانات",
 			"tagAnalytics": "تحليلات",
@@ -685,11 +686,11 @@
 					"sections": {
 						"overview": {
 							"title": "نظرة عامة",
-							"paragraphs": ["يتيح تطبيق Flexprice لـ Stripe إصدار الفواتير وتحصيل الضرائب والمدفوعات عبر Stripe."]
+							"paragraphs": ["يتيح تطبيق {{brandName}} لـ Stripe إصدار الفواتير وتحصيل الضرائب والمدفوعات عبر Stripe."]
 						},
 						"stripeInvoicing": {
 							"title": "فوترة Stripe",
-							"paragraphs": ["أنشئ وأرسل الفواتير عبر Stripe Invoicing مباشرة من Flexprice مع تحصيل المدفوعات تلقائياً."]
+							"paragraphs": ["أنشئ وأرسل الفواتير عبر Stripe Invoicing مباشرة من {{brandName}} مع تحصيل المدفوعات تلقائياً."]
 						},
 						"automaticTax": {
 							"title": "حساب الضريبة تلقائياً",
@@ -712,13 +713,13 @@
 						"overview": {
 							"title": "نظرة عامة",
 							"paragraphs": [
-								"يتيح تطبيق Flexprice لـ Razorpay إصدار الفواتير وحساب الضرائب وتحصيل المدفوعات عبر Razorpay، مع ربط سلس بـ Flexprice أو محرك الفوترة لديك."
+								"يتيح تطبيق {{brandName}} لـ Razorpay إصدار الفواتير وحساب الضرائب وتحصيل المدفوعات عبر Razorpay، مع ربط سلس بـ {{brandName}} أو محرك الفوترة لديك."
 							]
 						},
 						"razorpayInvoicing": {
 							"title": "فوترة Razorpay",
 							"paragraphs": [
-								"أنشئ وأرسل الفواتير بخطوات قليلة من Flexprice باستخدام فوترة Razorpay، مع إمكانية أتمتة التحصيل وتقليل المتابعات اليدوية."
+								"أنشئ وأرسل الفواتير بخطوات قليلة من {{brandName}} باستخدام فوترة Razorpay، مع إمكانية أتمتة التحصيل وتقليل المتابعات اليدوية."
 							]
 						},
 						"automaticTax": {
@@ -737,19 +738,19 @@
 				},
 				"chargebee": {
 					"name": "Chargebee",
-					"description": "زامن الفواتير والرسوم/الأسعار بين Flexprice وChargebee لعمليات فوترة سلسة.",
+					"description": "زامن الفواتير والرسوم/الأسعار بين {{brandName}} وChargebee لعمليات فوترة سلسة.",
 					"sections": {
 						"overview": {
 							"title": "نظرة عامة",
-							"paragraphs": ["يتيح تطبيق Flexprice لـ Chargebee مزامنة الفواتير والرسوم والأسعار بين المنصتين لتبسيط سير عمل الفوترة."]
+							"paragraphs": ["يتيح تطبيق {{brandName}} لـ Chargebee مزامنة الفواتير والرسوم والأسعار بين المنصتين لتبسيط سير عمل الفوترة."]
 						},
 						"invoiceSync": {
 							"title": "مزامنة الفواتير",
-							"paragraphs": ["زامن الفواتير من Flexprice إلى Chargebee ليبقى نظام الفوترة محدثاً بأحدث البيانات."]
+							"paragraphs": ["زامن الفواتير من {{brandName}} إلى Chargebee ليبقى نظام الفوترة محدثاً بأحدث البيانات."]
 						},
 						"chargePriceSync": {
 							"title": "مزامنة الرسوم والأسعار",
-							"paragraphs": ["زامن الرسوم والأسعار بين Flexprice وChargebee للحفاظ على اتساق منصة الفوترة."]
+							"paragraphs": ["زامن الرسوم والأسعار بين {{brandName}} وChargebee للحفاظ على اتساق منصة الفوترة."]
 						}
 					}
 				},
@@ -759,19 +760,19 @@
 					"sections": {
 						"overview": {
 							"title": "نظرة عامة",
-							"paragraphs": ["يتيح تطبيق Flexprice لـ HubSpot مزامنة الصفقات والفواتير والعملاء والمدفوعات بين HubSpot وFlexprice."]
+							"paragraphs": ["يتيح تطبيق {{brandName}} لـ HubSpot مزامنة الصفقات والفواتير والعملاء والمدفوعات بين HubSpot و{{brandName}}."]
 						},
 						"dealLineItems": {
 							"title": "مزامنة بنود الصفقة",
-							"paragraphs": ["زامن بنود الصفقات من HubSpot إلى Flexprice لضمان تتبع الإيرادات والفوترة بدقة."]
+							"paragraphs": ["زامن بنود الصفقات من HubSpot إلى {{brandName}} لضمان تتبع الإيرادات والفوترة بدقة."]
 						},
 						"invoiceSync": {
 							"title": "مزامنة الفواتير",
-							"paragraphs": ["ادفع الفواتير من Flexprice إلى HubSpot ليبقى الـ CRM محدثاً بمعلومات الفوترة."]
+							"paragraphs": ["ادفع الفواتير من {{brandName}} إلى HubSpot ليبقى الـ CRM محدثاً بمعلومات الفوترة."]
 						},
 						"customerSync": {
 							"title": "مزامنة العملاء",
-							"paragraphs": ["زامن بيانات العملاء بين HubSpot وFlexprice لمصدر واحد موثوق لمعلومات العملاء."]
+							"paragraphs": ["زامن بيانات العملاء بين HubSpot و{{brandName}} لمصدر واحد موثوق لمعلومات العملاء."]
 						},
 						"paymentsSync": {
 							"title": "مزامنة المدفوعات",
@@ -779,7 +780,7 @@
 						},
 						"revenueReporting": {
 							"title": "حسابات الإيراد في HubSpot",
-							"paragraphs": ["استفد من تقارير HubSpot مع بيانات إيراد دقيقة مزامنة من Flexprice."]
+							"paragraphs": ["استفد من تقارير HubSpot مع بيانات إيراد دقيقة مزامنة من {{brandName}}."]
 						}
 					}
 				},
@@ -793,36 +794,36 @@
 				},
 				"zoho": {
 					"name": "Zoho",
-					"description": "يتيح تكامل Zoho Books إدارة مهام المحاسبة المهمة مباشرة من Flexprice.",
+					"description": "يتيح تكامل Zoho Books إدارة مهام المحاسبة المهمة مباشرة من {{brandName}}.",
 					"sections": {
 						"createCustomer": {
 							"title": "إنشاء عميل في Zoho Books",
-							"paragraphs": ["أنشئ أو حدّث العملاء في Zoho Books تلقائياً عند إضافة عميل أو تعديله في Flexprice."]
+							"paragraphs": ["أنشئ أو حدّث العملاء في Zoho Books تلقائياً عند إضافة عميل أو تعديله في {{brandName}}."]
 						},
 						"createInvoice": {
 							"title": "إنشاء فاتورة في Zoho Books",
-							"paragraphs": ["ولّد فواتير Zoho Books بسلاسة من بيانات الاستخدام أو محفزات الفوترة في Flexprice مع تقليل العمل اليدوي."]
+							"paragraphs": ["ولّد فواتير Zoho Books بسلاسة من بيانات الاستخدام أو محفزات الفوترة في {{brandName}} مع تقليل العمل اليدوي."]
 						},
 						"transformInvoice": {
-							"title": "تحويل فاتورة Flexprice إلى Zoho Books",
-							"paragraphs": ["حوّل كائن فاتورة Flexprice إلى تنسيق فاتورة Zoho Books لتبسيط تدفق البيانات وضمان الدقة."]
+							"title": "تحويل فاتورة {{brandName}} إلى Zoho Books",
+							"paragraphs": ["حوّل كائن فاتورة {{brandName}} إلى تنسيق فاتورة Zoho Books لتبسيط تدفق البيانات وضمان الدقة."]
 						}
 					}
 				},
 				"quickbooks": {
 					"name": "QuickBooks",
-					"description": "زامن الخطط والعملاء والفواتير من Flexprice إلى QuickBooks Online لعمليات محاسبية سلسة.",
+					"description": "زامن الخطط والعملاء والفواتير من {{brandName}} إلى QuickBooks Online لعمليات محاسبية سلسة.",
 					"sections": {
 						"overview": {
 							"title": "نظرة عامة",
 							"paragraphs": [
-								"يتيح تكامل Flexprice مع QuickBooks مزامنة أحادية الاتجاه من Flexprice إلى QuickBooks Online لمزامنة الخطط والعملاء والفواتير تلقائياً."
+								"يتيح تكامل {{brandName}} مع QuickBooks مزامنة أحادية الاتجاه من {{brandName}} إلى QuickBooks Online لمزامنة الخطط والعملاء والفواتير تلقائياً."
 							]
 						},
 						"planPriceSync": {
 							"title": "مزامنة الخطة/السعر",
 							"paragraphs": [
-								"أنشئ عناصر QuickBooks (نوع خدمة) تلقائياً عند إنشاء الخطط في Flexprice. تُربط كل أسعار بعنصر QuickBooks لبنود فاتورة دقيقة."
+								"أنشئ عناصر QuickBooks (نوع خدمة) تلقائياً عند إنشاء الخطط في {{brandName}}. تُربط كل أسعار بعنصر QuickBooks لبنود فاتورة دقيقة."
 							]
 						},
 						"customerSync": {
@@ -832,7 +833,7 @@
 						"invoiceSync": {
 							"title": "مزامنة الفواتير",
 							"paragraphs": [
-								"زامن الفواتير من Flexprice إلى QuickBooks Online مع ربط بنود الفاتورة بعناصر QuickBooks لسجلات محاسبية دقيقة."
+								"زامن الفواتير من {{brandName}} إلى QuickBooks Online مع ربط بنود الفاتورة بعناصر QuickBooks لسجلات محاسبية دقيقة."
 							]
 						},
 						"tokenRefresh": {
@@ -847,11 +848,11 @@
 					"sections": {
 						"overview": {
 							"title": "نظرة عامة",
-							"paragraphs": ["يتيح تطبيق Flexprice لـ Nomod إصدار الفواتير وتحصيل المدفوعات عبر روابط دفع Nomod مع ربط سلس بـ Flexprice."]
+							"paragraphs": ["يتيح تطبيق {{brandName}} لـ Nomod إصدار الفواتير وتحصيل المدفوعات عبر روابط دفع Nomod مع ربط سلس بـ {{brandName}}."]
 						},
 						"invoiceSync": {
 							"title": "مزامنة الفواتير",
-							"paragraphs": ["أنشئ وأرسل فواتير بروابط دفع عبر Nomod من Flexprice مع إمكانية أتمتة التحصيل عبر الروابط."]
+							"paragraphs": ["أنشئ وأرسل فواتير بروابط دفع عبر Nomod من {{brandName}} مع إمكانية أتمتة التحصيل عبر الروابط."]
 						},
 						"paymentLinks": {
 							"title": "روابط الدفع",
@@ -869,11 +870,11 @@
 					"sections": {
 						"overview": {
 							"title": "نظرة عامة",
-							"paragraphs": ["يتيح تطبيق Flexprice لـ Moyasar إصدار الفواتير وتحصيل المدفوعات عبر بوابة Moyasar مع ربط سلس بـ Flexprice."]
+							"paragraphs": ["يتيح تطبيق {{brandName}} لـ Moyasar إصدار الفواتير وتحصيل المدفوعات عبر بوابة Moyasar مع ربط سلس بـ {{brandName}}."]
 						},
 						"invoiceSync": {
 							"title": "مزامنة الفواتير",
-							"paragraphs": ["أنشئ وأرسل الفواتير عبر Moyasar من Flexprice مع إمكانية أتمتة التحصيل عبر البوابة."]
+							"paragraphs": ["أنشئ وأرسل الفواتير عبر Moyasar من {{brandName}} مع إمكانية أتمتة التحصيل عبر البوابة."]
 						},
 						"securePayments": {
 							"title": "مدفوعات آمنة",
@@ -891,11 +892,11 @@
 					"sections": {
 						"overview": {
 							"title": "نظرة عامة",
-							"paragraphs": ["يتيح تطبيق Flexprice لـ Paddle إصدار الفواتير وتحصيل المدفوعات عبر بوابة Paddle مع ربط سلس بـ Flexprice."]
+							"paragraphs": ["يتيح تطبيق {{brandName}} لـ Paddle إصدار الفواتير وتحصيل المدفوعات عبر بوابة Paddle مع ربط سلس بـ {{brandName}}."]
 						},
 						"invoiceSync": {
 							"title": "مزامنة الفواتير",
-							"paragraphs": ["أنشئ وأرسل الفواتير عبر Paddle من Flexprice مع إمكانية أتمتة التحصيل عبر البوابة."]
+							"paragraphs": ["أنشئ وأرسل الفواتير عبر Paddle من {{brandName}} مع إمكانية أتمتة التحصيل عبر البوابة."]
 						},
 						"securePayments": {
 							"title": "مدفوعات آمنة",
