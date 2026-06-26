@@ -523,7 +523,8 @@
 				"trialToggleTitle": "البدء بتجربة مجانية",
 				"trialToggleHint": "فعّل هذا الخيار لإضافة فترة تجربة مجانية للاشتراك.",
 				"trialPeriodTitle": "فترة التجربة",
-				"trialDaysPlaceholder": "عدد أيام التجربة"
+				"trialDaysPlaceholder": "عدد أيام التجربة",
+				"billingPeriodRequired": "فترة الفوترة مطلوبة"
 			},
 			"usageForm": {
 				"feature": "الميزة",
@@ -532,7 +533,13 @@
 				"billingModelPlaceholder": "نموذج الفوترة",
 				"selectBillingPeriod": "اختر فترة الفوترة",
 				"per": "لكل",
-				"amountPlaceholder": "0.00"
+				"amountPlaceholder": "0.00",
+				"billingModelDescriptions": {
+					"flatFee": "تحصيل مبلغ ثابت لكل وحدة استخدام.",
+					"package": "التحصيل حسب الحزمة أو المجموعة من الوحدات.",
+					"volumeTiered": "تسعير جميع الوحدات بناءً على الشريحة النهائية المحققة.",
+					"slabTiered": "تُطبَّق الشرائح تدريجياً مع زيادة الكمية."
+				}
 			},
 			"priceForm": {
 				"displayName": "اسم العرض",

@@ -218,14 +218,20 @@ const chargeFilterOptions: FilterField[] = [
 	},
 ];
 
-const chargeSortOptions = [
-	{ field: CHARGE_FILTER_FIELD.DISPLAY_NAME, label: 'Display name', direction: SortDirection.ASC as const },
-	{ field: CHARGE_FILTER_FIELD.AMOUNT, label: 'Amount', direction: SortDirection.ASC as const },
-	{ field: CHARGE_FILTER_FIELD.BILLING_PERIOD, label: 'Billing period', direction: SortDirection.ASC as const },
-];
-
 const PlanPriceTable: FC<PlanChargesTableProps> = ({ plan, onPriceUpdate }) => {
 	const { t } = useTranslation(['catalog', 'common']);
+	const chargeSortOptions = useMemo(
+		() => [
+			{ field: CHARGE_FILTER_FIELD.DISPLAY_NAME, label: 'Display name', direction: SortDirection.ASC as const },
+			{ field: CHARGE_FILTER_FIELD.AMOUNT, label: 'Amount', direction: SortDirection.ASC as const },
+			{
+				field: CHARGE_FILTER_FIELD.BILLING_PERIOD,
+				label: t('catalog:plans.organisms.planPriceTable.queryBuilder.billingPeriod'),
+				direction: SortDirection.ASC as const,
+			},
+		],
+		[t],
+	);
 	const navigate = useNavigate();
 	const [showTerminateModal, setShowTerminateModal] = useState(false);
 	const [selectedPriceForTermination, setSelectedPriceForTermination] = useState<Price | null>(null);

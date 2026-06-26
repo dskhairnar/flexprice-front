@@ -1,7 +1,7 @@
 import React from 'react';
 import { ActionButton } from '@/components/atoms';
 import FlexpriceTable, { ColumnData } from '../Table';
-import { CreditGrant } from '@/models';
+import { CreditGrant, CREDIT_GRANT_CADENCE } from '@/models';
 import { formatExpirationPeriod } from '@/utils/common/credit_grant_helpers';
 import { formatBillingPeriodForPrice } from '@/utils/common/helper_functions';
 import { formatLocalizedNumber } from '@/utils/common/helper_functions';
@@ -16,7 +16,7 @@ interface CreditGrantsTableProps {
 }
 
 const CreditGrantsTable: React.FC<CreditGrantsTableProps> = ({ data, onDelete, showEmptyRow = false }) => {
-	const { t } = useTranslation('common');
+	const { t } = useTranslation(['common', 'billing']);
 
 	const handleDelete = async (grant: CreditGrant) => {
 		await CreditGrantApi.delete(grant.id);
@@ -48,13 +48,17 @@ const CreditGrantsTable: React.FC<CreditGrantsTableProps> = ({ data, onDelete, s
 		{
 			title: t('tableColumns.cadence'),
 			render: (row) => {
-				const cadence = row.cadence.toLowerCase().replace('_', ' ');
-				return cadence.charAt(0).toUpperCase() + cadence.slice(1);
+				return row.cadence === CREDIT_GRANT_CADENCE.RECURRING
+					? t('billing:creditGrant.modal.cadence.recurring.label')
+					: t('billing:creditGrant.modal.cadence.onetime.label');
 			},
 		},
 		{
 			title: t('tableColumns.period'),
-			render: (row) => (row.period ? `${row.period_count || 1} ${formatBillingPeriodForPrice(row.period, t)}` : '--'),
+			render: (row) =>
+				row.period
+					? `${formatLocalizedNumber(row.period_count || 1, { maximumFractionDigits: 0 })} ${formatBillingPeriodForPrice(row.period, t)}`
+					: '--',
 		},
 		{
 			title: t('tableColumns.expirationConfig'),

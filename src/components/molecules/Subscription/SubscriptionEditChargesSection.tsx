@@ -50,7 +50,16 @@ const SubscriptionEditChargesSection: FC<SubscriptionEditChargesSectionProps> = 
 	readOnly = false,
 	commitmentInfo,
 }) => {
-	const { t } = useTranslation('common');
+	const { t } = useTranslation(['common', 'customers']);
+	const lineItemFilterOptions = useMemo(
+		() =>
+			SUBSCRIPTION_EDIT_LINE_ITEM_FILTER_OPTIONS.map((option) =>
+				option.field === 'billing_period'
+					? { ...option, label: t('customers:subscriptionEdit.lineItemsQueryBuilder.billingPeriod') }
+					: option,
+			),
+		[t],
+	);
 	const { filters, sorts, setFilters, setSorts, sanitizedFilters, sanitizedSorts } = useFilterSorting({
 		debounceTime: 300,
 	});
@@ -121,7 +130,7 @@ const SubscriptionEditChargesSection: FC<SubscriptionEditChargesSectionProps> = 
 	return (
 		<Card variant='notched'>
 			<QueryBuilder
-				filterOptions={SUBSCRIPTION_EDIT_LINE_ITEM_FILTER_OPTIONS}
+				filterOptions={lineItemFilterOptions}
 				filters={filters}
 				onFilterChange={setFilters}
 				sortOptions={SUBSCRIPTION_EDIT_LINE_ITEM_SORT_OPTIONS}

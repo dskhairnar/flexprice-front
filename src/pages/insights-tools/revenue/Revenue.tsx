@@ -382,7 +382,9 @@ const Revenue = () => {
 									<TableHead className='rounded-tl-md pl-4 font-semibold text-gray-700 text-[13px]'>
 										{t('insightsTools.revenue.colCustomer')}
 									</TableHead>
-									{selectedCurrency === '' && <TableHead className='font-semibold text-gray-700 text-[13px]'>{t('currency')}</TableHead>}
+									{selectedCurrency === '' && (
+										<TableHead className='font-semibold text-gray-700 text-[13px]'>{t('insightsTools.revenue.colCurrency')}</TableHead>
+									)}
 									<TableHead className='font-semibold text-gray-700 text-[13px]'>{t('insightsTools.revenue.metricNetRevenue')}</TableHead>
 									<TableHead className='font-semibold text-gray-700 text-[13px]'>
 										{t('insightsTools.revenue.metricContractRevenue')}

@@ -1,13 +1,19 @@
 import { Price } from '@/models/Price';
 import { FC, useState, useEffect, useMemo } from 'react';
-import { Button, Input, Select, SelectOption, Spacer, DatePicker } from '@/components/atoms';
+import { Button, Input, Select, Spacer, DatePicker } from '@/components/atoms';
 import SelectFeature from '@/components/atoms/SelectFeature/SelectFeature';
 import SelectGroup from './SelectGroup';
 // import { Pencil, Trash2 } from 'lucide-react';
 import { Group } from '@/models/Group';
 import Feature, { FEATURE_TYPE } from '@/models/Feature';
-import { formatBillingPeriodForPrice, getCurrencySymbol } from '@/utils/common/helper_functions';
-import { billlingPeriodOptions, currencyOptions } from '@/constants/constants';
+import {
+	formatBillingPeriodForPrice,
+	getCurrencySymbol,
+	getLocalizedBillingPeriodOptions,
+	getLocalizedUsageBillingModelOptions,
+	SLAB_TIERED_BILLING_MODEL,
+} from '@/utils/common/helper_functions';
+import { currencyOptions } from '@/constants/constants';
 import VolumeTieredPricingForm from './VolumeTieredPricingForm';
 import { InternalPrice } from './SetupChargesSection';
 import UsageChargePreview from './UsageChargePreview';
@@ -55,28 +61,6 @@ interface TieredPrice {
 }
 
 // TODO: Remove disabled once the feature is released
-const billingModels: SelectOption[] = [
-	{
-		value: BILLING_MODEL.FLAT_FEE,
-		label: 'Flat Fee',
-		description: 'Charge a fixed amount for each unit of usage.',
-	},
-	{
-		value: BILLING_MODEL.PACKAGE,
-		label: 'Package',
-		description: 'Charge by package, bundle or group of units.',
-	},
-	{
-		value: BILLING_MODEL.TIERED,
-		label: 'Volume Tiered',
-		description: 'All units price based on final tier reached.',
-	},
-	{
-		value: 'SLAB_TIERED',
-		label: 'Slab Tiered',
-		description: 'Tiers apply progressively as quantity increases.',
-	}, // Maps to TIERED with SLAB tier_mode
-];
 
 const UsagePricingForm: FC<Props> = ({
 	onAdd,
@@ -87,11 +71,15 @@ const UsagePricingForm: FC<Props> = ({
 	entityType = PRICE_ENTITY_TYPE.PLAN,
 	entityId,
 }) => {
-	const { t } = useTranslation(['catalog', 'common']);
+	const { t } = useTranslation(['catalog', 'common', 'billing']);
+	const localizedBillingPeriodOptions = useMemo(() => getLocalizedBillingPeriodOptions(t), [t]);
+	const localizedBillingModelOptions = useMemo(() => getLocalizedUsageBillingModelOptions(t), [t]);
 	const [currency, setCurrency] = useState(price.currency || currencyOptions[0].value);
 	const [priceUnitType, setPriceUnitType] = useState<PRICE_UNIT_TYPE>(price.price_unit_type || PRICE_UNIT_TYPE.FIAT);
 	const [priceUnitConfig, setPriceUnitConfig] = useState(price.price_unit_config);
-	const [billingModel, setBillingModel] = useState(price.billing_model || billingModels[0].value);
+	const [billingModel, setBillingModel] = useState<BILLING_MODEL | typeof SLAB_TIERED_BILLING_MODEL>(
+		price.billing_model || BILLING_MODEL.FLAT_FEE,
+	);
 	const [selectedFeature, setSelectedFeature] = useState<Feature | undefined>(undefined);
 	const [groupId, setGroupId] = useState<string | undefined>(price.group_id);
 	const [displayName, setDisplayName] = useState<string>(price.display_name || '');
@@ -167,7 +155,7 @@ const UsagePricingForm: FC<Props> = ({
 			setCurrency(price.currency || currencyOptions[0].value);
 			setPriceUnitType(price.price_unit_type || PRICE_UNIT_TYPE.FIAT);
 			setPriceUnitConfig(price.price_unit_config);
-			setBillingModel(price.billing_model || billingModels[0].value);
+			setBillingModel(price.billing_model || BILLING_MODEL.FLAT_FEE);
 			// Set display_name from price or feature name (will be set when feature is loaded)
 			setDisplayName(price.display_name || '');
 			setBillingPeriod(price.billing_period || BILLING_PERIOD.MONTHLY);
@@ -192,9 +180,9 @@ const UsagePricingForm: FC<Props> = ({
 
 				// Set the appropriate billing model based on tier_mode
 				if (price.tier_mode === TIER_MODE.SLAB) {
-					setBillingModel(billingModels[3].value); // SLAB_TIERED
+					setBillingModel(SLAB_TIERED_BILLING_MODEL);
 				} else {
-					setBillingModel(billingModels[2].value); // Volume Tiered (default)
+					setBillingModel(BILLING_MODEL.TIERED);
 				}
 			}
 		}
@@ -232,7 +220,7 @@ const UsagePricingForm: FC<Props> = ({
 		}
 
 		// Tiered pricing validation
-		if (billingModel === billingModels[2].value || billingModel === billingModels[3].value) {
+		if (billingModel === BILLING_MODEL.TIERED || billingModel === SLAB_TIERED_BILLING_MODEL) {
 			// Check if tiers are provided
 			if (tieredPrices.length === 0) {
 				setInputErrors((prev) => ({
@@ -296,7 +284,7 @@ const UsagePricingForm: FC<Props> = ({
 		}
 
 		// Package pricing validation
-		if (billingModel === billingModels[1].value) {
+		if (billingModel === BILLING_MODEL.PACKAGE) {
 			if (packagedFee.price === '' || packagedFee.unit === '') {
 				setInputErrors((prev) => ({ ...prev, packagedModelError: 'Invalid package fee' }));
 				return false;
@@ -318,7 +306,7 @@ const UsagePricingForm: FC<Props> = ({
 		}
 
 		// Flat fee validation
-		if (billingModel === billingModels[0].value) {
+		if (billingModel === BILLING_MODEL.FLAT_FEE) {
 			if (!flatFee || flatFee.trim() === '') {
 				setInputErrors((prev) => ({ ...prev, flatModelError: 'Flat fee is required' }));
 				return false;
@@ -348,19 +336,19 @@ const UsagePricingForm: FC<Props> = ({
 		// Build price_unit_config for custom price units based on billing model
 		let finalPriceUnitConfig = priceUnitConfig;
 		if (priceUnitType === PRICE_UNIT_TYPE.CUSTOM && priceUnitConfig) {
-			if (billingModel === billingModels[0].value) {
+			if (billingModel === BILLING_MODEL.FLAT_FEE) {
 				// FLAT_FEE: Set amount in price_unit_config
 				finalPriceUnitConfig = {
 					...priceUnitConfig,
 					amount: flatFee,
 				};
-			} else if (billingModel === billingModels[1].value) {
+			} else if (billingModel === BILLING_MODEL.PACKAGE) {
 				// PACKAGE: Set amount in price_unit_config
 				finalPriceUnitConfig = {
 					...priceUnitConfig,
 					amount: packagedFee.price,
 				};
-			} else if (billingModel === billingModels[2].value || billingModel === billingModels[3].value) {
+			} else if (billingModel === BILLING_MODEL.TIERED || billingModel === SLAB_TIERED_BILLING_MODEL) {
 				// TIERED: Set price_unit_tiers in price_unit_config
 				finalPriceUnitConfig = {
 					...priceUnitConfig,
@@ -393,13 +381,13 @@ const UsagePricingForm: FC<Props> = ({
 
 		let finalPrice: Partial<Price>;
 
-		if (billingModel === billingModels[0].value) {
+		if (billingModel === BILLING_MODEL.FLAT_FEE) {
 			// FLAT_FEE: For FIAT, set amount directly; for CUSTOM, amount is in price_unit_config
 			finalPrice = {
 				...basePrice,
 				...(priceUnitType === PRICE_UNIT_TYPE.FIAT ? { amount: flatFee } : {}),
 			};
-		} else if (billingModel === billingModels[1].value) {
+		} else if (billingModel === BILLING_MODEL.PACKAGE) {
 			// PACKAGE: For FIAT, set amount directly; for CUSTOM, amount is in price_unit_config
 			finalPrice = {
 				...basePrice,
@@ -408,7 +396,7 @@ const UsagePricingForm: FC<Props> = ({
 					divide_by: Number(packagedFee.unit),
 				},
 			};
-		} else if (billingModel === billingModels[2].value || billingModel === billingModels[3].value) {
+		} else if (billingModel === BILLING_MODEL.TIERED || billingModel === SLAB_TIERED_BILLING_MODEL) {
 			// TIERED: For FIAT, set tiers and tier_mode directly; for CUSTOM, tiers are in price_unit_config
 			finalPrice = {
 				...basePrice,
@@ -421,7 +409,7 @@ const UsagePricingForm: FC<Props> = ({
 								unit_amount: tier.unit_amount || '0',
 								flat_amount: tier.flat_amount || '0',
 							})) as unknown as NonNullable<Price['tiers']>,
-							tier_mode: billingModel === billingModels[2].value ? TIER_MODE.VOLUME : TIER_MODE.SLAB,
+							tier_mode: billingModel === BILLING_MODEL.TIERED ? TIER_MODE.VOLUME : TIER_MODE.SLAB,
 						}
 					: {}),
 			};
@@ -515,7 +503,7 @@ const UsagePricingForm: FC<Props> = ({
 			<Spacer height='8px' />
 			<Select
 				value={billingPeriod}
-				options={billlingPeriodOptions}
+				options={localizedBillingPeriodOptions}
 				onChange={(value) => {
 					setBillingPeriod(value as BILLING_PERIOD);
 				}}
@@ -527,15 +515,15 @@ const UsagePricingForm: FC<Props> = ({
 
 			<Select
 				value={billingModel}
-				options={billingModels}
-				onChange={setBillingModel}
+				options={localizedBillingModelOptions}
+				onChange={(value) => setBillingModel(value as BILLING_MODEL | typeof SLAB_TIERED_BILLING_MODEL)}
 				label={t('catalog:plans.organisms.usageForm.billingModel')}
 				error={errors.billing_model}
 				placeholder={t('catalog:plans.organisms.usageForm.billingModelPlaceholder')}
 			/>
 			<Spacer height='8px' />
 
-			{billingModel === billingModels[0].value && (
+			{billingModel === BILLING_MODEL.FLAT_FEE && (
 				<div className='space-y-2'>
 					<Input
 						placeholder={t('catalog:plans.organisms.usageForm.amountPlaceholder')}
@@ -556,7 +544,7 @@ const UsagePricingForm: FC<Props> = ({
 				</div>
 			)}
 
-			{billingModel === billingModels[1].value && (
+			{billingModel === BILLING_MODEL.PACKAGE && (
 				<div className='space-y-1'>
 					<div className='flex w-full gap-2 items-end'>
 						<Input
@@ -597,14 +585,14 @@ const UsagePricingForm: FC<Props> = ({
 				</div>
 			)}
 
-			{(billingModel === billingModels[2].value || billingModel === billingModels[3].value) && (
+			{(billingModel === BILLING_MODEL.TIERED || billingModel === SLAB_TIERED_BILLING_MODEL) && (
 				<div className='space-y-2'>
 					<Spacer height='8px' />
 					<VolumeTieredPricingForm
 						setTieredPrices={setTieredPrices}
 						tieredPrices={tieredPrices}
 						currency={priceUnitType === PRICE_UNIT_TYPE.CUSTOM ? priceUnitConfig?.price_unit || currency : currency}
-						tierMode={billingModel === billingModels[2].value ? TIER_MODE.VOLUME : TIER_MODE.SLAB}
+						tierMode={billingModel === BILLING_MODEL.TIERED ? TIER_MODE.VOLUME : TIER_MODE.SLAB}
 					/>
 					{inputErrors.tieredModelError && <p className='text-red-500 text-sm'>{inputErrors.tieredModelError}</p>}
 				</div>
