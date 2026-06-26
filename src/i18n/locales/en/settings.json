@@ -1119,10 +1119,12 @@
 			"productionAccount": "production account",
 			"sandboxAccount": "sandbox",
 			"grace": "Your {{envType}} is active for the next {{count}} {{dayWord}}. To continue after that, ",
+			"graceOnly": "Your {{envType}} is active for the next {{count}} {{dayWord}}.",
 			"dayWordOne": "day",
 			"dayWordPlural": "days",
 			"contactUs": "contact us",
-			"suspended": "Your {{envType}} is temporarily closed. To continue, "
+			"suspended": "Your {{envType}} is temporarily closed. To continue, ",
+			"suspendedOnly": "Your {{envType}} is temporarily closed."
 		}
 	},
 	"debug": {

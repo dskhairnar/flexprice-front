@@ -1082,10 +1082,12 @@
 			"productionAccount": "حساب الإنتاج",
 			"sandboxAccount": "الحساب التجريبي",
 			"grace": "ستنتهي صلاحية {{envType}} خلال {{count}} {{dayWord}}. يرجى التواصل معنا ",
+			"graceOnly": "ستنتهي صلاحية {{envType}} خلال {{count}} {{dayWord}}.",
 			"dayWordOne": "يوم",
 			"dayWordPlural": "أيام",
 			"contactUs": "تواصل معنا",
-			"suspended": "تم تعليق {{envType}}. يرجى التواصل معنا"
+			"suspended": "تم تعليق {{envType}}. يرجى التواصل معنا ",
+			"suspendedOnly": "تم تعليق {{envType}}."
 		}
 	},
 	"debug": {

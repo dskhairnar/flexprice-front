@@ -2,6 +2,7 @@ import React from 'react';
 import { Mail, CalendarDays } from 'lucide-react';
 import { Dialog } from '@/components/atoms';
 import { useTranslation } from 'react-i18next';
+import { isFlexpriceContactEnabled } from '@/utils/hostname/isFlexpriceIoHostname';
 
 const SLACK_LINK = 'https://join.slack.com/t/flexpricecommunity/shared_invite/zt-39uat51l0-n8JmSikHZP~bHJNXladeaQ';
 const EMAIL_LINK = 'mailto:support@flexprice.io';
@@ -20,6 +21,11 @@ interface ContactUsDialogProps {
 
 const ContactUsDialog: React.FC<ContactUsDialogProps> = ({ isOpen, onOpenChange, title, description }) => {
 	const { t } = useTranslation('common');
+
+	if (!isFlexpriceContactEnabled()) {
+		return null;
+	}
+
 	const dialogTitle = title ?? t('contactUs.defaultTitle');
 	const dialogDescription = description ?? t('contactUs.defaultDescription');
 
