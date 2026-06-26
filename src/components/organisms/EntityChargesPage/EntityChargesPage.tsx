@@ -246,7 +246,7 @@ const EntityChargesPage: React.FC<EntityChargesPageProps> = ({ entityType, entit
 		const allPrices = [...state.recurringCharges, ...state.usageCharges];
 
 		if (allPrices.length === 0) {
-			toast.error('No prices to create');
+			toast.error(t('common:toast.noPricesToCreate'));
 			return;
 		}
 
@@ -311,7 +311,7 @@ const EntityChargesPage: React.FC<EntityChargesPageProps> = ({ entityType, entit
 		try {
 			// Create prices using bulk API - wait for success response
 			await createBulkPrices(bulkPriceRequest);
-			toast.success(`Prices created successfully for ${entityType.toLowerCase()}`);
+			toast.success(t('common:toast.pricesCreatedFor', { entity: entityType.toLowerCase() }));
 			refetchQueries(['fetchPlan', entityId]);
 			if (entityType === ENTITY_TYPE.ADDON) {
 				refetchQueries(['fetchAddon', entityId]);
@@ -329,7 +329,18 @@ const EntityChargesPage: React.FC<EntityChargesPageProps> = ({ entityType, entit
 					: 'An error occurred while processing charges';
 			toast.error(errorMessage);
 		}
-	}, [state.recurringCharges, state.usageCharges, priceEntityType, entityId, createBulkPrices, navigate, entityType, routeName, onSuccess]);
+	}, [
+		state.recurringCharges,
+		state.usageCharges,
+		priceEntityType,
+		entityId,
+		createBulkPrices,
+		navigate,
+		entityType,
+		routeName,
+		onSuccess,
+		t,
+	]);
 
 	// Fixed charges handlers
 	const handleRecurringChargeAdd = useCallback((index: number, charge: Partial<InternalPrice>) => {
@@ -399,9 +410,9 @@ const EntityChargesPage: React.FC<EntityChargesPageProps> = ({ entityType, entit
 	// ===== ERROR HANDLING =====
 	useEffect(() => {
 		if (isError && error) {
-			toast.error(`Error fetching ${entityType.toLowerCase()} data`);
+			toast.error(t('common:toast.errorFetchingEntityData', { entity: entityType.toLowerCase() }));
 		}
-	}, [isError, error, entityType]);
+	}, [isError, error, entityType, t]);
 
 	// ===== LOADING & ERROR STATES =====
 	if (isLoading) return <Loader />;

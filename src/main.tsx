@@ -2,6 +2,7 @@ import ReactDOM from 'react-dom/client';
 import App from './App.tsx';
 import './index.css';
 import './styles/currency-font.css';
+import './styles/thmanyah-font.css';
 import PosthogProvider from './core/services/posthog/PosthogProvider.tsx';
 import SentryProvider from './core/services/sentry/SentryProvider.tsx';
 import VercelSpeedInsights from './core/services/vercel/vercel.tsx';

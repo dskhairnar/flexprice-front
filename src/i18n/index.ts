@@ -1,7 +1,7 @@
 import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
 import resourcesToBackend from 'i18next-resources-to-backend';
-import { Direction } from '@/config/branding';
+import { brandConfig, Direction } from '@/config/branding';
 
 export const NAMESPACES = [
 	'auth',
@@ -35,7 +35,10 @@ export async function initI18n(locale: string, direction: Direction): Promise<vo
 				defaultNS: 'common',
 				ns: NAMESPACES,
 				partialBundledLanguages: true,
-				interpolation: { escapeValue: false },
+				interpolation: {
+					escapeValue: false,
+					defaultVariables: { brandName: brandConfig.name },
+				},
 			});
 		await i18n.loadNamespaces(['common']);
 	} catch (err) {

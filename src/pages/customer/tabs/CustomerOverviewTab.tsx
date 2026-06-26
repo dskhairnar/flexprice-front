@@ -276,7 +276,7 @@ const CustomerOverviewTab = () => {
 	}
 
 	if (subscriptionsError || usageError || upcomingGrantsError || customerError) {
-		toast.error('Something went wrong');
+		toast.error(t('common:toast.somethingWentWrong'));
 	}
 
 	const renderSubscriptionContent = () => (

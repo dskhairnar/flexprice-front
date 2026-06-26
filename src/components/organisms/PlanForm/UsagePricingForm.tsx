@@ -239,7 +239,7 @@ const UsagePricingForm: FC<Props> = ({
 					...prev,
 					tieredModelError: 'Tiers are required when billing model is TIERED',
 				}));
-				toast.error('Tiers are required when billing model is TIERED');
+				toast.error(t('common:toast.tiersRequired'));
 				return false;
 			}
 
@@ -253,7 +253,7 @@ const UsagePricingForm: FC<Props> = ({
 						...prev,
 						tieredModelError: `Unit amount is required for tier ${i + 1}`,
 					}));
-					toast.error(`Unit amount is required for tier ${i + 1}`);
+					toast.error(t('common:toast.unitAmountRequiredTier', { tier: i + 1 }));
 					return false;
 				}
 
@@ -264,7 +264,7 @@ const UsagePricingForm: FC<Props> = ({
 						...prev,
 						tieredModelError: `Unit amount must be greater than or equal to 0 for tier ${i + 1}`,
 					}));
-					toast.error(`Unit amount must be greater than or equal to 0 for tier ${i + 1}`);
+					toast.error(t('common:toast.unitAmountGteZeroTier', { tier: i + 1 }));
 					return false;
 				}
 
@@ -276,7 +276,7 @@ const UsagePricingForm: FC<Props> = ({
 							...prev,
 							tieredModelError: `Flat amount must be greater than or equal to 0 for tier ${i + 1}`,
 						}));
-						toast.error(`Flat amount must be greater than or equal to 0 for tier ${i + 1}`);
+						toast.error(t('common:toast.flatAmountGteZeroTier', { tier: i + 1 }));
 						return false;
 					}
 				}
@@ -288,7 +288,7 @@ const UsagePricingForm: FC<Props> = ({
 							...prev,
 							tieredModelError: `From value cannot be greater than up to in tier ${i + 1}`,
 						}));
-						toast.error(`From value cannot be greater than up to in tier ${i + 1}`);
+						toast.error(t('common:toast.fromGtUpToTier', { tier: i + 1 }));
 						return false;
 					}
 				}

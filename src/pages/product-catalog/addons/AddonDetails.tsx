@@ -179,7 +179,7 @@ const AddonDetails = () => {
 			return await AddonApi.Delete(id!);
 		},
 		onSuccess: () => {
-			toast.success('Addon archived successfully');
+			toast.success(t('common:toast.addonArchived'));
 			navigate(RouteNames.addons);
 		},
 		onError: (error: Error) => {
@@ -223,12 +223,12 @@ const AddonDetails = () => {
 	}
 
 	if (isError) {
-		toast.error('Error loading addon data');
+		toast.error(t('common:toast.errorLoadingAddon'));
 		return null;
 	}
 
 	if (!addonData) {
-		toast.error('No addon data available');
+		toast.error(t('common:toast.noAddonData'));
 		return null;
 	}
 

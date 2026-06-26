@@ -29,7 +29,7 @@ const ForgotPasswordForm: React.FC<ForgotPasswordFormProps> = ({ switchTab }) =>
 			return true;
 		},
 		onSuccess: () => {
-			toast.success('Password reset link sent to your email');
+			toast.success(t('common:toast.passwordResetLinkSent'));
 		},
 		onError: (error: Error) => {
 			toast.error(error.message || 'An unexpected error occurred');
@@ -38,7 +38,7 @@ const ForgotPasswordForm: React.FC<ForgotPasswordFormProps> = ({ switchTab }) =>
 
 	const handleForgotPassword = () => {
 		if (!email) {
-			toast.error('Please enter your email address');
+			toast.error(t('common:toast.enterEmail'));
 			return;
 		}
 

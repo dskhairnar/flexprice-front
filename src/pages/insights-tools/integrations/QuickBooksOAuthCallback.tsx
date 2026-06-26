@@ -61,7 +61,7 @@ const QuickBooksOAuthCallback = () => {
 
 		if (!sessionId) {
 			setError('Session expired or not found');
-			toast.error('OAuth session expired. Please try connecting again.');
+			toast.error(t('common:toast.oauthSessionExpired'));
 			setTimeout(() => {
 				navigate(providerRoute);
 			}, 3000);
@@ -70,7 +70,7 @@ const QuickBooksOAuthCallback = () => {
 
 		if (isQuickBooks && !realmId) {
 			setError('Missing QuickBooks realm ID');
-			toast.error('QuickBooks authorization failed: Missing realm ID');
+			toast.error(t('common:toast.quickbooksMissingRealm'));
 			setTimeout(() => {
 				navigate(providerRoute);
 			}, 3000);
@@ -79,13 +79,13 @@ const QuickBooksOAuthCallback = () => {
 
 		if (!isQuickBooks && !zohoOrganizationId) {
 			setError('Zoho organization ID is missing. Please restart the connection flow.');
-			toast.error('Zoho organization ID not found. Please reconnect.');
+			toast.error(t('common:toast.zohoOrgIdNotFound'));
 			setTimeout(() => {
 				navigate(providerRoute);
 			}, 3000);
 			return;
 		}
-	}, [code, state, sessionId, realmId, errorParam, navigate, providerRoute, providerName, isQuickBooks, zohoOrganizationId]);
+	}, [code, state, sessionId, realmId, errorParam, navigate, providerRoute, providerName, isQuickBooks, zohoOrganizationId, t]);
 
 	const { mutate: completeOAuth, isPending } = useMutation({
 		mutationFn: async () => {

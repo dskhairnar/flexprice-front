@@ -28,7 +28,7 @@ const ResendVerification = () => {
 			});
 		},
 		onSuccess: () => {
-			toast.success('Verification email has been resent. Please check your inbox.');
+			toast.success(t('common:toast.verificationEmailResent'));
 			setResendSuccess(true);
 		},
 		onError: (error: Error) => {
@@ -38,7 +38,7 @@ const ResendVerification = () => {
 
 	const handleResend = () => {
 		if (!email) {
-			toast.error('Please enter your email address');
+			toast.error(t('common:toast.enterEmail'));
 			return;
 		}
 		resendVerification(email);

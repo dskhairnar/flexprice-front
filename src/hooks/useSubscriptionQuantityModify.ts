@@ -1,5 +1,6 @@
 import { useMutation } from '@tanstack/react-query';
 import { useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import toast from 'react-hot-toast';
 import SubscriptionApi from '@/api/SubscriptionApi';
 import { refetchQueries } from '@/core/services/tanstack/ReactQueryProvider';
@@ -15,6 +16,7 @@ export interface UseSubscriptionQuantityModifyResult {
 }
 
 export function useSubscriptionQuantityModify(subscriptionId: string | undefined): UseSubscriptionQuantityModifyResult {
+	const { t } = useTranslation();
 	const {
 		mutateAsync: preview,
 		reset: resetPreview,
@@ -44,7 +46,7 @@ export function useSubscriptionQuantityModify(subscriptionId: string | undefined
 			return SubscriptionApi.executeSubscriptionModify(subscriptionId, payload);
 		},
 		onSuccess: async () => {
-			toast.success('Quantity updated successfully');
+			toast.success(t('common:toast.quantityUpdated'));
 			resetPreview();
 			if (subscriptionId) {
 				await refetchQueries(['subscriptionEdit', subscriptionId]);

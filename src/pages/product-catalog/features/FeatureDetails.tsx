@@ -172,7 +172,7 @@ const FeatureDetails = () => {
 		mutationFn: async () => await FeatureApi.deleteFeature(featureId!),
 		onSuccess: () => {
 			refetchQueries(['fetchFeatureDetails', featureId]);
-			toast.success('Feature archived successfully');
+			toast.success(t('common:toast.featureArchived'));
 		},
 		onError: (error: Error) => {
 			toast.error(error.message || 'Failed to archive feature');
@@ -272,7 +272,7 @@ const FeatureDetails = () => {
 	}, []);
 
 	const curlCommand = `curl --request POST \\
---url ${config.api.baseUrl}/v1/events \\
+--url ${config.api.baseUrl.replace(/\/$/, '')}/events \\
 --header 'Content-Type: application/json' \\
 --header 'x-api-key: <your_api_key>' \\
 --data '{
@@ -301,7 +301,7 @@ const FeatureDetails = () => {
 	}
 
 	if (isError) {
-		toast.error('Error fetching feature details');
+		toast.error(t('common:toast.errorFetchingFeature'));
 	}
 
 	return (
@@ -345,7 +345,7 @@ const FeatureDetails = () => {
 						});
 						setShowAlertDialog(false);
 						refetchQueries(['fetchFeatureDetails', featureId]);
-						toast.success('Alert settings updated successfully');
+						toast.success(t('common:toast.alertSettingsUpdated'));
 					} catch (e: any) {
 						const errorMessage = e?.response?.data?.error?.message || e?.message || 'Failed to update alert settings';
 						toast.error(errorMessage);

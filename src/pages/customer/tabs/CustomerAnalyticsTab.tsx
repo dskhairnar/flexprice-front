@@ -188,21 +188,21 @@ const CustomerAnalyticsTab = () => {
 
 	useEffect(() => {
 		if (customerError) {
-			toast.error('Error fetching customer data');
+			toast.error(t('common:toast.errorFetchingCustomer'));
 		}
-	}, [customerError]);
+	}, [customerError, t]);
 
 	useEffect(() => {
 		if (usageError) {
-			toast.error('Error fetching usage data');
+			toast.error(t('common:toast.errorFetchingUsage'));
 		}
-	}, [usageError]);
+	}, [usageError, t]);
 
 	useEffect(() => {
 		if (costError) {
-			toast.error('Error fetching cost data');
+			toast.error(t('common:toast.errorFetchingCost'));
 		}
-	}, [costError]);
+	}, [costError, t]);
 
 	// Filter zero-value features from usage data for chart
 	const filteredUsageData = useMemo(() => {

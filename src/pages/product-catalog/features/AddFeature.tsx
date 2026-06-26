@@ -901,7 +901,7 @@ const CodePreviewSection = ({ meter }: { meter: Partial<CreateMeterRequest> | un
 		const aggregationField = meter.aggregation?.field ? `,\n\t\t\t "${meter.aggregation.field}":"__VALUE__"` : '';
 
 		return `curl --request POST \\
-	--url ${config.api.baseUrl}/v1/events \\
+	--url ${config.api.baseUrl.replace(/\/$/, '')}/events \\
 	--header 'Content-Type: application/json' \\
 	--header 'x-api-key: <your_api_key>' \\
 	--data '{
@@ -984,7 +984,7 @@ const AddFeaturePage = () => {
 			await refetchQueries(['fetchFeatures']);
 			void queryClient.invalidateQueries({ queryKey: [SIDEBAR_PRICING_PROMO_QUERY_KEY], exact: false });
 			navigate(RouteNames.features);
-			toast.success('Feature created successfully');
+			toast.success(t('common:toast.featureCreated'));
 		},
 		onError: (error: Error) => {
 			toast.error(error.message || 'An error occurred while creating feature. Please try again.');

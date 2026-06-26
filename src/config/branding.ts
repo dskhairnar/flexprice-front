@@ -146,6 +146,11 @@ export function useBrand(): BrandConfig {
 	return brandConfig;
 }
 
+/** Pass to `t()` when copy uses `{{brandName}}` (white-label). */
+export function brandTranslationOptions(): Readonly<{ brandName: string }> {
+	return { brandName: brandConfig.name };
+}
+
 /** Injects --brand-primary CSS var, tab title, favicon, and application meta. Call once before first render. */
 export function initBranding(): void {
 	document.documentElement.style.setProperty('--brand-primary', brandConfig.primaryColor);

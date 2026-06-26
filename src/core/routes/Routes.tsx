@@ -202,7 +202,8 @@ const DefaultRoute = () => {
 	return <Navigate to={shouldShowOnboarding ? RouteNames.onboarding : RouteNames.homeDashboard} />;
 };
 
-const OnboardingRouteGuard = ({ children }: { children: React.ReactNode }) => {
+/** Tenant signup questionnaire (`/onboarding`) — gated by platform onboarding flag. */
+const TenantOnboardingRouteGuard = ({ children }: { children: React.ReactNode }) => {
 	if (!config.platform.onboarding.enabled) {
 		return <Navigate to={RouteNames.homeDashboard} replace />;
 	}
@@ -242,17 +243,17 @@ export const MainRouter: any = createBrowserRouter([
 	{
 		path: RouteNames.onboarding,
 		element: (
-			<OnboardingRouteGuard>
+			<TenantOnboardingRouteGuard>
 				<OnboardingTenant />
-			</OnboardingRouteGuard>
+			</TenantOnboardingRouteGuard>
 		),
 	},
 	{
 		path: RouteNames.pricingSetup,
 		element: (
-			<OnboardingRouteGuard>
+			<AuthMiddleware requiredRole={['admin']}>
 				<PricingSetupPage />
-			</OnboardingRouteGuard>
+			</AuthMiddleware>
 		),
 	},
 	{

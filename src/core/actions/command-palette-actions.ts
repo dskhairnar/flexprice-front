@@ -43,12 +43,14 @@ export const COMMAND_PALETTE_ACTION_META: Record<
 	{
 		/** Only show this action when isDevelopment is true. */
 		devOnly?: boolean;
+		/** Only show on flexprice.io hostnames (white-label deployments hide Flexprice contact options). */
+		flexpriceOnly?: boolean;
 	}
 > = {
 	[CommandPaletteActionId.OpenDocumentation]: {},
-	[CommandPaletteActionId.ContactUs]: {},
-	[CommandPaletteActionId.BookCall]: {},
-	[CommandPaletteActionId.JoinSlackCommunity]: {},
+	[CommandPaletteActionId.ContactUs]: { flexpriceOnly: true },
+	[CommandPaletteActionId.BookCall]: { flexpriceOnly: true },
+	[CommandPaletteActionId.JoinSlackCommunity]: { flexpriceOnly: true },
 	[CommandPaletteActionId.OpenIntercom]: {},
 	[CommandPaletteActionId.Logout]: {},
 	[CommandPaletteActionId.ShowKeyboardShortcutsHint]: {},
@@ -91,4 +93,9 @@ export function dispatchCommandPaletteAction(actionId: string): void {
 /** Check if an action should be hidden when not in development. */
 export function isCommandPaletteActionDevOnly(actionId: string): boolean {
 	return COMMAND_PALETTE_ACTION_META[actionId as CommandPaletteActionIdType]?.devOnly ?? false;
+}
+
+/** Check if an action should be hidden on non-flexprice.io hostnames. */
+export function isCommandPaletteActionFlexpriceOnly(actionId: string): boolean {
+	return COMMAND_PALETTE_ACTION_META[actionId as CommandPaletteActionIdType]?.flexpriceOnly ?? false;
 }

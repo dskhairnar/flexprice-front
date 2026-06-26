@@ -46,7 +46,7 @@ const FeatureDrawer: FC<Props> = ({ data, open, onOpenChange, trigger, refetchQu
 			return FeatureApi.updateFeature(data.id, updateData);
 		},
 		onSuccess: () => {
-			toast.success('Feature updated successfully');
+			toast.success(t('common:toast.featureUpdated'));
 			onOpenChange?.(false);
 			refetchQueries(refetchQueryKeys);
 		},

@@ -42,7 +42,7 @@ const ExportManagement = () => {
 	const { mutate: deleteTask, isPending: isDeletingTask } = useMutation({
 		mutationFn: (id: string) => TaskApi.deleteScheduledTask(id),
 		onSuccess: () => {
-			toast.success('Export task deleted successfully');
+			toast.success(t('common:toast.exportTaskDeleted'));
 			refetchTasks();
 		},
 		onError: (error: Error) => {

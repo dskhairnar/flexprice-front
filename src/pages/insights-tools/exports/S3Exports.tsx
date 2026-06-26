@@ -10,9 +10,11 @@ import toast from 'react-hot-toast';
 import S3ConnectionDrawer from '@/components/molecules/S3ConnectionDrawer/S3ConnectionDrawer';
 import { ApiDocsContent } from '@/components/molecules';
 import { API_DOCS_TAGS } from '@/constants/apiDocsTags';
+import { brandTranslationOptions } from '@/config/branding';
 
 const S3Exports = () => {
 	const { t } = useTranslation('settings');
+	const brandOpts = brandTranslationOptions();
 	const { i18n } = useTranslation();
 	const navigate = useNavigate();
 	const [isDrawerOpen, setIsDrawerOpen] = useState(false);
@@ -57,7 +59,7 @@ const S3Exports = () => {
 	const { mutate: deleteConnection, isPending: isDeletingConnection } = useMutation({
 		mutationFn: (id: string) => ConnectionApi.Delete(id),
 		onSuccess: () => {
-			toast.success('Connection deleted successfully');
+			toast.success(t('common:toast.connectionDeleted'));
 			refetchConnections();
 		},
 		onError: (error: Error) => {
@@ -181,7 +183,7 @@ const S3Exports = () => {
 				<div className='space-y-4'>
 					<div>
 						<h4 className='text-sm font-semibold text-gray-900 mb-1'>{t('insightsTools.exports.s3FeatureDataExportTitle')}</h4>
-						<p className='text-xs text-gray-600'>{t('insightsTools.exports.s3FeatureDataExportBody')}</p>
+						<p className='text-xs text-gray-600'>{t('insightsTools.exports.s3FeatureDataExportBody', brandOpts)}</p>
 					</div>
 					<div>
 						<h4 className='text-sm font-semibold text-gray-900 mb-1'>{t('insightsTools.exports.s3FeatureSchedulingTitle')}</h4>

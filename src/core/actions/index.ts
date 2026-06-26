@@ -6,5 +6,6 @@ export {
 	dispatchCommandPaletteAction,
 	getCommandPaletteActionEventName,
 	isCommandPaletteActionDevOnly,
+	isCommandPaletteActionFlexpriceOnly,
 } from './command-palette-actions';
 export type { CommandPaletteActionIdType } from './command-palette-actions';

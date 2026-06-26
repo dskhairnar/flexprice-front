@@ -17,6 +17,7 @@ import EnvironmentCreator from '../EnvironmentCreator/EnvironmentCreator';
 import EnvironmentCopier from '../EnvironmentCopier/EnvironmentCopier';
 import EnvironmentEditor from '../EnvironmentEditor/EnvironmentEditor';
 import ContactUsDialog from '../ContactUsDialog/ContactUsDialog';
+import { isFlexpriceContactEnabled } from '@/utils/hostname/isFlexpriceIoHostname';
 import Environment, { ENVIRONMENT_TYPE } from '@/models/Environment';
 
 interface Props {
@@ -110,7 +111,9 @@ const EnvironmentSelector: React.FC<Props> = ({ disabled = false, className }) =
 		const restriction = getRestriction(environmentId, user?.tenant?.id);
 		if (restriction.state === EnvRestrictionState.Suspended) {
 			setIsOpen(false);
-			setIsSuspendedDialogOpen(true);
+			if (isFlexpriceContactEnabled()) {
+				setIsSuspendedDialogOpen(true);
+			}
 			return;
 		}
 		setLoading(true);
@@ -256,12 +259,14 @@ const EnvironmentSelector: React.FC<Props> = ({ disabled = false, className }) =
 				}}
 			/>
 
-			<ContactUsDialog
-				isOpen={isSuspendedDialogOpen}
-				onOpenChange={setIsSuspendedDialogOpen}
-				title={t('environment.selector.suspendedTitle')}
-				description={t('environment.selector.suspendedDescription')}
-			/>
+			{isFlexpriceContactEnabled() && (
+				<ContactUsDialog
+					isOpen={isSuspendedDialogOpen}
+					onOpenChange={setIsSuspendedDialogOpen}
+					title={t('environment.selector.suspendedTitle')}
+					description={t('environment.selector.suspendedDescription')}
+				/>
+			)}
 		</div>
 	);
 };
