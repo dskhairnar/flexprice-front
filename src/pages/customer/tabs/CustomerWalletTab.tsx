@@ -1,4 +1,17 @@
-import { AddButton, Button, Card, CardHeader, Chip, FormHeader, NoDataCard, Select, ShortPagination, Spacer } from '@/components/atoms';
+import {
+	AddButton,
+	Button,
+	Card,
+	CardHeader,
+	Chip,
+	FormHeader,
+	NoDataCard,
+	Select,
+	ShortPagination,
+	Spacer,
+	WalletAlertStatusBadge,
+} from '@/components/atoms';
+import { hasActiveWalletAlertStatus } from '@/utils/wallet/walletAlertUtils';
 import {
 	DropdownMenu,
 	DropdownMenuOption,
@@ -342,7 +355,7 @@ const CustomerWalletTab = () => {
 						<div>
 							<DetailsCard
 								variant='stacked'
-								title={t('tabPanels.wallet.detailsTitle')}
+								childrenAtTop
 								data={[
 									{
 										label: t('wallet.nameLabel'),
@@ -406,8 +419,19 @@ const CustomerWalletTab = () => {
 											</span>
 										),
 									},
-								]}
-							/>
+								]}>
+								<div className='flex flex-wrap items-center gap-2 mb-5'>
+									<p className='text-xl font-medium'>{t('tabPanels.wallet.detailsTitle')}</p>
+									{walletBalance &&
+										hasActiveWalletAlertStatus(parseFloat(walletBalance.real_time_balance), activeWallet?.alert_settings) && (
+											<WalletAlertStatusBadge
+												balance={parseFloat(walletBalance.real_time_balance)}
+												alertSettings={activeWallet?.alert_settings}
+												currency={activeWallet?.currency}
+											/>
+										)}
+								</div>
+							</DetailsCard>
 
 							<Spacer className='!h-4' />
 
@@ -428,20 +452,18 @@ const CustomerWalletTab = () => {
 																	: t('tabPanels.wallet.ongoingBalanceShort'),
 														})}
 													</span>
-													<TooltipProvider delayDuration={0}>
-														<Tooltip>
-															<TooltipTrigger>
-																<Info className='size-4 text-gray-400 hover:text-gray-600 transition-colors' />
-															</TooltipTrigger>
-															<TooltipContent>
-																<p>
-																	{type === WALLET_BALANCE_TYPE.CURRENT
-																		? t('tabPanels.wallet.currentBalanceTooltip')
-																		: t('tabPanels.wallet.ongoingBalanceTooltip')}
-																</p>
-															</TooltipContent>
-														</Tooltip>
-													</TooltipProvider>
+													{type === WALLET_BALANCE_TYPE.CURRENT && (
+														<TooltipProvider delayDuration={0}>
+															<Tooltip>
+																<TooltipTrigger>
+																	<Info className='size-4 text-gray-400 hover:text-gray-600 transition-colors' />
+																</TooltipTrigger>
+																<TooltipContent>
+																	<p>{t('tabPanels.wallet.currentBalanceTooltip')}</p>
+																</TooltipContent>
+															</Tooltip>
+														</TooltipProvider>
+													)}
 												</div>
 												<div className='opacity-50 group-hover:opacity-100 transition-opacity'>
 													{type === WALLET_BALANCE_TYPE.CURRENT ? <WalletIcon className='size-5 text-gray-500' /> : <PremiumFeatureIcon />}

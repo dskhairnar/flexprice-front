@@ -1,10 +1,13 @@
 import { memo, useCallback, useMemo, useRef, useState, useEffect, useLayoutEffect } from 'react';
 import { QueryBuilder } from '@/components/molecules';
+import OrgTypeMetadataFilter from '@/components/molecules/Customer/OrgTypeMetadataFilter';
 import { ColumnData } from '@/components/molecules/Table';
 import usePagination from '@/hooks/usePagination';
 import { usePaginationReset } from '@/hooks/usePaginationReset';
 import useFilterSortingWithPersistence from '@/hooks/useFilterSortingWithPersistence';
 import { useQueryWithEmptyState } from '@/hooks/useQueryWithEmptyState';
+import { CustomerOrgTypeFilterValue } from '@/constants/customerOrgTypeFilter';
+import { hasOrgTypeInMetadataFilters, removeOrgTypeFromMetadataFilters } from '@/utils/customer/orgTypeMetadataFilterSync';
 import { FilterField, FilterCondition, SortOption } from '@/types/common/QueryBuilder';
 import LoadingState from './LoadingState';
 import ErrorState from './ErrorState';
@@ -30,6 +33,13 @@ export interface QueryConfig {
 	 * Key for filter/sort persistence (URL + session storage). Default: dataConfig.queryKey. Omit or set to undefined to use default.
 	 */
 	filterPersistenceKey?: string;
+	/** Optional trailing toolbar content rendered on the right of the query builder row. */
+	toolbarTrailing?: React.ReactNode;
+	/** Optional parent/child org_type toolbar filter with metadata-filter sync. */
+	orgTypeMetadataFilter?: {
+		value: CustomerOrgTypeFilterValue | null;
+		onChange: (value: CustomerOrgTypeFilterValue | null) => void;
+	};
 }
 
 /**
@@ -151,7 +161,8 @@ const QueryBuilderWrapper = memo<{
 	sorts: SortOption[];
 	onFilterChange: (filters: FilterCondition[]) => void;
 	onSortChange: (sorts: SortOption[]) => void;
-}>(({ filterOptions, sortOptions, filters, sorts, onFilterChange, onSortChange }) => {
+	toolbarTrailing?: React.ReactNode;
+}>(({ filterOptions, sortOptions, filters, sorts, onFilterChange, onSortChange, toolbarTrailing }) => {
 	return (
 		<QueryBuilder
 			filterOptions={filterOptions}
@@ -159,8 +170,9 @@ const QueryBuilderWrapper = memo<{
 			onFilterChange={onFilterChange}
 			sortOptions={sortOptions}
 			onSortChange={onSortChange}
-			selectedSorts={sorts}
-		/>
+			selectedSorts={sorts}>
+			{toolbarTrailing}
+		</QueryBuilder>
 	);
 });
 
@@ -282,10 +294,60 @@ const QueryableDataArea = <T = any,>({
 		persistenceKey: queryConfig.filterPersistenceKey ?? dataConfig.queryKey,
 	});
 
+	const orgTypeMetadataFilter = queryConfig.orgTypeMetadataFilter;
+
+	const handleFilterChange = useCallback(
+		(nextFilters: FilterCondition[]) => {
+			if (orgTypeMetadataFilter && orgTypeMetadataFilter.value != null && hasOrgTypeInMetadataFilters(nextFilters)) {
+				orgTypeMetadataFilter.onChange(null);
+			}
+			setFilters(nextFilters);
+		},
+		[orgTypeMetadataFilter, setFilters],
+	);
+
+	const handleOrgTypeMetadataFilterChange = useCallback(
+		(value: CustomerOrgTypeFilterValue | null) => {
+			if (!orgTypeMetadataFilter) return;
+
+			if (value != null) {
+				const strippedFilters = removeOrgTypeFromMetadataFilters(filters);
+				if (strippedFilters !== filters) {
+					setFilters(strippedFilters);
+				}
+			}
+
+			orgTypeMetadataFilter.onChange(value);
+		},
+		[filters, orgTypeMetadataFilter, setFilters],
+	);
+
+	const resolvedToolbarTrailing = useMemo(() => {
+		const orgTypeFilterNode = orgTypeMetadataFilter ? (
+			<OrgTypeMetadataFilter value={orgTypeMetadataFilter.value} onChange={handleOrgTypeMetadataFilterChange} />
+		) : null;
+
+		if (orgTypeFilterNode && queryConfig.toolbarTrailing) {
+			return (
+				<>
+					{orgTypeFilterNode}
+					{queryConfig.toolbarTrailing}
+				</>
+			);
+		}
+
+		return orgTypeFilterNode ?? queryConfig.toolbarTrailing ?? null;
+	}, [handleOrgTypeMetadataFilterChange, orgTypeMetadataFilter, queryConfig.toolbarTrailing]);
+
 	// Generate query key for tracking changes
+	const additionalQueryParamsKey = useMemo(
+		() => JSON.stringify(dataConfig.additionalQueryParams ?? {}),
+		[dataConfig.additionalQueryParams],
+	);
+
 	const queryKey = useMemo(
-		() => JSON.stringify({ page, filters: sanitizedFilters, sorts: sanitizedSorts }),
-		[page, sanitizedFilters, sanitizedSorts],
+		() => JSON.stringify({ page, filters: sanitizedFilters, sorts: sanitizedSorts, additionalQueryParams: additionalQueryParamsKey }),
+		[page, sanitizedFilters, sanitizedSorts, additionalQueryParamsKey],
 	);
 
 	// Create fetch function with all params
@@ -337,7 +399,7 @@ const QueryableDataArea = <T = any,>({
 
 	useEffect(() => {
 		reset();
-	}, [filters, sorts]);
+	}, [filters, sorts, additionalQueryParamsKey]);
 
 	useLayoutEffect(() => {
 		onMainDataChangeRef.current?.(data);
@@ -398,8 +460,9 @@ const QueryableDataArea = <T = any,>({
 					sortOptions={queryConfig.sortOptions}
 					filters={filters}
 					sorts={sorts}
-					onFilterChange={setFilters}
+					onFilterChange={handleFilterChange}
 					onSortChange={setSorts}
+					toolbarTrailing={resolvedToolbarTrailing}
 				/>
 			)}
 

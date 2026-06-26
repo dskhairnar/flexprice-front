@@ -246,8 +246,12 @@
 			"cadenceOnce": "Once",
 			"cadenceRepeated": "Repeated",
 			"cadenceForever": "Forever",
+			"couponCode": "Coupon Code",
+			"couponCodePlaceholder": "e.g. SUMMER20",
+			"couponCodeHelp": "Human-readable code used to apply this coupon via API. Cannot be changed after creation.",
 			"validation": {
 				"nameRequired": "Name is required",
+				"couponCodeRequired": "Coupon code is required",
 				"typeRequired": "Type is required",
 				"cadenceRequired": "Cadence is required",
 				"amountOffFixedRequired": "Amount off is required for fixed type coupons",
@@ -1077,6 +1081,22 @@
 			"enabled": "Enabled",
 			"disabled": "Disabled",
 			"unknownFeature": "Unknown Feature"
+		},
+		"subscriptionEdit": {
+			"columnSource": "Source",
+			"sourcePlan": "Plan",
+			"sourceAddon": "Addon",
+			"sourceSubscription": "Subscription",
+			"sourceOverride": "Subscription override",
+			"resetAction": "Reset to default",
+			"resetConfirmTitle": "Reset \"{{name}}\" to plan default?",
+			"resetConfirmDescription": "This removes the subscription override. The plan entitlement will apply again.",
+			"deleteConfirmTitle": "Delete entitlement for \"{{name}}\"?",
+			"saveSuccess": "Entitlement updated successfully",
+			"saveFailed": "Failed to update entitlement",
+			"deleteSuccess": "Entitlement removed successfully",
+			"deleteFailed": "Failed to remove entitlement",
+			"createRequiresParent": "Cannot create override without a parent entitlement"
 		}
 	},
 	"premiumFeature": {

@@ -4,6 +4,7 @@ import { ColumnData } from '@/components/molecules/Table';
 import { QueryableDataArea } from '@/components/organisms';
 import { buildGuides } from '@/constants/guides';
 import { API_DOCS_TAGS } from '@/constants/apiDocsTags';
+import { CustomerOrgTypeFilterValue } from '@/constants/customerOrgTypeFilter';
 import Customer from '@/models/Customer';
 import CustomerApi from '@/api/CustomerApi';
 import { useState, useMemo, useCallback, FC } from 'react';
@@ -24,7 +25,9 @@ import { RouteNames } from '@/core/routes/Routes';
 import formatDate from '@/utils/common/format_date';
 import { ExternalLink } from 'lucide-react';
 import { useCustomerPortalUrl } from '@/hooks/useCustomerPortalUrl';
+import { useTenantFeatureAllowlist } from '@/hooks/useTenantFeatureAllowlist';
 import { useTranslation } from 'react-i18next';
+import { mergeCustomerSearchMetadata } from '@/utils/customer/mergeCustomerSearchMetadata';
 
 const ActionButtonWithPortal: FC<{ customer: Customer; onEdit: (customer: Customer) => void }> = ({ customer, onEdit }) => {
 	const { t } = useTranslation(['customers', 'common']);
@@ -60,6 +63,8 @@ const CustomerListPage = () => {
 	const guides = useMemo(() => buildGuides(tGuide), [tGuide]);
 	const [activeCustomer, setactiveCustomer] = useState<Customer>();
 	const [customerDrawerOpen, setcustomerDrawerOpen] = useState(false);
+	const [orgTypeFilter, setOrgTypeFilter] = useState<CustomerOrgTypeFilterValue | null>(null);
+	const showOrgTypeFilter = useTenantFeatureAllowlist();
 	const navigate = useNavigate();
 
 	const handleCreateCustomer = useCallback(() => {
@@ -214,6 +219,8 @@ const CustomerListPage = () => {
 		[handleEdit, t],
 	);
 
+	const additionalQueryParams = useMemo(() => ({ orgTypeFilter }), [orgTypeFilter]);
+
 	return (
 		<Page
 			heading={t('list.title')}
@@ -241,15 +248,28 @@ const CustomerListPage = () => {
 					initialFilters,
 					initialSorts,
 					debounceTime: 300,
+					...(showOrgTypeFilter
+						? {
+								orgTypeMetadataFilter: {
+									value: orgTypeFilter,
+									onChange: setOrgTypeFilter,
+								},
+							}
+						: {}),
 				}}
 				dataConfig={{
 					queryKey: 'fetchCustomers',
+					additionalQueryParams,
 					fetchFn: async (params) => {
-						const { filters, metadata } = extractMetadataFromTypedFilters(params.filters);
+						const { orgTypeFilter, filters: rawFilters, sort, limit, offset } = params;
+						const { filters, metadata } = extractMetadataFromTypedFilters(rawFilters);
+						const mergedMetadata = mergeCustomerSearchMetadata(metadata, orgTypeFilter);
 						return CustomerApi.getCustomersByFilters({
-							...params,
+							limit,
+							offset,
+							sort,
 							filters,
-							...(metadata ? { metadata } : {}),
+							...(mergedMetadata ? { metadata: mergedMetadata } : {}),
 						});
 					},
 					probeFetchFn: async (params) =>

@@ -246,8 +246,12 @@
 			"cadenceOnce": "مرة واحدة",
 			"cadenceRepeated": "متكرر",
 			"cadenceForever": "دائم",
+			"couponCode": "رمز القسيمة",
+			"couponCodePlaceholder": "مثال: SUMMER20",
+			"couponCodeHelp": "رمز قابل للقراءة البشرية يُستخدم لتطبيق هذه القسيمة عبر API. لا يمكن تغييره بعد الإنشاء.",
 			"validation": {
 				"nameRequired": "الاسم مطلوب",
+				"couponCodeRequired": "رمز القسيمة مطلوب",
 				"typeRequired": "النوع مطلوب",
 				"cadenceRequired": "الإيقاع مطلوب",
 				"amountOffFixedRequired": "مبلغ الخصم مطلوب لقسائم النوع الثابت",

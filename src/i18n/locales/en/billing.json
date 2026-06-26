@@ -437,6 +437,45 @@
 			"change": "Change",
 			"remove": "Remove",
 			"emptyState": "No subscription coupon applied"
+		},
+		"tax": {
+			"remove": "Remove"
+		},
+		"modifyDialog": {
+			"previewHeading": "Preview",
+			"noBillingImpact": "No billing impact",
+			"invoicesAffected": "Invoices affected",
+			"lineItemsAffected": "Line items affected"
+		},
+		"applyCouponDialog": {
+			"title": "Apply Coupon",
+			"couponCodeLabel": "Coupon Code",
+			"couponCodePlaceholder": "e.g. SUMMER20",
+			"applyToLabel": "Apply To",
+			"subscriptionLevel": "Subscription level",
+			"lineItemLevel": "Line item level",
+			"lineItemLabel": "Line Item",
+			"selectLineItemPlaceholder": "Select a line item",
+			"startDateOptional": "Start Date (optional)",
+			"pickStartDate": "Pick a start date",
+			"endDateOptional": "End Date (optional)",
+			"pickEndDate": "Pick an end date"
+		},
+		"removeCouponDialog": {
+			"title": "Remove Coupon",
+			"confirmMessage": "Remove <bold>{{name}}</bold> from this subscription?",
+			"confirmMessageWithCode": "Remove <bold>{{name}}</bold> ({{code}}) from this subscription?"
+		},
+		"removeTaxDialog": {
+			"title": "Remove Tax",
+			"confirmMessage": "Remove tax <bold>{{name}}</bold> from this subscription?"
+		},
+		"applyTaxDialog": {
+			"title": "Apply Tax",
+			"taxRateLabel": "Tax Rate",
+			"selectTaxRatePlaceholder": "Select a tax rate",
+			"effectiveDateOptional": "Effective Date (optional)",
+			"pickDate": "Pick a date"
 		}
 	},
 	"payments": {
@@ -635,6 +674,8 @@
 		"saving": "Saving…"
 	},
 	"commitmentConfig": {
+		"lineItemTitle": "Window commitment",
+		"viewCommitment": "View commitment",
 		"title": "Configure Commitment",
 		"description": "Set up commitment configuration for {{name}}",
 		"thisChargeFallback": "this charge",
@@ -659,21 +700,55 @@
 		"enableTrueUpHint": "Charge the commitment amount even if usage is below the commitment",
 		"windowCommitment": "Window Commitment",
 		"windowCommitmentHint": "Apply commitment to each bucket window (meter has bucket size: {{bucketSize}})",
+		"addCharge": {
+			"selectMeterForBuckets": "Select a metered feature to configure window commitment time buckets.",
+			"loadingMeter": "Loading meter details…",
+			"meterNotSupported": "This meter does not support window commitment. Configure a bucket size on the meter first."
+		},
 		"timeBuckets": {
-			"title": "Commitment Time Buckets",
+			"bucketCount": "{{count}} time bucket(s)",
+			"moreBuckets": "more",
+			"title": "Time Buckets",
 			"description": "Limit window commitment to specific UTC time ranges. Start is inclusive; end is exclusive.",
-			"startLabel": "Start (>=)",
-			"endLabel": "End (<)",
+			"descriptionShort": "UTC windows. Start inclusive, end exclusive.",
+			"startLabel": "Start",
+			"endLabel": "End",
 			"utc": "UTC",
 			"hourPlaceholder": "HH",
 			"minutePlaceholder": "MM",
 			"empty": "No time buckets configured. Add a bucket to restrict commitment to specific UTC hours.",
 			"emptyHourOnly": "No time buckets configured. Add a bucket to restrict commitment to specific UTC hours (minutes fixed to :00).",
-			"addBucket": "+ Add time bucket",
+			"emptyShort": "No time buckets yet.",
+			"addBucket": "Add bucket",
 			"removeBucket": "Remove time bucket",
+			"bucketLabel": "Bucket {{index}}",
+			"commitmentValue": "Commitment",
+			"commitmentQuantity": "Quantity",
+			"commitmentValuePlaceholder": "Value",
+			"bucketAmount": "Price",
+			"bucketAmountPlaceholder": "Amount",
+			"billingModel": "Billing model",
+			"billingModelPlaceholder": "Select billing model",
+			"unitsPerPackage": "Units per package",
+			"pricingFlat": "Flat",
+			"pricingSlab": "Slab",
+			"volumeTiers": "Volume tiers",
+			"slabTiers": "Slab tiers",
+			"upTo": "Up to",
+			"unitAmount": "Unit amount",
+			"lookupKey": "Lookup key",
+			"overageFactor": "Overage",
+			"trueUpEnabled": "True up",
+			"bucketAmountHint": "Unit price applied during this time window",
+			"bucketAmountVolumeTieredHint": "Pricing is defined in the volume tiers below",
+			"bucketAmountSlabTieredHint": "Pricing is defined in the slab tiers below",
+			"bucketAmountTieredHint": "Pricing is defined in the slab tiers below",
+			"billingModelHint": "How usage in this window is billed",
+			"unitsPerPackageHint": "Number of units included in each package",
 			"errors": {
 				"sameTime": "Start and end time cannot be the same",
-				"incomplete": "Please select start and end times for all time buckets"
+				"incomplete": "Please select start and end times for all time buckets",
+				"incompleteCommitment": "Please complete commitment fields for all time buckets"
 			}
 		},
 		"existingNotice": "This price already has a commitment configuration. Your changes will update it.",
@@ -696,7 +771,9 @@
 			"amountNonNegative": "Commitment amount must be non-negative",
 			"quantityNonNegative": "Commitment quantity must be non-negative",
 			"hourRange": "Hour must be between 0 and 23",
-			"minuteRange": "Minute must be between 0 and 59"
+			"minuteRange": "Minute must be between 0 and 59",
+			"minuteStep": "Minute must be a multiple of {{step}}",
+			"hourStep": "Hour must be a multiple of {{step}}"
 		}
 	},
 	"termination": {
@@ -877,7 +954,8 @@
 			"infoDescription": "Alert when balance reaches info level",
 			"cancel": "Cancel",
 			"saving": "Saving...",
-			"saveChanges": "Save Changes"
+			"saveChanges": "Save Changes",
+			"statusBadgeLabel": "balance {{condition}} {{threshold}}"
 		},
 		"autoTopup": {
 			"dialogTitle": "Auto Top-Up Settings",

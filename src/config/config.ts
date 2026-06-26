@@ -182,6 +182,34 @@ const typographyConfig = parseTypographyConfig(
 	import.meta.env.VITE_FONT_PRIMARY,
 	import.meta.env.VITE_FONT_FALLBACK,
 );
+function parseTenantFeatureAllowlist(): string[] {
+	const raw = import.meta.env.VITE_TENANT_FEATURE_ALLOWLIST?.trim();
+	if (!raw) return [];
+
+	try {
+		const parsed = JSON.parse(raw) as unknown;
+		if (Array.isArray(parsed)) {
+			return parsed
+				.filter((entry): entry is string => typeof entry === 'string')
+				.map((entry) => entry.trim())
+				.filter(Boolean);
+		}
+	} catch {
+		// fall through to comma-separated parsing
+	}
+
+	return raw
+		.split(',')
+		.map((entry: string) => entry.trim())
+		.filter(Boolean);
+}
+
+const tenantFeatureAllowlist = parseTenantFeatureAllowlist();
+
+interface FeaturesConfig {
+	/** Tenant IDs allowed to use gated UI features (e.g. customer org_type metadata filter). */
+	tenantFeatureAllowlist: string[];
+}
 
 export interface Config {
 	app: AppConfig;
@@ -201,6 +229,7 @@ export interface Config {
 	allowedLocales: Locale[];
 	typography: TypographyConfig;
 	platform: PlatformConfig;
+	features: FeaturesConfig;
 }
 
 function parseAppEnv(): APP_ENV {
@@ -262,6 +291,9 @@ export const config: Config = {
 	allowedLocales: allowedLocalesConfig,
 	typography: typographyConfig,
 	platform: platformConfig,
+	features: {
+		tenantFeatureAllowlist,
+	},
 };
 
 /** Sets `--font-sans` from `config.typography.fontFamily` (see `src/index.css`). Call once at startup. */

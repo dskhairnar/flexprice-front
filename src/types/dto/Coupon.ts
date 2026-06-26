@@ -5,6 +5,7 @@ import { TypedBackendFilter, TypedBackendSort } from '../formatters/QueryBuilder
 
 export interface CreateCouponRequest {
 	name: string;
+	coupon_code?: string;
 	redeem_after?: string;
 	redeem_before?: string;
 	max_redemptions?: number;

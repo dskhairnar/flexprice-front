@@ -1,23 +1,67 @@
-import { FC } from 'react';
+import { FC, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import FlexpriceTable, { ColumnData, RedirectCell } from '../Table';
 import { TaxAssociationResponse } from '@/types/dto/tax';
-import { Chip, ActionButton } from '@/components/atoms';
+import { Chip, ActionButton, Card, CardHeader, AddButton, NoDataCard } from '@/components/atoms';
+import { DropdownMenu } from '@/components/molecules';
 import { formatDateShort } from '@/utils/common/helper_functions';
 import TaxApi from '@/api/TaxApi';
-import { formatEntityStatus } from '@/utils/common/format_chips';
 import { RouteNames } from '@/core/routes/Routes';
-import { ENTITY_STATUS } from '@/models/base';
 import { TrashIcon } from 'lucide-react';
 
 interface Props {
 	data: TaxAssociationResponse[];
+	onAdd?: () => void;
 	showDelete?: boolean;
 	refetchQueryKey?: string;
+	onRemove?: (association: TaxAssociationResponse) => void;
 }
 
-const TaxAssociationTable: FC<Props> = ({ data, showDelete = true, refetchQueryKey = 'fetchTaxAssociations' }) => {
+interface RowActionsProps {
+	row: TaxAssociationResponse;
+	onRemove: (row: TaxAssociationResponse) => void;
+}
+
+const RowActions: FC<RowActionsProps> = ({ row, onRemove }) => {
 	const { t } = useTranslation('common');
+	const [isOpen, setIsOpen] = useState(false);
+	const handleClick = (e: React.MouseEvent) => {
+		e.preventDefault();
+		e.stopPropagation();
+		setIsOpen((v) => !v);
+	};
+	return (
+		<div data-interactive='true' onClick={handleClick}>
+			<DropdownMenu
+				isOpen={isOpen}
+				onOpenChange={setIsOpen}
+				options={[
+					{
+						label: t('form.remove'),
+						icon: <TrashIcon />,
+						onSelect: (e: Event) => {
+							e.preventDefault();
+							setIsOpen(false);
+							onRemove(row);
+						},
+					},
+				]}
+			/>
+		</div>
+	);
+};
+
+const TaxAssociationTable: FC<Props> = ({ data, onAdd, showDelete = true, refetchQueryKey = 'fetchTaxAssociations', onRemove }) => {
+	const { t } = useTranslation('common');
+
+	const rows = useMemo(() => {
+		const now = new Date();
+		return data.filter((a) => !a.valid_to || new Date(a.valid_to) > now);
+	}, [data]);
+
+	const addButton = onAdd ? <AddButton onClick={onAdd} /> : undefined;
+	const title = t('subscriptionEdit.taxAssociations', 'Tax Associations');
+
 	const columns: ColumnData<TaxAssociationResponse>[] = [
 		{
 			title: t('tableColumns.taxId'),
@@ -34,23 +78,20 @@ const TaxAssociationTable: FC<Props> = ({ data, showDelete = true, refetchQueryK
 			render: (row) => <Chip variant={row.auto_apply ? 'success' : 'default'} label={row.auto_apply ? t('labels.yes') : t('labels.no')} />,
 		},
 		{
-			title: t('tableColumns.currency'),
-			render: (row) => row.currency,
+			title: t('tableColumns.validFrom', 'Valid From'),
+			render: (row) => (row.valid_from ? formatDateShort(row.valid_from) : '—'),
 		},
 		{
-			title: t('tableColumns.status'),
-			render: (row) => {
-				const label = formatEntityStatus(row?.status ?? '', t);
-				return <Chip variant={row?.status === ENTITY_STATUS.PUBLISHED ? 'success' : 'default'} label={label} />;
-			},
-		},
-		{
-			title: t('tableColumns.created'),
-			render: (row) => formatDateShort(row.created_at),
+			title: t('tableColumns.validTo', 'Valid To'),
+			render: (row) => (row.valid_to ? formatDateShort(row.valid_to) : t('labels.forever', 'Forever')),
 		},
 		{
 			fieldVariant: 'interactive',
+			width: '48px',
 			render(row) {
+				if (onRemove) {
+					return <RowActions row={row} onRemove={onRemove} />;
+				}
 				return (
 					<ActionButton
 						id={row?.id}
@@ -71,10 +112,15 @@ const TaxAssociationTable: FC<Props> = ({ data, showDelete = true, refetchQueryK
 		},
 	];
 
+	if (rows.length === 0) {
+		return <NoDataCard title={title} subtitle={t('tax.noAssociations', 'No taxes applied to this subscription yet')} cta={addButton} />;
+	}
+
 	return (
-		<div>
-			<FlexpriceTable showEmptyRow={true} columns={columns} data={data} />
-		</div>
+		<Card variant='notched'>
+			<CardHeader title={title} cta={addButton} />
+			<FlexpriceTable columns={columns} data={rows} variant='no-bordered' />
+		</Card>
 	);
 };
 

@@ -1,7 +1,7 @@
+import { getCurrencySymbol as getCurrencyDisplaySymbol } from '@/constants/common';
 import i18n, { type TFunction } from 'i18next';
 import { ApiEnum, translateApiEnum } from '@/i18n/display/apiEnums';
 import { DEFAULT_CURRENCY_CODE, billlingPeriodOptions, creditGrantPeriodOptions } from '@/constants/constants';
-import { getCurrencySymbol as getCurrencyDisplaySymbol } from '@/constants/common';
 import { formatLocalizedCurrency, formatLocalizedNumber, resolveCurrencyCode } from '@/i18n/display/formatNumber';
 import { getIntlDigitOptions, getIntlLocale } from '@/i18n/display/intlLocale';
 import { BILLING_MODEL, Price, PRICE_TYPE } from '@/models/Price';

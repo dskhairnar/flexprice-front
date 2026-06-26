@@ -6,7 +6,7 @@ import { ChargeValueCell, ColumnData, FlexpriceTable, TerminateLineItemModal, Dr
 import { PriceTooltip } from '@/components/molecules/PriceTooltip';
 import { LineItem, SUBSCRIPTION_LINE_ITEM_ENTITY_TYPE } from '@/models/Subscription';
 import { FC, useState, useCallback, useMemo } from 'react';
-import { Trash2, Pencil, Info } from 'lucide-react';
+import { Trash2, Pencil, Info, Eye, Tag, TicketX } from 'lucide-react';
 import { ENTITY_STATUS } from '@/models/base';
 import {
 	formatBillingPeriodForDisplay,
@@ -16,7 +16,8 @@ import {
 } from '@/utils/common/helper_functions';
 import { PRICE_ENTITY_TYPE, PRICE_STATUS, PRICE_TYPE } from '@/models/Price';
 import { formatDateTimeWithSecondsAndTimezone } from '@/utils/common/format_date';
-
+import LineItemWindowCommitmentViewDialog from '@/components/molecules/Subscription/LineItemWindowCommitmentViewDialog';
+import { lineItemHasWindowCommitment } from '@/utils/subscription/subscription_line_item_commitment_helpers';
 interface Props {
 	data: LineItem[];
 	onEdit?: (lineItem: LineItem) => void;
@@ -32,6 +33,12 @@ interface Props {
 	showNoDataCard?: boolean;
 	/** Subtitle when `showNoDataCard` renders (e.g. filtered empty vs no rows). */
 	noDataSubtitle?: string;
+	/** Show per-line-item window commitment buckets (details + edit pages). */
+	showCommitmentColumn?: boolean;
+	onApplyCoupon?: (lineItem: LineItem) => void;
+	onRemoveCoupon?: (lineItem: LineItem) => void;
+	/** Set of line item IDs that have an active coupon association — used to conditionally show "Remove coupon" */
+	lineItemIdsWithCoupon?: Set<string>;
 }
 
 interface LineItemWithStatus extends LineItem {
@@ -41,16 +48,13 @@ interface LineItemWithStatus extends LineItem {
 	tooltipContent: React.ReactNode;
 }
 
-interface LineItemDropdownProps {
+interface ViewCommitmentDropdownProps {
 	row: LineItem;
-	isEditDisabled: boolean;
-	isTerminateDisabled: boolean;
-	onEdit: (lineItem: LineItem) => void;
-	onTerminate: (lineItem: LineItem) => void;
+	onView: (lineItem: LineItem) => void;
 }
 
-const LineItemDropdown: FC<LineItemDropdownProps> = ({ row, isEditDisabled, isTerminateDisabled, onEdit, onTerminate }) => {
-	const { t } = useTranslation('common');
+const ViewCommitmentDropdown: FC<ViewCommitmentDropdownProps> = ({ row, onView }) => {
+	const { t } = useTranslation('billing');
 	const [isOpen, setIsOpen] = useState(false);
 
 	const handleClick = (e: React.MouseEvent) => {
@@ -65,6 +69,73 @@ const LineItemDropdown: FC<LineItemDropdownProps> = ({ row, isEditDisabled, isTe
 				isOpen={isOpen}
 				onOpenChange={setIsOpen}
 				options={[
+					{
+						label: t('commitmentConfig.viewCommitment', { defaultValue: 'View commitment' }),
+						icon: <Eye />,
+						onSelect: (e: Event) => {
+							e.preventDefault();
+							setIsOpen(false);
+							onView(row);
+						},
+					},
+				]}
+			/>
+		</div>
+	);
+};
+
+interface LineItemDropdownProps {
+	row: LineItem;
+	isEditDisabled: boolean;
+	isTerminateDisabled: boolean;
+	onEdit: (lineItem: LineItem) => void;
+	onTerminate: (lineItem: LineItem) => void;
+	onViewCommitment?: (lineItem: LineItem) => void;
+	onApplyCoupon?: (lineItem: LineItem) => void;
+	onRemoveCoupon?: (lineItem: LineItem) => void;
+	hasLinkedCoupon?: boolean;
+}
+
+const LineItemDropdown: FC<LineItemDropdownProps> = ({
+	row,
+	isEditDisabled,
+	isTerminateDisabled,
+	onEdit,
+	onTerminate,
+	onViewCommitment,
+	onApplyCoupon,
+	onRemoveCoupon,
+	hasLinkedCoupon,
+}) => {
+	const { t } = useTranslation('billing');
+	const [isOpen, setIsOpen] = useState(false);
+	const showViewCommitment = !!onViewCommitment && lineItemHasWindowCommitment(row);
+
+	const handleClick = (e: React.MouseEvent) => {
+		e.preventDefault();
+		e.stopPropagation();
+		setIsOpen(!isOpen);
+	};
+
+	return (
+		<div data-interactive='true' onClick={handleClick}>
+			<DropdownMenu
+				isOpen={isOpen}
+				onOpenChange={setIsOpen}
+				options={[
+					...(showViewCommitment
+						? [
+								{
+									label: t('commitmentConfig.viewCommitment', { defaultValue: 'View commitment' }),
+									icon: <Eye />,
+									onSelect: (e: Event) => {
+										e.preventDefault();
+										setIsOpen(false);
+										onViewCommitment?.(row);
+									},
+								},
+							]
+						: []),
 					{
 						label: t('actions.edit'),
 						icon: <Pencil />,
@@ -85,6 +156,32 @@ const LineItemDropdown: FC<LineItemDropdownProps> = ({ row, isEditDisabled, isTe
 						},
 						disabled: isTerminateDisabled,
 					},
+					...(onApplyCoupon && !hasLinkedCoupon
+						? [
+								{
+									label: 'Apply coupon',
+									icon: <Tag />,
+									onSelect: (e: Event) => {
+										e.preventDefault();
+										setIsOpen(false);
+										onApplyCoupon(row);
+									},
+								},
+							]
+						: []),
+					...(onRemoveCoupon && hasLinkedCoupon
+						? [
+								{
+									label: 'Remove coupon',
+									icon: <TicketX />,
+									onSelect: (e: Event) => {
+										e.preventDefault();
+										setIsOpen(false);
+										onRemoveCoupon(row);
+									},
+								},
+							]
+						: []),
 				]}
 			/>
 		</div>
@@ -253,10 +350,15 @@ const SubscriptionLineItemTable: FC<Props> = ({
 	phaseLabelsById,
 	showNoDataCard = true,
 	noDataSubtitle,
+	showCommitmentColumn = false,
+	onApplyCoupon,
+	onRemoveCoupon,
+	lineItemIdsWithCoupon,
 }) => {
 	const { t } = useTranslation('common');
 	const [showTerminateModal, setShowTerminateModal] = useState(false);
 	const [selectedLineItem, setSelectedLineItem] = useState<LineItem | null>(null);
+	const [viewCommitmentLineItem, setViewCommitmentLineItem] = useState<LineItem | null>(null);
 
 	const handleEditClick = useCallback(
 		(lineItem: LineItem) => {
@@ -321,25 +423,38 @@ const SubscriptionLineItemTable: FC<Props> = ({
 		() => [
 			{
 				title: t('tableColumns.displayName'),
-				render: (row: LineItemWithStatus) => (
-					<div className='flex items-center gap-1'>
-						<span>{row.display_name}</span>
-						{shouldShowCommitmentIcon(row, commitmentInfo) && (
-							<Tooltip
-								content={formatCommitmentTooltip(commitmentInfo!, t)}
-								delayDuration={0}
-								sideOffset={5}
-								className='bg-white border border-gray-200 shadow-lg text-sm text-gray-900 px-4 py-3 rounded-[6px] max-w-[320px]'>
-								<button
-									type='button'
-									data-interactive='true'
-									className='inline-flex items-center rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500'>
-									<Info className='h-4 w-4 text-blue-500 flex-shrink-0' />
-								</button>
-							</Tooltip>
-						)}
-					</div>
-				),
+				render: (row: LineItemWithStatus) => {
+					const displayName = row.display_name?.trim() || '--';
+					return (
+						<div className='flex min-w-0 max-w-[240px] items-center gap-1'>
+							{displayName === '--' ? (
+								<span className='truncate'>{displayName}</span>
+							) : (
+								<Tooltip
+									content={displayName}
+									delayDuration={0}
+									sideOffset={5}
+									className='bg-white border border-gray-200 shadow-lg text-sm text-gray-900 px-4 py-3 rounded-[6px] max-w-[320px]'>
+									<span className='block min-w-0 truncate'>{displayName}</span>
+								</Tooltip>
+							)}
+							{shouldShowCommitmentIcon(row, commitmentInfo) && (
+								<Tooltip
+									content={formatCommitmentTooltip(commitmentInfo!, t)}
+									delayDuration={0}
+									sideOffset={5}
+									className='bg-white border border-gray-200 shadow-lg text-sm text-gray-900 px-4 py-3 rounded-[6px] max-w-[320px]'>
+									<button
+										type='button'
+										data-interactive='true'
+										className='inline-flex items-center rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500'>
+										<Info className='h-4 w-4 text-blue-500 flex-shrink-0' />
+									</button>
+								</Tooltip>
+							)}
+						</div>
+					);
+				},
 			},
 			...(phaseLabelsById && Object.keys(phaseLabelsById).length > 0
 				? [
@@ -421,30 +536,59 @@ const SubscriptionLineItemTable: FC<Props> = ({
 					);
 				},
 			},
-			{
-				fieldVariant: 'interactive',
-				width: '48px',
-				hideOnEmpty: true,
-				render: (row) => {
-					const isArchived = row.status === ENTITY_STATUS.ARCHIVED;
-					const defaultEndDate = '0001-01-01T00:00:00Z';
-					const hasEndDate = !!(row.end_date && row.end_date.trim() !== '' && row.end_date !== defaultEndDate);
-					const isTerminateDisabled = readOnly || isArchived || hasEndDate;
-					const isEditDisabled = readOnly || isArchived || hasEndDate;
+			...(readOnly
+				? [
+						{
+							fieldVariant: 'interactive' as const,
+							width: '48px',
+							hideOnEmpty: true,
+							render: (row: LineItemWithStatus) => {
+								return <ViewCommitmentDropdown row={row} onView={setViewCommitmentLineItem} />;
+							},
+						},
+					]
+				: [
+						{
+							fieldVariant: 'interactive' as const,
+							width: '48px',
+							hideOnEmpty: true,
+							render: (row: LineItemWithStatus) => {
+								const isArchived = row.status === ENTITY_STATUS.ARCHIVED;
+								const defaultEndDate = '0001-01-01T00:00:00Z';
+								const hasEndDate = !!(row.end_date && row.end_date.trim() !== '' && row.end_date !== defaultEndDate);
+								const isTerminateDisabled = isArchived || hasEndDate;
+								const isEditDisabled = isArchived || hasEndDate;
 
-					return (
-						<LineItemDropdown
-							row={row}
-							isEditDisabled={isEditDisabled}
-							isTerminateDisabled={isTerminateDisabled}
-							onEdit={handleEditClick}
-							onTerminate={handleTerminateClick}
-						/>
-					);
-				},
-			},
+								return (
+									<LineItemDropdown
+										row={row}
+										isEditDisabled={isEditDisabled}
+										isTerminateDisabled={isTerminateDisabled}
+										onEdit={handleEditClick}
+										onTerminate={handleTerminateClick}
+										onViewCommitment={setViewCommitmentLineItem}
+										onApplyCoupon={onApplyCoupon}
+										onRemoveCoupon={onRemoveCoupon}
+										hasLinkedCoupon={lineItemIdsWithCoupon?.has(row.id)}
+									/>
+								);
+							},
+						},
+					]),
 		],
-		[hasMultipleEntityTypes, commitmentInfo, handleEditClick, handleTerminateClick, readOnly, phaseLabelsById, t],
+		[
+			hasMultipleEntityTypes,
+			commitmentInfo,
+			handleEditClick,
+			handleTerminateClick,
+			readOnly,
+			phaseLabelsById,
+			showCommitmentColumn,
+			t,
+			onApplyCoupon,
+			onRemoveCoupon,
+			lineItemIdsWithCoupon,
+		],
 	);
 
 	if (isLoading) {
@@ -488,6 +632,14 @@ const SubscriptionLineItemTable: FC<Props> = ({
 					onCancel={handleTerminateCancel}
 					onConfirm={handleTerminateConfirm}
 					isLoading={isLoading}
+				/>
+			)}
+
+			{viewCommitmentLineItem && (
+				<LineItemWindowCommitmentViewDialog
+					isOpen={!!viewCommitmentLineItem}
+					onOpenChange={(open) => !open && setViewCommitmentLineItem(null)}
+					lineItem={viewCommitmentLineItem}
 				/>
 			)}
 

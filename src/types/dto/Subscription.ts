@@ -71,6 +71,33 @@ import type { CommitmentTimeBucket } from './CommitmentTimeBucket';
 import { AddonResponse } from './Addon';
 import { ADDON_ASSOCIATION_STATUS } from '@/models/AddonAssociation';
 
+// New unified coupon input for subscription creation
+export interface SubscriptionCouponInput {
+	coupon_code: string;
+	start_date?: string;
+	end_date?: string;
+	price_id?: string; // omit for subscription-level; set for line-item-level
+}
+
+// Coupon mid-cycle modify params
+export interface SubModifyCouponParams {
+	action: 'add' | 'remove';
+	coupon_code?: string; // required when action=add
+	coupon_association_id?: string; // required when action=remove
+	start_date?: string;
+	end_date?: string;
+	subscription_id?: string; // mutually exclusive with subscription_line_item_id
+	subscription_line_item_id?: string;
+}
+
+// Tax mid-cycle modify params
+export interface SubModifyTaxParams {
+	action: 'add' | 'remove';
+	tax_rate_id?: string; // required when action=add
+	tax_association_id?: string; // required when action=remove
+	effective_date?: string;
+}
+
 export interface GetSubscriptionDetailsPayload {
 	subscription_id: string;
 	period_end?: string;
@@ -206,6 +233,8 @@ export interface ExecuteSubscriptionModifyRequest {
 	inheritance_params?: SubModifyInheritanceRequest;
 	quantity_change_params?: SubModifyQuantityChangeRequest;
 	grouped_invoicing_params?: SubModifyGroupedInvoicingParams;
+	coupon_params?: SubModifyCouponParams;
+	tax_params?: SubModifyTaxParams;
 }
 
 export interface ChangedLineItem {
@@ -315,6 +344,8 @@ export interface CreateSubscriptionRequest {
 	// Coupons
 	coupons?: string[];
 	line_item_coupons?: Record<string, string[]>;
+	// Preferred (new): unified coupon input using coupon_code
+	subscription_coupons?: SubscriptionCouponInput[];
 
 	// Price overrides
 	override_line_items?: OverrideLineItemRequest[];
@@ -563,7 +594,7 @@ export interface ListAddonAssociationsResponse {
 // SUBSCRIPTION LINE ITEM TYPES
 // =============================================================================
 
-/** Inline price for subscription-scoped line items. Currency/entity_type/entity_id are set server-side from subscription. */
+/** Inline price for subscription-scoped line items. Entity_type/entity_id are set server-side from subscription. */
 export interface SubscriptionPriceCreateRequest {
 	type: PRICE_TYPE;
 	price_unit_type: PRICE_UNIT_TYPE;
@@ -571,6 +602,8 @@ export interface SubscriptionPriceCreateRequest {
 	billing_period_count?: number;
 	billing_model: BILLING_MODEL;
 	invoice_cadence: INVOICE_CADENCE;
+	/** Lowercase ISO currency code; defaults from subscription when omitted. */
+	currency?: string;
 	amount?: string;
 	meter_id?: string;
 	filter_values?: Record<string, string[]>;
@@ -665,11 +698,14 @@ export interface SubscriptionLineItemResponse {
 	// Addon association link
 	addon_association_id?: string;
 	// Commitment fields
+	commitment_amount?: string | number;
 	commitment_quantity?: string;
 	commitment_type?: string;
 	commitment_overage_factor?: string;
 	commitment_true_up_enabled?: boolean;
 	commitment_windowed?: boolean;
+	commitment_duration?: string;
+	commitment_time_buckets?: CommitmentTimeBucket[];
 }
 
 /** Line item as returned by list/search when `expand` includes related entities (e.g. `prices`). */
@@ -741,6 +777,47 @@ export interface EntitlementOverrideRequest {
 	usage_limit?: number | null;
 	static_value?: string;
 	is_enabled?: boolean;
+}
+
+// =============================================================================
+// SUBSCRIPTION ENTITLEMENT (effective) TYPES
+// =============================================================================
+
+export interface SubscriptionEntitlementSource {
+	entity_type: string;
+	entity_id: string;
+	entitlement_id: string;
+	usage_limit?: number | null;
+	static_value?: string;
+	is_enabled?: boolean;
+}
+
+export interface SubscriptionEntitlementEffective {
+	is_enabled?: boolean;
+	usage_limit?: number | null;
+	usage_reset_period?: string;
+	/** Aggregated static feature values (backend field name) */
+	static_values?: string[];
+	/** Present on EntitlementSource rows, not on aggregated entitlement */
+	static_value?: string;
+	is_soft_limit?: boolean;
+}
+
+export interface SubscriptionEntitlementFeature {
+	feature: {
+		id: string;
+		name: string;
+		type: string;
+		[key: string]: unknown;
+	};
+	entitlement: SubscriptionEntitlementEffective;
+	sources: SubscriptionEntitlementSource[];
+}
+
+export interface GetSubscriptionEntitlementsResponse {
+	subscription_id: string;
+	plan_id: string;
+	features: SubscriptionEntitlementFeature[];
 }
 
 // =============================================================================
