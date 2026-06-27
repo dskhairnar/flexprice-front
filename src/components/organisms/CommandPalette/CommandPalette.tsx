@@ -15,7 +15,7 @@ import {
 	isCommandPaletteActionFlexpriceOnly,
 } from '@/core/actions';
 import useEnvironment from '@/hooks/useEnvironment';
-import { isFlexpriceContactEnabled } from '@/utils/hostname/isFlexpriceIoHostname';
+import { isContactEnabled } from '@/config/contact';
 import { toast } from 'react-hot-toast';
 import { useTranslation } from 'react-i18next';
 import type { CommandPaletteGroupType } from '@/config/command-palette';
@@ -75,10 +75,10 @@ const CommandPalette = () => {
 	};
 
 	const visibleCommands = useMemo(() => {
-		const flexpriceContactEnabled = isFlexpriceContactEnabled();
+		const contactEnabled = isContactEnabled();
 		return commandPaletteCommands.filter((cmd) => {
 			if (cmd.actionId && isCommandPaletteActionDevOnly(cmd.actionId)) return isDevelopment;
-			if (cmd.actionId && isCommandPaletteActionFlexpriceOnly(cmd.actionId) && !flexpriceContactEnabled) {
+			if (cmd.actionId && isCommandPaletteActionFlexpriceOnly(cmd.actionId) && !contactEnabled) {
 				return false;
 			}
 			if (cmd.actionId === CommandPaletteActionId.OpenIntercom && !isIntercomMessengerAvailable()) {

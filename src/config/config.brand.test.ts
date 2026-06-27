@@ -190,6 +190,7 @@ describe('config object', () => {
 		expect(typeof config.platform.sidebar_documentation.enabled).toBe('boolean');
 		expect(typeof config.platform.guides.enabled).toBe('boolean');
 		expect(typeof config.platform.onboarding.enabled).toBe('boolean');
+		expect(typeof config.platform.contact_us.enabled).toBe('boolean');
 	});
 });
 
@@ -201,6 +202,7 @@ describe('parsePlatformConfig', () => {
 		expect(result.sidebar_documentation.enabled).toBe(true);
 		expect(result.guides.enabled).toBe(true);
 		expect(result.onboarding.enabled).toBe(true);
+		expect(result.contact_us.enabled).toBe(false);
 	});
 
 	it('applies per-feature overrides from VITE_PLATFORM_CONFIG JSON', async () => {
@@ -228,6 +230,14 @@ describe('parsePlatformConfig', () => {
 		const result = parsePlatformConfig('{not-json');
 		expect(result.guides.enabled).toBe(true);
 		expect(result.onboarding.enabled).toBe(true);
+		expect(result.contact_us.enabled).toBe(false);
+	});
+
+	it('enables contact_us from boolean or enabled object', async () => {
+		const { parsePlatformConfig } = await import('./config');
+		expect(parsePlatformConfig('{"contact_us":true}').contact_us.enabled).toBe(true);
+		expect(parsePlatformConfig('{"contact_us":{"enabled":true}}').contact_us.enabled).toBe(true);
+		expect(parsePlatformConfig('{"contact_us":false}').contact_us.enabled).toBe(false);
 	});
 });
 
