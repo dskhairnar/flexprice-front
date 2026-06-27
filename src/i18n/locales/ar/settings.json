@@ -6,17 +6,17 @@
 	"members": {
 		"roleAdmin": "مسؤول",
 		"errors": {
-			"userLimitReached": "تم بلوغ حد المستخدمين لهذه المنظمة.",
-			"userAlreadyExists": "يوجد مستخدم بهذا البريد الإلكتروني مسبقاً!",
-			"failedToAddUser": "فشل إضافة المستخدم",
-			"failedToLoadMembers": "فشل تحميل الأعضاء",
+			"userLimitReached": "بلغت هذه المؤسسة الحد الأقصى لعدد المستخدمين.",
+			"userAlreadyExists": "يوجد مستخدم بهذا البريد الإلكتروني بالفعل!",
+			"failedToAddUser": "تعذّرت إضافة المستخدم",
+			"failedToLoadMembers": "تعذّر تحميل الأعضاء",
 			"enterEmail": "أدخل عنوان بريد إلكتروني",
-			"emailInvalid": "يرجى إدخال بريد إلكتروني صالح",
+			"emailInvalid": "يُرجى إدخال بريد إلكتروني صالح",
 			"copyFailed": "تعذّر النسخ إلى الحافظة",
-			"loginLinkCopied": "تم نسخ رابط تسجيل الدخول – شاركه مع المستخدم بشكل آمن.",
+			"loginLinkCopied": "تم نسخ رابط تسجيل الدخول – شاركه مع المستخدم بأمان.",
 			"credentialsCopied": "تم نسخ بيانات الدخول إلى الحافظة.",
 			"credentialsDownloaded": "تم تنزيل بيانات الدخول.",
-			"loadError": "فشل تحميل الأعضاء. يُرجى المحاولة مرة أخرى."
+			"loadError": "تعذّر تحميل الأعضاء. حاول مرة أخرى."
 		},
 		"columns": {
 			"email": "البريد الإلكتروني",
@@ -25,26 +25,26 @@
 		"cardTitle": "الأعضاء",
 		"addMember": {
 			"title": "إضافة عضو",
-			"description": "ادعُ عضو فريق جديداً عبر البريد الإلكتروني.",
+			"description": "ادعُ عضواً جديداً إلى فريقك عبر البريد الإلكتروني.",
 			"emailLabel": "البريد الإلكتروني",
 			"emailPlaceholder": "user@example.com",
 			"addUser": "إضافة مستخدم"
 		},
 		"credentials": {
 			"title": "بيانات تسجيل الدخول",
-			"description": "شارك هذه البيانات مع المستخدم الجديد ليتمكن من الدخول.",
+			"description": "شارك هذه البيانات مع المستخدم الجديد ليسجّل دخوله.",
 			"emailCopied": "تم نسخ البريد",
 			"copyEmail": "نسخ البريد",
 			"password": "كلمة المرور",
 			"hidePassword": "إخفاء كلمة المرور",
 			"showPassword": "إظهار كلمة المرور",
 			"copyPassword": "نسخ كلمة المرور",
-			"oneClickHint": "رابط تسجيل دخول بضغطة واحدة – شاركه مع المستخدم.",
+			"oneClickHint": "رابط تسجيل دخول بنقرة واحدة – شاركه مع المستخدم.",
 			"copyLoginLink": "نسخ رابط تسجيل الدخول",
 			"downloadCsv": "تنزيل CSV",
 			"copyAll": "نسخ الكل",
-			"passwordResetNote": "يمكن إعادة تعيين كلمة المرور لاحقاً.",
-			"signInMethodsNote": "يمكن للمستخدم تسجيل الدخول ببريد/كلمة مرور أو Google.",
+			"passwordResetNote": "يمكن إعادة ضبط كلمة المرور هذه لاحقاً.",
+			"signInMethodsNote": "يمكن للمستخدم تسجيل الدخول بالبريد وكلمة المرور أو عبر Google.",
 			"csvHeader": "email,password,login_link",
 			"copyBlockEmailLine": "Email: {{email}}",
 			"copyBlockPasswordLine": "Password: {{password}}",
@@ -56,13 +56,13 @@
 		"unitMembers": "أعضاء"
 	},
 	"billingPage": {
-		"errorFetchBilling": "خطأ في جلب تفاصيل الفوترة",
+		"errorFetchBilling": "تعذّر جلب تفاصيل الفوترة",
 		"labels": {
 			"name": "الاسم",
 			"billingEmail": "البريد الإلكتروني للفوترة",
 			"billingAddress": "عنوان الفوترة",
 			"billingCity": "مدينة الفوترة",
-			"billingState": "المنطقة/المحافظة للفوترة",
+			"billingState": "المنطقة/المحافظة",
 			"billingCountry": "دولة الفوترة",
 			"billingPostalCode": "الرمز البريدي للفوترة"
 		},
@@ -79,11 +79,11 @@
 	},
 	"tenant": {
 		"validation": {
-			"organizationNameRequired": "اسم المنظمة مطلوب"
+			"organizationNameRequired": "اسم المؤسسة مطلوب"
 		},
 		"errors": {
 			"tenantIdRequired": "معرّف المستأجر مطلوب",
-			"updateFailed": "فشل تحديث تفاصيل المستأجر. يُرجى المحاولة مرة أخرى."
+			"updateFailed": "تعذّر تحديث تفاصيل المستأجر. يُرجى المحاولة مرة أخرى."
 		},
 		"toast": {
 			"updated": "تم تحديث تفاصيل المستأجر بنجاح"
@@ -91,16 +91,16 @@
 		"drawer": {
 			"title": "تحديث تفاصيل المستأجر",
 			"description": "حدّث تفاصيل عنوان الفوترة.",
-			"organizationName": "اسم المنظمة",
-			"organizationNamePlaceholder": "أدخل اسم منظمتك",
+			"organizationName": "اسم المؤسسة",
+			"organizationNamePlaceholder": "أدخل اسم مؤسستك",
 			"billingSection": "تفاصيل الفوترة",
 			"country": "الدولة",
 			"selectCountry": "اختر الدولة",
 			"noCountries": "لا توجد دول متاحة",
 			"addressLine1": "سطر العنوان 1",
-			"addressLine1Placeholder": "عنوان الشارع، صندوق البريد، اسم الشركة، إلخ",
+			"addressLine1Placeholder": "عنوان الشارع، صندوق البريد، اسم الشركة، عناية بـ",
 			"addressLine2": "سطر العنوان 2",
-			"addressLine2Placeholder": "الشقة، الوحدة، المبنى، الطابق، إلخ",
+			"addressLine2Placeholder": "الشقة، الجناح، الوحدة، المبنى، الطابق، إلخ",
 			"state": "المنطقة/المحافظة",
 			"selectState": "اختر المنطقة",
 			"noStates": "لا توجد مناطق متاحة",
@@ -116,19 +116,19 @@
 	"integrationDrawer": {
 		"validation": {
 			"nameRequired": "اسم الاتصال مطلوب",
-			"apiSecretRequired": "مفتاح سرّ واجهة البرمجة مطلوب"
+			"apiSecretRequired": "API Secret Key مطلوب"
 		},
 		"title": {
 			"edit": "تعديل اتصال {{providerName}}",
 			"connect": "الاتصال بـ {{providerName}}"
 		},
-		"description": "أدخل تفاصيل الاتصال. انقر حفظ عند الانتهاء.",
+		"description": "أدخل تفاصيل الاتصال، ثم انقر «حفظ» عند الانتهاء.",
 		"connectionName": "اسم الاتصال",
 		"connectionNamePlaceholder": "أدخل الاسم",
 		"connectionNameHint": "اسم تعريفي لهذا التكامل",
-		"apiSecretKey": "مفتاح سرّ واجهة البرمجة",
-		"apiSecretPlaceholder": "أدخل مفتاح السرّ",
-		"apiSecretHint": "مفتاح السرّ من مزود الخدمة"
+		"apiSecretKey": "API Secret Key",
+		"apiSecretPlaceholder": "أدخل API Secret Key",
+		"apiSecretHint": "API Secret Key الخاص بك من مزوّد الخدمة"
 	},
 	"import": {
 		"entityTypes": {
@@ -138,8 +138,8 @@
 			"prices": "الأسعار"
 		},
 		"fileTypes": {
-			"csv": "ملف CSV",
-			"json": "ملف JSON"
+			"csv": "CSV",
+			"json": "JSON"
 		},
 		"taskTypes": {
 			"import": "استيراد",
@@ -148,7 +148,7 @@
 		"taskStatus": {
 			"successful": "ناجح",
 			"failed": "فاشل",
-			"queued": "في الانتظار"
+			"queued": "في قائمة الانتظار"
 		},
 		"detailLabels": {
 			"type": "النوع",
@@ -158,12 +158,12 @@
 		},
 		"rowStats": {
 			"totalRows": "إجمالي الصفوف",
-			"failedRows": "صفوف فاشلة",
-			"successfulRows": "صفوف ناجحة"
+			"failedRows": "الصفوف الفاشلة",
+			"successfulRows": "الصفوف الناجحة"
 		},
 		"validation": {
-			"uploadFile": "يرجى رفع ملف",
-			"selectEntityType": "يرجى اختيار نوع الكيان"
+			"uploadFile": "يُرجى رفع ملف",
+			"selectEntityType": "يُرجى اختيار نوع الكيان"
 		},
 		"toast": {
 			"uploadSuccess": "تم رفع {{filename}} بنجاح",
@@ -180,13 +180,13 @@
 			"entityType": "نوع الكيان",
 			"status": "الحالة",
 			"startedAt": "بدأ في",
-			"updatedAt": "عُدّل في"
+			"updatedAt": "آخر تحديث"
 		},
 		"errors": {
-			"fetchFailed": "فشل جلب البيانات"
+			"fetchFailed": "تعذّر جلب البيانات"
 		},
 		"empty": {
-			"readyTitle": "هل أنت مستعد لاستيراد البيانات؟",
+			"readyTitle": "جاهز لاستيراد بياناتك؟",
 			"readyDescription": "ارفع أول ملف استيراد لإدخال بيانات العملاء أو الأحداث.",
 			"createTaskButton": "إنشاء مهمة استيراد"
 		},
@@ -201,83 +201,83 @@
 			"bucketRequired": "اسم حاوية S3 مطلوب",
 			"regionRequired": "منطقة AWS مطلوبة",
 			"keyPrefixRequired": "بادئة المفتاح مطلوبة",
-			"metadataFieldKeys": "يجب أن يكون لكل حقل بيانات وصفية مفتاح حقل"
+			"metadataFieldKeys": "يجب أن يكون لكل حقل Metadata مفتاح حقل"
 		},
 		"toast": {
 			"created": "تم إنشاء مهمة التصدير بنجاح",
 			"updated": "تم تحديث مهمة التصدير بنجاح",
-			"createFailed": "فشل إنشاء مهمة التصدير",
-			"updateFailed": "فشل تحديث مهمة التصدير"
+			"createFailed": "تعذّر إنشاء مهمة التصدير",
+			"updateFailed": "تعذّر تحديث مهمة التصدير"
 		},
 		"title": {
 			"edit": "تعديل مهمة التصدير",
 			"create": "إنشاء مهمة تصدير"
 		},
-		"description": "اضبط إعدادات التصدير لمسار بيانات S3. انقر حفظ عند الانتهاء.",
+		"description": "اضبط إعدادات التصدير لمسار بيانات S3، ثم انقر «حفظ» عند الانتهاء.",
 		"entityType": "نوع الكيان",
 		"entityTypeHint": "اختر نوع البيانات المراد تصديرها",
 		"entityTypes": {
 			"events": "الأحداث",
 			"invoice": "الفاتورة",
 			"creditTopups": "إعادة شحن الأرصدة",
-			"creditUsage": "استخدام الأرصدة",
+			"creditUsage": "استهلاك الأرصدة",
 			"usageAnalytics": "تحليلات الاستخدام"
 		},
 		"interval": {
 			"label": "فترة التصدير",
-			"hint": "وتيرة تشغيل التصدير",
+			"hint": "عدد مرات تشغيل التصدير",
 			"hourly": "كل ساعة",
 			"daily": "يومياً"
 		},
 		"s3": {
 			"bucket": "اسم حاوية S3",
-			"bucketPlaceholder": "أدخل اسم الحاوية",
-			"bucketHint": "اسم حاوية S3",
+			"bucketPlaceholder": "أدخل اسم حاوية S3",
+			"bucketHint": "اسم حاوية S3 الخاصة بك",
 			"region": "منطقة AWS",
 			"regionPlaceholder": "أدخل منطقة AWS",
-			"regionHint": "المنطقة التي توجد فيها الحاوية",
+			"regionHint": "منطقة AWS التي توجد بها حاوية S3 الخاصة بك",
 			"keyPrefix": "بادئة المفتاح",
 			"keyPrefixPlaceholder": "أدخل بادئة المفتاح",
-			"keyPrefixHint": "البادئة لملفات الحاوية"
+			"keyPrefixHint": "بادئة الملفات داخل حاوية S3 الخاصة بك"
 		},
 		"compression": {
 			"label": "الضغط",
-			"hint": "تنسيق ضغط الملفات المُصدّرة",
+			"hint": "تنسيق ضغط الملفات المُصدَّرة",
 			"none": "بدون",
 			"gzip": "GZIP"
 		},
 		"encryption": {
 			"label": "التشفير",
-			"hint": "طريقة تشفير الملفات المُصدّرة",
+			"hint": "طريقة تشفير الملفات المُصدَّرة",
 			"aes256": "AES256"
 		},
 		"metadata": {
-			"title": "حقول بيانات وصفية إضافية",
+			"title": "حقول Metadata إضافية",
 			"optional": "(اختياري)",
-			"tooltip": "صدّر حقولاً وصفية مخصّصة كأعمدة CSV إضافية. إن تكرّر نفس مفتاح الحقل بين أنواع كيانات، استخدم «اسم العمود» لعنوان فريد.",
+			"tooltip": "صدّر حقول Metadata مخصّصة كأعمدة CSV إضافية. إذا تكرّر مفتاح الحقل نفسه عبر أكثر من نوع كيان، استخدم «اسم العمود» لمنح كلٍّ منها عنواناً فريداً.",
 			"columnName": "اسم العمود",
-			"summary": "تم ضبط {{count}} حقل",
+			"summary": "تم ضبط حقل واحد ({{count}})",
 			"summaryPlural": "تم ضبط {{count}} حقول",
-			"emptyHint": "انقر لإضافة حقول بيانات وصفية للتصدير",
+			"emptyHint": "انقر لإضافة حقول Metadata للتصدير",
 			"entityTypeCol": "نوع الكيان",
 			"fieldKeyCol": "مفتاح الحقل *",
 			"fieldKeyPlaceholder": "مثال: account_id",
-			"columnNamePlaceholder": "رأس عمود CSV، مثال: Account ID",
+			"columnNamePlaceholder": "عنوان عمود CSV، مثال: Account ID",
 			"setColumnName": "+ تعيين اسم العمود",
-			"addField": "إضافة حقل بيانات وصفية",
+			"addField": "إضافة حقل Metadata",
 			"entityTypes": {
 				"customer": "العميل",
 				"wallet": "المحفظة"
 			}
 		},
 		"endpoint": {
-			"label": "عنوان نقطة النهاية (اختياري)",
-			"placeholder": "أدخل عنوان نقطة نهاية S3 مخصّص",
-			"description": "عنوان مخصّص لتخزين متوافق مع S3 (مثل MinIO، DigitalOcean Spaces)"
+			"label": "عنوان Endpoint (اختياري)",
+			"placeholder": "أدخل عنوان Endpoint مخصّصاً لـ S3",
+			"description": "عنوان Endpoint مخصّص لتخزين متوافق مع S3 (مثل MinIO أو DigitalOcean Spaces)"
 		},
 		"flexpriceManaged": {
 			"title": "تخزين مُدار من {{brandName}}",
-			"body": "يُخزَّن التصدير تلقائياً في حاويات S3 تديرها {{brandName}}. لا حاجة لإعداد تصدير إضافي. نزّل الملفات من جدول تشغيل المهام."
+			"body": "ستُخزَّن عمليات التصدير تلقائياً في حاويات S3 التي تديرها {{brandName}}. لا حاجة إلى أي إعداد تصدير إضافي. نزّل الملفات المُصدَّرة من جدول تشغيل المهام المعني."
 		},
 		"enabled": "تفعيل مهمة التصدير هذه",
 		"buttons": {
@@ -286,14 +286,14 @@
 	},
 	"exportRuns": {
 		"emptyTitle": "لا توجد عمليات تصدير",
-		"emptyDescription": "لم تُشغَّل مهمة التصدير هذه بعد.",
-		"recentTitle": "آخر عمليات التصدير",
-		"notStarted": "لم يبدأ",
-		"started": "بدأ: {{time}}",
-		"completed": "اكتمل: {{time}}",
+		"emptyDescription": "لم تُشغَّل مهمة التصدير هذه بعد.",
+		"recentTitle": "أحدث عمليات التصدير",
+		"notStarted": "لم تبدأ",
+		"started": "بدأت: {{time}}",
+		"completed": "اكتملت: {{time}}",
 		"errorPrefix": "خطأ:",
-		"processed": "مُعالَج",
-		"exported": "مُصدَّر",
+		"processed": "تمت معالجته",
+		"exported": "تم تصديره",
 		"sizeUnits": {
 			"bytes": "بايت",
 			"kb": "كيلوبايت",
@@ -305,7 +305,7 @@
 			"completed": "مكتمل",
 			"failed": "فاشل",
 			"running": "قيد التشغيل",
-			"pending": "معلق",
+			"pending": "قيد الانتظار",
 			"cancelled": "ملغى"
 		}
 	},
@@ -313,34 +313,34 @@
 		"validation": {
 			"nameRequired": "اسم الاتصال مطلوب",
 			"awsAccessKeyRequired": "معرّف AWS Access Key مطلوب",
-			"awsSecretRequired": "مفتاح AWS Secret مطلوب",
-			"accessTokenRequired": "رمز الوصول مطلوب",
+			"awsSecretRequired": "مفتاح AWS Secret Access مطلوب",
+			"accessTokenRequired": "Access Token مطلوب",
 			"clientSecretRequired": "سرّ العميل مطلوب",
-			"apiKeyRequired": "مفتاح API مطلوب",
-			"apiKeyRequiredUpper": "مفتاح API مطلوب",
-			"companyIdRequired": "معرّف الشركة مطلوب",
+			"apiKeyRequired": "API Key مطلوب",
+			"apiKeyRequiredUpper": "API Key مطلوب",
 			"siteRequired": "الموقع مطلوب",
-			"webhookUsernameRequired": "اسم مستخدم الويب هوك مطلوب",
-			"webhookPasswordRequired": "كلمة مرور الويب هوك مطلوبة",
-			"secretKeyRequired": "المفتاح السري مطلوب",
-			"webhookSecretRequired": "سرّ الويب هوك مطلوب",
+			"webhookUsernameRequired": "اسم مستخدم Webhook مطلوب",
+			"webhookPasswordRequired": "كلمة مرور Webhook مطلوبة",
+			"secretKeyRequired": "Secret Key مطلوب",
+			"webhookSecretRequired": "Webhook Secret مطلوب",
 			"keyIdRequired": "معرّف المفتاح مطلوب",
-			"clientSideTokenRequired": "رمز الواجهة مطلوب",
-			"organizationIdRequired": "معرّف المنظمة مطلوب",
+			"clientSideTokenRequired": "الرمز من جانب العميل مطلوب",
+			"organizationIdRequired": "معرّف المؤسسة مطلوب",
 			"accountsServerRequired": "خادم الحسابات مطلوب",
 			"clientIdRequired": "معرّف العميل مطلوب",
-			"redirectUrlInvalid": "يجب أن يكون عنواناً صالحاً يبدأ بـ http:// أو https://"
+			"redirectUrlInvalid": "يجب أن يكون عنوان URL صالحاً يبدأ بـ http:// أو https://",
+			"companyIdRequired": "معرّف الشركة مطلوب"
 		},
 		"toast": {
 			"created": "تم إنشاء اتصال {{provider}} بنجاح",
 			"updated": "تم تحديث اتصال {{provider}} بنجاح",
-			"failedToCreate": "فشل إنشاء الاتصال",
-			"failedToUpdate": "فشل تحديث الاتصال",
-			"webhookUrlCopied": "تم نسخ عنوان الويب هوك!",
-			"redirectUriCopied": "تم نسخ عنوان إعادة التوجيه!",
-			"failedOAuth": "فشل بدء OAuth",
-			"failedZohoOAuth": "فشل بدء Zoho OAuth",
-			"oauthGeneric": "فشل بدء OAuth"
+			"failedToCreate": "تعذّر إنشاء الاتصال",
+			"failedToUpdate": "تعذّر تحديث الاتصال",
+			"webhookUrlCopied": "تم نسخ Webhook URL إلى الحافظة!",
+			"redirectUriCopied": "تم نسخ عنوان إعادة التوجيه إلى الحافظة!",
+			"failedOAuth": "تعذّر بدء OAuth",
+			"failedZohoOAuth": "تعذّر بدء OAuth الخاص بـ Zoho",
+			"oauthGeneric": "تعذّر بدء OAuth"
 		},
 		"buttons": {
 			"createConnection": "إنشاء اتصال",
@@ -349,10 +349,10 @@
 		},
 		"sync": {
 			"title": "إعدادات المزامنة",
-			"description": "حدد البيانات المراد مزامنتها بين {{partner}} و {{brandName}}",
-			"pushTo": "دفع إلى {{partner}}",
-			"pushToHubSpot": "دفع إلى HubSpot",
-			"inboundWebhook": "مزامنة واردة (يتطلب إعداد ويب هوك)"
+			"description": "حدّد البيانات المراد مزامنتها بين {{partner}} و {{brandName}}",
+			"pushTo": "الدفع إلى {{partner}}",
+			"pushToHubSpot": "الدفع إلى HubSpot",
+			"inboundWebhook": "مزامنة واردة (يتطلّب إعداد Webhook)"
 		},
 		"labels": {
 			"invoices": "الفواتير",
@@ -360,230 +360,229 @@
 			"quotes": "عروض الأسعار",
 			"payments": "المدفوعات",
 			"environment": "البيئة",
-			"apiKey": "مفتاح API",
-			"secretKey": "المفتاح السري"
+			"apiKey": "API Key",
+			"secretKey": "Secret Key"
 		},
 		"webhook": {
-			"sectionTitle": "إعداد الويب هوك",
-			"url": "عنوان الويب هوك",
-			"eventsToSubscribe": "أحداث الويب هوك للاشتراك",
+			"sectionTitle": "إعداد Webhook",
+			"url": "Webhook URL",
+			"eventsToSubscribe": "أحداث Webhook المراد الاشتراك بها",
 			"setupInstructions": "تعليمات الإعداد:",
 			"copy": "نسخ",
 			"copied": "تم النسخ!",
-			"secretLabel": "سرّ الويب هوك",
-			"secretPlaceholder": "أدخل سرّ الويب هوك",
-			"secretDescription": "السرّ للتحقق من صحة الويب هوك"
+			"secretLabel": "Webhook Secret",
+			"secretPlaceholder": "أدخل Webhook Secret",
+			"secretDescription": "سرّ Webhook للتحقّق من صحّة Webhook"
 		},
 		"scopes": {
 			"requiredScopes": "النطاقات المطلوبة",
-			"hubspotHint": "بناءً على إعداد المزامنة، تأكد من تفعيل هذه النطاقات في تطبيق HubSpot:"
+			"hubspotHint": "بناءً على إعدادات المزامنة لديك، تأكّد من تفعيل هذه النطاقات في تطبيق HubSpot الخاص بك:"
 		},
 		"hubSpot": {
 			"description": "اضبط تكامل HubSpot ببيانات الاعتماد المطلوبة.",
-			"connectionNamePlaceholder": "مثال: HubSpot إنتاج، HubSpot تجريبي",
-			"connectionNameHint": "اسم ودي لتحديد اتصال HubSpot",
-			"accessToken": "رمز الوصول",
+			"connectionNamePlaceholder": "مثال: HubSpot الإنتاج، HubSpot التجريبي",
+			"connectionNameHint": "اسم تعريفي يميّز اتصال HubSpot هذا",
+			"accessToken": "Access Token",
 			"accessTokenPlaceholder": "pat-...",
-			"accessTokenHint": "رمز التطبيق الخاص في HubSpot",
+			"accessTokenHint": "Access Token الخاص بتطبيق HubSpot الخاص",
 			"clientSecret": "سرّ العميل",
 			"clientSecretPlaceholder": "أدخل سرّ العميل",
-			"clientSecretHint": "سرّ تطبيق HubSpot",
-			"webhookIntro": "اضبط عنوان الويب هوك هذا في لوحة التطبيق القديمة لـ HubSpot:",
-			"webhookEventsIntro": "اشترك في هذه الأحداث في إعداد الويب هوك:"
+			"clientSecretHint": "سرّ عميل تطبيق HubSpot الخاص بك",
+			"webhookIntro": "اضبط عنوان Webhook هذا في لوحة تطبيق HubSpot القديم لتلقّي إشعارات الأحداث:",
+			"webhookEventsIntro": "اشترك في هذه الأحداث ضمن إعداد Webhook في HubSpot:"
 		},
 		"s3": {
 			"titleEdit": "تعديل اتصال S3",
 			"titleConnect": "الاتصال بـ Amazon S3",
-			"description": "أدخل بيانات AWS للاتصال بـ S3. انقر حفظ عند الانتهاء.",
-			"connectionNameHint": "اسم وصفي لاتصال S3",
+			"description": "أدخل بيانات اعتماد AWS للاتصال بـ S3، ثم انقر «حفظ» عند الانتهاء.",
+			"connectionNameHint": "اسم وصفي لاتصال S3 هذا",
 			"connectionNamePlaceholder": "أدخل اسم الاتصال",
 			"flexpriceManaged": "تخزين مُدار من {{brandName}}",
-			"flexpriceManagedHint": "لا حاجة لإعداد AWS",
+			"flexpriceManagedHint": "لا حاجة إلى أي إعداد لـ AWS",
 			"awsAccessKey": "معرّف AWS Access Key",
-			"awsAccessKeyPlaceholder": "أدخل معرّف Access Key",
-			"awsAccessKeyHint": "معرّف مفتاح الوصول AWS",
-			"awsSecretKey": "مفتاح AWS Secret",
-			"awsSecretKeyPlaceholder": "أدخل المفتاح السري",
-			"awsSecretKeyHint": "المفتاح السري AWS",
-			"sessionToken": "رمز جلسة AWS (اختياري)",
-			"sessionTokenPlaceholder": "أدخل رمز الجلسة",
-			"sessionTokenHint": "مطلوب فقط للأوراق المؤقتة",
+			"awsAccessKeyPlaceholder": "أدخل معرّف AWS Access Key",
+			"awsAccessKeyHint": "معرّف AWS Access Key الخاص بك",
+			"awsSecretKey": "مفتاح AWS Secret Access",
+			"awsSecretKeyPlaceholder": "أدخل مفتاح AWS Secret Access",
+			"awsSecretKeyHint": "مفتاح AWS Secret Access الخاص بك",
+			"sessionToken": "AWS Session Token (اختياري)",
+			"sessionTokenPlaceholder": "أدخل AWS Session Token",
+			"sessionTokenHint": "مطلوب فقط لبيانات الاعتماد المؤقتة",
 			"securityNote": "ملاحظة أمنية",
-			"security{{brandName}}": "تُخزَّن بياناتك بأمان في حاويات S3 تديرها {{brandName}}. الملفات مُشفّرة في السكون وتُنزَّل عبر روابط آمنة.",
-			"securityFlexpriceManaged": "تُخزَّن بياناتك بأمان في حاويات S3 المُدارة من {{brandName}}. الملفات مُشفّرة في السكون وتُنزَّل عبر روابط آمنة.",
-			"securityAws": "تُشفَّر بيانات AWS وتُخزَّن بأمان. يُفضّل استخدام أدوار IAM بأقل صلاحيات لـ S3."
+			"security{{brandName}}": "ستُخزَّن بياناتك بأمان في حاويات S3 التي تديرها {{brandName}}. الملفات مُشفّرة في حالة السكون ويمكن الوصول إليها عبر روابط تنزيل آمنة.",
+			"securityAws": "تُشفَّر بيانات اعتماد AWS الخاصة بك وتُخزَّن بأمان. نوصي باستخدام أدوار IAM بأقل الصلاحيات اللازمة للوصول إلى S3."
 		},
 		"zohoBooks": {
-			"description": "اضبط تكامل Zoho Books وفعّل OAuth.",
-			"connectionPlaceholder": "مثال: Zoho Books إنتاج",
-			"clientIdPlaceholder": "معرّف عميل Zoho OAuth",
-			"clientSecretPlaceholder": "سرّ عميل Zoho OAuth",
-			"organizationId": "معرّف المنظمة",
-			"organizationIdPlaceholder": "organization_id في Zoho Books",
-			"organizationIdHint": "مطلوب لعمليات واجهة Zoho Books.",
+			"description": "اضبط تكامل Zoho Books وفوّض الوصول عبر OAuth.",
+			"connectionPlaceholder": "مثال: Zoho Books الإنتاج",
+			"clientIdPlaceholder": "معرّف عميل OAuth الخاص بـ Zoho",
+			"clientSecretPlaceholder": "سرّ عميل OAuth الخاص بـ Zoho",
+			"organizationId": "معرّف المؤسسة",
+			"organizationIdPlaceholder": "organization_id الخاص بـ Zoho Books",
+			"organizationIdHint": "مطلوب لعمليات واجهة Zoho Books البرمجية.",
 			"accountsServer": "خادم الحسابات",
 			"accountsServerPlaceholder": "https://accounts.zoho.in",
-			"accountsServerHint": "الافتراضي الهند (.in). استخدم منطقة أخرى عند الحاجة (مثل accounts.zoho.com).",
-			"webhookSection": "إعداد الويب هوك",
-			"webhookBody": "في Zoho Books، أنشئ ويب هوك للفواتير وجهات الاتصال واضبط هذا العنوان لكل منهما. استخدم نفس السرّ هنا وفي Zoho حتى يتحقق {{brandName}} من X-Zoho-Webhook-Signature.",
-			"webhookSecret": "سرّ الويب هوك",
-			"webhookSecretPlaceholderEdit": "اتركه فارغاً للإبقاء على السرّ، أو أدخل سراً جديداً للتدوير",
-			"webhookSecretPlaceholderCreate": "نفس القيمة في إعدادات الويب هوك في Zoho",
-			"webhookSecretDescEdit": "مُخزَّن مشفّراً. اتركه فارغاً عند التحديث للإبقاء على السرّ الحالي.",
-			"webhookSecretDescCreate": "مطلوب. يجب أن يطابق سرّ Zoho ليتحقق {{brandName}} من التوقيع. يُخزَّن مشفّراً مع الاتصال.",
+			"accountsServerHint": "الافتراضي هو الهند (.in). استخدم منطقة أخرى عند الحاجة (مثل accounts.zoho.com أو accounts.zoho.eu).",
+			"webhookSection": "إعداد Webhook",
+			"webhookBody": "في Zoho Books، أنشئ Webhooks للفواتير وجهات الاتصال واضبط هذا العنوان لكلٍّ منهما. استخدم السرّ نفسه هنا وفي Zoho حتى تتمكّن {{brandName}} من التحقّق من X-Zoho-Webhook-Signature.",
+			"webhookSecret": "Webhook Secret",
+			"webhookSecretPlaceholderEdit": "اتركه فارغاً للإبقاء على السرّ الحالي، أو أدخل سرّاً جديداً لتدويره",
+			"webhookSecretPlaceholderCreate": "القيمة نفسها الموجودة في إعدادات Webhook في Zoho Books",
+			"webhookSecretDescEdit": "يُخزَّن مُشفّراً. اتركه فارغاً للإبقاء على السرّ الحالي عند التحديث.",
+			"webhookSecretDescCreate": "مطلوب. يجب أن يطابق السرّ الموجود في Zoho Books حتى تتمكّن {{brandName}} من التحقّق من X-Zoho-Webhook-Signature. يُخزَّن مُشفّراً مع اتصالك.",
 			"oauthRedirectTitle": "عنوان إعادة توجيه OAuth",
-			"oauthRedirectBody": "يجب أن يطابق هذا العنوان بالضبط «Authorized Redirect URI» في تطبيق Zoho وإعداد إعادة التوجيه في الخادم.",
-			"webhookBodyHtml": "في Zoho Books، أنشئ ويب هوك للفواتير وجهات الاتصال واضبط هذا العنوان لكل منهما. استخدم نفس السرّ هنا وفي Zoho حتى يتحقق {{brandName}} من <header>X-Zoho-Webhook-Signature</header>.",
-			"credentialsHidden": "بيانات OAuth مشفّرة ومخفية. لتحديثها احذف الاتصال وأنشئ اتصالاً جديداً.",
-			"selectTenantForUrl": "اختر المستأجر والبيئة لتوليد الرابط",
+			"oauthRedirectBody": "يجب أن يطابق هذا العنوان تماماً عنوان إعادة التوجيه المُصرّح به في تطبيق Zoho وإعداد إعادة توجيه OAuth في الخادم.",
+			"webhookBodyHtml": "في Zoho Books، أنشئ Webhooks للفواتير وجهات الاتصال واضبط هذا العنوان لكلٍّ منهما. استخدم السرّ نفسه هنا وفي Zoho حتى تتمكّن {{brandName}} من التحقّق من <header>X-Zoho-Webhook-Signature</header>.",
+			"credentialsHidden": "بيانات اعتماد OAuth مُشفّرة ومخفيّة. لتحديث بيانات الاعتماد، احذف الاتصال وأنشئ اتصالاً جديداً.",
+			"selectTenantForUrl": "اختر المستأجر والبيئة لتوليد عنوان URL",
 			"toastUpdated": "تم تحديث اتصال Zoho Books بنجاح"
 		},
 		"quickBooks": {
 			"descriptionEdit": "حدّث إعدادات اتصال QuickBooks.",
-			"descriptionCreate": "اضبط تكامل QuickBooks. ستُوجَّه إلى QuickBooks للتفويض.",
-			"connectionNamePlaceholder": "مثال: QuickBooks إنتاج، Sandbox",
-			"connectionNameHint": "اسم ودي لاتصال QuickBooks",
+			"descriptionCreate": "اضبط تكامل QuickBooks. ستُوجَّه إلى QuickBooks لتفويض الاتصال.",
+			"connectionNamePlaceholder": "مثال: QuickBooks الإنتاج، QuickBooks Sandbox",
+			"connectionNameHint": "اسم تعريفي يميّز اتصال QuickBooks هذا",
 			"clientId": "معرّف العميل",
-			"clientIdPlaceholder": "أدخل معرّف عميل OAuth في QuickBooks",
-			"clientIdHint": "من لوحة المطور (Keys & Credentials)",
+			"clientIdPlaceholder": "أدخل معرّف عميل OAuth الخاص بـ QuickBooks",
+			"clientIdHint": "معرّف عميل OAuth الخاص بـ QuickBooks من لوحة المطوّر (تبويب Keys & Credentials)",
 			"qbClientSecret": "سرّ العميل",
-			"qbClientSecretPlaceholder": "أدخل سرّ OAuth",
-			"qbClientSecretHint": "من لوحة المطور (Keys & Credentials)",
+			"qbClientSecretPlaceholder": "أدخل سرّ عميل OAuth الخاص بـ QuickBooks",
+			"qbClientSecretHint": "سرّ عميل OAuth الخاص بـ QuickBooks من لوحة المطوّر (تبويب Keys & Credentials)",
 			"incomeAccountOptional": "معرّف حساب الإيرادات (اختياري)",
 			"incomeAccountPlaceholder": "79",
-			"incomeAccountHint": "حساب الإيرادات للعناصر في QuickBooks. يافتراضياً 79.",
-			"pushToQb": "دفع إلى QuickBooks",
-			"webhookPaymentEnabled": "اضبط الويب هوك في تطبيق QuickBooks لتمكين مطابقة المدفوعات مع {{brandName}}.",
-			"webhookPaymentDisabled": "فعّل مزامنة الدفع لضبط الويب هوك.",
-			"webhookVerifierOptional": "مُحقّق الويب هوك (اختياري)",
-			"webhookVerifierPlaceholder": "أدخل الرمز من QuickBooks",
-			"webhookVerifierHint": "رمز التحقق من بوابة Intuit (مُستحسن للإنتاج)",
-			"qbWebhookIntro": "اضبط عنوان الويب هوك في تطبيق QuickBooks (Intuit Developer Portal):",
-			"qbWebhookEventsIntro": "اشترك في هذا الحدث في تطبيق QuickBooks:",
-			"oauthTitle": "مطلوب تفويض OAuth",
-			"oauthBody": "بعد «إنشاء اتصال» ستُوجَّه إلى QuickBooks للتفويض.",
-			"oauthClientReady": "تأكد من جاهزية Client ID و Client Secret.",
-			"oauthImportant": "مهم: يجب ضبط عنوان إعادة التوجيه هذا في إعدادات تطبيق QuickBooks.",
-			"oauthImportantRich": "<important>مهم:</important> يجب ضبط عنوان إعادة التوجيه هذا في إعدادات تطبيق QuickBooks.",
-			"noteEditing": "ملاحظة: بيانات OAuth مشفّرة ولا تُعرض. لتحديثها احذف الاتصال وأعد الإنشاء.",
-			"qbSetupStep1": "افتح تطبيق QuickBooks في Intuit Developer Portal",
-			"qbSetupStep2": "انتقل إلى قسم Webhooks",
-			"qbSetupStep3": "أضف عنوان الويب هوك أعلاه",
-			"qbSetupStep4": "اشترك في أحداث الدفع (إنشاء/تحديث)",
-			"qbSetupStep5Optional": "انسخ رمز التحقق والصقه أعلاه (اختياري ومُستحسن)"
+			"incomeAccountHint": "معرّف حساب الإيرادات للعناصر في QuickBooks. إذا تُرك فارغاً، فسيُستخدم حساب الإيرادات القياسي في QuickBooks افتراضياً (المعرّف: 79).",
+			"pushToQb": "الدفع إلى QuickBooks",
+			"webhookPaymentEnabled": "اضبط Webhooks في تطبيق QuickBooks لتمكين مطابقة المدفوعات من QuickBooks إلى {{brandName}}.",
+			"webhookPaymentDisabled": "فعّل مزامنة المدفوعات لضبط تكامل Webhook الخاص بمطابقة المدفوعات.",
+			"webhookVerifierOptional": "Webhook Verifier Token (اختياري)",
+			"webhookVerifierPlaceholder": "أدخل Webhook Verifier Token من QuickBooks",
+			"webhookVerifierHint": "Webhook Verifier Token من بوابة Intuit Developer للتحقّق من التوقيع (يُوصى به في بيئة الإنتاج)",
+			"qbWebhookIntro": "اضبط عنوان Webhook هذا في تطبيق QuickBooks (Intuit Developer Portal) لتلقّي إشعارات المدفوعات:",
+			"qbWebhookEventsIntro": "اشترك في هذا الحدث في تطبيق QuickBooks (Intuit Developer Portal):",
+			"oauthTitle": "🔒 مطلوب تفويض OAuth",
+			"oauthBody": "بعد النقر على «إنشاء اتصال»، ستُوجَّه إلى QuickBooks لتفويض هذا الاتصال.",
+			"oauthClientReady": "تأكّد من أن معرّف العميل وسرّ العميل جاهزان لديك من لوحة QuickBooks.",
+			"oauthImportant": "مهم: يجب ضبط عنوان إعادة التوجيه هذا في إعدادات تطبيق QuickBooks الخاص بك.",
+			"oauthImportantRich": "<important>مهم:</important> يجب ضبط عنوان إعادة التوجيه هذا في إعدادات تطبيق QuickBooks الخاص بك.",
+			"noteEditing": "ملاحظة: بيانات اعتماد OAuth مُشفّرة ولا تُعرض لأسباب أمنية. لتحديث بيانات الاعتماد، احذف هذا الاتصال وأنشئ اتصالاً جديداً.",
+			"qbSetupStep1": "انتقل إلى تطبيق QuickBooks الخاص بك في Intuit Developer Portal",
+			"qbSetupStep2": "اذهب إلى قسم Webhooks",
+			"qbSetupStep3": "أضف عنوان Webhook أعلاه",
+			"qbSetupStep4": "اشترك في أحداث كيان Payment (إنشاء/تحديث)",
+			"qbSetupStep5Optional": "انسخ Webhook Verifier Token والصقه أعلاه (اختياري لكن يُوصى به)"
 		},
 		"chargebee": {
-			"description": "اضبط تكامل Chargebee ببيانات الاعتماد.",
-			"connectionNamePlaceholder": "مثال: Chargebee إنتاج، تجريبي",
-			"connectionNameHint": "اسم ودي لاتصال Chargebee",
-			"apiKeyHint": "مفتاح API من قسم مفاتيح الـ API",
+			"description": "اضبط تكامل Chargebee ببيانات الاعتماد المطلوبة.",
+			"connectionNamePlaceholder": "مثال: Chargebee الإنتاج، Chargebee التجريبي",
+			"connectionNameHint": "اسم تعريفي يميّز اتصال Chargebee هذا",
+			"apiKeyHint": "API Key الخاص بـ Chargebee من قسم API Keys",
 			"site": "الموقع",
 			"sitePlaceholder": "مثال: flexpriceio-test",
-			"siteHint": "اسم موقع Chargebee",
-			"webhookUsername": "اسم مستخدم الويب هوك",
-			"webhookUsernamePlaceholder": "أدخل اسم المستخدم",
-			"webhookUsernameHint": "لمصادقة طلبات الويب هوك",
-			"webhookPassword": "كلمة مرور الويب هوك",
-			"webhookPasswordPlaceholder": "أدخل كلمة المرور",
-			"webhookPasswordHint": "لمصادقة طلبات الويب هوك",
-			"pushToChargebee": "دفع إلى Chargebee",
-			"webhookIntro": "اضبط هذا العنوان في لوحة Chargebee:",
-			"webhookEventsIntro": "اشترك في هذه الأحداث في Chargebee:"
+			"siteHint": "اسم موقع Chargebee الخاص بك",
+			"webhookUsername": "اسم مستخدم Webhook",
+			"webhookUsernamePlaceholder": "أدخل اسم مستخدم Webhook",
+			"webhookUsernameHint": "اسم مستخدم Webhook لمصادقة طلبات Webhook",
+			"webhookPassword": "كلمة مرور Webhook",
+			"webhookPasswordPlaceholder": "أدخل كلمة مرور Webhook",
+			"webhookPasswordHint": "كلمة مرور Webhook لمصادقة طلبات Webhook",
+			"pushToChargebee": "الدفع إلى Chargebee",
+			"webhookIntro": "اضبط عنوان Webhook هذا في لوحة Chargebee لتلقّي إشعارات الأحداث:",
+			"webhookEventsIntro": "اشترك في هذه الأحداث في لوحة Chargebee:"
 		},
 		"nomod": {
 			"description": "اضبط تكامل Nomod لروابط الدفع ومزامنة الفواتير.",
-			"apiKey": "مفتاح API",
-			"connectionPlaceholder": "مثال: Nomod إنتاج، تجريبي",
-			"connectionHint": "اسم ودي لاتصال Nomod",
-			"webhookSecret": "سرّ الويب هوك",
-			"webhookSecretPlaceholder": "أدخل سرّ الويب هوك",
-			"apiKeyPlaceholder": "أدخل مفتاح API",
-			"apiKeyHint": "مفتاح Nomod (مثل sk_live_...)",
-			"pushToNomod": "دفع إلى Nomod",
-			"webhookIntro": "استخدم عنوان الويب هوك هذا في Zapier إن لزم:",
-			"webhookSecretHint": "السرّ للتحقق من صحة الويب هوك"
+			"apiKey": "API Key",
+			"connectionPlaceholder": "مثال: Nomod الإنتاج، Nomod التجريبي",
+			"connectionHint": "اسم تعريفي يميّز اتصال Nomod هذا",
+			"webhookSecret": "Webhook Secret",
+			"webhookSecretPlaceholder": "أدخل Webhook Secret",
+			"apiKeyPlaceholder": "أدخل API Key الخاص بك",
+			"apiKeyHint": "API Key الخاص بـ Nomod (مثل sk_live_...)",
+			"pushToNomod": "الدفع إلى Nomod",
+			"webhookIntro": "استخدم عنوان Webhook هذا في Webhook الخاص بـ Zapier عند الحاجة:",
+			"webhookSecretHint": "سرّ Webhook للتحقّق من صحّة Webhook"
 		},
 		"moyasar": {
-			"description": "اضبط تكامل Moyasar ببيانات الاعتماد.",
-			"connectionPlaceholder": "مثال: Moyasar إنتاج، تجريبي",
-			"connectionHint": "اسم ودي لاتصال Moyasar",
-			"secretKey": "المفتاح السري",
+			"description": "اضبط تكامل Moyasar ببيانات الاعتماد المطلوبة.",
+			"connectionPlaceholder": "مثال: Moyasar الإنتاج، Moyasar التجريبي",
+			"connectionHint": "اسم تعريفي يميّز اتصال Moyasar هذا",
+			"secretKey": "Secret Key",
 			"secretKeyPlaceholder": "sk_...",
-			"secretKeyHint": "المفتاح السري من قسم مفاتيح API",
-			"webhookIntro": "اضبط عنوان الويب هوك في لوحة Moyasar:",
-			"webhookEventsIntro": "اشترك في هذه الأحداث في Moyasar:",
+			"secretKeyHint": "Secret Key الخاص بـ Moyasar من قسم API Keys",
+			"webhookIntro": "اضبط عنوان Webhook هذا في لوحة Moyasar لتلقّي إشعارات الأحداث:",
+			"webhookEventsIntro": "اشترك في هذه الأحداث في لوحة Moyasar:",
 			"webhookEventPaymentPaid": "payment_paid"
 		},
 		"razorpay": {
-			"description": "اضبط تكامل Razorpay ببيانات الاعتماد.",
-			"connectionPlaceholder": "مثال: Razorpay إنتاج، تجريبي",
-			"connectionHint": "اسم ودي لاتصال Razorpay",
+			"description": "اضبط تكامل Razorpay ببيانات الاعتماد المطلوبة.",
+			"connectionPlaceholder": "مثال: Razorpay الإنتاج، Razorpay التجريبي",
+			"connectionHint": "اسم تعريفي يميّز اتصال Razorpay هذا",
 			"keyId": "معرّف المفتاح",
-			"keyIdHint": "معرّف المفتاح من قسم API",
-			"secretKeyPlaceholder": "أدخل المفتاح السري",
-			"secretKeyHint": "المفتاح السري من قسم API",
-			"pushToRazorpay": "دفع إلى Razorpay",
-			"webhookIntro": "اضبط عنوان الويب هوك في لوحة Razorpay:",
-			"webhookEventsIntro": "اشترك في هذه الأحداث في Razorpay:"
+			"keyIdHint": "معرّف المفتاح الخاص بـ Razorpay من قسم API Keys",
+			"secretKeyPlaceholder": "أدخل Secret Key الخاص بك",
+			"secretKeyHint": "Secret Key الخاص بـ Razorpay من قسم API Keys",
+			"pushToRazorpay": "الدفع إلى Razorpay",
+			"webhookIntro": "اضبط عنوان Webhook هذا في لوحة Razorpay لتلقّي إشعارات الأحداث:",
+			"webhookEventsIntro": "اشترك في هذه الأحداث في لوحة Razorpay:"
 		},
 		"paddle": {
-			"description": "اضبط تكامل Paddle ببيانات الاعتماد.",
-			"connectionPlaceholder": "مثال: Paddle إنتاج، Sandbox",
-			"connectionHint": "اسم ودي لاتصال Paddle",
-			"apiKeyPlaceholder": "أدخل مفتاح Paddle API",
-			"apiKeyHint": "من Developer Tools > Authentication",
-			"clientSideToken": "رمز الواجهة",
+			"description": "اضبط تكامل Paddle ببيانات الاعتماد المطلوبة.",
+			"connectionPlaceholder": "مثال: Paddle الإنتاج، Paddle Sandbox",
+			"connectionHint": "اسم تعريفي يميّز اتصال Paddle هذا",
+			"apiKeyPlaceholder": "أدخل API Key الخاص بـ Paddle",
+			"apiKeyHint": "API Key الخاص بـ Paddle من Developer Tools > Authentication",
+			"clientSideToken": "الرمز من جانب العميل",
 			"clientSidePlaceholder": "live_... أو test_...",
-			"clientSideHint": "رمز الواجهة من Developer Tools لتشغيل Paddle.js في صفحة الدفع.",
+			"clientSideHint": "الرمز من جانب العميل الخاص بـ Paddle من Developer Tools > Authentication. يُستخدم لتهيئة Paddle.js في صفحة الدفع.",
 			"redirectUrl": "عنوان إعادة التوجيه",
 			"redirectUrlPlaceholder": "https://your-app.com/payment-success",
-			"redirectUrlHint": "العنوان بعد نجاح الدفع (اختياري)",
+			"redirectUrlHint": "العنوان الذي يُوجَّه إليه العملاء بعد إتمام الدفع بنجاح (اختياري)",
 			"webhookSecretPlaceholder": "pdl_ntfset_...",
-			"webhookIntro": "اضبط عنوان الويب هوك في لوحة Paddle:",
-			"webhookEventsIntro": "اشترك Events في Paddle:",
+			"webhookIntro": "اضبط عنوان Webhook هذا في لوحة Paddle لتلقّي إشعارات الأحداث:",
+			"webhookEventsIntro": "اشترك في هذه الأحداث في لوحة Paddle:",
 			"webhookEventTransactionsCompleted": "transactions.completed"
 		},
 		"whop": {
-			"description": "اربط {{brandName}} بـ Whop لمزامنة الفواتير.",
-			"connectionPlaceholder": "سمِّ اتصال Whop",
-			"connectionHint": "اسم ودي لهذا الاتصال.",
+			"connect{{brandName}}ToWhopToSyncInvoicesHint": "اربط {{brandName}} بـ Whop لمزامنة الفواتير.",
+			"nameYourWhopConnectionPlaceholder": "أطلق اسماً على اتصال Whop",
+			"aFriendlyNameForThisConnectionHint": "اسم تعريفي لهذا الاتصال.",
+			"apiKey": "API Key",
 			"apiKeyPlaceholder": "apik_...",
-			"apiKeyHint": "رمز Bearer من لوحة مطور Whop.",
+			"apiKeyHint": "رمز Bearer من لوحة مطوّري Whop.",
 			"companyId": "معرّف الشركة",
 			"companyIdPlaceholder": "biz_...",
-			"companyIdHint": "معرّف شركة Whop (biz_...).",
-			"companyIdRequired": "معرّف الشركة مطلوب",
+			"companyIdHint": "معرّف شركتك في Whop (biz_...).",
 			"productIdOptional": "معرّف المنتج (اختياري)",
-			"productIdPlaceholder": "prod_... — اتركه فارغاً للإنشاء التلقائي",
-			"productIdHint": "منتج Whop المستخدم للفواتير. اتركه فارغاً لينشئ {{brandName}} واحداً تلقائياً.",
-			"invoiceSyncHint": "ادفع فواتير {{brandName}} إلى Whop كمدفوعات send_invoice",
-			"webhookIntroPrefix": "سجّل هذا العنوان في لوحة Whop ضمن Webhooks. سيتابع {{brandName}}",
-			"webhookEventName": "invoice.paid",
-			"webhookIntroSuffix": "لتحديث حالة الفاتورة تلقائياً عند الدفع.",
-			"connect{{brandName}}ToWhopToSyncInvoicesHint": "اربط {{brandName}} بـ Whop لمزامنة الفواتير.",
-			"nameYourWhopConnectionPlaceholder": "اسم اتصال Whop",
-			"aFriendlyNameForThisConnectionHint": "اسم ودي لتحديد هذا الاتصال.",
-			"apiKey": "مفتاح API",
 			"productIdOptionalPlaceholder": "prod_... — اتركه فارغاً للإنشاء التلقائي",
-			"productIdOptionalHint": "منتج Whop المستخدم للفواتير. اتركه فارغاً ليقوم {{brandName}} بإنشائه تلقائياً.",
-			"push{{brandName}}InvoicesToWhopAs": "إرسال فواتير {{brandName}} إلى Whop كمدفوعات send_invoice",
-			"webhookRegisterHintHtml": "سجّل هذا العنوان في لوحة تحكم Whop ضمن Webhooks. سيستمع {{brandName}} إلى أحداث <code>invoice.paid</code> لتعليم الفواتير كمدفوعة تلقائياً."
+			"productIdOptionalHint": "منتج Whop المُستخدم للفواتير. اتركه فارغاً لتنشئ {{brandName}} منتجاً تلقائياً.",
+			"push{{brandName}}InvoicesToWhopAs": "ادفع فواتير {{brandName}} إلى Whop كمدفوعات send_invoice",
+			"webhookRegisterHintHtml": "سجّل هذا العنوان في لوحة Whop ضمن Webhooks. ستستمع {{brandName}} إلى أحداث <code>invoice.paid</code> لتعليم الفواتير كمدفوعة تلقائياً.",
+			"description": "اربط ترداد بـ Whop لمزامنة الفواتير.",
+			"connectionPlaceholder": "أطلق اسماً على اتصال Whop",
+			"connectionHint": "اسم تعريفي لهذا الاتصال.",
+			"companyIdRequired": "معرّف الشركة مطلوب",
+			"productIdHint": "منتج Whop المُستخدم للفواتير. اتركه فارغاً لتنشئ ترداد منتجاً تلقائياً.",
+			"productIdPlaceholder": "prod_... — اتركه فارغاً للإنشاء التلقائي",
+			"invoiceSyncHint": "ادفع فواتير ترداد إلى Whop كمدفوعات send_invoice",
+			"webhookIntroPrefix": "سجّل هذا العنوان في لوحة Whop ضمن Webhooks. ستتابع ترداد",
+			"webhookEventName": "invoice.paid",
+			"webhookIntroSuffix": "لتعليم الفواتير كمدفوعة تلقائياً عند استلام الدفع."
 		}
 	},
 	"insightsTools": {
 		"exports": {
-			"pageHeading": "تصدير البيانات",
-			"s3PageHeading": "تصدير بيانات S3",
+			"pageHeading": "عمليات تصدير البيانات",
+			"s3PageHeading": "عمليات تصدير بيانات S3",
 			"exportNotFound": "التصدير غير موجود",
-			"exportNotFoundDescription": "تعذّر العثور على مهمة التصدير المطلوبة أو تم حذفها.",
-			"backToExports": "العودة إلى التصدير",
+			"exportNotFoundDescription": "تعذّر العثور على مهمة التصدير المطلوبة أو أنها حُذفت.",
+			"backToExports": "العودة إلى عمليات التصدير",
 			"backToS3Connections": "العودة إلى اتصالات S3",
 			"pause": "إيقاف مؤقت",
 			"resume": "استئناف",
 			"manualExport": "تصدير يدوي",
 			"overviewTab": "نظرة عامة",
 			"runsTab": "التشغيلات",
-			"basicInformation": "معلومات أساسية",
+			"basicInformation": "المعلومات الأساسية",
 			"statusLabel": "الحالة",
 			"intervalLabel": "الفترة",
 			"connectionLabel": "الاتصال",
@@ -603,68 +602,68 @@
 			"exportManagementDocumentTitle": "إدارة التصدير - {{name}}",
 			"fallbackS3ConnectionName": "اتصال S3",
 			"noExportTasks": "لا توجد مهام تصدير",
-			"noExportTasksHint": "أنشئ أول مهمة تصدير لبدء مزامنة البيانات مع S3.",
+			"noExportTasksHint": "أنشئ أول مهمة تصدير وابدأ مزامنة بياناتك مع S3.",
 			"addExportTask": "إضافة مهمة تصدير",
 			"connectionsTitle": "الاتصالات",
 			"providerS3Suffix": "S3",
-			"exportCountSingular": "{{count}} تصدير",
-			"exportCountPlural": "{{count}} تصديرات",
+			"exportCountSingular": "{{count}} عملية تصدير",
+			"exportCountPlural": "{{count}} عمليات تصدير",
 			"viewExports": "عرض عمليات التصدير",
 			"noS3Connections": "لا توجد اتصالات S3",
-			"noS3ConnectionsHint": "أنشئ أول اتصال S3 لبدء تصدير البيانات.",
+			"noS3ConnectionsHint": "أنشئ أول اتصال S3 وابدأ تصدير بياناتك.",
 			"addS3Connection": "إضافة اتصال S3",
 			"s3FeaturesTitle": "مزايا تصدير S3",
 			"s3FeatureDataExportTitle": "تصدير البيانات",
-			"s3FeatureDataExportBody": "صدِّر الأحداث والفواتير وبيانات {{brandName}} الأخرى تلقائياً إلى حاوية S3 وفق جدول.",
+			"s3FeatureDataExportBody": "صدّر الأحداث والفواتير وغيرها من بيانات {{brandName}} تلقائياً إلى حاوية S3 الخاصة بك وفق جدول زمني.",
 			"s3FeatureSchedulingTitle": "جدولة مرنة",
-			"s3FeatureSchedulingBody": "اختر جدولة تصدير كل ساعة أو يومياً حسب احتياجات المعالجة.",
+			"s3FeatureSchedulingBody": "اختر بين جدولة التصدير كل ساعة أو يومياً بما يناسب احتياجات معالجة بياناتك.",
 			"s3FeatureSecureTitle": "تخزين آمن",
-			"s3FeatureSecureBody": "تُشفَّر بياناتك وتُخزَّن بأمان في حاوية S3 الخاصة بك مع خيارات تشفير قابلة للضبط.",
+			"s3FeatureSecureBody": "تُشفَّر بياناتك وتُخزَّن بأمان في حاوية S3 الخاصة بك مع خيارات تشفير قابلة للضبط.",
 			"s3FeatureFormatsTitle": "خيارات تنسيق البيانات",
-			"s3FeatureFormatsBody": "صدِّر بياناتك بأنسجة متعددة مع ضغط وحدود حجم ملفات لأفضل كفاءة تخزين.",
+			"s3FeatureFormatsBody": "صدّر البيانات بتنسيقات متعددة مع ضغط وحدود لحجم الملفات قابلة للضبط لتحقيق أفضل كفاءة في التخزين.",
 			"overviewSectionTitle": "نظرة عامة",
-			"overviewIntro": "صدِّر بيانات {{brandName}} إلى أنظمة تخزين خارجية لأغراض التخزين التحليلي والنسخ الاحتياطي. اضبط تصديراً آلياً مع جدولة مرنة ونقل آمن.",
-			"highlightAutomatedExportsTitle": "تصدير آلي",
-			"highlightAutomatedExportsBody": "جدولة تصدير منتظم للبيانات",
+			"overviewIntro": "صدّر بيانات {{brandName}} إلى أنظمة تخزين خارجية لأغراض مستودعات البيانات والتحليلات والنسخ الاحتياطي. اضبط عمليات تصدير تلقائية مع جدولة مرنة ونقل آمن للبيانات.",
+			"highlightAutomatedExportsTitle": "عمليات تصدير تلقائية",
+			"highlightAutomatedExportsBody": "جدولة عمليات تصدير منتظمة للبيانات",
 			"highlightMultipleFormatsTitle": "تنسيقات متعددة",
-			"highlightMultipleFormatsBody": "التصدير بعدة تنسيقات بيانات",
+			"highlightMultipleFormatsBody": "التصدير بتنسيقات بيانات متعددة",
 			"highlightSecureStorageTitle": "تخزين آمن",
-			"highlightSecureStorageBody": "نقل وتخزين مُشفَّر",
+			"highlightSecureStorageBody": "نقل وتخزين مُشفّر للبيانات",
 			"exportProvidersTitle": "مزوّدو التصدير",
 			"providerAmazonS3Name": "Amazon S3",
-			"providerAmazonS3Description": "صدِّر بيانات {{brandName}} إلى Amazon S3 لأغراض التخزين التحليلي والنسخ الاحتياطي.",
+			"providerAmazonS3Description": "صدّر بيانات {{brandName}} إلى Amazon S3 لأغراض مستودعات البيانات والتحليلات والنسخ الاحتياطي.",
 			"tagStorage": "تخزين",
 			"tagDataWarehouse": "مستودع بيانات",
 			"tagAnalytics": "تحليلات",
-			"premiumBadge": "بريميوم",
-			"taskRunsHeading": "تشغيل المهام",
+			"premiumBadge": "مميّز",
+			"taskRunsHeading": "تشغيلات المهام",
 			"backToExportDetails": "العودة إلى تفاصيل التصدير"
 		},
 		"integrations": {
 			"pageHeading": "التكاملات",
-			"availableSection": "متاح",
-			"premiumAddonsSection": "إضافات بريميوم",
+			"availableSection": "المتاحة",
+			"premiumAddonsSection": "الملحقات المميّزة",
 			"previewConnectionName": "معاينة الاتصال",
 			"badgeConnected": "متصل",
-			"badgePremium": "بريميوم",
+			"badgePremium": "مميّز",
 			"docsLink": "الوثائق",
 			"openDocsTitle": "فتح وثائق {{name}}",
 			"disconnectTitle": "قطع الاتصال بـ {{name}}؟",
-			"disconnectDescription": "سيُزال الاتصال. يمكنك إعادة الربط من صفحة التكاملات في أي وقت.",
+			"disconnectDescription": "سيؤدي هذا إلى إزالة الاتصال. يمكنك إعادة الربط من صفحة التكاملات متى شئت.",
 			"disconnect": "قطع الاتصال",
 			"disconnecting": "جارٍ قطع الاتصال…",
 			"notFound": "التكامل غير موجود",
 			"comingSoon": "قريباً",
 			"addConnection": "إضافة اتصال",
 			"connectedAccountsTitle": "الحسابات المتصلة",
-			"deleteConnectionConfirmTitle": "هل تريد بالتأكيد حذف الاتصال \"{{name}}\"؟",
+			"deleteConnectionConfirmTitle": "هل أنت متأكد من حذف الاتصال \"{{name}}\"؟",
 			"deleteConnectionIrreversible": "لا يمكن التراجع عن هذا الإجراء.",
 			"deleteConnection": "حذف الاتصال",
-			"toastDisconnected": "تم قطع اتصال {{name}}",
-			"toastDisconnectFailed": "فشل قطع الاتصال",
+			"toastDisconnected": "تم قطع الاتصال بـ {{name}}",
+			"toastDisconnectFailed": "تعذّر قطع الاتصال",
 			"toastPreviewDisconnectMock": "معاينة فقط — هذه حالة اتصال وهمية.",
 			"toastConnectionDeleted": "تم حذف الاتصال بنجاح",
-			"toastConnectionDeleteFailed": "فشل حذف الاتصال",
+			"toastConnectionDeleteFailed": "تعذّر حذف الاتصال",
 			"catalog": {
 				"tags": {
 					"payments": "المدفوعات",
@@ -682,56 +681,60 @@
 				},
 				"stripe": {
 					"name": "Stripe",
-					"description": "أرسل الفواتير واحسب الضريبة وتحصّل المدفوعات عبر موصلنا الأصلي مع Stripe.",
+					"description": "أرسل الفواتير واحسب الضريبة وحصّل المدفوعات باستخدام موصّلنا الأصلي مع Stripe.",
 					"sections": {
 						"overview": {
 							"title": "نظرة عامة",
-							"paragraphs": ["يتيح تطبيق {{brandName}} لـ Stripe إصدار الفواتير وتحصيل الضرائب والمدفوعات عبر Stripe."]
+							"paragraphs": [
+								"يتيح تطبيق {{brandName}} لـ Stripe إصدار الفواتير وتحصيل الضريبة والدفع عبر Stripe."
+							]
 						},
 						"stripeInvoicing": {
-							"title": "فوترة Stripe",
-							"paragraphs": ["أنشئ وأرسل الفواتير عبر Stripe Invoicing مباشرة من {{brandName}} مع تحصيل المدفوعات تلقائياً."]
+							"title": "الفوترة عبر Stripe",
+							"paragraphs": [
+								"أنشئ الفواتير وأرسلها عبر Stripe Invoicing مباشرةً من {{brandName}}، وحصّل المدفوعات تلقائياً."
+							]
 						},
 						"automaticTax": {
 							"title": "حساب الضريبة تلقائياً",
 							"paragraphs": [
-								"استفد من Stripe Tax لإدارة قواعد ومعدلات الضريبة المعقّدة في أي منطقة. يضمن التكامل حسابات ضريبية دقيقة ومحدّثة لكل فاتورة ويقلّل مخاطر الامتثال."
+								"استفد من Stripe Tax للتعامل مع قواعد ومعدلات الضريبة المعقّدة في أي منطقة. يضمن التكامل حسابات ضريبية دقيقة ومحدّثة لكل فاتورة، مما يلغي التخمين ويقلّل مخاطر الامتثال."
 							]
 						},
 						"securePayments": {
 							"title": "مدفوعات آمنة ومرنة",
 							"paragraphs": [
-								"تحصّل المدفوعات بسرعة وأمان عبر بوابة Stripe. يمكن لعملائك اختيار طرق دفع متعددة مثل البطاقة والـ ACH وغيرها لتحسين التجربة وتسريع التحصيل."
+								"حصّل المدفوعات بسرعة وأمان عبر بوابة Stripe الموثوقة. يمكن لعملائك الاختيار من بين طرق دفع متعددة — البطاقة الائتمانية وACH وغيرها — لتحسين تجربة العميل الشاملة وتسريع التدفق النقدي."
 							]
 						}
 					}
 				},
 				"razorpay": {
 					"name": "Razorpay",
-					"description": "اقبل المعالجة والصرف للمدفوعات عبر موصلنا الأصلي مع Razorpay.",
+					"description": "اقبل المدفوعات وعالِجها واصرفها باستخدام موصّلنا الأصلي مع Razorpay.",
 					"sections": {
 						"overview": {
 							"title": "نظرة عامة",
 							"paragraphs": [
-								"يتيح تطبيق {{brandName}} لـ Razorpay إصدار الفواتير وحساب الضرائب وتحصيل المدفوعات عبر Razorpay، مع ربط سلس بـ {{brandName}} أو محرك الفوترة لديك."
+								"يتيح تطبيق {{brandName}} لـ Razorpay إصدار الفواتير وحساب الضرائب وتحصيل المدفوعات مباشرةً عبر Razorpay. ادمجه بسلاسة مع {{brandName}} (أو مع محرك الفوترة لديك) لتبسيط سير عمل المدفوعات."
 							]
 						},
 						"razorpayInvoicing": {
-							"title": "فوترة Razorpay",
+							"title": "الفوترة عبر Razorpay",
 							"paragraphs": [
-								"أنشئ وأرسل الفواتير بخطوات قليلة من {{brandName}} باستخدام فوترة Razorpay، مع إمكانية أتمتة التحصيل وتقليل المتابعات اليدوية."
+								"أنشئ الفواتير وأرسلها ببضع نقرات — مباشرةً من {{brandName}} — باستخدام إمكانات الفوترة في Razorpay. يمكن أتمتة تحصيل المدفوعات لتقليل المتابعات اليدوية."
 							]
 						},
 						"automaticTax": {
 							"title": "حساب الضريبة تلقائياً",
 							"paragraphs": [
-								"استفد من دعم Razorpay لقواعد الضريبة الإقليمية (مثل ضريبة السلع والخدمات في الهند) لضمان معدلات دقيقة لكل فاتورة وتقليل المخاطر والحساب اليدوي."
+								"استفد من دعم Razorpay لقواعد الضريبة الإقليمية (مثل ضريبة السلع والخدمات في الهند). يضمن هذا التكامل معدلات ضريبية دقيقة ومحدّثة لكل فاتورة، مما يقلّل مخاطر الامتثال والحسابات اليدوية."
 							]
 						},
 						"securePayments": {
 							"title": "مدفوعات آمنة ومرنة",
 							"paragraphs": [
-								"تحصّل المدفوعات بسرعة عبر بوابة Razorpay. يمكن للعملاء الدفع بالبطاقات والتحويل المصرفي وUPI والمحافظ لتحسين التجربة وتسريع التدفق النقدي."
+								"حصّل المدفوعات بسرعة وأمان عبر بوابة Razorpay الموثوقة. يمكن لعملائك الاختيار من بين طرق متعددة — البطاقات الائتمانية وبطاقات الخصم والخدمات المصرفية عبر الإنترنت وUPI والمحافظ — لتعزيز تجربة الدفع وتسريع التدفق النقدي."
 							]
 						}
 					}
@@ -742,15 +745,21 @@
 					"sections": {
 						"overview": {
 							"title": "نظرة عامة",
-							"paragraphs": ["يتيح تطبيق {{brandName}} لـ Chargebee مزامنة الفواتير والرسوم والأسعار بين المنصتين لتبسيط سير عمل الفوترة."]
+							"paragraphs": [
+								"يتيح تطبيق {{brandName}} لـ Chargebee مزامنة سلسة للفواتير والرسوم/الأسعار بين {{brandName}} وChargebee. ادمجه لتبسيط سير عمل الفوترة لديك."
+							]
 						},
 						"invoiceSync": {
 							"title": "مزامنة الفواتير",
-							"paragraphs": ["زامن الفواتير من {{brandName}} إلى Chargebee ليبقى نظام الفوترة محدثاً بأحدث البيانات."]
+							"paragraphs": [
+								"زامن الفواتير من {{brandName}} إلى Chargebee لضمان بقاء نظام الفوترة لديك محدّثاً بأحدث بيانات الفواتير."
+							]
 						},
 						"chargePriceSync": {
 							"title": "مزامنة الرسوم والأسعار",
-							"paragraphs": ["زامن الرسوم والأسعار بين {{brandName}} وChargebee للحفاظ على اتساق منصة الفوترة."]
+							"paragraphs": [
+								"زامن الرسوم والأسعار بين {{brandName}} وChargebee للحفاظ على الاتساق عبر منصة الفوترة لديك."
+							]
 						}
 					}
 				},
@@ -760,27 +769,39 @@
 					"sections": {
 						"overview": {
 							"title": "نظرة عامة",
-							"paragraphs": ["يتيح تطبيق {{brandName}} لـ HubSpot مزامنة الصفقات والفواتير والعملاء والمدفوعات بين HubSpot و{{brandName}}."]
+							"paragraphs": [
+								"يتيح تطبيق {{brandName}} لـ HubSpot مزامنة سلسة للصفقات والفواتير والعملاء والمدفوعات بين HubSpot و{{brandName}}."
+							]
 						},
 						"dealLineItems": {
 							"title": "مزامنة بنود الصفقة",
-							"paragraphs": ["زامن بنود الصفقات من HubSpot إلى {{brandName}} لضمان تتبع الإيرادات والفوترة بدقة."]
+							"paragraphs": [
+								"زامن بنود الصفقات تلقائياً من HubSpot إلى {{brandName}} لضمان دقة تتبّع الإيرادات والفوترة."
+							]
 						},
 						"invoiceSync": {
 							"title": "مزامنة الفواتير",
-							"paragraphs": ["ادفع الفواتير من {{brandName}} إلى HubSpot ليبقى الـ CRM محدثاً بمعلومات الفوترة."]
+							"paragraphs": [
+								"ادفع الفواتير من {{brandName}} إلى HubSpot ليبقى نظام إدارة علاقات العملاء لديك محدّثاً بمعلومات الفوترة."
+							]
 						},
 						"customerSync": {
 							"title": "مزامنة العملاء",
-							"paragraphs": ["زامن بيانات العملاء بين HubSpot و{{brandName}} لمصدر واحد موثوق لمعلومات العملاء."]
+							"paragraphs": [
+								"زامن بيانات العملاء بين HubSpot و{{brandName}} للحفاظ على مصدر واحد موثوق لمعلومات العملاء."
+							]
 						},
 						"paymentsSync": {
 							"title": "مزامنة المدفوعات",
-							"paragraphs": ["حافظ على تسجيلات المدفوعات متزامنة بين المنصتين للتقارير المالية الدقيقة."]
+							"paragraphs": [
+								"حافظ على تزامن سجلات المدفوعات بين المنصتين لإعداد تقارير مالية دقيقة."
+							]
 						},
 						"revenueReporting": {
-							"title": "حسابات الإيراد في HubSpot",
-							"paragraphs": ["استفد من تقارير HubSpot مع بيانات إيراد دقيقة مزامنة من {{brandName}}."]
+							"title": "حسابات الإيرادات في HubSpot",
+							"paragraphs": [
+								"استفد من إمكانات إعداد التقارير في HubSpot مع بيانات إيرادات دقيقة مزامنة من {{brandName}}."
+							]
 						}
 					}
 				},
@@ -790,23 +811,29 @@
 				},
 				"paypal": {
 					"name": "PayPal",
-					"description": "PayPal نظام دفع عبر الإنترنت يدعم تحويل الأموال."
+					"description": "PayPal نظام دفع عبر الإنترنت يدعم تحويل الأموال إلكترونياً."
 				},
 				"zoho": {
 					"name": "Zoho",
-					"description": "يتيح تكامل Zoho Books إدارة مهام المحاسبة المهمة مباشرة من {{brandName}}.",
+					"description": "يتيح لك تكامل Zoho Books إدارة مهام المحاسبة الأساسية مباشرةً من {{brandName}}.",
 					"sections": {
 						"createCustomer": {
 							"title": "إنشاء عميل في Zoho Books",
-							"paragraphs": ["أنشئ أو حدّث العملاء في Zoho Books تلقائياً عند إضافة عميل أو تعديله في {{brandName}}."]
+							"paragraphs": [
+								"أنشئ العملاء أو حدّثهم تلقائياً في Zoho Books عند إضافة عميل جديد أو تعديله في {{brandName}}."
+							]
 						},
 						"createInvoice": {
 							"title": "إنشاء فاتورة في Zoho Books",
-							"paragraphs": ["ولّد فواتير Zoho Books بسلاسة من بيانات الاستخدام أو محفزات الفوترة في {{brandName}} مع تقليل العمل اليدوي."]
+							"paragraphs": [
+								"ولّد فواتير Zoho Books بسلاسة انطلاقاً من بيانات الاستخدام أو محفّزات الفوترة في {{brandName}}، مما يقلّل العمل اليدوي."
+							]
 						},
 						"transformInvoice": {
-							"title": "تحويل فاتورة {{brandName}} إلى Zoho Books",
-							"paragraphs": ["حوّل كائن فاتورة {{brandName}} إلى تنسيق فاتورة Zoho Books لتبسيط تدفق البيانات وضمان الدقة."]
+							"title": "تحويل فاتورة {{brandName}} إلى فاتورة Zoho Books",
+							"paragraphs": [
+								"حوّل كائن فاتورة {{brandName}} إلى تنسيق فاتورة Zoho Books — لتبسيط تدفق البيانات وضمان الدقة."
+							]
 						}
 					}
 				},
@@ -817,124 +844,146 @@
 						"overview": {
 							"title": "نظرة عامة",
 							"paragraphs": [
-								"يتيح تكامل {{brandName}} مع QuickBooks مزامنة أحادية الاتجاه من {{brandName}} إلى QuickBooks Online لمزامنة الخطط والعملاء والفواتير تلقائياً."
+								"يتيح تكامل {{brandName}} مع QuickBooks مزامنة أحادية الاتجاه من {{brandName}} إلى QuickBooks Online. زامن الخطط والعملاء والفواتير تلقائياً ليبقى نظامك المحاسبي محدّثاً."
 							]
 						},
 						"planPriceSync": {
 							"title": "مزامنة الخطة/السعر",
 							"paragraphs": [
-								"أنشئ عناصر QuickBooks (نوع خدمة) تلقائياً عند إنشاء الخطط في {{brandName}}. تُربط كل أسعار بعنصر QuickBooks لبنود فاتورة دقيقة."
+								"أنشئ عناصر QuickBooks (من نوع خدمة) تلقائياً عند إنشاء الخطط في {{brandName}}. يُربط كل سعر بعنصر QuickBooks لبنود فاتورة دقيقة."
 							]
 						},
 						"customerSync": {
 							"title": "مزامنة العملاء",
-							"paragraphs": ["يُنشأ العملاء في QuickBooks تلقائياً عند مزامنة الفواتير، مع مزامنة الاسم والبريد وعنوان الفوترة."]
+							"paragraphs": [
+								"يُنشأ العملاء تلقائياً في QuickBooks عند مزامنة الفواتير. تتم مزامنة بيانات العميل بما في ذلك الاسم والبريد الإلكتروني وعنوان الفوترة."
+							]
 						},
 						"invoiceSync": {
 							"title": "مزامنة الفواتير",
 							"paragraphs": [
-								"زامن الفواتير من {{brandName}} إلى QuickBooks Online مع ربط بنود الفاتورة بعناصر QuickBooks لسجلات محاسبية دقيقة."
+								"زامن الفواتير تلقائياً من {{brandName}} إلى QuickBooks Online. تُربط بنود الفاتورة بعناصر QuickBooks لضمان سجلات محاسبية دقيقة."
 							]
 						},
 						"tokenRefresh": {
 							"title": "تجديد الرمز تلقائياً",
-							"paragraphs": ["يُجدّد الخادم رموز OAuth تلقائياً عند انتهائها لضمان استمرار المزامنة دون تدخل يدوي."]
+							"paragraphs": [
+								"يجدّد الخادم رموز OAuth تلقائياً عند انتهاء صلاحيتها، مما يضمن استمرار عمليات المزامنة دون انقطاع وبلا تدخل يدوي."
+							]
 						}
 					}
 				},
 				"nomod": {
 					"name": "Nomod",
-					"description": "أرسل الفواتير وتحصّل المدفوعات عبر روابط دفع من تكامل Nomod.",
+					"description": "أرسل الفواتير وحصّل المدفوعات عبر روابط الدفع من خلال تكامل Nomod.",
 					"sections": {
 						"overview": {
 							"title": "نظرة عامة",
 							"paragraphs": [
-								"يتيح تطبيق {{brandName}} لـ Nomod إصدار الفواتير وتحصيل المدفوعات عبر روابط دفع Nomod مع ربط سلس بـ {{brandName}}."
+								"يتيح تطبيق {{brandName}} لـ Nomod إصدار الفواتير وتحصيل المدفوعات عبر روابط الدفع في Nomod. ادمجه بسلاسة مع {{brandName}} لتبسيط سير عمل المدفوعات لديك."
 							]
 						},
 						"invoiceSync": {
 							"title": "مزامنة الفواتير",
-							"paragraphs": ["أنشئ وأرسل فواتير بروابط دفع عبر Nomod من {{brandName}} مع إمكانية أتمتة التحصيل عبر الروابط."]
+							"paragraphs": [
+								"أنشئ الفواتير وأرسلها مع روابط الدفع عبر Nomod مباشرةً من {{brandName}}. يمكن أتمتة تحصيل المدفوعات عبر روابط الدفع في Nomod."
+							]
 						},
 						"paymentLinks": {
 							"title": "روابط الدفع",
-							"paragraphs": ["أنشئ روابط دفع آمنة لفواتيرك عبر Nomod ليتمكن العملاء من الدفع بسرعة عبر الطرق المدعومة."]
+							"paragraphs": [
+								"ولّد روابط دفع آمنة لفواتيرك باستخدام Nomod. يمكن لعملائك الدفع بسرعة وأمان عبر طرق الدفع المتعددة المدعومة في Nomod."
+							]
 						},
 						"webhooks": {
-							"title": "تكامل الويبهوك",
-							"paragraphs": ["استقبل إشعارات فورية عن أحداث الفواتير وروابط الدفع عبر الويبهوك لمتابعة حالة الدفع وإنشاء الفواتير وغيرها."]
+							"title": "تكامل Webhook",
+							"paragraphs": [
+								"استقبل إشعارات فورية عن أحداث الفواتير وروابط الدفع عبر Webhooks. ابقَ على اطّلاع على حالة الدفع وإنشاء الفواتير وغير ذلك."
+							]
 						}
 					}
 				},
 				"moyasar": {
 					"name": "Moyasar",
-					"description": "أرسل الفواتير وتحصّل المدفوعات عبر بوابة Moyasar.",
+					"description": "أرسل الفواتير وحصّل المدفوعات عبر تكامل بوابة Moyasar للدفع.",
 					"sections": {
 						"overview": {
 							"title": "نظرة عامة",
 							"paragraphs": [
-								"يتيح تطبيق {{brandName}} لـ Moyasar إصدار الفواتير وتحصيل المدفوعات عبر بوابة Moyasar مع ربط سلس بـ {{brandName}}."
+								"يتيح تطبيق {{brandName}} لـ Moyasar إصدار الفواتير وتحصيل المدفوعات عبر بوابة Moyasar للدفع. ادمجه بسلاسة مع {{brandName}} لتبسيط سير عمل المدفوعات لديك."
 							]
 						},
 						"invoiceSync": {
 							"title": "مزامنة الفواتير",
-							"paragraphs": ["أنشئ وأرسل الفواتير عبر Moyasar من {{brandName}} مع إمكانية أتمتة التحصيل عبر البوابة."]
+							"paragraphs": [
+								"أنشئ الفواتير وأرسلها عبر Moyasar مباشرةً من {{brandName}}. يمكن أتمتة تحصيل المدفوعات عبر بوابة Moyasar للدفع."
+							]
 						},
 						"securePayments": {
 							"title": "مدفوعات آمنة",
-							"paragraphs": ["تحصّل المدفوعات بسرعة عبر Moyasar مع خيارات دفع متعددة لتحسين التجربة وتسريع التحصيل."]
+							"paragraphs": [
+								"حصّل المدفوعات بسرعة وأمان عبر بوابة Moyasar للدفع. يمكن لعملائك الاختيار من بين طرق دفع متعددة لتحسين تجربة العميل الشاملة وتسريع التدفق النقدي."
+							]
 						},
 						"webhooks": {
-							"title": "تكامل الويبهوك",
-							"paragraphs": ["استقبل إشعارات فورية عن أحداث الدفع عبر الويبهوك؛ اشترك في حدث payment_paid لمتابعة حالة الدفع."]
+							"title": "تكامل Webhook",
+							"paragraphs": [
+								"استقبل إشعارات فورية عن أحداث الدفع عبر Webhooks. اشترك في حدث payment_paid لتبقى على اطّلاع على حالة الدفع."
+							]
 						}
 					}
 				},
 				"paddle": {
 					"name": "Paddle",
-					"description": "أرسل الفواتير وتحصّل المدفوعات عبر بوابة Paddle.",
+					"description": "أرسل الفواتير وحصّل المدفوعات عبر تكامل بوابة Paddle للدفع.",
 					"sections": {
 						"overview": {
 							"title": "نظرة عامة",
 							"paragraphs": [
-								"يتيح تطبيق {{brandName}} لـ Paddle إصدار الفواتير وتحصيل المدفوعات عبر بوابة Paddle مع ربط سلس بـ {{brandName}}."
+								"يتيح تطبيق {{brandName}} لـ Paddle إصدار الفواتير وتحصيل المدفوعات عبر بوابة Paddle للدفع. ادمجه بسلاسة مع {{brandName}} لتبسيط سير عمل المدفوعات لديك."
 							]
 						},
 						"invoiceSync": {
 							"title": "مزامنة الفواتير",
-							"paragraphs": ["أنشئ وأرسل الفواتير عبر Paddle من {{brandName}} مع إمكانية أتمتة التحصيل عبر البوابة."]
+							"paragraphs": [
+								"أنشئ الفواتير وأرسلها عبر Paddle مباشرةً من {{brandName}}. يمكن أتمتة تحصيل المدفوعات عبر بوابة Paddle للدفع."
+							]
 						},
 						"securePayments": {
 							"title": "مدفوعات آمنة",
-							"paragraphs": ["تحصّل المدفوعات بسرعة عبر Paddle مع خيارات دفع متعددة لتحسين التجربة وتسريع التحصيل."]
+							"paragraphs": [
+								"حصّل المدفوعات بسرعة وأمان عبر بوابة Paddle للدفع. يمكن لعملائك الاختيار من بين طرق دفع متعددة لتحسين تجربة العميل الشاملة وتسريع التدفق النقدي."
+							]
 						},
 						"webhooksPaddle": {
-							"title": "تكامل الويبهوك",
-							"paragraphs": ["استقبل إشعارات فورية عن أحداث الدفع عبر الويبهوك؛ اشترك في حدث transactions.completed لمتابعة حالة الدفع."]
+							"title": "تكامل Webhook",
+							"paragraphs": [
+								"استقبل إشعارات فورية عن أحداث الدفع عبر Webhooks. اشترك في حدث transactions.completed لتبقى على اطّلاع على حالة الدفع."
+							]
 						}
 					}
 				},
 				"whop": {
 					"name": "Whop",
-					"description": "مزامنة الفواتير مع Whop مع تحديثات تلقائية لحالة الدفع.",
+					"description": "زامن الفواتير مع Whop مع تحديثات تلقائية لحالة الدفع.",
 					"sections": {
 						"overview": {
 							"title": "نظرة عامة",
 							"paragraphs": [
-								"يتيح لك تكامل Whop في {{brandName}} إرسال الفواتير مباشرةً إلى Whop كمدفوعات send_invoice لمرة واحدة. يمكن للعملاء الدفع عبر صفحة الدفع المستضافة على Whop، ويتم تحديث {{brandName}} تلقائياً عند استلام الدفعة."
+								"يتيح لك تكامل {{brandName}} مع Whop دفع الفواتير مباشرةً إلى Whop كمدفوعات send_invoice لمرة واحدة. يمكن للعملاء الدفع عبر صفحة الدفع المستضافة على Whop، وتُحدَّث {{brandName}} تلقائياً عند استلام الدفعة."
 							]
 						},
 						"invoiceSync": {
 							"title": "مزامنة الفواتير",
 							"paragraphs": [
-								"عند تفعيل مزامنة الفواتير، يقوم {{brandName}} تلقائياً بإنشاء فاتورة مقابلة في Whop عند اعتماد أي فاتورة في {{brandName}}. يضمن التكامل وجود منتج Whop الخاص بك (وينشئ واحداً عند الحاجة).",
+								"عند تفعيل مزامنة الفواتير، تنشئ {{brandName}} تلقائياً فاتورة مقابلة في Whop عند اعتماد أي فاتورة في {{brandName}}. يضمن التكامل وجود منتج Whop الخاص بك (وينشئ واحداً عند الحاجة).",
 								"يمكنك أيضاً تعليم فاتورة Whop كمدفوعة من {{brandName}}، مما يستدعي واجهة mark_paid في Whop نيابةً عنك."
 							]
 						},
 						"webhooks": {
-							"title": "تكامل الويبهوك",
+							"title": "Webhooks",
 							"paragraphs": [
-								"سجّل عنوان webhook الخاص بـ {{brandName}} في إعدادات مطوّري Whop لاستقبال أحداث invoice.paid. عندما يُطلق Whop هذا الحدث، يقوم {{brandName}} تلقائياً بتعليم الفاتورة المقابلة كمدفوعة وتسجيل الدفعة."
+								"سجّل عنوان Webhook الخاص بـ {{brandName}} في إعدادات مطوّري Whop لتلقّي أحداث invoice.paid. عندما يُطلق Whop هذا الحدث، تعلّم {{brandName}} تلقائياً الفاتورة المقابلة كمدفوعة وتسجّل الدفعة."
 							]
 						}
 					}
@@ -942,10 +991,10 @@
 			}
 		},
 		"oauthCallback": {
-			"authorizationFailed": "فشل التفويض",
+			"authorizationFailed": "❌ فشل التفويض",
 			"redirectingToIntegrations": "جارٍ العودة إلى التكاملات...",
 			"completingAuthorization": "جارٍ إتمام تفويض {{provider}}...",
-			"exchangingTokens": "جارٍ استبدال رمز التفويض بالرموز المميّزة بأمان"
+			"exchangingTokens": "🔒 جارٍ استبدال رمز التفويض بالرموز بأمان"
 		},
 		"revenue": {
 			"pageHeading": "الإيرادات",
@@ -955,9 +1004,9 @@
 			"metricVoiceMinutes": "دقائق المكالمات",
 			"metricCostPerMinute": "التكلفة / الدقيقة",
 			"emptyRangeTitle": "هذا النطاق فارغ",
-			"emptyRangeBody": "لا تتوفر بيانات إيرادات كافية في النطاق المحدد لعرض هذه الإحصائية.",
+			"emptyRangeBody": "لا تتوفّر بيانات إيرادات كافية في النطاق المحدّد لعرض هذه الإحصاءات.",
 			"viewLatestData": "عرض أحدث البيانات",
-			"searchCustomersPlaceholder": "البحث عن عملاء...",
+			"searchCustomersPlaceholder": "ابحث عن العملاء...",
 			"colCustomer": "العميل",
 			"colCurrency": "العملة",
 			"noSearchMatches": "لا يوجد عملاء يطابقون بحثك.",
@@ -972,18 +1021,18 @@
 	},
 	"integrations": {
 		"stripe": {
-			"description": "قم بربط Stripe لمزامنة بيانات الفوترة الخاصة بك.",
-			"connectionPlaceholder": "مثال: حساب Stripe الرئيسي",
-			"connectionNameHint": "أدخل اسمًا لهذا الاتصال في Stripe",
-			"secretKeyLabel": "المفتاح السري",
+			"description": "اضبط تكامل Stripe ببيانات الاعتماد المطلوبة.",
+			"connectionPlaceholder": "مثال: Stripe الإنتاج، Stripe التجريبي",
+			"connectionNameHint": "اسم تعريفي يميّز اتصال Stripe هذا",
+			"secretKeyLabel": "Secret Key",
 			"secretKeyPlaceholder": "sk_...",
-			"secretKeyHint": "يمكنك العثور على مفتاح Stripe السري في إعدادات API",
-			"pullFromStripe": "سحب من Stripe",
-			"pushToStripe": "إرسال إلى Stripe",
-			"webhookSecretDescription": "هذا المفتاح مطلوب للتحقق من أحداث Webhook القادمة من Stripe",
+			"secretKeyHint": "Secret Key الخاص بـ Stripe من قسم API Keys",
+			"pullFromStripe": "السحب من Stripe",
+			"pushToStripe": "الدفع إلى Stripe",
+			"webhookSecretDescription": "سرّ Webhook الذي يوفّره Stripe بعد إعداد Webhook Endpoint",
 			"webhookSecretPlaceholder": "whsec_...",
-			"webhookIntro": "أضف عنوان URL التالي إلى إعدادات Webhook في Stripe:",
-			"webhookEventsIntro": "قم بتفعيل الأحداث التالية في إعدادات Webhook داخل Stripe:",
+			"webhookIntro": "اضبط عنوان Webhook هذا في لوحة Stripe لتلقّي إشعارات الأحداث:",
+			"webhookEventsIntro": "بناءً على إعدادات المزامنة لديك، اشترك في هذه الأحداث في لوحة Stripe:",
 			"labels": {
 				"plans": "الخطط",
 				"invoices": "الفواتير",
@@ -999,135 +1048,136 @@
 		"types": {
 			"sandbox": "بيئة تجريبية",
 			"production": "الإنتاج",
-			"sandboxDescription": "بيئة اختبار وتطوير",
-			"productionDescription": "بيئة الإنتاج المباشرة"
+			"sandboxDescription": "لأغراض التطوير والاختبار",
+			"productionDescription": "لبيئة الإنتاج المباشرة"
 		},
 		"copy": {
 			"title": "نسخ البيئة",
-			"fallbackDescription": "تعذر تحميل البيئات المتاحة حاليًا.",
+			"fallbackDescription": "انسخ جميع الإعدادات المنشورة إلى بيئة.",
 			"introBeforeBadge": "النسخ من",
 			"intoNew": "إلى بيئة جديدة.",
-			"intoSelected": "إلى البيئة المحددة.",
-			"cleanupTitle": "تنظيف بعد النسخ",
-			"cleanupBodyLead": "سيتم حذف الموارد المؤقتة بعد الانتهاء. قد يستغرق هذا بعض الوقت حتى يكتمل ",
-			"cleanupBefore": "بعد",
-			"cleanupBodyTrail": " العملية.",
-			"copyIntoLabel": "نسخ إلى",
+			"intoSelected": "إلى البيئة المحدّدة.",
+			"cleanupTitle": "نظّف قبل النسخ",
+			"cleanupBodyLead": "ستُنسخ جميع الميزات والخطط النشطة كما هي. أرشف أو أزل أي عنصر لا تريد نقله ",
+			"cleanupBefore": "قبل",
+			"cleanupBodyTrail": " المتابعة.",
+			"copyIntoLabel": "النسخ إلى",
 			"selectTargetPlaceholder": "اختر البيئة المستهدفة",
 			"createNewOption": "إنشاء بيئة جديدة",
-			"createNewOptionDescription": "إنشاء بيئة جديدة تمامًا",
+			"createNewOptionDescription": "ستُنشأ بيئة جديدة للنسخة",
 			"newEnvironmentName": "اسم البيئة الجديدة",
-			"namePlaceholder": "مثال: Staging أو Sandbox",
+			"namePlaceholder": "مثال: Staging أو نسخة الإنتاج",
 			"typeLabel": "النوع",
 			"typePlaceholder": "اختر نوع البيئة",
-			"whatCopiedHeading": "ما الذي سيتم نسخه؟",
-			"featuresTitle": "ما الميزات التي سيتم نسخها؟",
-			"featuresDescription": "سيتم نسخ جميع الإعدادات والخصائص المتعلقة بالبيئة الحالية",
-			"plansTitle": "ما الذي سيحدث للخطط؟",
-			"plansDescription": "سيتم أيضًا نسخ جميع الخطط والاشتراكات المرتبطة بهذه البيئة",
-			"excludedLead": "لن يتم تضمين البيانات الحساسة والإعدادات الخاصة بالمستخدمين أثناء عملية النسخ ",
+			"whatCopiedHeading": "ما الذي سيُنسخ",
+			"featuresTitle": "جميع الميزات النشطة",
+			"featuresDescription": "الميزات الثابتة والمنطقية والمقيسة مع العدّادات المرتبطة بها",
+			"plansTitle": "جميع الخطط النشطة",
+			"plansDescription": "بما في ذلك جميع الأسعار والاستحقاقات ومنح الأرصدة المرتبطة بكل خطة",
+			"excludedLead": "الكيانات المسودّة والمؤرشفة والعملاء والاشتراكات والفواتير وأرصدة المحافظ ",
 			"excludedBold": "لن",
-			"excludedTail": " يتم نسخها.",
-			"noteAsyncNewEnv": "قد تستغرق عملية النسخ بعض الوقت. ستظهر البيئة الجديدة في القائمة بمجرد اكتمال العملية.",
-			"noteAsyncOnly": "قد تستغرق عملية النسخ بعض الوقت حتى تكتمل بالكامل.",
+			"excludedTail": " تُنسخ.",
+			"noteAsyncNewEnv": "تُنشأ البيئة على الفور. تُستنسخ الميزات والخطط في الخلفية وقد تستغرق بضع ثوانٍ لتظهر.",
+			"noteAsyncOnly": "تُستنسخ الميزات والخطط في الخلفية وقد تستغرق بضع ثوانٍ لتظهر.",
 			"copyingEllipsis": "جارٍ النسخ...",
 			"buttonCopy": "نسخ البيئة",
-			"toastStarted": "تم بدء عملية النسخ، وستظهر البيئة الجديدة بعد اكتمال العملية.",
-			"toastCloneFailed": "فشل نسخ البيئة",
+			"toastStarted": "بدأ استنساخ البيئة — تُنسخ الميزات والخطط في الخلفية.",
+			"toastCloneFailed": "تعذّر استنساخ البيئة",
 			"errorNameRequired": "اسم البيئة مطلوب",
-			"errorNoSource": "لم يتم تحديد بيئة المصدر"
+			"errorNoSource": "لم يتم تحديد بيئة مصدر"
 		},
 		"creator": {
 			"title": "إنشاء بيئة",
-			"description": "قم بإنشاء بيئة جديدة",
+			"description": "أنشئ بيئة جديدة لتطبيقك",
 			"nameLabel": "الاسم",
 			"namePlaceholder": "أدخل اسم البيئة",
 			"typeLabel": "النوع",
 			"typePlaceholder": "اختر نوع البيئة",
-			"sandboxCancellationNote": "سيتم حذف البيئات التجريبية غير النشطة بعد {{days}} يومًا",
-			"productionBodyLine1": "بيئات الإنتاج مخصصة للاستخدام المباشر.",
-			"productionContactPrompt": "لإنشاء بيئة إنتاج:",
+			"sandboxCancellationNote": "تُلغى اشتراكات البيئة التجريبية تلقائياً بعد {{days}} يوماً",
+			"productionBodyLine1": "تتطلّب بيئات الإنتاج موافقة.",
+			"productionContactPrompt": "تواصل معنا لنبدأ:",
 			"brandSlack": "Slack",
 			"brandEmail": "البريد الإلكتروني",
 			"bookACall": "احجز مكالمة",
 			"ariaSlackContact": "التواصل عبر Slack",
-			"ariaEmailContact": "التواصل عبر البريد",
+			"ariaEmailContact": "التواصل عبر البريد الإلكتروني",
 			"ariaBookCall": "احجز مكالمة",
 			"slackAlt": "Slack",
 			"toastCreated": "تم إنشاء البيئة بنجاح",
-			"toastCreateFailed": "فشل إنشاء البيئة",
+			"toastCreateFailed": "تعذّر إنشاء البيئة",
 			"errorNameRequired": "اسم البيئة مطلوب",
-			"errorCreateUnknown": "حدث خطأ أثناء إنشاء البيئة",
-			"savingEllipsis": "جارٍ الحفظ...",
+			"errorCreateUnknown": "تعذّر إنشاء البيئة",
+			"savingEllipsis": "جارٍ الإنشاء...",
 			"submitCreate": "إنشاء البيئة"
 		},
 		"editor": {
-			"title": "تعديل اسم البيئة",
-			"description": "قم بتحديث اسم البيئة",
+			"title": "إعادة تسمية البيئة",
+			"description": "حدّث اسم هذه البيئة",
 			"nameLabel": "الاسم",
 			"namePlaceholder": "أدخل اسم البيئة",
 			"savingEllipsis": "جارٍ الحفظ...",
 			"submitSave": "حفظ",
 			"toastUpdated": "تم تحديث البيئة بنجاح",
-			"toastUpdateFailed": "فشل تحديث البيئة",
+			"toastUpdateFailed": "تعذّر تحديث البيئة",
 			"errorNameRequired": "اسم البيئة مطلوب",
-			"errorNoEnvironment": "لم يتم العثور على البيئة",
-			"errorUpdateUnknown": "حدث خطأ أثناء تحديث البيئة"
+			"errorNoEnvironment": "لم يتم تحديد بيئة",
+			"errorUpdateUnknown": "تعذّر تحديث البيئة"
 		},
 		"selector": {
-			"noneAvailable": "لا توجد بيئات",
+			"noneAvailable": "لا توجد بيئات متاحة",
 			"noEnvironment": "لا توجد بيئة",
 			"fallbackTenantLetters": "UN",
-			"unknownTenant": "مستأجر غير معروف",
+			"unknownTenant": "غير معروف",
 			"addEnvironment": "إضافة بيئة",
 			"copyEnvironment": "نسخ البيئة",
-			"renameAria": "إعادة تسمية البيئة {{name}}",
-			"suspendedTitle": "تم تعليق البيئة",
-			"suspendedDescription": "هذه البيئة معلقة حاليًا. يرجى التواصل مع الدعم."
+			"renameAria": "إعادة تسمية {{name}}",
+			"suspendedTitle": "البيئة معلّقة",
+			"suspendedDescription": "هذه البيئة مغلقة مؤقتاً. تواصل معنا لمواصلة العمل."
 		},
 		"restrictedBanner": {
 			"productionAccount": "حساب الإنتاج",
-			"sandboxAccount": "الحساب التجريبي",
-			"grace": "ستنتهي صلاحية {{envType}} خلال {{count}} {{dayWord}}. يرجى التواصل معنا ",
-			"graceOnly": "ستنتهي صلاحية {{envType}} خلال {{count}} {{dayWord}}.",
+			"sandboxAccount": "البيئة التجريبية",
+			"grace": "{{envType}} نشط لمدة {{count}} {{dayWord}} القادمة. للمتابعة بعد ذلك، ",
+			"graceOnly": "{{envType}} نشط لمدة {{count}} {{dayWord}} القادمة.",
 			"dayWordOne": "يوم",
 			"dayWordPlural": "أيام",
 			"contactUs": "تواصل معنا",
-			"suspended": "تم تعليق {{envType}}. يرجى التواصل معنا ",
-			"suspendedOnly": "تم تعليق {{envType}}."
+			"suspended": "{{envType}} مغلق مؤقتاً. للمتابعة، ",
+			"suspendedOnly": "{{envType}} مغلق مؤقتاً."
 		}
 	},
 	"debug": {
-		"tooltipTitle": "قم بإنشاء بيانات تجريبية لاختبار التدفقات",
+		"tooltipTitle": "شاهد التسعير القائم على الاستخدام أثناء عمله",
 		"sampleEventsCreated": "تم إنشاء أحداث تجريبية",
 		"loading": "جارٍ التحميل...",
-		"titleStreamSamples": "بث بيانات تجريبية",
-		"noCustomers": "لا يوجد عملاء. قم بإنشاء عميل أولاً.",
-		"needSubscriptionLead": "تحتاج إلى اشتراك نشط لإنشاء أحداث تجريبية لـ",
-		"eventsFiredSentence": "تم إرسال {{count}} حدث إلى ",
-		"eventsFiredMiddle": " خلال ",
-		"eventsFiredTrailing": " ثانية.",
+		"titleStreamSamples": "بث أحداث تجريبية",
+		"noCustomers": "لا يوجد عملاء بعد. أنشئ عميلاً لتبدأ.",
+		"needSubscriptionLead": "خصّص اشتراكاً لبث أحداث تجريبية إلى",
+		"eventsFiredSentence": "تم إطلاق {{count}} حدث لـ ",
+		"eventsFiredMiddle": " ضمن ",
+		"eventsFiredTrailing": " الخطة.",
 		"viewEvents": "عرض الأحداث",
 		"streamAgain": "إعادة البث",
-		"streamIntro": "قم ببث أحداث تجريبية تحاكي بيانات الاستخدام الحقيقية. سيتم إنشاء بيانات مرتبطة بـ ",
-		"planBridge": " ضمن ",
-		"planEnd": " الخطة.",
-		"progress": "{{current}} من {{total}} حدث",
+		"streamIntro": "شاهد كيف يتحدّث القياس والفوترة والاستحقاقات لحظياً. ستُطلق أحداث تجريبية لـ ",
+		"planBridge": " ضمن خطة ",
+		"planEnd": ".",
+		"progress": "تم إطلاق {{current}} من {{total}} حدث",
 		"streaming": "جارٍ البث...",
 		"startStreaming": "بدء البث"
 	},
 	"region": {
 		"dataRegion": "منطقة البيانات",
-		"selectPlaceholder": "اختر المنطقة",
-		"tooltipLearnMore": "اعرف المزيد حول مناطق البيانات",
-		"dialogTitle": "اختر منطقة البيانات",
-		"dialogDescription": "حدد المنطقة المناسبة. سيتم تخزين بياناتك ومعالجتها داخل المنطقة المختارة.",
-		"sectionUs": "الولايات المتحدة الأمريكية",
-		"benefitUs1": "أداء أفضل للمستخدمين في أمريكا الشمالية",
-		"benefitUs2": "بنية تحتية عالية الاعتمادية",
-		"benefitUs3": "مستضافة في AWS us-west-2",
-		"sectionIndia": "الهند",
-		"benefitIn1": "أداء أفضل للمستخدمين في الهند",
-		"benefitIn2": "مستضافة في AWS ap-south-1"
-	}
+		"selectPlaceholder": "اختر منطقة",
+		"tooltipLearnMore": "انقر لمعرفة المزيد عن المناطق",
+		"dialogTitle": "أي منطقة تودّ اختيارها؟",
+		"dialogDescription": "يُرجى اختيار منطقتك بعناية. وعلى الرغم من إمكانية الانتقال إلى منطقة أخرى، فإنه يتطلّب تدخلاً يدوياً ولا يمكن تغييره تلقائياً.",
+		"sectionUs": "الاستضافة في الولايات المتحدة",
+		"benefitUs1": "أسرع إذا كنت أنت ومستخدموك في الولايات المتحدة",
+		"benefitUs2": "أسهل للامتثال لبعض اللوائح الأمريكية",
+		"benefitUs3": "مستضافة في ولاية أوريغون، الولايات المتحدة (us-west-2)",
+		"sectionIndia": "الاستضافة في الهند",
+		"benefitIn1": "أسرع إذا كنت أنت ومستخدموك في الهند",
+		"benefitIn2": "مستضافة في مومباي، الهند (ap-south-1)"
+	},
+	"currency": "العملة"
 }

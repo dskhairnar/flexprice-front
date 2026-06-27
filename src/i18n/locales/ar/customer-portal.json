@@ -1,41 +1,41 @@
 {
 	"wrapper": {
 		"invalidLinkTitle": "رابط بوابة العميل غير صالح",
-		"invalidLinkDescription": "رمز جلسة لوحة التحكم غير موجود في عنوان URL. يُرجى التحقق من الرابط والمحاولة مرة أخرى.",
+		"invalidLinkDescription": "رمز جلسة لوحة التحكم غير موجود في الرابط. يُرجى التأكد من الرابط والمحاولة مرة أخرى.",
 		"refreshPage": "تحديث الصفحة"
 	},
 	"footer": {
-		"poweredBy": "مدعوم بواسطة",
+		"poweredBy": "بدعمٍ من",
 		"brand": "ترداد"
 	},
 	"header": {
 		"defaultInitials": "ع"
 	},
 	"errors": {
-		"fetchCustomer": "تعذر جلب بيانات العميل",
-		"loadSubscriptions": "تعذر تحميل الاشتراكات",
-		"loadUsage": "تعذر تحميل بيانات الاستخدام",
-		"loadUsageAnalytics": "تعذر تحميل تحليلات الاستخدام",
-		"loadWallet": "تعذر تحميل المحفظة",
-		"loadInvoices": "تعذر تحميل الفواتير",
-		"downloadInvoice": "تعذر تنزيل الفاتورة",
-		"exportInvoice": "تعذر تصدير الفاتورة",
-		"loadEvents": "تعذر تحميل الأحداث",
-		"loadWallets": "تعذر تحميل المحافظ",
-		"loadTransactions": "تعذر تحميل المعاملات",
-		"loadAnalytics": "تعذر تحميل التحليلات",
-		"loadCostAnalytics": "تعذر تحميل تحليلات التكلفة",
-		"loadUsageBreakdown": "تعذر تحميل تفصيل الاستخدام"
+		"fetchCustomer": "تعذّر جلب بيانات العميل",
+		"loadSubscriptions": "تعذّر تحميل الاشتراكات",
+		"loadUsage": "تعذّر تحميل بيانات الاستخدام",
+		"loadUsageAnalytics": "تعذّر تحميل تحليلات الاستخدام",
+		"loadWallet": "تعذّر تحميل المحفظة",
+		"loadInvoices": "تعذّر تحميل الفواتير",
+		"downloadInvoice": "تعذّر تنزيل الفاتورة",
+		"exportInvoice": "تعذّر تصدير الفاتورة",
+		"loadEvents": "تعذّر تحميل الأحداث",
+		"loadWallets": "تعذّر تحميل المحافظ",
+		"loadTransactions": "تعذّر تحميل المعاملات",
+		"loadAnalytics": "تعذّر تحميل التحليلات",
+		"loadCostAnalytics": "تعذّر تحميل تحليلات التكلفة",
+		"loadUsageBreakdown": "تعذّر تحميل تفصيل الاستخدام"
 	},
 	"toast": {
 		"invoiceDownloaded": "تم تنزيل الفاتورة",
 		"invoiceCsvDownloaded": "تم تنزيل الفاتورة بصيغة CSV",
-		"noBillableLineItems": "لا توجد بنود قابلة للفوترة للتصدير"
+		"noBillableLineItems": "لا توجد بنود قابلة للفوترة لتصديرها"
 	},
 	"datePreset": {
 		"today": "اليوم",
-		"last_7_days": "٧ أيام",
-		"last_30_days": "٣٠ يومًا",
+		"last_7_days": "آخر 7 أيام",
+		"last_30_days": "آخر 30 يومًا",
 		"current_month": "هذا الشهر",
 		"last_month": "الشهر الماضي"
 	},
@@ -44,42 +44,42 @@
 		"endDate": "تاريخ النهاية"
 	},
 	"timePeriod": {
-		"1d": "1d",
-		"7d": "7d",
-		"30d": "30d"
+		"1d": "يوم",
+		"7d": "7 أيام",
+		"30d": "30 يومًا"
 	},
 	"billingOverview": {
 		"title": "نظرة عامة على الفوترة",
 		"totalInvoiced": "إجمالي المفوتر",
 		"totalOverdue": "إجمالي المتأخر",
-		"overdueTooltip": "فواتير غير مدفوعة بعد تاريخ الاستحقاق"
+		"overdueTooltip": "فواتير لم تُسدَّد بعد انقضاء تاريخ استحقاقها"
 	},
 	"subscriptionStatus": {
 		"active": "نشط",
-		"trialing": "تجريبي",
+		"trialing": "قيد التجربة",
 		"cancelled": "ملغى",
 		"incomplete": "غير مكتمل",
 		"draft": "مسودة"
 	},
 	"walletStatus": {
-		"active": "نشط",
-		"frozen": "مجمّد",
-		"closed": "مغلق"
+		"active": "نشطة",
+		"frozen": "مجمّدة",
+		"closed": "مغلقة"
 	},
 	"invoiceChip": {
-		"paid": "مدفوع",
-		"voided": "ملغى",
+		"paid": "مدفوعة",
+		"voided": "ملغاة",
 		"draft": "مسودة",
-		"overdue": "متأخر",
+		"overdue": "متأخرة",
 		"pending": "قيد الانتظار"
 	},
 	"subscriptions": {
 		"title": "الاشتراكات",
 		"emptyTitle": "لا توجد اشتراكات نشطة",
-		"emptyDescription": "ليس لديك اشتراكات نشطة في الوقت الحالي",
+		"emptyDescription": "ليس لديك أي اشتراك نشط في الوقت الحالي",
 		"unknownPlan": "خطة غير معروفة",
-		"nextBilling": "الفوترة التالية: {{date}}",
-		"trialEnds": "تنتهي التجربة: {{date}}"
+		"nextBilling": "الفاتورة القادمة: {{date}}",
+		"trialEnds": "تنتهي الفترة التجريبية في: {{date}}"
 	},
 	"usage": {
 		"title": "الاستخدام",
@@ -97,29 +97,30 @@
 		"columnProperties": "الخصائص",
 		"propertyCount_one": "{{count}} خاصية",
 		"propertyCount_other": "{{count}} خصائص",
-		"noProperties": "لا توجد خصائص"
+		"noProperties": "لا توجد خصائص",
+		"valuePlaceholder": "حدث بلا اسم"
 	},
 	"invoices": {
-		"searchPlaceholder": "البحث في الفواتير...",
+		"searchPlaceholder": "ابحث في الفواتير...",
 		"columnDate": "التاريخ",
 		"columnInvoiceNumber": "رقم الفاتورة",
 		"columnStatus": "الحالة",
 		"columnAmount": "المبلغ",
 		"columnDownload": "تنزيل",
 		"emptyTitle": "لا توجد فواتير",
-		"emptyDescription": "لم يتم إنشاء أي فواتير بعد",
-		"noMatchTitle": "لم يتم العثور على فواتير",
-		"noMatchDescription": "لا توجد فواتير تطابق معايير البحث",
+		"emptyDescription": "لم تُصدر أي فاتورة بعد",
+		"noMatchTitle": "لم نعثر على فواتير",
+		"noMatchDescription": "لا توجد فواتير تطابق بحثك",
 		"numberPrefix": "INV-{{id}}"
 	},
 	"wallet": {
 		"defaultName": "محفظة",
 		"fallbackName": "محفظة {{id}}",
 		"balance": "الرصيد",
-		"credits": "أرصدة",
-		"valueSuffix": "قيمة",
+		"credits": "رصيد",
+		"valueSuffix": "القيمة",
 		"emptyTitle": "لا توجد محفظة",
-		"emptyDescription": "لم يتم إعداد محفظة لهذا الحساب",
+		"emptyDescription": "لم تُفعَّل أي محفظة لهذا الحساب بعد",
 		"transactionHistory": "سجل المعاملات",
 		"noTransactionsTitle": "لا توجد معاملات",
 		"noTransactionsDescription": "سيظهر سجل معاملاتك هنا"
@@ -129,9 +130,9 @@
 		"noDataDescription": "سيظهر استخدامك خلال آخر {{period}} هنا"
 	},
 	"usageEvents": {
-		"unableTitle": "تعذر تحميل الأحداث",
+		"unableTitle": "تعذّر تحميل الأحداث",
 		"unableDescription": "معلومات العميل غير متوفرة",
-		"noEventsTitle": "لم يتم العثور على أحداث",
+		"noEventsTitle": "لم نعثر على أي أحداث",
 		"noEventsDescription": "ستظهر أحداثك خلال آخر {{period}} هنا"
 	},
 	"usageBreakdown": {
@@ -149,7 +150,7 @@
 		"revenue": "الإيرادات",
 		"cost": "التكلفة",
 		"margin": "الهامش",
-		"marginPercent": "الهامش %",
+		"marginPercent": "نسبة الهامش %",
 		"cpm": "CPM"
 	}
 }
