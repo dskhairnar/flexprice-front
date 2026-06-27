@@ -685,15 +685,11 @@
 					"sections": {
 						"overview": {
 							"title": "نظرة عامة",
-							"paragraphs": [
-								"يتيح تطبيق {{brandName}} لـ Stripe إصدار الفواتير وتحصيل الضريبة والدفع عبر Stripe."
-							]
+							"paragraphs": ["يتيح تطبيق {{brandName}} لـ Stripe إصدار الفواتير وتحصيل الضريبة والدفع عبر Stripe."]
 						},
 						"stripeInvoicing": {
 							"title": "الفوترة عبر Stripe",
-							"paragraphs": [
-								"أنشئ الفواتير وأرسلها عبر Stripe Invoicing مباشرةً من {{brandName}}، وحصّل المدفوعات تلقائياً."
-							]
+							"paragraphs": ["أنشئ الفواتير وأرسلها عبر Stripe Invoicing مباشرةً من {{brandName}}، وحصّل المدفوعات تلقائياً."]
 						},
 						"automaticTax": {
 							"title": "حساب الضريبة تلقائياً",
@@ -751,15 +747,11 @@
 						},
 						"invoiceSync": {
 							"title": "مزامنة الفواتير",
-							"paragraphs": [
-								"زامن الفواتير من {{brandName}} إلى Chargebee لضمان بقاء نظام الفوترة لديك محدّثاً بأحدث بيانات الفواتير."
-							]
+							"paragraphs": ["زامن الفواتير من {{brandName}} إلى Chargebee لضمان بقاء نظام الفوترة لديك محدّثاً بأحدث بيانات الفواتير."]
 						},
 						"chargePriceSync": {
 							"title": "مزامنة الرسوم والأسعار",
-							"paragraphs": [
-								"زامن الرسوم والأسعار بين {{brandName}} وChargebee للحفاظ على الاتساق عبر منصة الفوترة لديك."
-							]
+							"paragraphs": ["زامن الرسوم والأسعار بين {{brandName}} وChargebee للحفاظ على الاتساق عبر منصة الفوترة لديك."]
 						}
 					}
 				},
@@ -775,33 +767,23 @@
 						},
 						"dealLineItems": {
 							"title": "مزامنة بنود الصفقة",
-							"paragraphs": [
-								"زامن بنود الصفقات تلقائياً من HubSpot إلى {{brandName}} لضمان دقة تتبّع الإيرادات والفوترة."
-							]
+							"paragraphs": ["زامن بنود الصفقات تلقائياً من HubSpot إلى {{brandName}} لضمان دقة تتبّع الإيرادات والفوترة."]
 						},
 						"invoiceSync": {
 							"title": "مزامنة الفواتير",
-							"paragraphs": [
-								"ادفع الفواتير من {{brandName}} إلى HubSpot ليبقى نظام إدارة علاقات العملاء لديك محدّثاً بمعلومات الفوترة."
-							]
+							"paragraphs": ["ادفع الفواتير من {{brandName}} إلى HubSpot ليبقى نظام إدارة علاقات العملاء لديك محدّثاً بمعلومات الفوترة."]
 						},
 						"customerSync": {
 							"title": "مزامنة العملاء",
-							"paragraphs": [
-								"زامن بيانات العملاء بين HubSpot و{{brandName}} للحفاظ على مصدر واحد موثوق لمعلومات العملاء."
-							]
+							"paragraphs": ["زامن بيانات العملاء بين HubSpot و{{brandName}} للحفاظ على مصدر واحد موثوق لمعلومات العملاء."]
 						},
 						"paymentsSync": {
 							"title": "مزامنة المدفوعات",
-							"paragraphs": [
-								"حافظ على تزامن سجلات المدفوعات بين المنصتين لإعداد تقارير مالية دقيقة."
-							]
+							"paragraphs": ["حافظ على تزامن سجلات المدفوعات بين المنصتين لإعداد تقارير مالية دقيقة."]
 						},
 						"revenueReporting": {
 							"title": "حسابات الإيرادات في HubSpot",
-							"paragraphs": [
-								"استفد من إمكانات إعداد التقارير في HubSpot مع بيانات إيرادات دقيقة مزامنة من {{brandName}}."
-							]
+							"paragraphs": ["استفد من إمكانات إعداد التقارير في HubSpot مع بيانات إيرادات دقيقة مزامنة من {{brandName}}."]
 						}
 					}
 				},
@@ -819,9 +801,7 @@
 					"sections": {
 						"createCustomer": {
 							"title": "إنشاء عميل في Zoho Books",
-							"paragraphs": [
-								"أنشئ العملاء أو حدّثهم تلقائياً في Zoho Books عند إضافة عميل جديد أو تعديله في {{brandName}}."
-							]
+							"paragraphs": ["أنشئ العملاء أو حدّثهم تلقائياً في Zoho Books عند إضافة عميل جديد أو تعديله في {{brandName}}."]
 						},
 						"createInvoice": {
 							"title": "إنشاء فاتورة في Zoho Books",
@@ -831,9 +811,7 @@
 						},
 						"transformInvoice": {
 							"title": "تحويل فاتورة {{brandName}} إلى فاتورة Zoho Books",
-							"paragraphs": [
-								"حوّل كائن فاتورة {{brandName}} إلى تنسيق فاتورة Zoho Books — لتبسيط تدفق البيانات وضمان الدقة."
-							]
+							"paragraphs": ["حوّل كائن فاتورة {{brandName}} إلى تنسيق فاتورة Zoho Books — لتبسيط تدفق البيانات وضمان الدقة."]
 						}
 					}
 				},
@@ -927,9 +905,7 @@
 						},
 						"webhooks": {
 							"title": "تكامل Webhook",
-							"paragraphs": [
-								"استقبل إشعارات فورية عن أحداث الدفع عبر Webhooks. اشترك في حدث payment_paid لتبقى على اطّلاع على حالة الدفع."
-							]
+							"paragraphs": ["استقبل إشعارات فورية عن أحداث الدفع عبر Webhooks. اشترك في حدث payment_paid لتبقى على اطّلاع على حالة الدفع."]
 						}
 					}
 				},

@@ -6,7 +6,7 @@ import { useRestrictedEnvs, EnvRestrictionState } from '@/hooks/useRestrictedEnv
 import useUser from '@/hooks/useUser';
 import { ENVIRONMENT_TYPE } from '@/models/Environment';
 import ContactUsDialog from '../ContactUsDialog/ContactUsDialog';
-import { isFlexpriceContactEnabled } from '@/utils/hostname/isFlexpriceIoHostname';
+import { isContactEnabled } from '@/config/contact';
 
 function daysLeft(expiresAt: string): number {
 	return Math.max(0, Math.ceil((new Date(expiresAt).getTime() - Date.now()) / (1000 * 60 * 60 * 24)));
@@ -42,7 +42,7 @@ const RestrictedEnvBanner: React.FC = () => {
 	const { environments } = useEnvironment();
 	const { isTenantRestricted, getRestrictionResultsForTenant } = useRestrictedEnvs();
 	const [isContactDialogOpen, setIsContactDialogOpen] = useState(false);
-	const showContactOptions = isFlexpriceContactEnabled();
+	const showContactOptions = isContactEnabled();
 
 	const tenantId = user?.tenant?.id ?? '';
 	const tenantEntries = useMemo(() => getRestrictionResultsForTenant(tenantId), [tenantId, getRestrictionResultsForTenant]);

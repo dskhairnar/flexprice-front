@@ -7,15 +7,20 @@
  * - Built-in handlers (e.g. open URL) run immediately when dispatching; no subscriber needed.
  */
 
+import { getContactDetails, getContactEmailMailto } from '@/config/contact';
+
 export const COMMAND_PALETTE_ACTION_EVENT_PREFIX = 'command-palette:action:';
 
 /** URLs and mailto used by built-in developer-help actions. */
-export const COMMAND_PALETTE_ACTION_URLS = {
-	documentation: 'https://docs.flexprice.io',
-	contactEmail: 'mailto:support@flexprice.io',
-	bookCall: 'https://calendly.com/nikhil-flexprice/30min',
-	slackCommunity: 'https://join.slack.com/t/flexpricecommunity/shared_invite/zt-39uat51l0-n8JmSikHZP~bHJNXladeaQ',
-} as const;
+export function getCommandPaletteActionUrls() {
+	const contact = getContactDetails();
+	return {
+		documentation: 'https://docs.flexprice.io',
+		contactEmail: getContactEmailMailto(),
+		bookCall: contact.bookCallUrl,
+		slackCommunity: contact.slackUrl,
+	} as const;
+}
 
 /** All executable action IDs. Add new ones here and keep in sync with command config. */
 export const CommandPaletteActionId = {
@@ -43,7 +48,7 @@ export const COMMAND_PALETTE_ACTION_META: Record<
 	{
 		/** Only show this action when isDevelopment is true. */
 		devOnly?: boolean;
-		/** Only show on flexprice.io hostnames (white-label deployments hide Flexprice contact options). */
+		/** Only show on flexprice.io hostnames or when contact_us is enabled (white-label deployments hide Flexprice contact options). */
 		flexpriceOnly?: boolean;
 	}
 > = {
@@ -63,18 +68,19 @@ export function getCommandPaletteActionEventName(actionId: string): string {
 }
 
 function runBuiltInHandler(actionId: string): void {
+	const urls = getCommandPaletteActionUrls();
 	switch (actionId) {
 		case CommandPaletteActionId.OpenDocumentation:
-			window.open(COMMAND_PALETTE_ACTION_URLS.documentation, '_blank', 'noopener,noreferrer');
+			window.open(urls.documentation, '_blank', 'noopener,noreferrer');
 			break;
 		case CommandPaletteActionId.ContactUs:
-			window.open(COMMAND_PALETTE_ACTION_URLS.contactEmail, '_blank', 'noopener,noreferrer');
+			window.open(urls.contactEmail, '_blank', 'noopener,noreferrer');
 			break;
 		case CommandPaletteActionId.BookCall:
-			window.open(COMMAND_PALETTE_ACTION_URLS.bookCall, '_blank', 'noopener,noreferrer');
+			window.open(urls.bookCall, '_blank', 'noopener,noreferrer');
 			break;
 		case CommandPaletteActionId.JoinSlackCommunity:
-			window.open(COMMAND_PALETTE_ACTION_URLS.slackCommunity, '_blank', 'noopener,noreferrer');
+			window.open(urls.slackCommunity, '_blank', 'noopener,noreferrer');
 			break;
 		default:
 			break;
@@ -95,7 +101,7 @@ export function isCommandPaletteActionDevOnly(actionId: string): boolean {
 	return COMMAND_PALETTE_ACTION_META[actionId as CommandPaletteActionIdType]?.devOnly ?? false;
 }
 
-/** Check if an action should be hidden on non-flexprice.io hostnames. */
+/** Check if an action should be hidden when contact options are unavailable. */
 export function isCommandPaletteActionFlexpriceOnly(actionId: string): boolean {
 	return COMMAND_PALETTE_ACTION_META[actionId as CommandPaletteActionIdType]?.flexpriceOnly ?? false;
 }

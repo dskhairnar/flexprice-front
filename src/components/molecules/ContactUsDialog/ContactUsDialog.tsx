@@ -2,11 +2,7 @@ import React from 'react';
 import { Mail, CalendarDays } from 'lucide-react';
 import { Dialog } from '@/components/atoms';
 import { useTranslation } from 'react-i18next';
-import { isFlexpriceContactEnabled } from '@/utils/hostname/isFlexpriceIoHostname';
-
-const SLACK_LINK = 'https://join.slack.com/t/flexpricecommunity/shared_invite/zt-39uat51l0-n8JmSikHZP~bHJNXladeaQ';
-const EMAIL_LINK = 'mailto:support@flexprice.io';
-const CALENDLY_LINK = 'https://calendly.com/nikhil-flexprice/30min';
+import { getContactDetails, isContactEnabled } from '@/config/contact';
 
 const openExternal = (url: string) => {
 	window.open(url, '_blank', 'noopener noreferrer');
@@ -22,9 +18,12 @@ interface ContactUsDialogProps {
 const ContactUsDialog: React.FC<ContactUsDialogProps> = ({ isOpen, onOpenChange, title, description }) => {
 	const { t } = useTranslation('common');
 
-	if (!isFlexpriceContactEnabled()) {
+	if (!isContactEnabled()) {
 		return null;
 	}
+
+	const { slackUrl, email, bookCallUrl } = getContactDetails();
+	const emailLink = `mailto:${email}`;
 
 	const dialogTitle = title ?? t('contactUs.defaultTitle');
 	const dialogDescription = description ?? t('contactUs.defaultDescription');
@@ -34,7 +33,7 @@ const ContactUsDialog: React.FC<ContactUsDialogProps> = ({ isOpen, onOpenChange,
 			<div className='flex gap-8 justify-center items-center px-4 pt-2'>
 				<button
 					type='button'
-					onClick={() => openExternal(SLACK_LINK)}
+					onClick={() => openExternal(slackUrl)}
 					className='flex flex-col items-center gap-2 group transition-transform duration-300 ease-in-out hover:scale-[1.03]'
 					aria-label={t('contactUs.slackAria')}>
 					<div
@@ -48,7 +47,7 @@ const ContactUsDialog: React.FC<ContactUsDialogProps> = ({ isOpen, onOpenChange,
 				</button>
 				<button
 					type='button'
-					onClick={() => openExternal(EMAIL_LINK)}
+					onClick={() => openExternal(emailLink)}
 					className='flex flex-col items-center gap-2 group transition-transform duration-300 ease-in-out hover:scale-[1.03]'
 					aria-label={t('contactUs.emailAria')}>
 					<div
@@ -62,7 +61,7 @@ const ContactUsDialog: React.FC<ContactUsDialogProps> = ({ isOpen, onOpenChange,
 				</button>
 				<button
 					type='button'
-					onClick={() => openExternal(CALENDLY_LINK)}
+					onClick={() => openExternal(bookCallUrl)}
 					className='flex flex-col items-center gap-2 group transition-transform duration-300 ease-in-out hover:scale-[1.03]'
 					aria-label={t('contactUs.bookCallAria')}>
 					<div

@@ -8,6 +8,7 @@ import { RouteNames } from '@/core/routes/Routes';
 import { Link } from 'react-router';
 import * as Sentry from '@sentry/react';
 import { config } from '@/config/config';
+import { getContactDetails, isContactEnabled } from '@/config/contact';
 import toast from 'react-hot-toast';
 
 interface ErrorInfo {
@@ -68,6 +69,7 @@ export const ErrorFallback = ({ error, errorInfo, errorId, resetError }: ErrorFa
 	const [showDetails, setShowDetails] = useState(false);
 	const [animateIcon, setAnimateIcon] = useState(true);
 	const isDev = !config.app.isProd;
+	const contact = isContactEnabled() ? getContactDetails() : null;
 
 	const handleRefresh = () => {
 		resetError();
@@ -182,46 +184,50 @@ export const ErrorFallback = ({ error, errorInfo, errorId, resetError }: ErrorFa
 
 					{/* Contact Support Section */}
 					<div className='grid grid-cols-2 gap-4 mb-8'>
-						<a
-							href={`mailto:support@flexprice.io?subject=Error Report: ${errorId}&body=Hello Support Team,%0A%0AI encountered an error with the following reference ID: ${errorId}%0A%0APage URL: ${encodeURIComponent(window.location.href)}%0A%0APlease help resolve this issue.%0A%0AThank you.`}
-							className='flex flex-col items-center gap-3 p-4 rounded-lg border border-muted/20 hover:border-blue-DEFAULT/30 hover:bg-blue-DEFAULT/5 transition-all group'
-							aria-label={t('errorPage.emailSupportAria')}>
-							<div className='p-3 rounded-full bg-blue-DEFAULT/10 group-hover:bg-blue-DEFAULT/20 transition-colors'>
-								<svg
-									xmlns='http://www.w3.org/2000/svg'
-									width='24'
-									height='24'
-									viewBox='0 0 24 24'
-									fill='none'
-									stroke='currentColor'
-									strokeWidth='2'
-									strokeLinecap='round'
-									strokeLinejoin='round'
-									className='text-blue-DEFAULT'>
-									<rect width='20' height='16' x='2' y='4' rx='2' />
-									<path d='m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7' />
-								</svg>
-							</div>
-							<div className='text-center'>
-								<div className='font-medium text-sm'>{t('errorPage.emailSupport')}</div>
-								<div className='text-xs text-muted-foreground'>{t('errorPage.emailSupportSubtitle')}</div>
-							</div>
-						</a>
+						{contact && (
+							<a
+								href={`mailto:${contact.email}?subject=Error Report: ${errorId}&body=Hello Support Team,%0A%0AI encountered an error with the following reference ID: ${errorId}%0A%0APage URL: ${encodeURIComponent(window.location.href)}%0A%0APlease help resolve this issue.%0A%0AThank you.`}
+								className='flex flex-col items-center gap-3 p-4 rounded-lg border border-muted/20 hover:border-blue-DEFAULT/30 hover:bg-blue-DEFAULT/5 transition-all group'
+								aria-label={t('errorPage.emailSupportAria')}>
+								<div className='p-3 rounded-full bg-blue-DEFAULT/10 group-hover:bg-blue-DEFAULT/20 transition-colors'>
+									<svg
+										xmlns='http://www.w3.org/2000/svg'
+										width='24'
+										height='24'
+										viewBox='0 0 24 24'
+										fill='none'
+										stroke='currentColor'
+										strokeWidth='2'
+										strokeLinecap='round'
+										strokeLinejoin='round'
+										className='text-blue-DEFAULT'>
+										<rect width='20' height='16' x='2' y='4' rx='2' />
+										<path d='m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7' />
+									</svg>
+								</div>
+								<div className='text-center'>
+									<div className='font-medium text-sm'>{t('errorPage.emailSupport')}</div>
+									<div className='text-xs text-muted-foreground'>{t('errorPage.emailSupportSubtitle')}</div>
+								</div>
+							</a>
+						)}
 
-						<a
-							href='https://join.slack.com/t/flexpricecommunity/shared_invite/zt-3gnc3stna-sHuXbRb7lwYJgCvEvnw2Jw'
-							target='_blank'
-							rel='noopener noreferrer'
-							className='flex flex-col items-center gap-3 p-4 rounded-lg border border-muted/20 hover:border-blue-DEFAULT/30 hover:bg-blue-DEFAULT/5 transition-all group'
-							aria-label={t('errorPage.slackAria')}>
-							<div className='p-3 rounded-full bg-blue-DEFAULT/10 group-hover:bg-blue-DEFAULT/20 transition-colors'>
-								<MessageSquare size={24} className='text-blue-DEFAULT' />
-							</div>
-							<div className='text-center'>
-								<div className='font-medium text-sm'>{t('errorPage.slackCommunity')}</div>
-								<div className='text-xs text-muted-foreground'>{t('errorPage.slackSubtitle')}</div>
-							</div>
-						</a>
+						{contact && (
+							<a
+								href={contact.slackUrl}
+								target='_blank'
+								rel='noopener noreferrer'
+								className='flex flex-col items-center gap-3 p-4 rounded-lg border border-muted/20 hover:border-blue-DEFAULT/30 hover:bg-blue-DEFAULT/5 transition-all group'
+								aria-label={t('errorPage.slackAria')}>
+								<div className='p-3 rounded-full bg-blue-DEFAULT/10 group-hover:bg-blue-DEFAULT/20 transition-colors'>
+									<MessageSquare size={24} className='text-blue-DEFAULT' />
+								</div>
+								<div className='text-center'>
+									<div className='font-medium text-sm'>{t('errorPage.slackCommunity')}</div>
+									<div className='text-xs text-muted-foreground'>{t('errorPage.slackSubtitle')}</div>
+								</div>
+							</a>
+						)}
 
 						<a
 							href='https://github.com/flexprice/flexprice-front/issues'
