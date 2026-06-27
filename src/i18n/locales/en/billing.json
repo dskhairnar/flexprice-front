@@ -441,6 +441,7 @@
 	},
 	"payments": {
 		"title": "Payments",
+		"amountExceedsMax": "Amount cannot exceed {{amount}}",
 		"empty": "No payments found",
 		"recordSuccess": "Payment recorded successfully",
 		"recordPayment": "Record Payment",
