@@ -8,7 +8,7 @@ import EnvironmentApi from '@/api/EnvironmentApi';
 import toast from 'react-hot-toast';
 import { Mail, CalendarDays, AlertTriangle } from 'lucide-react';
 import { SANDBOX_AUTO_CANCELLATION_DAYS } from '@/constants/constants';
-import { isFlexpriceContactEnabled } from '@/utils/hostname/isFlexpriceIoHostname';
+import { isContactEnabled, getContactDetails } from '@/config/contact';
 
 interface Props {
 	isOpen: boolean;
@@ -87,9 +87,8 @@ const EnvironmentCreator: React.FC<Props> = ({ isOpen, onOpenChange, onEnvironme
 	const isProduction = type === ENVIRONMENT_TYPE.PRODUCTION;
 	const isSandbox = type === ENVIRONMENT_TYPE.DEVELOPMENT;
 
-	const calendlyLink = 'https://calendly.com/nikhil-flexprice/30min';
-	const slackLink = 'https://join.slack.com/t/flexpricecommunity/shared_invite/zt-39uat51l0-n8JmSikHZP~bHJNXladeaQ';
-	const emailLink = 'mailto:support@flexprice.io';
+	const { slackUrl, email, bookCallUrl } = getContactDetails();
+	const emailLink = `mailto:${email}`;
 
 	const handleContactClick = (url: string) => {
 		window.open(url, '_blank', 'noopener noreferrer');
@@ -131,7 +130,7 @@ const EnvironmentCreator: React.FC<Props> = ({ isOpen, onOpenChange, onEnvironme
 				)}
 
 				{/* Production Contact Options */}
-				{isProduction && isFlexpriceContactEnabled() && (
+				{isProduction && isContactEnabled() && (
 					<div className='space-y-6 pt-2'>
 						<div className='text-center'>
 							<p className='text-sm text-gray-600 mb-6'>
@@ -143,7 +142,7 @@ const EnvironmentCreator: React.FC<Props> = ({ isOpen, onOpenChange, onEnvironme
 						<div className='flex gap-8 justify-center items-center px-4'>
 							<button
 								type='button'
-								onClick={() => handleContactClick(slackLink)}
+								onClick={() => handleContactClick(slackUrl)}
 								className='flex flex-col items-center gap-2 group transition-transform duration-300 ease-in-out hover:scale-[1.03]'
 								aria-label={t('environment.creator.ariaSlackContact')}>
 								<div
@@ -171,7 +170,7 @@ const EnvironmentCreator: React.FC<Props> = ({ isOpen, onOpenChange, onEnvironme
 							</button>
 							<button
 								type='button'
-								onClick={() => handleContactClick(calendlyLink)}
+								onClick={() => handleContactClick(bookCallUrl)}
 								className='flex flex-col items-center gap-2 group transition-transform duration-300 ease-in-out hover:scale-[1.03]'
 								aria-label={t('environment.creator.ariaBookCall')}>
 								<div

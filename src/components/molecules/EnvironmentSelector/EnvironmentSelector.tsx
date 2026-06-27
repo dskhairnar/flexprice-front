@@ -17,7 +17,7 @@ import EnvironmentCreator from '../EnvironmentCreator/EnvironmentCreator';
 import EnvironmentCopier from '../EnvironmentCopier/EnvironmentCopier';
 import EnvironmentEditor from '../EnvironmentEditor/EnvironmentEditor';
 import ContactUsDialog from '../ContactUsDialog/ContactUsDialog';
-import { isFlexpriceContactEnabled } from '@/utils/hostname/isFlexpriceIoHostname';
+import { isContactEnabled } from '@/config/contact';
 import Environment, { ENVIRONMENT_TYPE } from '@/models/Environment';
 
 interface Props {
@@ -111,7 +111,7 @@ const EnvironmentSelector: React.FC<Props> = ({ disabled = false, className }) =
 		const restriction = getRestriction(environmentId, user?.tenant?.id);
 		if (restriction.state === EnvRestrictionState.Suspended) {
 			setIsOpen(false);
-			if (isFlexpriceContactEnabled()) {
+			if (isContactEnabled()) {
 				setIsSuspendedDialogOpen(true);
 			}
 			return;
@@ -259,7 +259,7 @@ const EnvironmentSelector: React.FC<Props> = ({ disabled = false, className }) =
 				}}
 			/>
 
-			{isFlexpriceContactEnabled() && (
+			{isContactEnabled() && (
 				<ContactUsDialog
 					isOpen={isSuspendedDialogOpen}
 					onOpenChange={setIsSuspendedDialogOpen}
