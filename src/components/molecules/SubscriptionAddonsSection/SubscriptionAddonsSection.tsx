@@ -348,10 +348,12 @@ const SubscriptionAddonsSection: FC<SubscriptionAddonsSectionProps> = ({
 		[dropdownOpen, handleCancel, readOnly, t],
 	);
 
+	const addButton = readOnly ? undefined : <AddButton onClick={() => setIsAddDialogOpen(true)} />;
+
 	if (isLoading) {
 		return (
 			<Card variant='notched'>
-				<CardHeader title={t('labels.addons')} cta={<AddButton onClick={() => setIsAddDialogOpen(true)} disabled={readOnly} />} />
+				<CardHeader title={t('labels.addons')} cta={addButton} />
 				<div className='flex justify-center items-center py-8'>
 					<span className='text-gray-500'>{t('labels.loadingAddons')}</span>
 				</div>
@@ -367,26 +369,23 @@ const SubscriptionAddonsSection: FC<SubscriptionAddonsSectionProps> = ({
 		<>
 			{processedAddonAssociations.length > 0 ? (
 				<Card variant='notched'>
-					<CardHeader title={t('labels.addons')} cta={<AddButton onClick={() => setIsAddDialogOpen(true)} disabled={readOnly} />} />
+					<CardHeader title={t('labels.addons')} cta={addButton} />
 					<FlexpriceTable showEmptyRow data={processedAddonAssociations} columns={columns} variant='no-bordered' />
 				</Card>
 			) : (
-				<NoDataCard
-					title={t('labels.addons')}
-					subtitle={t('labels.noAddonsAddedYet')}
-					cta={<AddButton onClick={() => setIsAddDialogOpen(true)} disabled={readOnly} />}
-				/>
+				<NoDataCard title={t('labels.addons')} subtitle={t('labels.noAddonsAddedYet')} cta={addButton} />
 			)}
 
-			{/* Add Addon Dialog */}
-			<AddAddonDialog
-				isOpen={isAddDialogOpen}
-				onOpenChange={setIsAddDialogOpen}
-				subscriptionId={subscriptionId}
-				billingPeriod={subscriptionDetails?.billing_period}
-				currency={subscriptionDetails?.currency}
-				currentPeriodEndIso={subscriptionDetails?.current_period_end}
-			/>
+			{!readOnly && (
+				<AddAddonDialog
+					isOpen={isAddDialogOpen}
+					onOpenChange={setIsAddDialogOpen}
+					subscriptionId={subscriptionId}
+					billingPeriod={subscriptionDetails?.billing_period}
+					currency={subscriptionDetails?.currency}
+					currentPeriodEndIso={subscriptionDetails?.current_period_end}
+				/>
+			)}
 
 			{/* Cancel Addon Dialog */}
 			<Dialog

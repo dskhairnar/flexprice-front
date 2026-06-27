@@ -13,10 +13,15 @@ import { refetchQueries } from '@/core/services/tanstack/ReactQueryProvider';
 import { ColumnData, FlexpriceTable } from '@/components/molecules';
 import { Price, PRICE_TYPE } from '@/models/Price';
 import { BILLING_PERIOD } from '@/constants/constants';
+import type { CommitmentTimeBucket } from '@/types/dto/CommitmentTimeBucket';
 import { LineItemCommitmentConfig, LineItemCommitmentsMap } from '@/types/dto/LineItemCommitmentConfig';
 import CommitmentConfigDialog from '@/components/molecules/CommitmentConfigDialog';
 import { formatCommitmentSummary } from '@/utils/common/commitment_helpers';
-import { isOneTimePlanPrice } from '@/utils/subscription/planPricesForSubscriptionUi';
+import {
+	buildCommitmentConfigOnSave,
+	filterAddonPricesForSubscription,
+	sanitizeAddonLineItemCommitmentsForApi,
+} from '@/utils/subscription/addon_commitment_helpers';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { ChevronDown } from 'lucide-react';
 
@@ -109,8 +114,13 @@ const AddAddonDialog: React.FC<Props> = ({ isOpen, onOpenChange, subscriptionId,
 		};
 	}, [formData, t]);
 
+	const selectedAddonPrices = useMemo(
+		() => filterAddonPricesForSubscription((selectedAddonDetails?.prices as Price[]) || [], billingPeriod, currency),
+		[selectedAddonDetails, billingPeriod, currency],
+	);
+
 	// Add addon mutation
-	const { mutate: addAddon, isPending: isAddingAddon } = useMutation({
+	const { mutateAsync: addAddon, isPending: isAddingAddon } = useMutation({
 		mutationFn: async (payload: AddAddonRequest) => {
 			return await SubscriptionApi.addAddonToSubscription(payload);
 		},
@@ -120,16 +130,15 @@ const AddAddonDialog: React.FC<Props> = ({ isOpen, onOpenChange, subscriptionId,
 			refetchQueries(['subscriptionDetails', subscriptionId]);
 			refetchQueries(['subscriptionEdit', subscriptionId]);
 			refetchQueries(['subscriptionEntitlements', subscriptionId]);
-			setFormData({});
-			setErrors({});
-			onOpenChange(false);
 		},
 		onError: (error: Error) => {
 			toast.error(error.message || t('billing:subscriptions.addAddonDialog.toast.addonAddFailed'));
 		},
 	});
 
-	const handleSave = useCallback(() => {
+	const handleSave = useCallback(async () => {
+		if (isAddingAddon) return;
+
 		const validation = validateForm();
 
 		if (!validation.isValid) {
@@ -138,24 +147,52 @@ const AddAddonDialog: React.FC<Props> = ({ isOpen, onOpenChange, subscriptionId,
 		}
 
 		setErrors({});
-		const hasCommitments = Object.keys(lineItemCommitments || {}).length > 0;
+		const line_item_commitments = sanitizeAddonLineItemCommitmentsForApi(lineItemCommitments, selectedAddonPrices);
 		const addonData: AddAddonRequest = {
 			subscription_id: subscriptionId,
 			addon_id: formData.addon_id!,
-			line_item_commitments: hasCommitments ? lineItemCommitments : undefined,
+			line_item_commitments,
 			...(startDate ? { start_date: startDate.toISOString() } : {}),
 			...(cadence ? { cadence } : {}),
 			...(prorationBehavior ? { proration_behavior: prorationBehavior } : {}),
 		};
 
-		addAddon(addonData);
-	}, [formData, validateForm, subscriptionId, addAddon, lineItemCommitments, startDate, cadence, prorationBehavior]);
+		try {
+			await addAddon(addonData);
+			setFormData({});
+			setErrors({});
+			onOpenChange(false);
+		} catch {
+			// Keep dialog open so the user can fix and retry.
+		}
+	}, [
+		formData,
+		validateForm,
+		subscriptionId,
+		addAddon,
+		lineItemCommitments,
+		selectedAddonPrices,
+		startDate,
+		cadence,
+		prorationBehavior,
+		isAddingAddon,
+		onOpenChange,
+	]);
 
 	const handleCancel = useCallback(() => {
+		if (isAddingAddon) return;
 		setFormData({});
 		setErrors({});
 		onOpenChange(false);
-	}, [onOpenChange]);
+	}, [onOpenChange, isAddingAddon]);
+
+	const handleDialogOpenChange = useCallback(
+		(open: boolean) => {
+			if (!open && isAddingAddon) return;
+			onOpenChange(open);
+		},
+		[onOpenChange, isAddingAddon],
+	);
 
 	const handleAddonSelect = useCallback(
 		(addonId: string) => {
@@ -176,19 +213,6 @@ const AddAddonDialog: React.FC<Props> = ({ isOpen, onOpenChange, subscriptionId,
 		[errors.addon_id, addonsResponse?.items],
 	);
 
-	const selectedAddonPrices = useMemo(() => {
-		const prices: Price[] = (selectedAddonDetails?.prices as Price[]) || [];
-		let filtered = prices;
-		if (currency) {
-			filtered = filtered.filter((p) => p.currency?.toLowerCase() === currency.toLowerCase());
-		}
-		if (billingPeriod) {
-			const periodKey = billingPeriod.toUpperCase();
-			filtered = filtered.filter((p) => isOneTimePlanPrice(p) || p.billing_period?.toUpperCase() === periodKey);
-		}
-		return filtered;
-	}, [selectedAddonDetails, billingPeriod, currency]);
-
 	type AddonChargeRow = { price: Price };
 
 	const handleConfigureCommitment = useCallback((price: Price) => {
@@ -208,6 +232,17 @@ const AddAddonDialog: React.FC<Props> = ({ isOpen, onOpenChange, subscriptionId,
 			return next;
 		});
 	}, []);
+
+	const handleCommitmentSave = useCallback(
+		(priceId: string, config: LineItemCommitmentConfig | null, timeBuckets?: CommitmentTimeBucket[]) => {
+			if (!config) {
+				setCommitmentForPrice(priceId, null);
+				return;
+			}
+			setCommitmentForPrice(priceId, buildCommitmentConfigOnSave(config, timeBuckets));
+		},
+		[setCommitmentForPrice],
+	);
 
 	const addonChargeColumns: ColumnData<AddonChargeRow>[] = useMemo(
 		() => [
@@ -264,9 +299,9 @@ const AddAddonDialog: React.FC<Props> = ({ isOpen, onOpenChange, subscriptionId,
 		<Dialog
 			isOpen={isOpen}
 			showCloseButton={false}
-			onOpenChange={onOpenChange}
+			onOpenChange={handleDialogOpenChange}
 			title={t('common:actions.add')}
-			className='sm:max-w-[600px]'>
+			className='sm:max-w-[900px]'>
 			<div className='grid gap-4 mt-3'>
 				<div className='space-y-2'>
 					<Select
@@ -389,10 +424,9 @@ const AddAddonDialog: React.FC<Props> = ({ isOpen, onOpenChange, subscriptionId,
 					isOpen={isCommitmentDialogOpen}
 					onOpenChange={setIsCommitmentDialogOpen}
 					price={selectedCommitmentPrice}
-					onSave={(priceId, config) => {
-						setCommitmentForPrice(priceId, config);
-					}}
+					onSave={handleCommitmentSave}
 					currentConfig={lineItemCommitments[selectedCommitmentPrice.id]}
+					currentTimeBuckets={lineItemCommitments[selectedCommitmentPrice.id]?.commitment_time_buckets}
 					billingPeriod={billingPeriod}
 				/>
 			)}
@@ -401,8 +435,8 @@ const AddAddonDialog: React.FC<Props> = ({ isOpen, onOpenChange, subscriptionId,
 				<Button variant='outline' onClick={handleCancel} disabled={isAddingAddon}>
 					{t('common:actions.cancel')}
 				</Button>
-				<Button onClick={handleSave} disabled={isAddingAddon}>
-					{isAddingAddon ? t('billing:subscriptions.addAddonDialog.adding') : t('common:actions.add')}
+				<Button onClick={handleSave} isLoading={isAddingAddon} disabled={isAddingAddon}>
+					{t('common:actions.add')}
 				</Button>
 			</div>
 		</Dialog>

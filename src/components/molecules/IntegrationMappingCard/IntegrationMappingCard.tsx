@@ -11,6 +11,9 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import IntegrationMappingApi, { IntegrationConfigItem, IntegrationMappingItem } from '@/api/IntegrationMappingApi';
 import { integrationCatalogSpecs } from '@/pages/insights-tools/integrations/integrationsData';
 import formatDate from '@/utils/common/format_date';
+import { CONNECTION_PROVIDER_TYPE } from '@/models/Connection';
+import PaymentApi from '@/api/PaymentApi';
+import { IntegrationEntityType } from '@/types/dto';
 
 const PROVIDER_ID_MAP: Record<string, string> = {
 	zoho_books: 'zoho',
@@ -47,7 +50,7 @@ interface IntegrationRow {
 }
 
 interface IntegrationMappingCardProps {
-	entityType: 'customer' | 'invoice';
+	entityType: IntegrationEntityType;
 	entityId: string;
 	entityIdColumnTitle?: string;
 	isActionDisabled?: boolean;
@@ -60,12 +63,14 @@ const IntegrationMappingCard: FC<IntegrationMappingCardProps> = ({
 	isActionDisabled = false,
 }) => {
 	const { t } = useTranslation('common');
+	const { t: tCustomers } = useTranslation('customers');
 	const queryClient = useQueryClient();
-
 	const [dropdownOpen, setDropdownOpen] = useState<string | null>(null);
 	const [linkDialogOpen, setLinkDialogOpen] = useState(false);
 	const [linkTarget, setLinkTarget] = useState<IntegrationRow | null>(null);
 	const [providerEntityId, setProviderEntityId] = useState('');
+	const [delinkDialogOpen, setDelinkDialogOpen] = useState(false);
+	const [delinkTarget, setDelinkTarget] = useState<IntegrationRow | null>(null);
 
 	const { data: integrationConfigData } = useQuery({
 		queryKey: ['integrationConfig'],
@@ -127,6 +132,30 @@ const IntegrationMappingCard: FC<IntegrationMappingCardProps> = ({
 		},
 	});
 
+	const { mutate: delinkIntegration, isPending: isDelinking } = useMutation({
+		mutationFn: () =>
+			IntegrationMappingApi.delinkIntegration({
+				entity_type: entityType,
+				entity_id: entityId,
+				provider_type: delinkTarget!.provider_type,
+			}),
+		onSuccess: () => {
+			toast.success('Integration unlinked successfully');
+			setDelinkDialogOpen(false);
+			setDelinkTarget(null);
+			queryClient.invalidateQueries({ queryKey: ['integrationMappings', entityType, entityId] });
+		},
+		onError: (error: Error) => {
+			toast.error(error.message || 'Failed to unlink integration');
+		},
+	});
+
+	const { mutate: setupMoyasarAutopay } = useMutation({
+		mutationFn: () => PaymentApi.getMoyasarSetupIntent(entityId, window.location.href),
+		onSuccess: (res) => window.open(res.checkout_url, '_blank'),
+		onError: (error: Error) => toast.error(error.message || 'Failed to start autopay setup'),
+	});
+
 	const handleLinkClick = useCallback((row: IntegrationRow) => {
 		setLinkTarget(row);
 		setProviderEntityId('');
@@ -141,6 +170,12 @@ const IntegrationMappingCard: FC<IntegrationMappingCardProps> = ({
 		},
 		[syncIntegration],
 	);
+
+	const handleDelinkClick = useCallback((row: IntegrationRow) => {
+		setDelinkTarget(row);
+		setDelinkDialogOpen(true);
+		setDropdownOpen(null);
+	}, []);
 
 	const handleLinkSubmit = () => {
 		if (!linkTarget) {
@@ -232,6 +267,27 @@ const IntegrationMappingCard: FC<IntegrationMappingCardProps> = ({
 										{t('actions.link')}
 									</DropdownMenuItem>
 									<DropdownMenuItem
+										disabled={isMappingsPending || isDelinking || !hasProviderEntity || isActionDisabled}
+										onSelect={(e) => {
+											e.preventDefault();
+											handleDelinkClick(row);
+										}}
+										className='cursor-pointer text-destructive focus:text-destructive'>
+										{t('actions.unlink')}
+									</DropdownMenuItem>
+									{entityType === 'customer' && row.provider_type === CONNECTION_PROVIDER_TYPE.MOYASAR && (
+										<DropdownMenuItem
+											disabled={isActionDisabled}
+											onSelect={(e) => {
+												e.preventDefault();
+												setDropdownOpen(null);
+												setupMoyasarAutopay();
+											}}
+											className='cursor-pointer'>
+											{tCustomers('tabPanels.information.setupAutopayMoyasar')}
+										</DropdownMenuItem>
+									)}
+									<DropdownMenuItem
 										disabled={isMappingsPending || isSyncing || !row.syncOutboundEnabled || isActionDisabled}
 										onSelect={(e) => {
 											e.preventDefault();
@@ -258,7 +314,20 @@ const IntegrationMappingCard: FC<IntegrationMappingCardProps> = ({
 				},
 			},
 		],
-		[dropdownOpen, isMappingsPending, isSyncing, isActionDisabled, resolvedColumnTitle, handleLinkClick, handleSyncClick, t],
+		[
+			dropdownOpen,
+			isMappingsPending,
+			isSyncing,
+			isDelinking,
+			isActionDisabled,
+			resolvedColumnTitle,
+			handleLinkClick,
+			handleSyncClick,
+			handleDelinkClick,
+			entityId,
+			t,
+			tCustomers,
+		],
 	);
 
 	if (!hasIntegrationConfig) {
@@ -307,6 +376,38 @@ const IntegrationMappingCard: FC<IntegrationMappingCardProps> = ({
 					</div>
 				</div>
 			</Dialog>
+
+			<Dialog
+				isOpen={delinkDialogOpen}
+				onOpenChange={(open) => {
+					setDelinkDialogOpen(open);
+					if (!open) {
+						setDelinkTarget(null);
+					}
+				}}
+				title={t('integrations.unlinkConfirmTitle')}>
+				<div className='space-y-4'>
+					<p className='text-sm text-muted-foreground'>
+						{t('integrations.unlinkConfirmDescription', {
+							provider: delinkTarget ? formatProviderName(delinkTarget.provider_type) : t('integrations.integration'),
+						})}
+					</p>
+					<div className='flex justify-end gap-2'>
+						<Button
+							variant='outline'
+							onClick={() => {
+								setDelinkDialogOpen(false);
+								setDelinkTarget(null);
+							}}>
+							{t('actions.cancel')}
+						</Button>
+						<Button variant='destructive' onClick={() => delinkIntegration()} disabled={isDelinking}>
+							{isDelinking ? t('actions.unlinking') : t('actions.unlink')}
+						</Button>
+					</div>
+				</div>
+			</Dialog>
+
 		</>
 	);
 };

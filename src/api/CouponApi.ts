@@ -1,6 +1,7 @@
 import { AxiosClient } from '@/core/axios/verbs';
 import { Coupon, Pagination } from '@/models';
 import { CreateCouponRequest, UpdateCouponRequest, ListCouponsResponse, CouponFilter } from '@/types/dto';
+import { CouponAssociationFilter, ListCouponAssociationsResponse } from '@/types/dto/CouponAssociation';
 import { generateQueryParams } from '@/utils/common/api_helper';
 
 class CouponApi {
@@ -29,6 +30,11 @@ class CouponApi {
 
 	public static async getCouponsByFilters(payload: CouponFilter): Promise<ListCouponsResponse> {
 		return await AxiosClient.post(`${this.baseUrl}/search`, payload);
+	}
+
+	public static async listCouponAssociations(filter?: CouponAssociationFilter): Promise<ListCouponAssociationsResponse> {
+		const url = filter ? generateQueryParams(`${this.baseUrl}/associations`, filter) : `${this.baseUrl}/associations`;
+		return await AxiosClient.get<ListCouponAssociationsResponse>(url);
 	}
 }
 

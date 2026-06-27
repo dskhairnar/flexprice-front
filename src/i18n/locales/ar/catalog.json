@@ -248,6 +248,7 @@
 			"cadenceForever": "دائمة",
 			"validation": {
 				"nameRequired": "الاسم مطلوب",
+				"couponCodeRequired": "رمز القسيمة مطلوب",
 				"typeRequired": "النوع مطلوب",
 				"cadenceRequired": "الوتيرة مطلوبة",
 				"amountOffFixedRequired": "مبلغ الخصم مطلوب للقسائم ذات المبلغ الثابت",

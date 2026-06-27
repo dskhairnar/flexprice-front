@@ -1,6 +1,5 @@
-import { formatLocalizedNumber } from '@/i18n/display/formatNumber';
+import { formatLocalizedCurrency, formatLocalizedNumber, getLocalizedCurrencySymbol } from '@/i18n/display/formatNumber';
 import { getIntlDigitOptions, getIntlLocale } from '@/i18n/display/intlLocale';
-import { getCurrencySymbolOverride } from '@/constants/currencyDefaults';
 import i18n from 'i18next';
 
 // =============================================================================
@@ -12,25 +11,7 @@ import i18n from 'i18next';
 // =============================================================================
 
 export const formatCurrency = (amount: number | string, currency: string): string => {
-	const numAmount = typeof amount === 'string' ? parseFloat(amount) : amount;
-	if (isNaN(numAmount)) return `${getCurrencySymbol(currency)}0.00`;
-
-	const locale = getIntlLocale(i18n.language);
-	const formatter = new Intl.NumberFormat(locale, {
-		...getIntlDigitOptions(i18n.language),
-		style: 'currency',
-		currency: currency,
-		minimumFractionDigits: 2,
-		maximumFractionDigits: 2,
-	});
-	const symbolOverride = getCurrencySymbolOverride(currency);
-
-	if (!symbolOverride) return formatter.format(numAmount);
-
-	return formatter
-		.formatToParts(numAmount)
-		.map((part) => (part.type === 'currency' ? symbolOverride : part.value))
-		.join('');
+	return formatLocalizedCurrency(amount, currency, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 };
 
 export const formatAmount = (amount: number | string, currency?: string): string => {
@@ -41,24 +22,7 @@ export const formatAmount = (amount: number | string, currency?: string): string
 };
 
 export const getCurrencySymbol = (currency: string): string => {
-	const symbolOverride = getCurrencySymbolOverride(currency);
-	if (symbolOverride) return symbolOverride;
-
-	try {
-		return (
-			new Intl.NumberFormat(getIntlLocale(i18n.language), {
-				...getIntlDigitOptions(i18n.language),
-				style: 'currency',
-				currency: currency,
-			})
-				.formatToParts(0)
-				.find((part) => part.type === 'currency')?.value ||
-			getCurrencySymbolOverride(currency) ||
-			currency
-		);
-	} catch {
-		return currency;
-	}
+	return getLocalizedCurrencySymbol(currency);
 };
 
 // =============================================================================

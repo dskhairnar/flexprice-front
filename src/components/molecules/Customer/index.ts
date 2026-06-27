@@ -7,3 +7,4 @@ export { default as CustomerMultiSearchSelect } from './CustomerMultiSearchSelec
 export type { CustomerMultiSearchSelectProps } from './CustomerMultiSearchSelect';
 export { default as InheritedCustomersTable } from './InheritedCustomersTable';
 export type { InheritedCustomersTableProps } from './InheritedCustomersTable';
+export { default as OrgTypeMetadataFilter } from './OrgTypeMetadataFilter';

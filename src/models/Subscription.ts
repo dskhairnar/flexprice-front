@@ -5,6 +5,7 @@ import { Plan } from './Plan';
 import { CreditGrant } from './CreditGrant';
 import { BaseModel, ENTITY_STATUS, Metadata } from './base';
 import { Price, PRICE_TYPE } from './Price';
+import { CommitmentTimeBucket } from '@/types/dto/CommitmentTimeBucket';
 
 export interface SubscriptionCommitmentInfo {
 	enable_true_up?: boolean;
@@ -40,11 +41,14 @@ export interface LineItem extends BaseModel {
 	/** ID of the source entity (plan_id, addon_id, or subscription_id) */
 	readonly entity_id?: string;
 	// Commitment fields
+	readonly commitment_amount?: string | number;
 	readonly commitment_quantity?: string;
 	readonly commitment_type?: string;
 	readonly commitment_overage_factor?: string;
 	readonly commitment_true_up_enabled?: boolean;
 	readonly commitment_windowed?: boolean;
+	readonly commitment_duration?: string;
+	readonly commitment_time_buckets?: CommitmentTimeBucket[];
 }
 
 export interface Subscription extends BaseModel {
@@ -213,10 +217,24 @@ export enum SUBSCRIPTION_MODIFY_TYPE {
 	INHERITANCE = 'inheritance',
 	QUANTITY_CHANGE = 'quantity_change',
 	GROUPED_INVOICING = 'grouped_invoicing',
+	COUPON = 'coupon',
+	TAX = 'tax',
 }
 
 /** Payload `grouped_invoicing_params.action` for {@link SUBSCRIPTION_MODIFY_TYPE.GROUPED_INVOICING}. */
 export enum GROUPED_INVOICING_MODIFY_ACTION {
+	ADD = 'add',
+	REMOVE = 'remove',
+}
+
+/** Payload `coupon_params.action` for {@link SUBSCRIPTION_MODIFY_TYPE.COUPON}. */
+export enum SUB_MODIFY_COUPON_ACTION {
+	ADD = 'add',
+	REMOVE = 'remove',
+}
+
+/** Payload `tax_params.action` for {@link SUBSCRIPTION_MODIFY_TYPE.TAX}. */
+export enum SUB_MODIFY_TAX_ACTION {
 	ADD = 'add',
 	REMOVE = 'remove',
 }
@@ -247,6 +265,7 @@ export enum SUBSCRIPTION_MODIFY_INVOICE_RESOURCE_ACTION {
 export enum SUBSCRIPTION_LINE_ITEM_EDIT_MODE {
 	USAGE_OVERRIDE = 'usage_override',
 	FIXED_QUANTITY = 'fixed_quantity',
+	WINDOW_COMMITMENT = 'window_commitment',
 }
 
 // PaymentBehavior determines how subscription payments are handled

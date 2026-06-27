@@ -1,4 +1,4 @@
-import { Page, ActionButton, Chip, Tooltip } from '@/components/atoms';
+import { Page, ActionButton, Chip, Tooltip, AddButton } from '@/components/atoms';
 import { ApiDocsContent, RedirectCell } from '@/components/molecules';
 import { ColumnData } from '@/components/molecules/Table';
 import { QueryableDataArea } from '@/components/organisms';
@@ -180,9 +180,11 @@ const SubscriptionsPage = () => {
 		[t],
 	);
 
-	const handleEmptyCreate = useCallback(() => {
-		navigate(RouteNames.customers);
+	const handleAddSubscription = useCallback(() => {
+		navigate(RouteNames.createSubscription, { state: { returnTo: RouteNames.subscriptions } });
 	}, [navigate]);
+
+	const handleEmptyCreate = handleAddSubscription;
 
 	const columns: ColumnData<SubscriptionResponse>[] = useMemo(
 		() => [
@@ -251,7 +253,7 @@ const SubscriptionsPage = () => {
 
 	return (
 		<>
-			<Page heading={t('subscriptions.title')}>
+			<Page heading={t('subscriptions.title')} headingCTA={<AddButton onClick={handleAddSubscription} />}>
 				<ApiDocsContent tags={API_DOCS_TAGS.Subscriptions} />
 				<QueryableDataArea<SubscriptionResponse>
 					queryConfig={{

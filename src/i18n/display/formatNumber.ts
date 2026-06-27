@@ -78,12 +78,11 @@ export function formatLocalizedCurrency(amount: number | string, currency: strin
 /** Currency symbol for a code, respecting locale conventions where applicable. */
 export function getLocalizedCurrencySymbol(currency: string, language?: string): string {
 	const currencyCode = resolveCurrencyCode(currency);
-	const symbolOverride = getCurrencySymbolOverride(currencyCode);
-	if (symbolOverride) return symbolOverride;
-	const locale = getIntlLocale(language);
+	const override = getCurrencySymbolOverride(currencyCode);
+	if (override) return override;
 	try {
 		return (
-			new Intl.NumberFormat(locale, { ...getIntlDigitOptions(language), style: 'currency', currency: currencyCode })
+			new Intl.NumberFormat(getIntlLocale(language), { ...getIntlDigitOptions(language), style: 'currency', currency: currencyCode })
 				.formatToParts(0)
 				.find((part) => part.type === 'currency')?.value ?? currencyCode
 		);

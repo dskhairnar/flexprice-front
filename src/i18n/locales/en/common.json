@@ -34,7 +34,9 @@
 		"view": "View",
 		"link": "Link",
 		"sync": "Sync",
-		"linking": "Linking..."
+		"linking": "Linking...",
+		"unlink": "Unlink",
+		"unlinking": "Unlinking..."
 	},
 	"status": {
 		"active": "Active",
@@ -209,7 +211,8 @@
 		}
 	},
 	"actionButton": {
-		"confirmActionOnEntity": "Are you sure you want to {{action}} this {{entity}}?",
+		"confirmActionOnEntity": "Are you sure you want to {{action}} {{entity}}?",
+		"confirmActionOnEntityPrefix": "Are you sure you want to {{action}}",
 		"archiveFailed": "Could not archive {{entity}}. Please try again.",
 		"actionFailedGeneric": "Could not complete this action for {{entity}}. Please try again."
 	},
@@ -597,7 +600,71 @@
 		"integration": "Integration",
 		"actions": "Integration actions",
 		"syncPush": "Push to Integration",
-		"syncPull": "Pull from Integration"
+		"syncPull": "Pull from Integration",
+		"unlinkConfirmTitle": "Unlink Integration",
+		"unlinkConfirmDescription": "This will remove the link between this entity and {{provider}}. You can re-link it again later."
+	},
+	"tableColumns": {
+		"name": "Name",
+		"displayName": "Display Name",
+		"status": "Status",
+		"createdAt": "Created At",
+		"updatedAt": "Updated At",
+		"created": "Created",
+		"priority": "Priority",
+		"currency": "Currency",
+		"type": "Type",
+		"cadence": "Cadence",
+		"period": "Period",
+		"expiration": "Expiration",
+		"expirationConfig": "Expiration Config",
+		"credits": "Credits",
+		"taxId": "Tax ID",
+		"taxRate": "Tax Rate",
+		"autoApply": "Auto Apply",
+		"chargeType": "Charge Type",
+		"billingTiming": "Billing Timing",
+		"billingPeriod": "Billing Period",
+		"value": "Value",
+		"featureName": "Feature Name",
+		"featureType": "Feature Type",
+		"priceType": "Price Type",
+		"quantity": "Quantity",
+		"phase": "Phase",
+		"source": "Source",
+		"charge": "Charge",
+		"coupon": "Coupon",
+		"refId": "Ref ID",
+		"invoiceId": "Invoice ID",
+		"date": "Date",
+		"paymentMethod": "Payment Method",
+		"amount": "Amount",
+		"taxName": "Tax Name",
+		"code": "Code",
+		"rate": "Rate",
+		"taxableAmount": "Taxable Amount",
+		"taxAmount": "Tax Amount",
+		"appliedAt": "Applied At",
+		"integration": "Integration",
+		"charges": "Charges",
+		"usageReset": "Usage Reset",
+		"noPaymentsFound": "No payments found"
+	},
+	"tableMenu": {
+		"groups": {
+			"actions": "Actions",
+			"connections": "Connections"
+		},
+		"terminate": "Terminate",
+		"terminatePrice": "Terminate Price",
+		"copyPriceId": "Copy Price ID",
+		"updatePrice": "Update Price",
+		"editDetails": "Edit Details",
+		"viewInvoice": "View Invoice",
+		"copyLink": "Copy Link",
+		"priceIdCopied": "Price ID copied to clipboard",
+		"paymentLinkCopied": "Payment link copied to clipboard",
+		"paymentLinkCopyFailed": "Failed to copy payment link. Please try again."
 	},
 	"tableColumns": {
 		"name": "Name",

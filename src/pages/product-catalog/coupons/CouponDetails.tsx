@@ -44,6 +44,10 @@ const CouponDetails = () => {
 				),
 			},
 			{
+				label: t('catalog:coupons.drawer.couponCode'),
+				value: coupon.coupon_code ? <code className='font-mono bg-muted px-1.5 py-0.5 rounded text-sm'>{coupon.coupon_code}</code> : '—',
+			},
+			{
 				label: t(`${fields}.discount`),
 				value:
 					coupon.type === COUPON_TYPE.FIXED
