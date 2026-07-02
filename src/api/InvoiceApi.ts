@@ -35,6 +35,7 @@ class InvoiceApi {
 			customer_id: customerId,
 			// Explicitly include all known invoice statuses; backend defaults may exclude some (e.g. SKIPPED).
 			invoice_status: Object.values(INVOICE_STATUS),
+			skip_line_items: true,
 			sort: [
 				{
 					field: 'period_start',

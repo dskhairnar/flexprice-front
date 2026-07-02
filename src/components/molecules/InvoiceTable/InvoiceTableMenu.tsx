@@ -48,6 +48,23 @@ const InvoiceTableMenu: FC<Props> = ({ data }) => {
 		},
 	});
 
+	const { mutateAsync: downloadInvoiceCsvAsync, isPending: isCsvDownloadPending } = useMutation({
+		mutationFn: async (invoice: Invoice) => {
+			const fullInvoice = invoice.line_items?.length ? invoice : await InvoiceApi.getInvoiceById(invoice.id);
+			return InvoiceApi.downloadInvoiceCsv(fullInvoice);
+		},
+		onSuccess: (rows) => {
+			if (rows === 0) {
+				toast.error('No billable line items to export');
+			} else {
+				toast.success('Invoice CSV downloaded');
+			}
+		},
+		onError: (error: Error) => {
+			toast.error(error.message || 'Unable to download invoice CSV');
+		},
+	});
+
 	const { mutate: recalculateInvoice, isPending: isRecalculating } = useMutation({
 		mutationFn: async (invoice_id: string) => {
 			return await InvoiceApi.recalculateInvoice(invoice_id);
@@ -176,14 +193,8 @@ const InvoiceTableMenu: FC<Props> = ({ data }) => {
 				onOpenChange={setIsDownloadFormatOpen}
 				isPdfPending={isPdfDownloadPending}
 				onSelectPdf={() => downloadInvoicePdfAsync(data.id)}
-				onSelectCsv={() => {
-					const rows = InvoiceApi.downloadInvoiceCsv(data);
-					if (rows === 0) {
-						toast.error('No billable line items to export');
-					} else {
-						toast.success('Invoice CSV downloaded');
-					}
-				}}
+				onSelectCsv={() => void downloadInvoiceCsvAsync(data)}
+				isCsvPending={isCsvDownloadPending}
 			/>
 			<InvoiceStatusModal
 				invoice={state.activeInvoice}

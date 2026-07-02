@@ -138,6 +138,7 @@ const InvoicesPage = () => {
 		const result = await InvoiceApi.listInvoices({
 			...params,
 			invoice_status: Object.values(INVOICE_STATUS),
+			skip_line_items: true,
 		});
 		const rawItems = result.items ?? [];
 		const hasMismatchOnPage = rawItems.some(invoiceHasDistinctSubscriptionCustomer);
@@ -360,6 +361,7 @@ const InvoicesPage = () => {
 							offset: 0,
 							filters: [],
 							sort: [],
+							skip_line_items: true,
 						}),
 				}}
 				tableConfig={{
