@@ -208,6 +208,16 @@ export const calculateTotalCouponDiscount = (
 	}, 0);
 };
 
+export const formatPayableAmount = (amount: number): string => {
+	if (!Number.isFinite(amount) || amount === 0) {
+		return '0.00';
+	}
+
+	const formatted = amount.toFixed(8).replace(/\.?0+$/, '');
+
+	return formatted.includes('.') ? formatted.replace(/(\.\d)$/, '$10') : `${formatted}.00`;
+};
+
 /**
  * Gets the total payable text including coupon discounts
  * @param fixedCharges - Array of fixed (FIXED type) prices
@@ -229,11 +239,11 @@ export const getTotalPayableTextWithCoupons = (
 		const totalDiscount = calculateTotalCouponDiscount(coupons, recurringTotal);
 		const finalAmount = Math.max(0, recurringTotal - totalDiscount);
 
-		text += `${getCurrencySymbol(currency)}${finalAmount.toFixed(2)}`;
+		text += `${getCurrencySymbol(currency)}${formatPayableAmount(finalAmount)}`;
 
 		// Show discount information if there are coupons
 		if (coupons.length > 0 && totalDiscount > 0) {
-			text += ` (${getCurrencySymbol(currency)}${recurringTotal.toFixed(2)} - ${getCurrencySymbol(currency)}${totalDiscount.toFixed(2)} discount)`;
+			text += ` (${getCurrencySymbol(currency)}${formatPayableAmount(recurringTotal)} - ${getCurrencySymbol(currency)}${formatPayableAmount(totalDiscount)} discount)`;
 		}
 	}
 

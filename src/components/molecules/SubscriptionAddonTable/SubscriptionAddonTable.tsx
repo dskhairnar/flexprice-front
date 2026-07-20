@@ -12,6 +12,7 @@ import { Price, PRICE_TYPE } from '@/models/Price';
 import { BILLING_PERIOD } from '@/constants/constants';
 import { getCurrentPriceAmount, ExtendedPriceOverride } from '@/utils/common/price_override_helpers';
 import { Coupon } from '@/models/Coupon';
+import { filterAddonPricesForSubscription } from '@/utils/subscription/addon_commitment_helpers';
 
 interface Props {
 	data: AddAddonToSubscriptionRequest[];
@@ -146,7 +147,7 @@ const SubscriptionAddonTable: React.FC<Props> = ({
 				title: t('subscriptionAddon.columnCharges'),
 				render: (row) => {
 					const addonDetails = getAddonDetails(row.addon_id);
-					const prices = addonDetails?.prices || [];
+					const prices = filterAddonPricesForSubscription(addonDetails?.prices || [], billingPeriod, currency);
 					return <span>{formatAddonCharges(prices, priceOverrides, coupons, t)}</span>;
 				},
 			},
@@ -183,7 +184,7 @@ const SubscriptionAddonTable: React.FC<Props> = ({
 				},
 			},
 		],
-		[disabled, getAddonDetails, handleDelete, handleEdit, priceOverrides, coupons, t],
+		[disabled, getAddonDetails, handleDelete, handleEdit, priceOverrides, coupons, billingPeriod, currency, t],
 	);
 
 	return (
