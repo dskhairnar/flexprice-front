@@ -181,7 +181,7 @@ export { TenantMetadataKey } from './Tenant';
 export type { User } from './User';
 
 // Wallet
-export type { Wallet, WalletAlertSettings, WalletAlertThreshold, WalletAlertState } from './Wallet';
+export type { Wallet, WalletAlertSettings, WalletAlertThreshold, WalletAlertState, DurationUnit, Duration, AutoTopup } from './Wallet';
 export {
 	WALLET_STATUS,
 	WALLET_TX_REFERENCE_TYPE,

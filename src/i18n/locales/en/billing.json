@@ -928,12 +928,33 @@
 			"amountLabel": "Top-Up Amount (Credits)",
 			"amountPlaceholder": "0.00",
 			"amountDescription": "Number of credits to add when auto top-up is triggered",
+			"cooldownTitle": "Cooloff",
+			"cooldownLabel": "Wait before next auto top-up",
+			"cooldownValueLabel": "Duration",
+			"cooldownValuePlaceholder": "e.g. 1",
+			"cooldownUnitLabel": "Unit",
+			"cooldownUnitPlaceholder": "Select unit",
+			"cooldownDescription": "After a successful auto top-up, the system will not auto top-up again until this window ends, even if the balance is still below the threshold.",
+			"cooldownBurstDescription": "When cooloff is off and invoice payment is not required, the system may top up repeatedly until the balance exceeds the threshold.",
+			"cooldownOptionalDescription": "When cooloff is off, there is no wait between auto top-ups.",
+			"cooldownUnits": {
+				"SECOND": "Second",
+				"MINUTE": "Minute",
+				"HOUR": "Hour",
+				"DAY": "Day"
+			},
 			"invoiceTitle": "Require Invoice Payment",
 			"invoiceLabel": "Create invoice for auto top-up (requires payment before credits are added)",
 			"invoiceDescriptionWhenInvoiced": "Credits will be added only after the invoice is paid. An invoice will be created in PENDING state when auto top-up is triggered.",
 			"invoiceDescriptionImmediate": "Credits will be added immediately when auto top-up is triggered.",
 			"cancel": "Cancel",
-			"saveChanges": "Save Changes"
+			"saveChanges": "Save Changes",
+			"errors": {
+				"invalidThreshold": "Please enter a valid threshold value",
+				"invalidAmount": "Please enter a valid amount value greater than 0",
+				"cooldownIncomplete": "Enter both a cooloff value and unit, or turn cooloff off",
+				"cooldownInvalidValue": "Cooloff value must be a positive integer"
+			}
 		},
 		"terminate": {
 			"title": "Terminate Wallet",

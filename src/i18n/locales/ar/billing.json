@@ -804,12 +804,33 @@
 			"amountLabel": "مبلغ التعبئة (أرصدة)",
 			"amountPlaceholder": "0.00",
 			"amountDescription": "عدد الأرصدة المضافة عند تشغيل التعبئة التلقائية",
+			"cooldownTitle": "فترة الانتظار",
+			"cooldownLabel": "الانتظار قبل التعبئة التلقائية التالية",
+			"cooldownValueLabel": "المدة",
+			"cooldownValuePlaceholder": "مثال: 1",
+			"cooldownUnitLabel": "الوحدة",
+			"cooldownUnitPlaceholder": "اختر الوحدة",
+			"cooldownDescription": "بعد تعبئة تلقائية ناجحة، لن يعيد النظام التعبئة تلقائياً حتى تنتهي هذه المدة، حتى لو بقي الرصيد دون العتبة.",
+			"cooldownBurstDescription": "عند إيقاف فترة الانتظار وعدم طلب دفع الفاتورة، قد يعيد النظام التعبئة مراراً حتى يتجاوز الرصيد العتبة.",
+			"cooldownOptionalDescription": "عند إيقاف فترة الانتظار، لا يوجد انتظار بين التعبئات التلقائية.",
+			"cooldownUnits": {
+				"SECOND": "ثانية",
+				"MINUTE": "دقيقة",
+				"HOUR": "ساعة",
+				"DAY": "يوم"
+			},
 			"invoiceTitle": "يتطلب دفع الفاتورة",
 			"invoiceLabel": "إنشاء فاتورة للتعبئة التلقائية (يتطلب الدفع قبل إضافة الأرصدة)",
 			"invoiceDescriptionWhenInvoiced": "تُضاف الأرصدة فقط بعد دفع الفاتورة. تُنشأ فاتورة بحالة PENDING عند تشغيل التعبئة التلقائية.",
 			"invoiceDescriptionImmediate": "تُضاف الأرصدة فوراً عند تشغيل التعبئة التلقائية.",
 			"cancel": "إلغاء",
-			"saveChanges": "حفظ التغييرات"
+			"saveChanges": "حفظ التغييرات",
+			"errors": {
+				"invalidThreshold": "يرجى إدخال قيمة عتبة صالحة",
+				"invalidAmount": "يرجى إدخال مبلغ صالح أكبر من 0",
+				"cooldownIncomplete": "أدخل قيمة وحدة الانتظار معاً، أو أوقف فترة الانتظار",
+				"cooldownInvalidValue": "يجب أن تكون قيمة فترة الانتظار عدداً صحيحاً موجباً"
+			}
 		},
 		"terminate": {
 			"title": "إنهاء المحفظة",

@@ -1,6 +1,22 @@
 import { BaseModel, Metadata } from './base';
 import { Meter } from './Meter';
 
+export type DurationUnit = 'SECOND' | 'MINUTE' | 'HOUR' | 'DAY';
+
+export type Duration = {
+	value: number;
+	unit: DurationUnit;
+};
+
+export type AutoTopup = {
+	enabled: boolean;
+	threshold: string;
+	amount: string;
+	invoicing: boolean;
+	/** Omit/null/undefined = no cooloff. Send `{ value: 0, unit: 'SECOND' }` on PUT to clear. */
+	cooldown?: Duration | null;
+};
+
 export interface WalletAlertThreshold {
 	threshold: string;
 	condition: 'above' | 'below';
@@ -34,12 +50,7 @@ export interface Wallet extends BaseModel {
 	readonly meter: Meter;
 	readonly alert_settings?: WalletAlertSettings;
 	readonly alert_state?: WalletAlertState;
-	readonly auto_topup?: {
-		enabled: boolean;
-		threshold: string;
-		amount: string;
-		invoicing: boolean;
-	};
+	readonly auto_topup?: AutoTopup;
 }
 
 export enum WALLET_STATUS {

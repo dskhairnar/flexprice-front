@@ -9,6 +9,7 @@ import {
 	WalletTransaction,
 	WalletAlertSettings,
 	WalletAlertState,
+	AutoTopup,
 } from '@/models';
 import { TypedBackendFilter, TypedBackendSort } from '../formatters/QueryBuilder';
 
@@ -35,12 +36,7 @@ export interface CreateWalletPayload {
 	initial_credits_to_load_expiry_date?: number; // YYYYMMDD format
 	initial_credits_expiry_date_utc?: string; // ISO string
 	alert_settings?: WalletAlertSettings;
-	auto_topup?: {
-		enabled: boolean;
-		threshold: string;
-		amount: string;
-		invoicing: boolean;
-	};
+	auto_topup?: AutoTopup;
 	price_unit?: string;
 }
 
@@ -79,12 +75,7 @@ export interface UpdateWalletRequest {
 	description?: string;
 	metadata?: Metadata;
 	config?: WalletConfig;
-	auto_topup?: {
-		enabled: boolean;
-		threshold: string;
-		amount: string;
-		invoicing: boolean;
-	};
+	auto_topup?: AutoTopup;
 	alert_settings?: WalletAlertSettings;
 }
 
@@ -98,12 +89,7 @@ export interface WalletResponse {
 	credit_balance: string;
 	wallet_status: WALLET_STATUS;
 	metadata: Metadata;
-	auto_topup?: {
-		enabled: boolean;
-		threshold: string;
-		amount: string;
-		invoicing: boolean;
-	};
+	auto_topup?: AutoTopup;
 	wallet_type: WALLET_TYPE;
 	config: {
 		allowed_price_types: WALLET_CONFIG_PRICE_TYPE[];
@@ -117,12 +103,7 @@ export interface WalletResponse {
 }
 
 export interface GetCustomerWalletsResponse extends BaseModel {
-	auto_topup?: {
-		enabled: boolean;
-		threshold: string;
-		amount: string;
-		invoicing: boolean;
-	};
+	auto_topup?: AutoTopup;
 	balance: number;
 	config: {
 		allowed_price_types: WALLET_CONFIG_PRICE_TYPE[];

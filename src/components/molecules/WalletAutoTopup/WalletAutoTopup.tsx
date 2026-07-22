@@ -1,15 +1,12 @@
-import React, { useState, useEffect } from 'react';
-import { Dialog, Button, Input, Toggle } from '@/components/atoms';
+import React, { useState, useEffect, useMemo } from 'react';
+import { Dialog, Button, Input, Toggle, Select } from '@/components/atoms';
+import type { SelectOption } from '@/components/atoms';
 import { toast } from 'react-hot-toast';
 import { PremiumFeatureIcon } from '../PremiumFeature/PremiumFeature';
 import { useTranslation } from 'react-i18next';
+import type { AutoTopup, DurationUnit } from '@/models';
 
-export interface AutoTopupConfig {
-	enabled: boolean;
-	threshold: string;
-	amount: string;
-	invoicing: boolean;
-}
+export type AutoTopupConfig = AutoTopup;
 
 interface WalletAutoTopupProps {
 	open: boolean;
@@ -18,56 +15,153 @@ interface WalletAutoTopupProps {
 	onClose: () => void;
 }
 
+/** Backend treats value 0 as unset cooloff (preferred over null for PUT merge). */
+const UNSET_COOLDOWN = { value: 0, unit: 'SECOND' as const };
+
+const DEFAULT_CONFIG: AutoTopupConfig = {
+	enabled: false,
+	threshold: '0.00',
+	amount: '0.00',
+	invoicing: false,
+	cooldown: UNSET_COOLDOWN,
+};
+
+const DURATION_UNITS: DurationUnit[] = ['SECOND', 'MINUTE', 'HOUR', 'DAY'];
+
+const UNIT_DEFAULT_LABELS: Record<DurationUnit, string> = {
+	SECOND: 'Second',
+	MINUTE: 'Minute',
+	HOUR: 'Hour',
+	DAY: 'Day',
+};
+
 const WalletAutoTopup: React.FC<WalletAutoTopupProps> = ({ open, autoTopupConfig, onSave, onClose }) => {
 	const { t } = useTranslation('billing');
-	const [localConfig, setLocalConfig] = useState<AutoTopupConfig>(
-		autoTopupConfig || {
-			enabled: false,
-			threshold: '0.00',
-			amount: '0.00',
-			invoicing: false,
-		},
+	const [localConfig, setLocalConfig] = useState<AutoTopupConfig>(autoTopupConfig || DEFAULT_CONFIG);
+	const [cooldownEnabled, setCooldownEnabled] = useState(false);
+	const [cooldownValue, setCooldownValue] = useState('');
+	const [cooldownUnit, setCooldownUnit] = useState<DurationUnit | ''>('');
+
+	const cooldownUnitOptions: SelectOption[] = useMemo(
+		() =>
+			DURATION_UNITS.map((unit) => ({
+				value: unit,
+				label: t(`wallet.autoTopup.cooldownUnits.${unit}`, { defaultValue: UNIT_DEFAULT_LABELS[unit] }),
+			})),
+		[t],
 	);
+
+	const hydrateFromConfig = (config: AutoTopupConfig | undefined) => {
+		const next = config || DEFAULT_CONFIG;
+		setLocalConfig({
+			enabled: next.enabled ?? false,
+			threshold: next.threshold ?? DEFAULT_CONFIG.threshold,
+			amount: next.amount ?? DEFAULT_CONFIG.amount,
+			invoicing: next.invoicing ?? false,
+			cooldown: next.cooldown ?? UNSET_COOLDOWN,
+		});
+
+		const cooldown = next.cooldown;
+		const cooldownValueNumber = cooldown?.value != null ? Number(cooldown.value) : NaN;
+		// value <= 0 (or missing) means cooloff is unset
+		const hasCooldown = cooldown != null && Number.isFinite(cooldownValueNumber) && cooldownValueNumber > 0 && Boolean(cooldown.unit);
+
+		if (hasCooldown && cooldown?.unit) {
+			setCooldownEnabled(true);
+			setCooldownValue(String(cooldownValueNumber));
+			setCooldownUnit(cooldown.unit);
+		} else {
+			setCooldownEnabled(false);
+			setCooldownValue('');
+			setCooldownUnit('');
+		}
+	};
 
 	// Sync local state with props
 	useEffect(() => {
-		setLocalConfig(
-			autoTopupConfig || {
-				enabled: false,
-				threshold: '0.00',
-				amount: '0.00',
-				invoicing: false,
-			},
-		);
+		hydrateFromConfig(autoTopupConfig);
 	}, [autoTopupConfig, open]);
+
+	const handleCooldownEnabledChange = (enabled: boolean) => {
+		setCooldownEnabled(enabled);
+		if (!enabled) {
+			setCooldownValue('');
+			setCooldownUnit('');
+		}
+	};
 
 	const handleSave = () => {
 		if (localConfig.enabled) {
 			if (!localConfig.threshold || isNaN(parseFloat(localConfig.threshold))) {
-				toast.error('Please enter a valid threshold value');
+				toast.error(
+					t('wallet.autoTopup.errors.invalidThreshold', {
+						defaultValue: 'Please enter a valid threshold value',
+					}),
+				);
 				return;
 			}
 			if (!localConfig.amount || isNaN(parseFloat(localConfig.amount)) || parseFloat(localConfig.amount) <= 0) {
-				toast.error('Please enter a valid amount value greater than 0');
+				toast.error(
+					t('wallet.autoTopup.errors.invalidAmount', {
+						defaultValue: 'Please enter a valid amount value greater than 0',
+					}),
+				);
+				return;
+			}
+
+			if (cooldownEnabled) {
+				const trimmedValue = cooldownValue.trim();
+				if (!trimmedValue || !cooldownUnit) {
+					toast.error(
+						t('wallet.autoTopup.errors.cooldownIncomplete', {
+							defaultValue: 'Enter both a cooloff value and unit, or turn cooloff off',
+						}),
+					);
+					return;
+				}
+
+				const parsed = Number(trimmedValue);
+				if (!Number.isInteger(parsed) || parsed <= 0) {
+					toast.error(
+						t('wallet.autoTopup.errors.cooldownInvalidValue', {
+							defaultValue: 'Cooloff value must be a positive integer',
+						}),
+					);
+					return;
+				}
+
+				onSave({
+					...localConfig,
+					cooldown: { value: parsed, unit: cooldownUnit },
+				});
 				return;
 			}
 		}
 
-		onSave(localConfig);
+		onSave({
+			...localConfig,
+			cooldown: UNSET_COOLDOWN,
+		});
 	};
 
 	const handleClose = () => {
-		// Reset to original values
-		setLocalConfig(
-			autoTopupConfig || {
-				enabled: false,
-				threshold: '0.00',
-				amount: '0.00',
-				invoicing: false,
-			},
-		);
+		hydrateFromConfig(autoTopupConfig);
 		onClose();
 	};
+
+	const cooldownToggleDescription = cooldownEnabled
+		? t('wallet.autoTopup.cooldownDescription', {
+				defaultValue:
+					'After a successful auto top-up, the system will not auto top-up again until this window ends, even if the balance is still below the threshold.',
+			})
+		: !localConfig.invoicing
+			? t('wallet.autoTopup.cooldownBurstDescription', {
+					defaultValue:
+						'When cooloff is off and invoice payment is not required, the system may top up repeatedly until the balance exceeds the threshold.',
+				})
+			: t('wallet.autoTopup.cooldownOptionalDescription', {
+					defaultValue: 'When cooloff is off, there is no wait between auto top-ups.',
+				});
 
 	return (
 		<Dialog
@@ -122,6 +216,42 @@ const WalletAutoTopup: React.FC<WalletAutoTopupProps> = ({ open, autoTopupConfig
 								description={t('wallet.autoTopup.amountDescription')}
 							/>
 						</div>
+
+						{/* Cooloff (optional) */}
+						<Toggle
+							title={t('wallet.autoTopup.cooldownTitle', { defaultValue: 'Cooloff' })}
+							label={t('wallet.autoTopup.cooldownLabel', {
+								defaultValue: 'Wait before next auto top-up',
+							})}
+							description={cooldownToggleDescription}
+							checked={cooldownEnabled}
+							onChange={handleCooldownEnabledChange}
+						/>
+
+						{cooldownEnabled && (
+							<div className='grid grid-cols-1 gap-3 md:grid-cols-2'>
+								<Input
+									label={t('wallet.autoTopup.cooldownValueLabel', { defaultValue: 'Duration' })}
+									placeholder={t('wallet.autoTopup.cooldownValuePlaceholder', { defaultValue: 'e.g. 1' })}
+									value={cooldownValue}
+									onChange={setCooldownValue}
+									variant='integer'
+									formatOptions={{
+										allowDecimals: false,
+										allowNegative: false,
+										decimalSeparator: '.',
+										thousandSeparator: ',',
+									}}
+								/>
+								<Select
+									label={t('wallet.autoTopup.cooldownUnitLabel', { defaultValue: 'Unit' })}
+									options={cooldownUnitOptions}
+									value={cooldownUnit || undefined}
+									placeholder={t('wallet.autoTopup.cooldownUnitPlaceholder', { defaultValue: 'Select unit' })}
+									onChange={(value) => setCooldownUnit((value as DurationUnit) || '')}
+								/>
+							</div>
+						)}
 
 						{/* Invoicing Toggle */}
 						<Toggle
