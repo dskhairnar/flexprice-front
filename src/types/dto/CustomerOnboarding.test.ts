@@ -140,9 +140,9 @@ describe('parseCustomerOnboardingConfig', () => {
 		});
 	});
 
-	it('omits custom_workflows when missing or empty', () => {
-		expect(parseCustomerOnboardingConfig({ actions: [] }).custom_workflows).toBeUndefined();
-		expect(parseCustomerOnboardingConfig({ actions: [], custom_workflows: {} }).custom_workflows).toBeUndefined();
+	it('defaults custom_workflows to an empty object when missing or empty', () => {
+		expect(parseCustomerOnboardingConfig({ actions: [] }).custom_workflows).toEqual({});
+		expect(parseCustomerOnboardingConfig({ actions: [], custom_workflows: {} }).custom_workflows).toEqual({});
 	});
 });
 
@@ -159,6 +159,7 @@ describe('normalizeCustomerOnboardingConfig', () => {
 					initial_credits_expiration_duration: 30,
 				},
 			],
+			custom_workflows: {},
 		});
 
 		expect(result.actions).toEqual([
@@ -181,6 +182,7 @@ describe('normalizeCustomerOnboardingConfig', () => {
 					wallet_type: WALLET_TYPE.POST_PAID,
 				},
 			],
+			custom_workflows: {},
 		});
 
 		expect(result.actions).toEqual([
@@ -204,6 +206,7 @@ describe('normalizeCustomerOnboardingConfig', () => {
 					initial_credits_expiration_duration_unit: CREDIT_GRANT_PERIOD_UNIT.DAYS,
 				},
 			],
+			custom_workflows: {},
 		});
 
 		expect(result.actions).toEqual([
@@ -228,6 +231,7 @@ describe('normalizeCustomerOnboardingConfig', () => {
 					initial_credits_to_load: '25.5',
 				},
 			],
+			custom_workflows: {},
 		});
 
 		expect(result.actions).toEqual([
@@ -240,7 +244,7 @@ describe('normalizeCustomerOnboardingConfig', () => {
 		]);
 	});
 
-	it('normalizes custom_workflows and omits an empty map', () => {
+	it('normalizes custom_workflows and keeps an empty map', () => {
 		const withCustom = normalizeCustomerOnboardingConfig({
 			workflow_type: CUSTOMER_ONBOARDING_WORKFLOW_TYPE,
 			actions: [],
@@ -264,7 +268,7 @@ describe('normalizeCustomerOnboardingConfig', () => {
 			actions: [],
 			custom_workflows: {},
 		});
-		expect(withoutCustom.custom_workflows).toBeUndefined();
+		expect(withoutCustom.custom_workflows).toEqual({});
 	});
 });
 
@@ -292,6 +296,7 @@ describe('getCustomerOnboardingValidationErrorKey', () => {
 			getCustomerOnboardingValidationErrorKey({
 				workflow_type: CUSTOMER_ONBOARDING_WORKFLOW_TYPE,
 				actions: [{ action: 'create_wallet', currency: 'USD', initial_credits_to_load: 'abc' }],
+				custom_workflows: {},
 			}),
 		).toBe('walletInitialCreditsInvalid');
 	});
@@ -308,6 +313,7 @@ describe('getCustomerOnboardingValidationErrorKey', () => {
 						initial_credits_expiration_duration: 30,
 					},
 				],
+				custom_workflows: {},
 			}),
 		).toBe('walletCreditsExpirationIncomplete');
 	});
@@ -325,6 +331,7 @@ describe('getCustomerOnboardingValidationErrorKey', () => {
 						initial_credits_expiration_duration_unit: CREDIT_GRANT_PERIOD_UNIT.DAYS,
 					},
 				],
+				custom_workflows: {},
 			}),
 		).toBe('walletCreditsExpirationInvalid');
 	});
@@ -341,6 +348,7 @@ describe('getCustomerOnboardingValidationErrorKey', () => {
 						initial_credits_expiration_duration_unit: CREDIT_GRANT_PERIOD_UNIT.DAYS,
 					},
 				],
+				custom_workflows: {},
 			}),
 		).toBe('walletCreditsExpirationWithoutCredits');
 	});
@@ -358,6 +366,7 @@ describe('getCustomerOnboardingValidationErrorKey', () => {
 						initial_credits_expiration_duration_unit: CREDIT_GRANT_PERIOD_UNIT.DAYS,
 					},
 				],
+				custom_workflows: {},
 			}),
 		).toBeNull();
 	});

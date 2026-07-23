@@ -34,18 +34,20 @@ describe('customer onboarding draft builders', () => {
 		});
 	});
 
-	it('omits custom_workflows from config when no custom workflows exist', () => {
+	it('includes an empty custom_workflows object when no custom workflows exist', () => {
 		const draft = buildDraftFromConfig({
 			workflow_type: CUSTOMER_ONBOARDING_WORKFLOW_TYPE,
 			actions: [],
+			custom_workflows: {},
 		});
-		expect(buildConfigFromDraft(draft).custom_workflows).toBeUndefined();
+		expect(buildConfigFromDraft(draft).custom_workflows).toEqual({});
 	});
 
 	it('includes a newly added empty custom workflow under its trimmed name', () => {
 		const draft = buildDraftFromConfig({
 			workflow_type: CUSTOMER_ONBOARDING_WORKFLOW_TYPE,
 			actions: [],
+			custom_workflows: {},
 		});
 		draft.customWorkflows = [createEmptyCustomWorkflowDraft('  trial_a  ')];
 

@@ -42,12 +42,13 @@ export type CustomerOnboardingAction = CreateWalletOnboardingAction | CreateSubs
 export interface CustomerOnboardingConfig {
 	workflow_type: CustomerOnboardingWorkflowType;
 	actions: CustomerOnboardingAction[];
-	custom_workflows?: Record<string, CustomerOnboardingAction[]>;
+	custom_workflows: Record<string, CustomerOnboardingAction[]>;
 }
 
 export const DEFAULT_CUSTOMER_ONBOARDING_CONFIG: CustomerOnboardingConfig = {
 	workflow_type: CUSTOMER_ONBOARDING_WORKFLOW_TYPE,
 	actions: [],
+	custom_workflows: {},
 };
 
 export const CUSTOM_WORKFLOW_NAME_MAX_LENGTH = 100;
@@ -161,30 +162,28 @@ function parseActions(rawActions: unknown): CustomerOnboardingAction[] {
 	return rawActions.map(parseAction).filter((action): action is CustomerOnboardingAction => action !== null);
 }
 
-function parseCustomWorkflows(value: unknown): Record<string, CustomerOnboardingAction[]> | undefined {
-	if (typeof value !== 'object' || value === null || Array.isArray(value)) return undefined;
+function parseCustomWorkflows(value: unknown): Record<string, CustomerOnboardingAction[]> {
+	if (typeof value !== 'object' || value === null || Array.isArray(value)) return {};
 
 	const customWorkflows: Record<string, CustomerOnboardingAction[]> = {};
 	for (const [name, rawActions] of Object.entries(value as Record<string, unknown>)) {
 		customWorkflows[name] = parseActions(rawActions);
 	}
 
-	return Object.keys(customWorkflows).length > 0 ? customWorkflows : undefined;
+	return customWorkflows;
 }
 
 export function parseCustomerOnboardingConfig(value: unknown): CustomerOnboardingConfig {
 	if (typeof value !== 'object' || value === null || Array.isArray(value)) {
-		return { ...DEFAULT_CUSTOMER_ONBOARDING_CONFIG };
+		return { ...DEFAULT_CUSTOMER_ONBOARDING_CONFIG, custom_workflows: {} };
 	}
 
 	const record = value as Record<string, unknown>;
-	const actions = parseActions(record.actions);
-	const custom_workflows = parseCustomWorkflows(record.custom_workflows);
 
 	return {
 		workflow_type: CUSTOMER_ONBOARDING_WORKFLOW_TYPE,
-		actions,
-		...(custom_workflows ? { custom_workflows } : {}),
+		actions: parseActions(record.actions),
+		custom_workflows: parseCustomWorkflows(record.custom_workflows),
 	};
 }
 
@@ -226,14 +225,12 @@ function normalizeAction(action: CustomerOnboardingAction): CustomerOnboardingAc
 }
 
 export function normalizeCustomerOnboardingConfig(config: CustomerOnboardingConfig): CustomerOnboardingConfig {
-	const custom_workflows = config.custom_workflows
-		? Object.fromEntries(Object.entries(config.custom_workflows).map(([name, actions]) => [name.trim(), actions.map(normalizeAction)]))
-		: undefined;
-
 	return {
 		workflow_type: CUSTOMER_ONBOARDING_WORKFLOW_TYPE,
 		actions: config.actions.map(normalizeAction),
-		...(custom_workflows && Object.keys(custom_workflows).length > 0 ? { custom_workflows } : {}),
+		custom_workflows: Object.fromEntries(
+			Object.entries(config.custom_workflows ?? {}).map(([name, actions]) => [name.trim(), actions.map(normalizeAction)]),
+		),
 	};
 }
 

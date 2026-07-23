@@ -152,14 +152,12 @@ export function buildDraftFromConfig(config: CustomerOnboardingConfig): Customer
 }
 
 export function buildConfigFromDraft(draft: CustomerOnboardingDraft): CustomerOnboardingConfig {
-	const custom_workflows = Object.fromEntries(
-		draft.customWorkflows.map((workflow) => [workflow.label.trim(), buildActionsFromActionSetDraft(workflow)]),
-	);
-
 	return {
 		workflow_type: CUSTOMER_ONBOARDING_WORKFLOW_TYPE,
 		actions: buildActionsFromActionSetDraft(draft),
-		...(Object.keys(custom_workflows).length > 0 ? { custom_workflows } : {}),
+		custom_workflows: Object.fromEntries(
+			draft.customWorkflows.map((workflow) => [workflow.label.trim(), buildActionsFromActionSetDraft(workflow)]),
+		),
 	};
 }
 
