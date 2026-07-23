@@ -223,7 +223,23 @@
 				"walletCreditsExpirationInvalid": "Expiration duration must be a positive whole number with a valid unit",
 				"walletCreditsExpirationWithoutCredits": "Expiration can only be set when initial credits are greater than 0",
 				"subscriptionPlanRequired": "Select a plan before enabling subscription creation",
-				"subscriptionStartDateInvalid": "Start date must be an ISO datetime like 2026-07-04T00:00:00Z, or left blank"
+				"subscriptionStartDateInvalid": "Start date must be an ISO datetime like 2026-07-04T00:00:00Z, or left blank",
+				"customWorkflowNameRequired": "Each custom workflow needs a name",
+				"customWorkflowNameInvalid": "Custom workflow names must be 100 characters or fewer",
+				"customWorkflowNameDuplicate": "Custom workflow names must be unique"
+			},
+			"customWorkflows": {
+				"title": "Custom workflows",
+				"description": "Optional named workflows which can be used to trigger different onboarding flows for different customers.",
+				"empty": "No custom workflows yet.",
+				"add": "Add custom workflow",
+				"remove": "Remove custom workflow",
+				"name": "Name",
+				"nameHint": "Used as the workflow name. Up to 100 characters.",
+				"namePlaceholder": "Enterprise trial",
+				"untitled": "Untitled workflow",
+				"noActionsSummary": "No actions enabled",
+				"advancedCount": "{{count}} advanced action(s) preserved"
 			},
 			"wallet": {
 				"title": "Create wallet",

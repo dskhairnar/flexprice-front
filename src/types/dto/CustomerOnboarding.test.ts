@@ -4,6 +4,7 @@ import { BILLING_CYCLE } from '@/models/Subscription';
 import { WALLET_TYPE } from '@/models/Wallet';
 import {
 	DEFAULT_CUSTOMER_ONBOARDING_CONFIG,
+	getCustomWorkflowNamesValidationErrorKey,
 	getCustomerOnboardingValidationErrorKey,
 	normalizeCustomerOnboardingConfig,
 	parseCustomerOnboardingConfig,
@@ -117,6 +118,32 @@ describe('parseCustomerOnboardingConfig', () => {
 		});
 		expect(result.actions).toEqual([{ action: 'create_wallet', currency: 'EUR' }]);
 	});
+
+	it('parses custom_workflows map entries with the same action rules', () => {
+		const result = parseCustomerOnboardingConfig({
+			actions: [],
+			custom_workflows: {
+				enterprise_trial: [
+					{ action: 'create_wallet', currency: 'USD', wallet_type: 'PRE_PAID' },
+					{ action: 'create_subscription', plan_id: 'plan_1', billing_cycle: BILLING_CYCLE.ANNIVERSARY },
+				],
+				empty_set: [],
+			},
+		});
+
+		expect(result.custom_workflows).toEqual({
+			enterprise_trial: [
+				{ action: 'create_wallet', currency: 'USD', wallet_type: WALLET_TYPE.PRE_PAID },
+				{ action: 'create_subscription', plan_id: 'plan_1', billing_cycle: BILLING_CYCLE.ANNIVERSARY },
+			],
+			empty_set: [],
+		});
+	});
+
+	it('omits custom_workflows when missing or empty', () => {
+		expect(parseCustomerOnboardingConfig({ actions: [] }).custom_workflows).toBeUndefined();
+		expect(parseCustomerOnboardingConfig({ actions: [], custom_workflows: {} }).custom_workflows).toBeUndefined();
+	});
 });
 
 describe('normalizeCustomerOnboardingConfig', () => {
@@ -212,6 +239,51 @@ describe('normalizeCustomerOnboardingConfig', () => {
 			},
 		]);
 	});
+
+	it('normalizes custom_workflows and omits an empty map', () => {
+		const withCustom = normalizeCustomerOnboardingConfig({
+			workflow_type: CUSTOMER_ONBOARDING_WORKFLOW_TYPE,
+			actions: [],
+			custom_workflows: {
+				' enterprise_trial ': [{ action: 'create_wallet', currency: 'usd' }],
+			},
+		});
+
+		expect(withCustom.custom_workflows).toEqual({
+			enterprise_trial: [
+				{
+					action: 'create_wallet',
+					currency: 'USD',
+					wallet_type: WALLET_TYPE.PRE_PAID,
+				},
+			],
+		});
+
+		const withoutCustom = normalizeCustomerOnboardingConfig({
+			workflow_type: CUSTOMER_ONBOARDING_WORKFLOW_TYPE,
+			actions: [],
+			custom_workflows: {},
+		});
+		expect(withoutCustom.custom_workflows).toBeUndefined();
+	});
+});
+
+describe('getCustomWorkflowNamesValidationErrorKey', () => {
+	it('returns customWorkflowNameRequired for blank names', () => {
+		expect(getCustomWorkflowNamesValidationErrorKey(['  '])).toBe('customWorkflowNameRequired');
+	});
+
+	it('returns customWorkflowNameInvalid when name exceeds 100 characters', () => {
+		expect(getCustomWorkflowNamesValidationErrorKey(['a'.repeat(101)])).toBe('customWorkflowNameInvalid');
+	});
+
+	it('returns customWorkflowNameDuplicate for duplicate names', () => {
+		expect(getCustomWorkflowNamesValidationErrorKey(['trial', 'trial'])).toBe('customWorkflowNameDuplicate');
+	});
+
+	it('returns null for valid unique free-text names', () => {
+		expect(getCustomWorkflowNamesValidationErrorKey(['Enterprise Trial', 'enterprise_trial-1'])).toBeNull();
+	});
 });
 
 describe('getCustomerOnboardingValidationErrorKey', () => {
@@ -288,5 +360,17 @@ describe('getCustomerOnboardingValidationErrorKey', () => {
 				],
 			}),
 		).toBeNull();
+	});
+
+	it('validates actions inside custom_workflows', () => {
+		expect(
+			getCustomerOnboardingValidationErrorKey({
+				workflow_type: CUSTOMER_ONBOARDING_WORKFLOW_TYPE,
+				actions: [],
+				custom_workflows: {
+					trial: [{ action: 'create_subscription', plan_id: '' }],
+				},
+			}),
+		).toBe('subscriptionPlanRequired');
 	});
 });

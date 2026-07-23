@@ -38,9 +38,11 @@ export interface CreateSubscriptionOnboardingAction extends CustomerOnboardingAc
 
 export type CustomerOnboardingAction = CreateWalletOnboardingAction | CreateSubscriptionOnboardingAction | CustomerOnboardingActionBase;
 
+/** Matches backend WorkflowConfig. */
 export interface CustomerOnboardingConfig {
 	workflow_type: CustomerOnboardingWorkflowType;
 	actions: CustomerOnboardingAction[];
+	custom_workflows?: Record<string, CustomerOnboardingAction[]>;
 }
 
 export const DEFAULT_CUSTOMER_ONBOARDING_CONFIG: CustomerOnboardingConfig = {
@@ -48,8 +50,10 @@ export const DEFAULT_CUSTOMER_ONBOARDING_CONFIG: CustomerOnboardingConfig = {
 	actions: [],
 };
 
-/** Editable draft form-state for the customer onboarding settings tab. */
-export interface CustomerOnboardingDraft {
+export const CUSTOM_WORKFLOW_NAME_MAX_LENGTH = 100;
+
+/** Shared editable fields for the default workflow and each custom workflow. */
+export interface CustomerOnboardingActionSetDraft {
 	walletEnabled: boolean;
 	walletType: WALLET_TYPE;
 	walletCurrency: string;
@@ -63,6 +67,18 @@ export interface CustomerOnboardingDraft {
 	subscriptionBillingCycle: BILLING_CYCLE;
 	subscriptionStartDate: string;
 	advancedActions: CustomerOnboardingAction[];
+}
+
+export interface CustomerOnboardingCustomWorkflowDraft extends CustomerOnboardingActionSetDraft {
+	/** Local-only React key; not persisted. */
+	id: string;
+	/** Map key for `custom_workflows`. */
+	label: string;
+}
+
+/** Editable draft form-state for the customer onboarding settings tab. */
+export interface CustomerOnboardingDraft extends CustomerOnboardingActionSetDraft {
+	customWorkflows: CustomerOnboardingCustomWorkflowDraft[];
 }
 
 const RFC3339_DATE_TIME_REGEX = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|[+-]\d{2}:\d{2})$/;
@@ -140,59 +156,84 @@ function parseAction(value: unknown): CustomerOnboardingAction | null {
 	return result.success ? result.data : null;
 }
 
+function parseActions(rawActions: unknown): CustomerOnboardingAction[] {
+	if (!Array.isArray(rawActions)) return [];
+	return rawActions.map(parseAction).filter((action): action is CustomerOnboardingAction => action !== null);
+}
+
+function parseCustomWorkflows(value: unknown): Record<string, CustomerOnboardingAction[]> | undefined {
+	if (typeof value !== 'object' || value === null || Array.isArray(value)) return undefined;
+
+	const customWorkflows: Record<string, CustomerOnboardingAction[]> = {};
+	for (const [name, rawActions] of Object.entries(value as Record<string, unknown>)) {
+		customWorkflows[name] = parseActions(rawActions);
+	}
+
+	return Object.keys(customWorkflows).length > 0 ? customWorkflows : undefined;
+}
+
 export function parseCustomerOnboardingConfig(value: unknown): CustomerOnboardingConfig {
 	if (typeof value !== 'object' || value === null || Array.isArray(value)) {
 		return { ...DEFAULT_CUSTOMER_ONBOARDING_CONFIG };
 	}
 
-	const rawActions = Array.isArray((value as Record<string, unknown>).actions) ? (value as { actions: unknown[] }).actions : [];
-	const actions = rawActions.map(parseAction).filter((action): action is CustomerOnboardingAction => action !== null);
+	const record = value as Record<string, unknown>;
+	const actions = parseActions(record.actions);
+	const custom_workflows = parseCustomWorkflows(record.custom_workflows);
 
 	return {
 		workflow_type: CUSTOMER_ONBOARDING_WORKFLOW_TYPE,
 		actions,
+		...(custom_workflows ? { custom_workflows } : {}),
 	};
 }
 
+function normalizeAction(action: CustomerOnboardingAction): CustomerOnboardingAction {
+	if (action.action === 'create_wallet') {
+		const walletAction = action as CreateWalletOnboardingAction;
+		const creditsAmount = parseCreditsAmount(walletAction.initial_credits_to_load);
+		const hasCredits = creditsAmount !== null && Number.isFinite(creditsAmount) && creditsAmount > 0;
+		const duration = walletAction.initial_credits_expiration_duration;
+		const unit = walletAction.initial_credits_expiration_duration_unit;
+		const hasExpiry = hasCredits && duration !== undefined && unit !== undefined;
+
+		return {
+			action: walletAction.action,
+			currency: walletAction.currency.trim().toUpperCase(),
+			wallet_type: walletAction.wallet_type || WALLET_TYPE.PRE_PAID,
+			...(walletAction.conversion_rate?.trim() ? { conversion_rate: walletAction.conversion_rate.trim() } : {}),
+			...(hasCredits ? { initial_credits_to_load: String(walletAction.initial_credits_to_load).trim() } : {}),
+			...(hasExpiry
+				? {
+						initial_credits_expiration_duration: duration,
+						initial_credits_expiration_duration_unit: unit,
+					}
+				: {}),
+		};
+	}
+
+	if (action.action === 'create_subscription') {
+		const subscriptionAction = action as CreateSubscriptionOnboardingAction;
+		return {
+			action: subscriptionAction.action,
+			plan_id: subscriptionAction.plan_id.trim(),
+			...(subscriptionAction.billing_cycle ? { billing_cycle: subscriptionAction.billing_cycle } : {}),
+			...(subscriptionAction.start_date?.trim() ? { start_date: subscriptionAction.start_date.trim() } : {}),
+		};
+	}
+
+	return action;
+}
+
 export function normalizeCustomerOnboardingConfig(config: CustomerOnboardingConfig): CustomerOnboardingConfig {
+	const custom_workflows = config.custom_workflows
+		? Object.fromEntries(Object.entries(config.custom_workflows).map(([name, actions]) => [name.trim(), actions.map(normalizeAction)]))
+		: undefined;
+
 	return {
 		workflow_type: CUSTOMER_ONBOARDING_WORKFLOW_TYPE,
-		actions: config.actions.map((action) => {
-			if (action.action === 'create_wallet') {
-				const walletAction = action as CreateWalletOnboardingAction;
-				const creditsAmount = parseCreditsAmount(walletAction.initial_credits_to_load);
-				const hasCredits = creditsAmount !== null && Number.isFinite(creditsAmount) && creditsAmount > 0;
-				const duration = walletAction.initial_credits_expiration_duration;
-				const unit = walletAction.initial_credits_expiration_duration_unit;
-				const hasExpiry = hasCredits && duration !== undefined && unit !== undefined;
-
-				return {
-					action: walletAction.action,
-					currency: walletAction.currency.trim().toUpperCase(),
-					wallet_type: walletAction.wallet_type || WALLET_TYPE.PRE_PAID,
-					...(walletAction.conversion_rate?.trim() ? { conversion_rate: walletAction.conversion_rate.trim() } : {}),
-					...(hasCredits ? { initial_credits_to_load: String(walletAction.initial_credits_to_load).trim() } : {}),
-					...(hasExpiry
-						? {
-								initial_credits_expiration_duration: duration,
-								initial_credits_expiration_duration_unit: unit,
-							}
-						: {}),
-				};
-			}
-
-			if (action.action === 'create_subscription') {
-				const subscriptionAction = action as CreateSubscriptionOnboardingAction;
-				return {
-					action: subscriptionAction.action,
-					plan_id: subscriptionAction.plan_id.trim(),
-					...(subscriptionAction.billing_cycle ? { billing_cycle: subscriptionAction.billing_cycle } : {}),
-					...(subscriptionAction.start_date?.trim() ? { start_date: subscriptionAction.start_date.trim() } : {}),
-				};
-			}
-
-			return action;
-		}),
+		actions: config.actions.map(normalizeAction),
+		...(custom_workflows && Object.keys(custom_workflows).length > 0 ? { custom_workflows } : {}),
 	};
 }
 
@@ -204,10 +245,13 @@ export type CustomerOnboardingValidationErrorKey =
 	| 'walletCreditsExpirationInvalid'
 	| 'walletCreditsExpirationWithoutCredits'
 	| 'subscriptionPlanRequired'
-	| 'subscriptionStartDateInvalid';
+	| 'subscriptionStartDateInvalid'
+	| 'customWorkflowNameRequired'
+	| 'customWorkflowNameInvalid'
+	| 'customWorkflowNameDuplicate';
 
-export function getCustomerOnboardingValidationErrorKey(config: CustomerOnboardingConfig): CustomerOnboardingValidationErrorKey | null {
-	for (const action of config.actions) {
+function getActionsValidationErrorKey(actions: CustomerOnboardingAction[]): CustomerOnboardingValidationErrorKey | null {
+	for (const action of actions) {
 		if (action.action === 'create_wallet') {
 			const walletAction = action as CreateWalletOnboardingAction;
 			if (!walletAction.currency.trim()) return 'walletCurrencyRequired';
@@ -243,6 +287,37 @@ export function getCustomerOnboardingValidationErrorKey(config: CustomerOnboardi
 				return 'subscriptionStartDateInvalid';
 			}
 		}
+	}
+
+	return null;
+}
+
+/** Validates custom workflow map keys / draft names (required, max length, unique). */
+export function getCustomWorkflowNamesValidationErrorKey(names: string[]): CustomerOnboardingValidationErrorKey | null {
+	const seen = new Set<string>();
+
+	for (const name of names) {
+		const trimmed = name.trim();
+		if (!trimmed) return 'customWorkflowNameRequired';
+		if (trimmed.length > CUSTOM_WORKFLOW_NAME_MAX_LENGTH) return 'customWorkflowNameInvalid';
+		if (seen.has(trimmed)) return 'customWorkflowNameDuplicate';
+		seen.add(trimmed);
+	}
+
+	return null;
+}
+
+export function getCustomerOnboardingValidationErrorKey(config: CustomerOnboardingConfig): CustomerOnboardingValidationErrorKey | null {
+	const defaultError = getActionsValidationErrorKey(config.actions);
+	if (defaultError) return defaultError;
+
+	const customWorkflows = config.custom_workflows ?? {};
+	const nameError = getCustomWorkflowNamesValidationErrorKey(Object.keys(customWorkflows));
+	if (nameError) return nameError;
+
+	for (const actions of Object.values(customWorkflows)) {
+		const setError = getActionsValidationErrorKey(actions);
+		if (setError) return setError;
 	}
 
 	return null;

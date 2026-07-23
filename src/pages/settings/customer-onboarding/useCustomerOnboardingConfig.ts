@@ -14,7 +14,9 @@ import {
 	type CreateSubscriptionOnboardingAction,
 	type CreateWalletOnboardingAction,
 	type CustomerOnboardingAction,
+	type CustomerOnboardingActionSetDraft,
 	type CustomerOnboardingConfig,
+	type CustomerOnboardingCustomWorkflowDraft,
 	type CustomerOnboardingDraft,
 } from '@/types/dto/CustomerOnboarding';
 import { SETTINGS_KEYS } from '../constants';
@@ -31,9 +33,42 @@ function isSubscriptionAction(action: CustomerOnboardingAction): action is Creat
 	return action.action === 'create_subscription';
 }
 
-export function buildDraftFromConfig(config: CustomerOnboardingConfig): CustomerOnboardingDraft {
-	const walletAction = config.actions.find(isWalletAction);
-	const subscriptionAction = config.actions.find(isSubscriptionAction);
+function createCustomWorkflowId(): string {
+	if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+		return crypto.randomUUID();
+	}
+	return `custom-workflow-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
+}
+
+export function createEmptyActionSetDraft(): CustomerOnboardingActionSetDraft {
+	return {
+		walletEnabled: false,
+		walletType: WALLET_TYPE.PRE_PAID,
+		walletCurrency: DEFAULT_CURRENCY_CODE,
+		walletConversionRate: DEFAULT_CONVERSION_RATE,
+		walletInitialCreditsToLoad: '',
+		walletCreditsExpireEnabled: false,
+		walletCreditsExpirationDuration: '',
+		walletCreditsExpirationDurationUnit: '',
+		subscriptionEnabled: false,
+		subscriptionPlanId: '',
+		subscriptionBillingCycle: BILLING_CYCLE.ANNIVERSARY,
+		subscriptionStartDate: '',
+		advancedActions: [],
+	};
+}
+
+export function createEmptyCustomWorkflowDraft(label = ''): CustomerOnboardingCustomWorkflowDraft {
+	return {
+		id: createCustomWorkflowId(),
+		label,
+		...createEmptyActionSetDraft(),
+	};
+}
+
+export function buildActionSetDraftFromActions(actions: CustomerOnboardingAction[]): CustomerOnboardingActionSetDraft {
+	const walletAction = actions.find(isWalletAction);
+	const subscriptionAction = actions.find(isSubscriptionAction);
 	const expirationDuration = walletAction?.initial_credits_expiration_duration;
 	const expirationUnit = walletAction?.initial_credits_expiration_duration_unit || '';
 	const hasExpiry = expirationDuration !== undefined || Boolean(expirationUnit);
@@ -51,11 +86,11 @@ export function buildDraftFromConfig(config: CustomerOnboardingConfig): Customer
 		subscriptionPlanId: subscriptionAction?.plan_id || '',
 		subscriptionBillingCycle: subscriptionAction?.billing_cycle || BILLING_CYCLE.ANNIVERSARY,
 		subscriptionStartDate: subscriptionAction?.start_date || '',
-		advancedActions: config.actions.filter((action) => !COMMON_ACTIONS.has(action.action)),
+		advancedActions: actions.filter((action) => !COMMON_ACTIONS.has(action.action)),
 	};
 }
 
-export function buildConfigFromDraft(draft: CustomerOnboardingDraft): CustomerOnboardingConfig {
+export function buildActionsFromActionSetDraft(draft: CustomerOnboardingActionSetDraft): CustomerOnboardingAction[] {
 	const createCustomerActions = draft.advancedActions.filter((action) => action.action === 'create_customer');
 	const otherAdvancedActions = draft.advancedActions.filter((action) => action.action !== 'create_customer');
 	const actions: CustomerOnboardingAction[] = [...createCustomerActions];
@@ -99,9 +134,32 @@ export function buildConfigFromDraft(draft: CustomerOnboardingDraft): CustomerOn
 		});
 	}
 
+	return [...actions, ...otherAdvancedActions];
+}
+
+export function buildDraftFromConfig(config: CustomerOnboardingConfig): CustomerOnboardingDraft {
+	const defaultDraft = buildActionSetDraftFromActions(config.actions);
+	const customWorkflows = Object.entries(config.custom_workflows ?? {}).map(([label, actions]) => ({
+		id: createCustomWorkflowId(),
+		label,
+		...buildActionSetDraftFromActions(actions),
+	}));
+
+	return {
+		...defaultDraft,
+		customWorkflows,
+	};
+}
+
+export function buildConfigFromDraft(draft: CustomerOnboardingDraft): CustomerOnboardingConfig {
+	const custom_workflows = Object.fromEntries(
+		draft.customWorkflows.map((workflow) => [workflow.label.trim(), buildActionsFromActionSetDraft(workflow)]),
+	);
+
 	return {
 		workflow_type: CUSTOMER_ONBOARDING_WORKFLOW_TYPE,
-		actions: [...actions, ...otherAdvancedActions],
+		actions: buildActionsFromActionSetDraft(draft),
+		...(Object.keys(custom_workflows).length > 0 ? { custom_workflows } : {}),
 	};
 }
 

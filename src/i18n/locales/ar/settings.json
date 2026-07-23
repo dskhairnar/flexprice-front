@@ -226,7 +226,23 @@
 				"walletCreditsExpirationInvalid": "يجب أن تكون مدة الانتهاء عدداً صحيحاً موجباً مع وحدة صالحة",
 				"walletCreditsExpirationWithoutCredits": "يمكن تعيين الانتهاء فقط عندما تكون الأرصدة الأولية أكبر من 0",
 				"subscriptionPlanRequired": "اختر خطة قبل تفعيل إنشاء الاشتراك",
-				"subscriptionStartDateInvalid": "يجب أن يكون تاريخ البدء بصيغة ISO datetime مثل 2026-07-04T00:00:00Z، أو اتركه فارغاً"
+				"subscriptionStartDateInvalid": "يجب أن يكون تاريخ البدء بصيغة ISO datetime مثل 2026-07-04T00:00:00Z، أو اتركه فارغاً",
+				"customWorkflowNameRequired": "يحتاج كل سير عمل مخصص إلى اسم",
+				"customWorkflowNameInvalid": "يجب ألا تتجاوز أسماء سير العمل المخصص 100 حرفاً",
+				"customWorkflowNameDuplicate": "يجب أن تكون أسماء سير العمل المخصص فريدة"
+			},
+			"customWorkflows": {
+				"title": "سير عمل مخصص",
+				"description": "سير عمل مسمّى اختياري يمكن استخدامه لتوفير تدفقات تهيئة مختلفة لعملاء مختلفين.",
+				"empty": "لا يوجد سير عمل مخصص بعد.",
+				"add": "إضافة سير عمل مخصص",
+				"remove": "إزالة سير العمل المخصص",
+				"name": "الاسم",
+				"nameHint": "يُستخدم كاسم سير العمل. بحد أقصى 100 حرف.",
+				"namePlaceholder": "تجربة المؤسسات",
+				"untitled": "سير عمل بدون عنوان",
+				"noActionsSummary": "لا توجد إجراءات مفعّلة",
+				"advancedCount": "تم الاحتفاظ بـ {{count}} من الإجراءات المتقدمة"
 			},
 			"wallet": {
 				"title": "إنشاء محفظة",

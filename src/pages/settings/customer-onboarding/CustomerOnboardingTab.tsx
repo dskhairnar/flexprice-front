@@ -1,92 +1,74 @@
 import { useEffect, useMemo, useState } from 'react';
 import toast from 'react-hot-toast';
 import { useTranslation } from 'react-i18next';
-import { Card, FieldWithInfo, Input, Loader, Select } from '@/components/atoms';
-import { SettingsCardHeader, SettingsToggleRow } from '@/components/molecules';
-import { billingCycleOptions, currencyOptions, DEFAULT_CURRENCY_CODE } from '@/constants/constants';
-import { cn } from '@/lib/utils';
-import { CREDIT_GRANT_PERIOD_UNIT } from '@/models/CreditGrant';
-import { BILLING_CYCLE } from '@/models/Subscription';
-import { WALLET_TYPE } from '@/models/Wallet';
-import { getCustomerOnboardingValidationErrorKey, type CustomerOnboardingDraft } from '@/types/dto/CustomerOnboarding';
+import { AddButton, Card, Loader } from '@/components/atoms';
+import { SettingsCardHeader } from '@/components/molecules';
+import {
+	getCustomWorkflowNamesValidationErrorKey,
+	getCustomerOnboardingValidationErrorKey,
+	type CustomerOnboardingActionSetDraft,
+	type CustomerOnboardingCustomWorkflowDraft,
+	type CustomerOnboardingDraft,
+} from '@/types/dto/CustomerOnboarding';
 import SettingsFormActions from '../SettingsFormActions';
-import { buildConfigFromDraft, buildDraftFromConfig, useCustomerOnboardingConfig, usePublishedPlans } from './useCustomerOnboardingConfig';
+import CustomWorkflowCard from './CustomWorkflowCard';
+import OnboardingActionSetEditor from './OnboardingActionSetEditor';
+import {
+	buildConfigFromDraft,
+	buildDraftFromConfig,
+	createEmptyCustomWorkflowDraft,
+	useCustomerOnboardingConfig,
+	usePublishedPlans,
+} from './useCustomerOnboardingConfig';
 
-const CREDIT_EXPIRATION_UNIT_OPTIONS = [
-	{ value: CREDIT_GRANT_PERIOD_UNIT.DAYS, labelKey: 'day' as const },
-	{ value: CREDIT_GRANT_PERIOD_UNIT.WEEKS, labelKey: 'week' as const },
-	{ value: CREDIT_GRANT_PERIOD_UNIT.MONTHS, labelKey: 'month' as const },
-	{ value: CREDIT_GRANT_PERIOD_UNIT.YEARS, labelKey: 'year' as const },
-];
+function countConfiguredActions(draft: CustomerOnboardingActionSetDraft): number {
+	return draft.advancedActions.length + (draft.walletEnabled ? 1 : 0) + (draft.subscriptionEnabled ? 1 : 0);
+}
 
 const CustomerOnboardingTab = () => {
 	const { t } = useTranslation(['settings', 'common']);
 	const { configuration, isLoading, updateConfiguration, resetToDefaults } = useCustomerOnboardingConfig();
 	const { plans, isLoading: arePlansLoading } = usePublishedPlans();
 	const [draft, setDraft] = useState<CustomerOnboardingDraft>(() => buildDraftFromConfig(configuration));
+	const [expandedCustomWorkflowId, setExpandedCustomWorkflowId] = useState<string | null>(null);
 
 	useEffect(() => {
 		setDraft(buildDraftFromConfig(configuration));
+		setExpandedCustomWorkflowId(null);
 	}, [configuration]);
 
 	const isSaving = updateConfiguration.isPending || resetToDefaults.isPending;
-	const configuredActionCount = draft.advancedActions.length + (draft.walletEnabled ? 1 : 0) + (draft.subscriptionEnabled ? 1 : 0);
-	const showCreditsExpiry = Number(draft.walletInitialCreditsToLoad) > 0;
+	const configuredActionCount = countConfiguredActions(draft);
+	const hasAdvancedActions =
+		draft.advancedActions.length > 0 || draft.customWorkflows.some((workflow) => workflow.advancedActions.length > 0);
 
-	const planOptions = useMemo(() => {
-		const options = plans.map((plan) => ({
-			value: plan.id,
-			label: plan.name,
-			description: plan.description,
-		}));
-
-		if (draft.subscriptionPlanId && !options.some((option) => option.value === draft.subscriptionPlanId)) {
-			return [
-				{
-					value: draft.subscriptionPlanId,
-					label: draft.subscriptionPlanId,
-					description: t('customerOnboarding.workflow.selectedPlanUnavailable'),
-				},
-				...options,
-			];
-		}
-
-		return options;
-	}, [draft.subscriptionPlanId, plans, t]);
-
-	const creditExpirationUnitOptions = useMemo(
+	const planOptions = useMemo(
 		() =>
-			CREDIT_EXPIRATION_UNIT_OPTIONS.map(({ value, labelKey }) => ({
-				value,
-				label: t(`customerOnboarding.workflow.wallet.expirationUnits.${labelKey}`),
+			plans.map((plan) => ({
+				value: plan.id,
+				label: plan.name,
+				description: plan.description,
 			})),
-		[t],
-	);
-
-	const walletTypeOptions = useMemo(
-		() => [
-			{
-				value: WALLET_TYPE.PRE_PAID,
-				label: t('customerOnboarding.workflow.wallet.types.prePaid'),
-				description: t('customerOnboarding.workflow.wallet.types.prePaidHint'),
-			},
-			{
-				value: WALLET_TYPE.POST_PAID,
-				label: t('customerOnboarding.workflow.wallet.types.postPaid'),
-				description: t('customerOnboarding.workflow.wallet.types.postPaidHint'),
-			},
-		],
-		[t],
+		[plans],
 	);
 
 	const handleSave = () => {
-		const creditsPositive = Number(draft.walletInitialCreditsToLoad) > 0;
-		if (
-			creditsPositive &&
-			draft.walletCreditsExpireEnabled &&
-			(!draft.walletCreditsExpirationDuration.trim() || !draft.walletCreditsExpirationDurationUnit)
-		) {
-			toast.error(t('customerOnboarding.workflow.validation.walletCreditsExpirationIncomplete'));
+		const setsToValidate: CustomerOnboardingActionSetDraft[] = [draft, ...draft.customWorkflows];
+		for (const set of setsToValidate) {
+			const creditsPositive = Number(set.walletInitialCreditsToLoad) > 0;
+			if (
+				creditsPositive &&
+				set.walletCreditsExpireEnabled &&
+				(!set.walletCreditsExpirationDuration.trim() || !set.walletCreditsExpirationDurationUnit)
+			) {
+				toast.error(t('customerOnboarding.workflow.validation.walletCreditsExpirationIncomplete'));
+				return;
+			}
+		}
+
+		const nameErrorKey = getCustomWorkflowNamesValidationErrorKey(draft.customWorkflows.map((workflow) => workflow.label));
+		if (nameErrorKey) {
+			toast.error(t(`customerOnboarding.workflow.validation.${nameErrorKey}`));
 			return;
 		}
 
@@ -111,21 +93,35 @@ const CustomerOnboardingTab = () => {
 		});
 	};
 
+	const updateDefaultActionSet = (next: CustomerOnboardingActionSetDraft) => {
+		setDraft((prev) => ({ ...prev, ...next, customWorkflows: prev.customWorkflows }));
+	};
+
+	const updateCustomWorkflow = (id: string, next: CustomerOnboardingCustomWorkflowDraft) => {
+		setDraft((prev) => ({
+			...prev,
+			customWorkflows: prev.customWorkflows.map((workflow) => (workflow.id === id ? next : workflow)),
+		}));
+	};
+
+	const removeCustomWorkflow = (id: string) => {
+		setDraft((prev) => ({
+			...prev,
+			customWorkflows: prev.customWorkflows.filter((workflow) => workflow.id !== id),
+		}));
+		setExpandedCustomWorkflowId((prev) => (prev === id ? null : prev));
+	};
+
+	const addCustomWorkflow = () => {
+		const next = createEmptyCustomWorkflowDraft();
+		setDraft((prev) => ({
+			...prev,
+			customWorkflows: [...prev.customWorkflows, next],
+		}));
+		setExpandedCustomWorkflowId(next.id);
+	};
+
 	const workflowTitle = t('customerOnboarding.workflow.title');
-	const walletTitle = t('customerOnboarding.workflow.wallet.title');
-	const subscriptionTitle = t('customerOnboarding.workflow.subscription.title');
-	const walletTypeLabel = t('customerOnboarding.workflow.wallet.type');
-	const walletCurrencyLabel = t('customerOnboarding.workflow.wallet.currency');
-	const walletConversionRateLabel = t('customerOnboarding.workflow.wallet.conversionRate');
-	const walletInitialCreditsLabel = t('customerOnboarding.workflow.wallet.initialCredits');
-	const walletExpireCreditsLabel = t('customerOnboarding.workflow.wallet.expireCredits', {
-		defaultValue: 'Expire credits',
-	});
-	const walletCreditsExpirationDurationLabel = t('customerOnboarding.workflow.wallet.expirationDuration');
-	const walletCreditsExpirationUnitLabel = t('customerOnboarding.workflow.wallet.expirationUnit');
-	const subscriptionPlanLabel = t('customerOnboarding.workflow.subscription.plan');
-	const subscriptionBillingCycleLabel = t('customerOnboarding.workflow.subscription.billingCycle');
-	const subscriptionStartDateLabel = t('customerOnboarding.workflow.subscription.startDate');
 
 	return (
 		<Card variant='default' className='rounded-xl border border-gray-200 bg-white shadow-sm'>
@@ -151,198 +147,53 @@ const CustomerOnboardingTab = () => {
 										{ count: configuredActionCount },
 									)}
 						</p>
-						{draft.advancedActions.length > 0 ? (
+						{hasAdvancedActions ? (
 							<p className='mt-2 text-sm text-amber-700'>{t('customerOnboarding.workflow.advancedActionsPreserved')}</p>
 						) : null}
 					</div>
 
-					<div className='mt-4 divide-y divide-gray-200'>
+					<div className='mt-4'>
+						<OnboardingActionSetEditor
+							value={draft}
+							onChange={updateDefaultActionSet}
+							planOptions={planOptions}
+							arePlansLoading={arePlansLoading}
+							disabled={isSaving}
+						/>
+					</div>
+
+					<div className='mt-6 flex flex-col gap-4 border-t border-gray-200 pt-6'>
 						<div>
-							<SettingsToggleRow
-								label={walletTitle}
-								description={t('customerOnboarding.workflow.wallet.description')}
-								infoAriaLabel={t('info.ariaLabel', { field: walletTitle })}
-								checked={draft.walletEnabled}
-								disabled={isSaving}
-								onCheckedChange={(checked) => setDraft((prev) => ({ ...prev, walletEnabled: checked }))}
-							/>
-							{draft.walletEnabled ? (
-								<div className='grid grid-cols-1 gap-x-6 gap-y-5 pb-4 md:grid-cols-2'>
-									<FieldWithInfo
-										label={walletTypeLabel}
-										description={t('customerOnboarding.workflow.wallet.typeHint')}
-										infoAriaLabel={t('info.ariaLabel', { field: walletTypeLabel })}
-										disabled={isSaving}>
-										<Select
-											value={draft.walletType || WALLET_TYPE.PRE_PAID}
-											options={walletTypeOptions}
-											placeholder={t('customerOnboarding.workflow.wallet.typePlaceholder')}
-											onChange={(value) =>
-												setDraft((prev) => ({
-													...prev,
-													walletType: (value as WALLET_TYPE) || WALLET_TYPE.PRE_PAID,
-												}))
-											}
-											disabled={isSaving}
-										/>
-									</FieldWithInfo>
-									<FieldWithInfo
-										label={walletCurrencyLabel}
-										description={t('customerOnboarding.workflow.wallet.currencyHint')}
-										infoAriaLabel={t('info.ariaLabel', { field: walletCurrencyLabel })}
-										disabled={isSaving}>
-										<Select
-											value={draft.walletCurrency}
-											options={currencyOptions}
-											onChange={(value) => setDraft((prev) => ({ ...prev, walletCurrency: value || DEFAULT_CURRENCY_CODE }))}
-											disabled={isSaving}
-										/>
-									</FieldWithInfo>
-									<FieldWithInfo
-										label={walletConversionRateLabel}
-										description={t('customerOnboarding.workflow.wallet.conversionRateHint')}
-										infoAriaLabel={t('info.ariaLabel', { field: walletConversionRateLabel })}
-										disabled={isSaving}>
-										<Input
-											value={draft.walletConversionRate}
-											variant='number'
-											onChange={(value) => setDraft((prev) => ({ ...prev, walletConversionRate: value }))}
-											disabled={isSaving}
-										/>
-									</FieldWithInfo>
-									<FieldWithInfo
-										label={walletInitialCreditsLabel}
-										description={t('customerOnboarding.workflow.wallet.initialCreditsHint')}
-										infoAriaLabel={t('info.ariaLabel', { field: walletInitialCreditsLabel })}
-										disabled={isSaving}>
-										<Input
-											value={draft.walletInitialCreditsToLoad}
-											variant='formatted-number'
-											formatOptions={{
-												allowDecimals: true,
-												allowNegative: false,
-												decimalSeparator: '.',
-												thousandSeparator: ',',
-											}}
-											placeholder={t('customerOnboarding.workflow.wallet.initialCreditsPlaceholder')}
-											onChange={(value) => setDraft((prev) => ({ ...prev, walletInitialCreditsToLoad: value }))}
-											disabled={isSaving}
-										/>
-									</FieldWithInfo>
-									{/* Keep mounted (hidden) so toggle/select remounts don't wipe draft expiry state. */}
-									<div className={cn('col-span-full', !showCreditsExpiry && 'hidden')}>
-										<SettingsToggleRow
-											label={walletExpireCreditsLabel}
-											description={t('customerOnboarding.workflow.wallet.expireCreditsHint', {
-												defaultValue: 'When off, welcome credits never expire. When on, set a relative duration and unit.',
-											})}
-											infoAriaLabel={t('info.ariaLabel', { field: walletExpireCreditsLabel })}
-											checked={draft.walletCreditsExpireEnabled}
-											disabled={isSaving || !showCreditsExpiry}
-											onCheckedChange={(checked) => setDraft((prev) => ({ ...prev, walletCreditsExpireEnabled: checked }))}
-										/>
-										<div
-											className={cn('grid grid-cols-1 gap-x-6 gap-y-5 pb-4 md:grid-cols-2', !draft.walletCreditsExpireEnabled && 'hidden')}>
-											<FieldWithInfo
-												label={walletCreditsExpirationDurationLabel}
-												description={t('customerOnboarding.workflow.wallet.expirationDurationHint')}
-												infoAriaLabel={t('info.ariaLabel', { field: walletCreditsExpirationDurationLabel })}
-												disabled={isSaving || !showCreditsExpiry || !draft.walletCreditsExpireEnabled}>
-												<Input
-													value={draft.walletCreditsExpirationDuration}
-													variant='formatted-number'
-													formatOptions={{
-														allowDecimals: false,
-														allowNegative: false,
-														decimalSeparator: '.',
-														thousandSeparator: ',',
-													}}
-													placeholder={t('customerOnboarding.workflow.wallet.expirationDurationPlaceholder')}
-													onChange={(value) => setDraft((prev) => ({ ...prev, walletCreditsExpirationDuration: value }))}
-													disabled={isSaving || !showCreditsExpiry || !draft.walletCreditsExpireEnabled}
-												/>
-											</FieldWithInfo>
-											<FieldWithInfo
-												label={walletCreditsExpirationUnitLabel}
-												description={t('customerOnboarding.workflow.wallet.expirationUnitHint')}
-												infoAriaLabel={t('info.ariaLabel', { field: walletCreditsExpirationUnitLabel })}
-												disabled={isSaving || !showCreditsExpiry || !draft.walletCreditsExpireEnabled}>
-												<Select
-													value={draft.walletCreditsExpirationDurationUnit}
-													options={creditExpirationUnitOptions}
-													placeholder={t('customerOnboarding.workflow.wallet.expirationUnitPlaceholder')}
-													onChange={(value) =>
-														setDraft((prev) => ({
-															...prev,
-															walletCreditsExpirationDurationUnit: (value as CREDIT_GRANT_PERIOD_UNIT) || '',
-														}))
-													}
-													disabled={isSaving || !showCreditsExpiry || !draft.walletCreditsExpireEnabled}
-												/>
-											</FieldWithInfo>
-										</div>
-									</div>
-								</div>
-							) : null}
+							<p className='text-sm font-medium text-zinc-900'>{t('customerOnboarding.workflow.customWorkflows.title')}</p>
+							<p className='mt-1 text-sm text-zinc-500'>{t('customerOnboarding.workflow.customWorkflows.description')}</p>
 						</div>
 
-						<div>
-							<SettingsToggleRow
-								label={subscriptionTitle}
-								description={t('customerOnboarding.workflow.subscription.description')}
-								infoAriaLabel={t('info.ariaLabel', { field: subscriptionTitle })}
-								checked={draft.subscriptionEnabled}
-								disabled={isSaving}
-								onCheckedChange={(checked) => setDraft((prev) => ({ ...prev, subscriptionEnabled: checked }))}
-							/>
-							{draft.subscriptionEnabled ? (
-								<div className='grid grid-cols-1 gap-x-6 gap-y-5 pb-4 md:grid-cols-2'>
-									<FieldWithInfo
-										label={subscriptionPlanLabel}
-										description={t('customerOnboarding.workflow.subscription.planHint')}
-										infoAriaLabel={t('info.ariaLabel', { field: subscriptionPlanLabel })}
-										disabled={isSaving || arePlansLoading}>
-										<Select
-											value={draft.subscriptionPlanId}
-											options={planOptions}
-											placeholder={t('customerOnboarding.workflow.subscription.planPlaceholder')}
-											noOptionsText={t('customerOnboarding.workflow.subscription.noPlans')}
-											onChange={(value) => setDraft((prev) => ({ ...prev, subscriptionPlanId: value }))}
-											disabled={isSaving || arePlansLoading}
-										/>
-									</FieldWithInfo>
-									<FieldWithInfo
-										label={subscriptionBillingCycleLabel}
-										description={t('customerOnboarding.workflow.subscription.billingCycleHint')}
-										infoAriaLabel={t('info.ariaLabel', { field: subscriptionBillingCycleLabel })}
-										disabled={isSaving}>
-										<Select
-											value={draft.subscriptionBillingCycle}
-											options={billingCycleOptions}
-											onChange={(value) =>
-												setDraft((prev) => ({
-													...prev,
-													subscriptionBillingCycle: (value as BILLING_CYCLE) || BILLING_CYCLE.ANNIVERSARY,
-												}))
-											}
-											disabled={isSaving}
-										/>
-									</FieldWithInfo>
-									<FieldWithInfo
-										label={subscriptionStartDateLabel}
-										description={t('customerOnboarding.workflow.subscription.startDateHint')}
-										infoAriaLabel={t('info.ariaLabel', { field: subscriptionStartDateLabel })}
-										disabled={isSaving}>
-										<Input
-											value={draft.subscriptionStartDate}
-											onChange={(value) => setDraft((prev) => ({ ...prev, subscriptionStartDate: value }))}
-											placeholder={t('customerOnboarding.workflow.subscription.startDatePlaceholder')}
-											disabled={isSaving}
-										/>
-									</FieldWithInfo>
-								</div>
-							) : null}
-						</div>
+						{draft.customWorkflows.length === 0 ? (
+							<p className='text-sm text-zinc-500'>{t('customerOnboarding.workflow.customWorkflows.empty')}</p>
+						) : (
+							<div className='flex flex-col gap-3'>
+								{draft.customWorkflows.map((workflow) => (
+									<CustomWorkflowCard
+										key={workflow.id}
+										value={workflow}
+										onChange={(next) => updateCustomWorkflow(workflow.id, next)}
+										onRemove={() => removeCustomWorkflow(workflow.id)}
+										planOptions={planOptions}
+										arePlansLoading={arePlansLoading}
+										disabled={isSaving}
+										defaultOpen={expandedCustomWorkflowId === workflow.id}
+									/>
+								))}
+							</div>
+						)}
+
+						<AddButton
+							className='self-start'
+							label={t('customerOnboarding.workflow.customWorkflows.add')}
+							variant='outline'
+							onClick={addCustomWorkflow}
+							disabled={isSaving}
+						/>
 					</div>
 
 					<SettingsFormActions onReset={handleReset} onSave={handleSave} isSaving={isSaving} disabled={isLoading} />
