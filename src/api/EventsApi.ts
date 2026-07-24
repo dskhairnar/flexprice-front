@@ -28,10 +28,11 @@ class EventsApi {
 
 	/**
 	 * Event debugger response for a single event
-	 * GET /events/:id
+	 * GET /events/lookup?id=... (query param avoids issues with `/` in event IDs)
 	 */
 	public static async getEventDebug(eventId: string): Promise<GetEventDebugResponse> {
-		return await AxiosClient.get<GetEventDebugResponse>(`${EventsApi.baseUrl}/${eventId}`);
+		const url = generateQueryParams(`${EventsApi.baseUrl}/lookup`, { id: eventId });
+		return await AxiosClient.get<GetEventDebugResponse>(url);
 	}
 
 	/**
