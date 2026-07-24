@@ -16,7 +16,7 @@ interface WalletAutoTopupProps {
 }
 
 /** Backend treats value 0 as unset cooloff (preferred over null for PUT merge). */
-const UNSET_COOLDOWN = { value: 0, unit: 'SECOND' as const };
+const UNSET_COOLDOWN = { value: 0, unit: 'second' as const };
 
 const DEFAULT_CONFIG: AutoTopupConfig = {
 	enabled: false,
@@ -26,13 +26,13 @@ const DEFAULT_CONFIG: AutoTopupConfig = {
 	cooldown: UNSET_COOLDOWN,
 };
 
-const DURATION_UNITS: DurationUnit[] = ['SECOND', 'MINUTE', 'HOUR', 'DAY'];
+const DURATION_UNITS: DurationUnit[] = ['second', 'minute', 'hour', 'day'];
 
 const UNIT_DEFAULT_LABELS: Record<DurationUnit, string> = {
-	SECOND: 'Second',
-	MINUTE: 'Minute',
-	HOUR: 'Hour',
-	DAY: 'Day',
+	second: 'Second',
+	minute: 'Minute',
+	hour: 'Hour',
+	day: 'Day',
 };
 
 const WalletAutoTopup: React.FC<WalletAutoTopupProps> = ({ open, autoTopupConfig, onSave, onClose }) => {

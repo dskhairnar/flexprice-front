@@ -1,7 +1,7 @@
 import { BaseModel, Metadata } from './base';
 import { Meter } from './Meter';
 
-export type DurationUnit = 'SECOND' | 'MINUTE' | 'HOUR' | 'DAY';
+export type DurationUnit = 'second' | 'minute' | 'hour' | 'day';
 
 export type Duration = {
 	value: number;
@@ -13,7 +13,7 @@ export type AutoTopup = {
 	threshold: string;
 	amount: string;
 	invoicing: boolean;
-	/** Omit/null/undefined = no cooloff. Send `{ value: 0, unit: 'SECOND' }` on PUT to clear. */
+	/** Omit/null/undefined = no cooloff. Send `{ value: 0, unit: 'second' }` on PUT to clear. */
 	cooldown?: Duration | null;
 };
 
