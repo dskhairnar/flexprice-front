@@ -1,0 +1,31 @@
+{
+	"name": "@flexprice/pricing-ui",
+	"version": "0.1.0",
+	"description": "Flexprice pricing UI — drop-in React components for pricing pages. Bring your own data.",
+	"license": "MIT",
+	"type": "module",
+	"sideEffects": [
+		"**/*.css"
+	],
+	"main": "./dist/flexprice-pricing.umd.js",
+	"module": "./dist/flexprice-pricing.mjs",
+	"types": "./dist/flexprice-pricing.d.mts",
+	"exports": {
+		".": {
+			"types": "./dist/flexprice-pricing.d.mts",
+			"import": "./dist/flexprice-pricing.mjs",
+			"require": "./dist/flexprice-pricing.umd.js"
+		},
+		"./style.css": "./dist/style.css"
+	},
+	"files": [
+		"dist"
+	],
+	"peerDependencies": {
+		"react": "^18",
+		"react-dom": "^18"
+	},
+	"publishConfig": {
+		"access": "public"
+	}
+}

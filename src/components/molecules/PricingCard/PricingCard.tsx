@@ -1,15 +1,17 @@
 import { useMemo, useState } from 'react';
 import type { TFunction } from 'i18next';
-import { useTranslation } from 'react-i18next';
+// The reusable cross-cutting primitives live in `@/lib/exportable` (bundledI18n + validation);
+// `@/pricing/i18n` and `@/pricing/schema` are thin pricing-specific wrappers over them.
+import { usePricingT } from '@/pricing/i18n';
 import { Check, Coins, Eye, Gauge, Info, Mail, MessageSquare, Phone, Sparkles, Zap, type LucideIcon } from 'lucide-react';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger, Button } from '@/components/ui';
-import { formatBillingPeriodForPrice, getCurrencySymbol } from '@/utils';
-import { Link, useNavigate } from 'react-router';
-import { RouteNames } from '@/core/routes/Routes';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { Button } from '@/components/ui/button';
+import { formatBillingPeriodForPrice, getCurrencySymbol } from '@/utils/common/helper_functions';
 import { formatAmount } from '@/components/atoms/Input/Input';
 import { PlanType } from '@/constants/planTypes';
 import { cn } from '@/lib/utils';
-import { PRICE_TYPE } from '@/models';
+import { PRICE_TYPE } from '@/models/Price';
+import { normalizeCardProps } from '@/pricing/schema';
 import { JsonObject } from '@/types/common';
 export interface UsageCharge {
 	amount?: string;
@@ -47,6 +49,10 @@ export interface PricingCardProps {
 		usage_reset_period?: string;
 	}>;
 	onPurchase?: () => void;
+	/** Invoked when the plan CTA ("View plan") is clicked. Consumers wire their own navigation. */
+	onSelectPlan?: (id: string) => void;
+	/** Optional link target for a feature name. Return undefined to render plain text (default). */
+	getFeatureHref?: (featureId: string) => string | undefined;
 	className?: string;
 	showUsageCharges?: boolean;
 	/** When true, AI/onboarding preview: full charge/entitlement lists, optional credits, no "View plan" CTA. */
@@ -70,6 +76,7 @@ const formatEntitlementValue = ({
 	usage_reset_period,
 	feature_id,
 	t,
+	getFeatureHref,
 }: {
 	type: string;
 	value: string | number | boolean | JsonObject | null;
@@ -77,13 +84,15 @@ const formatEntitlementValue = ({
 	usage_reset_period: string;
 	feature_id: string;
 	t: TFunction<'common'>;
+	getFeatureHref?: (featureId: string) => string | undefined;
 }) => {
-	const feature = feature_id ? (
-		<Link
-			to={`${RouteNames.featureDetails}/${feature_id}`}
+	const featureHref = feature_id ? getFeatureHref?.(feature_id) : undefined;
+	const feature = featureHref ? (
+		<a
+			href={featureHref}
 			className='hover:underline decoration-dashed decoration-[0.5px] decoration-muted-foreground/50 underline-offset-4'>
 			{name}
-		</Link>
+		</a>
 	) : (
 		name
 	);
@@ -241,20 +250,27 @@ const UsageChargeTooltip: React.FC<{ charge: UsageCharge; t: TFunction<'common'>
 
 const VISIBLE_LIMIT = 3;
 
-const PricingCard: React.FC<PricingCardProps> = ({
-	id,
-	name,
-	price,
-	usageCharges = [],
-	entitlements,
-	creditGrants = [],
-	className = '',
-	showUsageCharges = false,
-	isPreview = false,
-	useModernChrome = false,
-}) => {
-	const { t } = useTranslation('common');
-	const navigate = useNavigate();
+const PricingCard: React.FC<PricingCardProps> = (rawProps) => {
+	// Validate/normalize own props at the boundary so a direct SDK/JS consumer passing a wrong
+	// shape degrades (fields coerced, invalid displayType → FIXED, missing arrays → []) instead
+	// of white-screening. Idempotent for trusted dashboard data. Every entry point (this card +
+	// PricingTable) validates independently.
+	const {
+		id,
+		name,
+		price = { displayType: PlanType.FIXED },
+		usageCharges = [],
+		entitlements = [],
+		creditGrants = [],
+		className = '',
+		showUsageCharges = false,
+		isPreview = false,
+		useModernChrome = false,
+		onSelectPlan,
+		getFeatureHref,
+	} = normalizeCardProps(rawProps);
+	// Host i18n when available (dashboard: Arabic/white-label), else bundled English defaults.
+	const t = usePricingT();
 	const [showAllCharges, setShowAllCharges] = useState(false);
 	const [showAllEntitlements, setShowAllEntitlements] = useState(false);
 
@@ -273,7 +289,8 @@ const PricingCard: React.FC<PricingCardProps> = ({
 		[t],
 	);
 
-	const config = priceDisplayConfig[price.displayType];
+	// Fall back to FIXED chrome when displayType is missing/invalid so `config` is never undefined.
+	const config = priceDisplayConfig[price.displayType] ?? priceDisplayConfig[PlanType.FIXED];
 	const displayAmount = config.text || `${getCurrencySymbol(price.currency || '')}${formatAmount(price.amount || '')}`;
 	const hasUsageCharges = usageCharges.length > 0;
 
@@ -396,7 +413,7 @@ const PricingCard: React.FC<PricingCardProps> = ({
 				<div className={cn(visualModern ? 'mt-5' : 'mt-6')}>
 					<Button
 						onClick={() => {
-							navigate(`${RouteNames.plan}/${id}`);
+							onSelectPlan?.(id);
 						}}
 						className={cn(
 							'w-full py-3 text-sm font-medium transition-colors',
@@ -437,6 +454,7 @@ const PricingCard: React.FC<PricingCardProps> = ({
 																usage_reset_period: entitlement.usage_reset_period || '',
 																feature_id: entitlement.feature_id,
 																t,
+																getFeatureHref,
 															})}
 														</>
 													)}
@@ -469,6 +487,7 @@ const PricingCard: React.FC<PricingCardProps> = ({
 													usage_reset_period: entitlement.usage_reset_period || '',
 													feature_id: entitlement.feature_id,
 													t,
+													getFeatureHref,
 												})}
 											</span>
 											{entitlement.description && (
@@ -520,6 +539,7 @@ const PricingCard: React.FC<PricingCardProps> = ({
 																				usage_reset_period: ent.usage_reset_period || '',
 																				feature_id: '',
 																				t,
+																				getFeatureHref,
 																			})}
 																		</span>
 																	</div>
@@ -536,6 +556,7 @@ const PricingCard: React.FC<PricingCardProps> = ({
 																			usage_reset_period: ent.usage_reset_period || '',
 																			feature_id: '',
 																			t,
+																			getFeatureHref,
 																		})}
 																	</span>
 																</div>
@@ -565,7 +586,7 @@ const PricingCard: React.FC<PricingCardProps> = ({
 					) : (
 						<div className='text-center'>
 							<button
-								onClick={() => navigate(`${RouteNames.plan}/${id}`)}
+								onClick={() => onSelectPlan?.(id)}
 								className='text-sm text-gray-900 underline decoration-dashed decoration-[0.5px] decoration-muted-foreground/50 underline-offset-4 hover:text-gray-700 transition-colors'>
 								{t('pricingCard.addEntitlements')}
 							</button>

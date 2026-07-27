@@ -1,0 +1,16 @@
+{
+	// Reusable base tsconfig for exportable component libraries (declaration emit only).
+	// A component tsconfig extends this and adds only its own `include`:
+	//   { "extends": "./tsconfig.lib.base.json", "include": ["src/foo/**/*.ts", "src/foo/**/*.tsx"] }
+	"extends": "./tsconfig.app.json",
+	"compilerOptions": {
+		"composite": false,
+		"noEmit": false,
+		"declaration": true,
+		"emitDeclarationOnly": true,
+		"baseUrl": ".",
+		"paths": {
+			"@/*": ["src/*"]
+		}
+	}
+}
