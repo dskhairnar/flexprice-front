@@ -90,7 +90,7 @@ const Sheet: FC<Props> = ({ children, trigger, description, title, isOpen, onOpe
 		let hasMarginTop = false;
 
 		if (isValidElement(processedChildren)) {
-			const className = processedChildren.props?.className;
+			const className = (processedChildren.props as any)?.className;
 			if (className) {
 				const classNameStr = typeof className === 'string' ? className : cn(className);
 				hasMarginTop = classNameStr.includes('mt-');

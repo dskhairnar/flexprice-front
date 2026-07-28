@@ -3,7 +3,7 @@ import { getCurrencySymbol } from './helper_functions';
 import { Coupon } from '@/models/Coupon';
 
 const formatCouponName = (coupon: Coupon) => {
-	let couponName = '';
+	let couponName: string;
 	if (coupon.type === COUPON_TYPE.FIXED) {
 		couponName = `${getCurrencySymbol(coupon.currency)} ${coupon.amount_off} off`;
 	} else {

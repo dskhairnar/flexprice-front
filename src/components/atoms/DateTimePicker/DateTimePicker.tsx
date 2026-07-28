@@ -119,7 +119,7 @@ export const DateTimePicker: React.FC<Props> = ({ date, setDate, disabled, place
 					</button>
 				</PopoverTrigger>
 				<PopoverContent className='w-auto p-0' align='start' onInteractOutside={() => setIsOpen(false)}>
-					<Calendar mode='single' selected={displayDate} onSelect={handleDateSelect} initialFocus />
+					<Calendar mode='single' selected={displayDate} onSelect={handleDateSelect} autoFocus />
 					{/* Time + timezone row — no nested browser picker */}
 					<div className='border-t border-border px-3 py-3 flex items-center gap-2'>
 						<span className='text-xs text-muted-foreground font-medium w-10'>{t('dateTime.timeLabel')}</span>

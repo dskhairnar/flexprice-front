@@ -139,8 +139,8 @@ const AddCreditNotePage = () => {
 
 		const creditNoteType = getCreditNoteType(invoice.payment_status);
 
-		let effectDescription = '';
-		let settlementDescription = '';
+		let effectDescription: string;
+		let settlementDescription: string;
 
 		if (creditNoteType === CREDIT_NOTE_TYPE.REFUND) {
 			effectDescription = t('creditNotes.preview.refundEffect');

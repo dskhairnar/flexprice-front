@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useRef } from 'react';
+import React, { useState, useCallback, useRef, type ReactElement } from 'react';
 import { logger } from '@/utils/common/Logger';
 import { useTranslation } from 'react-i18next';
 
@@ -12,7 +12,7 @@ interface InfiniteScrollProps<T> {
 	pageSize?: number;
 }
 
-const InfiniteScroll = <T,>({ fetchData, children }: InfiniteScrollProps<T>): JSX.Element => {
+const InfiniteScroll = <T,>({ fetchData, children }: InfiniteScrollProps<T>): ReactElement => {
 	const { t } = useTranslation('common');
 	const [items, setItems] = useState<T[]>([]);
 	const [hasMore, setHasMore] = useState(true);

@@ -1,4 +1,4 @@
-import { FC, useMemo } from 'react';
+import { FC, useMemo, type ReactElement } from 'react';
 import { Subscription, SUBSCRIPTION_HIERARCHY_DISPLAY_KIND, SUBSCRIPTION_STATUS, SUBSCRIPTION_TYPE } from '@/models/Subscription';
 import { ColumnData, FlexpriceTable } from '@/components/molecules';
 import { Chip, Tooltip } from '@/components/atoms';
@@ -59,7 +59,7 @@ export const formatSubscriptionStatus = (status: string, t: TFunction) => {
 	}
 };
 
-const SubscriptionTable: FC<SubscriptionTableProps> = ({ data, onRowClick, allowRedirect = true, subscriptionOverrides }): JSX.Element => {
+const SubscriptionTable: FC<SubscriptionTableProps> = ({ data, onRowClick, allowRedirect = true, subscriptionOverrides }): ReactElement => {
 	const { t } = useTranslation(['common', 'customers']);
 	const showHierarchyColumn = data.some((row) => subscriptionHierarchyKind(row) !== null);
 

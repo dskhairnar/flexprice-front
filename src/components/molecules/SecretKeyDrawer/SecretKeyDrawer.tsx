@@ -53,7 +53,7 @@ const SecretKeyDrawer: FC<Props> = ({ isOpen, onOpenChange }) => {
 		});
 
 		return sortedAccounts.map((account: User, index: number) => {
-			let label = '';
+			let label: string;
 
 			if (account.name && account.name.trim() && !account.name.startsWith('_dup_user_')) {
 				label = account.name;

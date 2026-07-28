@@ -79,6 +79,8 @@ const DatePicker = ({
 	const displayDate = date ? toCalendarDisplayDate(date, timezone as DateTimezone) : undefined;
 	const displayLabel = date ? formatDateInZone(date, timezone as DateTimezone) : placeholder;
 
+	const dateBounds = [...(minDate ? [{ before: minDate }] : []), ...(maxDate ? [{ after: maxDate }] : [])];
+
 	return (
 		<Popover open={open} onOpenChange={setOpen}>
 			<div className={cn('flex w-full flex-col', className, popoverTriggerClassName)}>
@@ -101,12 +103,12 @@ const DatePicker = ({
 			<PopoverContent className={cn('w-auto p-0 z-[60] pointer-events-auto', popoverClassName, popoverContentClassName)} align='start'>
 				<Calendar
 					mode='single'
-					disabled={disabled}
+					disabled={disabled || (dateBounds.length ? dateBounds : undefined)}
 					selected={displayDate}
 					onSelect={handleSelect}
-					initialFocus
-					fromDate={minDate}
-					toDate={maxDate}
+					autoFocus
+					startMonth={minDate}
+					endMonth={maxDate}
 					timezone={timezone}
 					onTimezoneChange={handleTimezoneChange}
 				/>

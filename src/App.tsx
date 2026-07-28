@@ -1,4 +1,4 @@
-import { RouterProvider } from 'react-router';
+import { RouterProvider } from 'react-router/dom';
 import { MainRouter } from '@/core/routes/Routes';
 import { UserProvider } from '@/hooks/UserContext';
 import { DocsProvider } from './context/DocsContext';

@@ -214,7 +214,7 @@ export const getActualPriceForTotal = (price: Price) => {
 	const displayAmount = getDisplayAmount(price);
 	const displayTiers = getDisplayTiers(price);
 
-	let result = 0;
+	let result: number;
 	if (price.billing_model === BILLING_MODEL.PACKAGE) {
 		result = parseFloat(displayAmount);
 	} else if (price.billing_model === BILLING_MODEL.TIERED) {

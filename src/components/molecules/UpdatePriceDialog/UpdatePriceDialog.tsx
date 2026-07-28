@@ -198,7 +198,7 @@ const UpdatePriceDialog: FC<UpdatePriceDialogProps> = ({ isOpen, onOpenChange, p
 		const originalBillingModel = price.billing_model;
 		const originalTierMode = price.tier_mode || TIER_MODE.VOLUME;
 
-		let billingModelChanged = false;
+		let billingModelChanged: boolean;
 		if (overrideBillingModel === 'SLAB_TIERED' && originalBillingModel === BILLING_MODEL.TIERED && originalTierMode === TIER_MODE.SLAB) {
 			billingModelChanged = false;
 		} else if (
@@ -212,7 +212,7 @@ const UpdatePriceDialog: FC<UpdatePriceDialogProps> = ({ isOpen, onOpenChange, p
 		}
 
 		// Compare amount/price_unit_amount based on price unit type
-		let amountChanged = false;
+		let amountChanged: boolean;
 		if (isCustomPriceUnit) {
 			const originalAmount = price.price_unit_amount || price.price_unit_config?.amount || '';
 			amountChanged = !!(overrideAmount && removeFormatting(overrideAmount) !== originalAmount);
@@ -344,8 +344,8 @@ const UpdatePriceDialog: FC<UpdatePriceDialogProps> = ({ isOpen, onOpenChange, p
 								tieredPrices={
 									overrideTiers.length > 0
 										? overrideTiers.map((tier, index) => {
-												let from = 0;
-												let up_to = null;
+												let from: number;
+												let up_to: number | null;
 
 												if (index === 0) {
 													from = 0;

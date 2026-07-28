@@ -70,6 +70,8 @@ export async function parsePricingWithLLM(userPrompt: string): Promise<PricingSc
 		});
 		return normalizePricingSchema(raw);
 	} catch (e) {
-		throw new Error(parseErrMessage(e));
+		const error = new Error(parseErrMessage(e));
+		(error as Error & { cause?: unknown }).cause = e;
+		throw error;
 	}
 }
