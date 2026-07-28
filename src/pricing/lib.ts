@@ -1,14 +1,13 @@
-// @flexprice/pricing-ui — PUBLISHED PACKAGE ENTRY (presentational only).
+// Pricing widget — FEATURE public surface (presentational only).
 //
-// This entry is what external consumers import. It exposes ONLY prop-only UI + pure helpers,
-// so the published bundle never drags in the dashboard's data layer (axios/auth/router/
-// react-query). "Bring your own data": fetch plans however you like, map them to `Plan` (via
-// the exported adapters, or build the shape yourself), and render.
+// Aggregated into the published package via `src/exportable/index.ts` (@flexprice/flexprice-ui).
+// It exposes ONLY prop-only UI + pure helpers, so the published bundle never drags in the
+// dashboard's data layer (axios/auth/router/react-query). "Bring your own data": fetch plans
+// however you like, map them to `Plan` (via the exported adapters, or build the shape yourself),
+// and render.
 //
 // The dashboard-facing barrel with the data-connected container lives in `./index.ts` and is
-// intentionally NOT re-exported here.
-
-import './styles.css';
+// intentionally NOT re-exported here. Shared styles are imported by the umbrella entry, not here.
 
 // Prop-only UI components — usable individually
 export { default as PricingTable } from './components/PricingTable';

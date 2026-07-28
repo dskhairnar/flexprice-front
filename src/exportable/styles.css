@@ -1,9 +1,9 @@
 /*
- * Self-contained styles for @flexprice/pricing-ui.
+ * Self-contained styles for @flexprice/flexprice-ui.
  *
- * Consumers import this once: `import '@flexprice/pricing-ui/style.css'`.
+ * Consumers import this once: `import '@flexprice/flexprice-ui/style.css'`.
  * It ships the theme tokens (light + dark) the components rely on, plus only the Tailwind
- * utilities actually used by the pricing components (scoped via tailwind.pricing.config.js).
+ * utilities actually used by the pricing components (scoped via tailwind.flexprice-ui.config.js).
  *
  * Theme it by overriding these CSS variables on a wrapping element, e.g.:
  *   .my-scope { --fp-primary: 243 75% 59%; }
