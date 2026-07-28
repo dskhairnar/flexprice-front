@@ -15,9 +15,6 @@ export default defineConfig({
 			'@': path.resolve(__dirname, './src'),
 		},
 	},
-	optimizeDeps: {
-		include: ['react-router/dom'],
-	},
 	server: {
 		cors: {
 			origin: 'http://localhost:3000',

@@ -1449,9 +1449,7 @@
 						},
 						"usageReporting": {
 							"title": "Usage Reporting",
-							"paragraphs": [
-								"Once connected, a scheduled job reports usage per subscription to Azure Marketplace's usage event API."
-							]
+							"paragraphs": ["Once connected, a scheduled job reports usage per subscription to Azure Marketplace's usage event API."]
 						}
 					}
 				}
