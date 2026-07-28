@@ -64,7 +64,10 @@ export const PlanSchema = z
 		price: priceSchema.catch(() => ({ displayType: PlanType.FIXED })),
 		usageCharges: z.array(z.unknown()).catch(() => []),
 		entitlements: z.array(entitlementSchema).catch(() => []),
-		creditGrants: z.array(creditGrantSchema).optional().catch(() => []),
+		creditGrants: z
+			.array(creditGrantSchema)
+			.optional()
+			.catch(() => []),
 	})
 	.passthrough();
 

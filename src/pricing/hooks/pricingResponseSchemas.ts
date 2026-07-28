@@ -22,7 +22,10 @@ export const creditGrantItemSchema = z.object({}).passthrough();
  * Non-array payloads yield `[]`; individual invalid items are dropped (both logged in dev).
  */
 export function validateResponseItems<T>(itemSchema: z.ZodType<T>, raw: unknown, label: string): T[] {
-	const envelope = z.object({ items: z.array(z.unknown()) }).passthrough().safeParse(raw);
+	const envelope = z
+		.object({ items: z.array(z.unknown()) })
+		.passthrough()
+		.safeParse(raw);
 	if (!envelope.success) {
 		if (import.meta.env?.DEV) console.warn(`[pricing] ${label}: response is not a paginated { items: [] } shape`, envelope.error.issues);
 		return [];
