@@ -1,145 +1,65 @@
-name: Publish @flexprice/flexprice-ui
+name: Publish flexprice-ui
 
-# Push-button publish of the exportable UI package.
+# Publishes the exportable UI package (@flexprice/flexprice-ui) to npm.
+# Runs on every push to main (and can be run manually). It only publishes when the version in
+# packages/flexprice-ui/package.json is new — so bump that version in your PR to release; pushes
+# that don't change the version just run the checks and skip publishing.
 #
-# Run it from the GitHub UI (Actions → "Publish @flexprice/flexprice-ui" → Run workflow) and pick
-# the branch/ref (e.g. `staging`) + release type. It gates on the full build/typecheck/lint +
-# dashboard regression BEFORE publishing, bumps the version, publishes to npm, and pushes the
-# version-bump commit + a scoped tag back to the repo.
-#
-# Prerequisites (one-time):
-#   - npm org `@flexprice` exists and an automation token is stored as the `NPM_TOKEN` repo secret.
-#   - The package manifest packages/flexprice-ui/package.json has "publishConfig.access": "public".
+# Required repository secret: NPM_TOKEN (an npm automation token for the @flexprice org).
 
 on:
+  push:
+    branches:
+      - main
   workflow_dispatch:
-    inputs:
-      release:
-        description: 'Semver bump'
-        type: choice
-        required: true
-        default: patch
-        options: [patch, minor, major, prerelease]
-      dist_tag:
-        description: 'npm dist-tag (staging → next; promote to latest later)'
-        type: choice
-        required: true
-        default: next
-        options: [next, latest]
-      dry_run:
-        description: 'Dry run (build + validate + npm publish --dry-run, no version bump / no publish / no push)'
-        type: boolean
-        required: true
-        default: true
 
-# Never let two publishes race.
 concurrency:
   group: publish-flexprice-ui
   cancel-in-progress: false
 
 jobs:
   publish:
-    name: Build, validate & publish
+    name: Publish
     runs-on: ubuntu-latest
     permissions:
-      contents: write # push the version-bump commit + tag
-      id-token: write # npm provenance (supply-chain attestation)
-
-    env:
-      PKG_DIR: packages/flexprice-ui
+      contents: read
+      id-token: write # npm provenance
 
     steps:
-      - name: Checkout ${{ github.ref_name }}
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0 # need tags for versioning
-          persist-credentials: true # allow pushing the bump commit back
+      - uses: actions/checkout@v4
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 20
           cache: npm
-          registry-url: 'https://registry.npmjs.org' # writes .npmrc so NODE_AUTH_TOKEN authenticates
+          registry-url: 'https://registry.npmjs.org'
 
       - name: Install dependencies
         run: npm ci
 
-      # ── Quality gates (fail the run before anything is published) ──────────────
       - name: Type check
         run: npx tsc --noEmit
 
       - name: Lint
         run: npm run lint
 
-      - name: Dashboard build (shared-component regression gate)
-        run: npm run build
+      - name: Test
+        run: npx vitest run
 
-      # ── Version bump (skipped on dry run) ──────────────────────────────────────
-      - name: Configure git identity
-        if: ${{ inputs.dry_run == false }}
-        run: |
-          git config user.name  "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-
-      - name: Bump version
-        if: ${{ inputs.dry_run == false }}
-        working-directory: ${{ env.PKG_DIR }}
-        run: |
-          if [ "${{ inputs.release }}" = "prerelease" ]; then
-            npm version prerelease --preid=rc --tag-version-prefix="flexprice-ui-v" -m "release: @flexprice/flexprice-ui %s"
-          else
-            npm version ${{ inputs.release }} --tag-version-prefix="flexprice-ui-v" -m "release: @flexprice/flexprice-ui %s"
-          fi
-
-      - name: Read package version
-        id: ver
-        run: echo "version=$(node -p "require('./${{ env.PKG_DIR }}/package.json').version")" >> "$GITHUB_OUTPUT"
-
-      # ── Build the library (fresh dist for the version being published) ─────────
-      - name: Build @flexprice/flexprice-ui
+      - name: Build package
         run: npm run build:ui
 
-      - name: Inspect publish contents (must be dist/* only)
-        working-directory: ${{ env.PKG_DIR }}
-        run: npm pack --dry-run
-
-      # ── Publish ────────────────────────────────────────────────────────────────
-      - name: Publish (dry run)
-        if: ${{ inputs.dry_run == true }}
-        working-directory: ${{ env.PKG_DIR }}
-        run: npm publish --dry-run --access public --tag ${{ inputs.dist_tag }}
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-
-      - name: Publish to npm
-        if: ${{ inputs.dry_run == false }}
-        working-directory: ${{ env.PKG_DIR }}
-        run: npm publish --access public --provenance --tag ${{ inputs.dist_tag }}
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-
-      - name: Push version bump + tag
-        if: ${{ inputs.dry_run == false }}
-        run: git push --follow-tags origin HEAD:${{ github.ref_name }}
-
-      # ── Summary ────────────────────────────────────────────────────────────────
-      - name: Job summary
+      - name: Publish to npm (only if version is new)
+        working-directory: packages/flexprice-ui
         run: |
-          {
-            echo "## @flexprice/flexprice-ui"
-            echo ""
-            if [ "${{ inputs.dry_run }}" = "true" ]; then
-              echo "🧪 **Dry run** — nothing published."
-            else
-              echo "✅ Published **v${{ steps.ver.outputs.version }}** on dist-tag \`${{ inputs.dist_tag }}\`."
-              echo ""
-              echo '```bash'
-              if [ "${{ inputs.dist_tag }}" = "next" ]; then
-                echo "npm i @flexprice/flexprice-ui@next"
-              else
-                echo "npm i @flexprice/flexprice-ui"
-              fi
-              echo '```'
-            fi
-          } >> "$GITHUB_STEP_SUMMARY"
+          NAME=$(node -p "require('./package.json').name")
+          VER=$(node -p "require('./package.json').version")
+          if npm view "$NAME@$VER" version >/dev/null 2>&1; then
+            echo "$NAME@$VER is already published — skipping."
+          else
+            npm publish --provenance --access public
+            echo "Published $NAME@$VER"
+          fi
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
