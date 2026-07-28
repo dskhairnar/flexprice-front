@@ -1,9 +1,13 @@
 name: Publish flexprice-ui
 
 # Publishes the exportable UI package (@flexprice/flexprice-ui) to npm.
-# Runs on every push to main (and can be run manually). It only publishes when the version in
-# packages/flexprice-ui/package.json is new — so bump that version in your PR to release; pushes
-# that don't change the version just run the checks and skip publishing.
+# Runs on every push to main or develop (and can be run manually). It only publishes when the
+# version in packages/flexprice-ui/package.json is new — so bump that version in your PR to
+# release; pushes that don't change the version just run the checks and skip publishing.
+#
+# Dist-tag by branch: main → `latest` (stable), develop → `next` (prerelease). This lets a
+# staging (develop) merge cut a prerelease that `npm i @flexprice/flexprice-ui` won't pick up,
+# while a main merge cuts the stable release.
 #
 # Required repository secret: NPM_TOKEN (an npm automation token for the @flexprice org).
 
@@ -11,6 +15,7 @@ on:
   push:
     branches:
       - main
+      - develop
   workflow_dispatch:
 
 concurrency:
@@ -55,11 +60,15 @@ jobs:
         run: |
           NAME=$(node -p "require('./package.json').name")
           VER=$(node -p "require('./package.json').version")
+          # main → latest (stable); anything else (develop) → next (prerelease).
+          # $GITHUB_REF_NAME is a built-in env var — read it here instead of interpolating
+          # ${{ github.ref_name }} into the script (avoids a shell-injection surface).
+          if [ "$GITHUB_REF_NAME" = "main" ]; then TAG=latest; else TAG=next; fi
           if npm view "$NAME@$VER" version >/dev/null 2>&1; then
             echo "$NAME@$VER is already published — skipping."
           else
-            npm publish --provenance --access public
-            echo "Published $NAME@$VER"
+            npm publish --provenance --access public --tag "$TAG"
+            echo "Published $NAME@$VER (dist-tag: $TAG)"
           fi
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
