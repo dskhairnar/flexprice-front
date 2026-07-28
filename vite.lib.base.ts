@@ -16,19 +16,19 @@ import dts from 'vite-plugin-dts';
 import { resolve } from 'path';
 
 export interface CreateLibConfigOptions {
-	/** Path to the lib entry, e.g. 'src/pricing/lib.ts'. */
+	/** Path to the lib entry, e.g. 'src/exportable/index.ts'. */
 	entry: string;
 	/** UMD global name, e.g. 'FlexpricePricingUI'. */
 	name: string;
-	/** Base output filename, e.g. 'flexprice-pricing'. */
+	/** Base output filename, e.g. 'flexprice-ui'. */
 	fileName: string;
-	/** Output directory, e.g. 'packages/pricing-ui/dist'. */
+	/** Output directory, e.g. 'packages/flexprice-ui/dist'. */
 	outDir: string;
-	/** Path to the component's Tailwind config, e.g. 'tailwind.pricing.config.js'. */
+	/** Path to the component's Tailwind config, e.g. 'tailwind.flexprice-ui.config.js'. */
 	tailwindConfig: string;
-	/** Glob array for vite-plugin-dts include, e.g. ['src/pricing/**\/*.ts', 'src/pricing/**\/*.tsx']. */
+	/** Glob array for vite-plugin-dts include, e.g. ['src/exportable/**\/*.ts', 'src/pricing/**\/*.tsx']. */
 	dtsInclude: string[];
-	/** Path to the component's tsconfig used for dts, e.g. 'tsconfig.pricing.json'. */
+	/** Path to the component's tsconfig used for dts, e.g. 'tsconfig.flexprice-ui.json'. */
 	tsconfigPath: string;
 }
 

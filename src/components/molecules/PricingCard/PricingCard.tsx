@@ -201,8 +201,9 @@ const UsageChargeTooltip: React.FC<{ charge: UsageCharge; t: TFunction<'common'>
 		return null;
 	}
 
-	const formatRange = (tier: any, index: number, allTiers: any[]) => {
-		const from = index === 0 ? 1 : allTiers[index - 1].up_to + 1;
+	type Tier = NonNullable<UsageCharge['tiers']>[number];
+	const formatRange = (tier: Tier, index: number, allTiers: Tier[]) => {
+		const from = index === 0 ? 1 : (allTiers[index - 1].up_to ?? 0) + 1;
 		if (tier.up_to === null || index === allTiers.length - 1) {
 			return `${from} - ∞`;
 		}

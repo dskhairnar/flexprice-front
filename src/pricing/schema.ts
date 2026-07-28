@@ -98,7 +98,7 @@ export function normalizePlans(input: unknown, onValidationError?: (issue: PlanV
 	const report =
 		onValidationError ??
 		((issue: PlanValidationIssue) => {
-			if (import.meta.env?.DEV) console.warn('[@flexprice/pricing-ui] invalid plan dropped/normalized:', issue);
+			if (import.meta.env?.DEV) console.warn('[@flexprice/flexprice-ui] invalid plan dropped/normalized:', issue);
 		});
 
 	return planNormalizer.normalizeMany(input, report);

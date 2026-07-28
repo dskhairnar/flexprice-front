@@ -1,12 +1,13 @@
-// @flexprice/pricing-ui — public surface for the embeddable pricing widget.
+// Pricing widget — dashboard-facing barrel (`@/pricing`).
 //
-// This is the single entry consumers (and, for now, the dashboard) import from. It exposes:
+// The dashboard imports from here; it exposes both the prop-only UI and the data-connected
+// container:
 //   • prop-only UI (PricingTable, PricingCard) — bring your own data,
 //   • a data-connected container (PricingContainer) for the dashboard / API-backed use,
 //   • presentational types and the pure DTO→Plan adapters.
 //
-// Roadmap: when this moves to `packages/pricing-ui`, this file is the package entry — the
-// import paths change (`@/…` → relative), nothing else.
+// The published package (@flexprice/flexprice-ui) does NOT ship the container — its entry is the
+// UI-only `./lib.ts`, aggregated by `src/exportable/index.ts`.
 
 // Prop-only UI (no fetching / auth / routing)
 export { default as PricingTable } from './components/PricingTable';
