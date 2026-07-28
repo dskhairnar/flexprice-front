@@ -1,4 +1,4 @@
-# @flexprice/pricing-ui
+# @flexprice/flexprice-ui
 
 Drop-in **React** components for pricing pages, extracted from the Flexprice dashboard so your
 app renders the exact same pricing UI. **Bring your own data** — the components are purely
@@ -7,7 +7,7 @@ presentational (no fetching, no auth, no routing).
 ## Install
 
 ```bash
-npm install @flexprice/pricing-ui
+npm install @flexprice/flexprice-ui
 ```
 
 `react` and `react-dom` (v18) are peer dependencies.
@@ -17,8 +17,8 @@ npm install @flexprice/pricing-ui
 Import the stylesheet once (ships the theme tokens + only the utilities the widget uses):
 
 ```tsx
-import '@flexprice/pricing-ui/style.css';
-import { PricingTable, PricingCard, type Plan } from '@flexprice/pricing-ui';
+import '@flexprice/flexprice-ui/style.css';
+import { PricingTable, PricingCard, type Plan } from '@flexprice/flexprice-ui';
 ```
 
 ### `PricingTable` — the full grid
@@ -53,7 +53,7 @@ The `plans` prop is the presentational `Plan` shape (decoupled from the Flexpric
 fetch raw Flexprice plans/prices/entitlements, map them with the exported adapters:
 
 ```ts
-import { adaptPlanToCard, filterAndSortPlans } from '@flexprice/pricing-ui';
+import { adaptPlanToCard, filterAndSortPlans } from '@flexprice/flexprice-ui';
 
 const cards = filterAndSortPlans(plansWithData, 'USD', 'MONTHLY').map((p) => adaptPlanToCard(p, grants));
 ```

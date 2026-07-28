@@ -5,8 +5,9 @@
  * It ships the theme tokens (light + dark) the components rely on, plus only the Tailwind
  * utilities actually used by the pricing components (scoped via tailwind.flexprice-ui.config.js).
  *
- * Theme it by overriding these CSS variables on a wrapping element, e.g.:
- *   .my-scope { --fp-primary: 243 75% 59%; }
+ * Theme it by overriding these CSS variables on the `.flexprice-ui` element (values are HSL
+ * channels, matching the tokens defined below), e.g.:
+ *   .flexprice-ui { --primary: 243 75% 59%; --radius: 12px; }
  */
 @tailwind base;
 @tailwind components;

@@ -9,11 +9,16 @@ import { PlanType } from '@/constants/planTypes';
 import { createNormalizer } from '@/lib/exportable/validation';
 import type { Plan } from './types';
 
+// `z.coerce.string()` turns `undefined`/`null` into the literal `"undefined"`/`"null"` (and its
+// `.catch('')` never fires because coercion "succeeds"). Preprocess nullish → '' first so missing
+// fields normalize to an empty string.
+const nullishToString = z.preprocess((v) => (v == null ? '' : v), z.coerce.string()).catch('');
+
 const entitlementSchema = z
 	.object({
-		id: z.coerce.string().catch(''),
-		feature_id: z.coerce.string().catch(''),
-		name: z.coerce.string().catch(''),
+		id: nullishToString,
+		feature_id: nullishToString,
+		name: nullishToString,
 		// Unknown/garbage type falls back to a plain static row instead of breaking the renderer.
 		type: z.enum(['STATIC', 'BOOLEAN', 'METERED', 'CONFIG']).catch('STATIC'),
 		// Value can be string | number | boolean | object | null — pass through as-is.
@@ -36,7 +41,7 @@ const priceSchema = z
 
 const creditGrantSchema = z
 	.object({
-		name: z.coerce.string().catch(''),
+		name: nullishToString,
 		credits: z.coerce.number().catch(0),
 		cadence: z.enum(['onetime', 'recurring']).catch('onetime'),
 		period: z.coerce.string().nullish(),
@@ -52,14 +57,24 @@ const creditGrantSchema = z
 export const PlanSchema = z
 	.object({
 		id: z.string().min(1),
-		name: z.coerce.string().catch(''),
-		description: z.coerce.string().catch(''),
-		price: priceSchema.catch({ displayType: PlanType.FIXED }),
-		usageCharges: z.array(z.unknown()).catch([]),
-		entitlements: z.array(entitlementSchema).catch([]),
-		creditGrants: z.array(creditGrantSchema).optional().catch([]),
+		name: nullishToString,
+		description: nullishToString,
+		// Functional catches so every normalized plan gets its OWN fallback object/array — a shared
+		// mutable literal could be aliased across plans (and mutated by a consumer).
+		price: priceSchema.catch(() => ({ displayType: PlanType.FIXED })),
+		usageCharges: z.array(z.unknown()).catch(() => []),
+		entitlements: z.array(entitlementSchema).catch(() => []),
+		creditGrants: z.array(creditGrantSchema).optional().catch(() => []),
 	})
 	.passthrough();
+
+/**
+ * Card variant of {@link PlanSchema} for the single-plan path. `normalizeCardProps` repairs a
+ * missing `id` to `''` so a lone `<PricingCard>` still renders — but `PlanSchema.id` is `min(1)`
+ * and would reject `''`. This schema relaxes only `id` (defaulting to `''`) so the repaired parse
+ * succeeds; the array path keeps the strict `PlanSchema` and still drops id-less plans.
+ */
+export const CardPlanSchema = PlanSchema.extend({ id: nullishToString });
 
 export interface PlanValidationIssue {
 	index: number;
@@ -70,6 +85,8 @@ export interface PlanValidationIssue {
 // (`@/lib/exportable/validation`); the pricing-specific schema, issue shape, and default dev-warn
 // reporter are supplied here.
 const planNormalizer = createNormalizer<Plan>(PlanSchema);
+// Card path uses the id-relaxed schema so the missing-id repair (`''`) parses successfully.
+const cardNormalizer = createNormalizer<Plan>(CardPlanSchema);
 
 /**
  * Validate + normalize an unknown `plans` input into safe `Plan[]`.
@@ -94,5 +111,5 @@ export function normalizePlans(input: unknown, onValidationError?: (issue: PlanV
  * (onSelectPlan, getFeatureHref, flags) pass through untouched.
  */
 export function normalizeCardProps<T extends object>(raw: T): T {
-	return planNormalizer.normalizeOne(raw);
+	return cardNormalizer.normalizeOne(raw);
 }

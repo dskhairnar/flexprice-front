@@ -46,8 +46,10 @@ export function createNormalizer<T>(schema: ZodType): {
 		const result = schema.safeParse(raw);
 		if (result.success) return result.data as unknown as R;
 		// Even a total parse failure yields a renderable shell (schema fields carry `.catch` defaults);
-		// re-parse a repaired object so required fields exist.
-		const repaired = schema.safeParse({ ...(raw as object), id: (raw as { id?: unknown }).id ?? '' });
+		// re-parse a repaired object so required fields exist. Guard against `null`/non-object input
+		// (e.g. `normalizeOne(null)`) so the boundary never throws for external JS consumers.
+		const base = raw != null && typeof raw === 'object' ? (raw as object) : {};
+		const repaired = schema.safeParse({ ...base, id: (base as { id?: unknown }).id ?? '' });
 		return (repaired.success ? (repaired.data as unknown as R) : raw) as R;
 	}
 
