@@ -14,6 +14,13 @@ import { PriceResponse, EntitlementResponse } from '@/types';
 import { PRICE_ENTITY_TYPE, ENTITLEMENT_ENTITY_TYPE, ENTITY_STATUS, CREDIT_GRANT_SCOPE, type CreditGrant } from '@/models';
 import { generateExpandQueryParams } from '@/utils/common/api_helper';
 import { EXPAND } from '@/models/expand';
+import {
+	validateResponseItems,
+	planItemSchema,
+	priceItemSchema,
+	entitlementItemSchema,
+	creditGrantItemSchema,
+} from './pricingResponseSchemas';
 
 const PAGE_SIZE = 500;
 /** Per-plan list calls match PlanCreditGrantsTab; multi-ID GET can be unreliable on some backends. */
@@ -156,11 +163,17 @@ export function usePricingData({ limit, offset, page }: UsePricingDataArgs): Use
 		enabled: hasPlans,
 	});
 
+	// Validate each API response before it enters the adapters/transforms. Malformed rows are
+	// dropped (logged in dev) rather than crashing the pricing page.
+	const validatedPlans = validateResponseItems(planItemSchema, plansData, 'plans');
+
 	return {
-		plansData,
-		allPrices: allPricesData?.items ?? [],
-		allEntitlements: allEntitlementsData?.items ?? [],
-		creditGrants: planCreditGrantsData?.items ?? [],
+		// Casts go through `unknown`: the lenient validation schemas intentionally don't restate the
+		// full domain types — they gate the crash-prone fields and pass everything else through.
+		plansData: plansData ? ({ ...plansData, items: validatedPlans } as unknown as GetAllPlansResponse) : undefined,
+		allPrices: validateResponseItems(priceItemSchema, allPricesData, 'prices') as unknown as PriceResponse[],
+		allEntitlements: validateResponseItems(entitlementItemSchema, allEntitlementsData, 'entitlements') as unknown as EntitlementResponse[],
+		creditGrants: validateResponseItems(creditGrantItemSchema, planCreditGrantsData, 'creditGrants') as unknown as CreditGrant[],
 		isLoading: isLoadingPlans || isLoadingPrices || isLoadingEntitlements || isLoadingPlanCreditGrants,
 		isError: isErrorPlans || isErrorPrices || isErrorEntitlements || isErrorPlanCreditGrants,
 	};

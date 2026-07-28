@@ -31,7 +31,7 @@ const PricingTable: FC<PricingTableProps> = ({
 	const safePlans = useMemo(() => normalizePlans(plans, onValidationError), [plans, onValidationError]);
 
 	return (
-		<div className={cn('flex flex-col gap-6', className)}>
+		<div className={cn('flexprice-ui', 'flex flex-col gap-6', className)}>
 			{!hideFilters && (
 				<div className='flex w-full justify-start gap-4'>
 					<Select

@@ -12,7 +12,23 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
+/*
+ * Minimal reset, scoped to the widget subtree only (Tailwind Preflight is disabled for this
+ * build so the package never resets a host page's styles). Covers what the components rely on:
+ * border-box sizing and neutral borders.
+ */
+.flexprice-ui,
+.flexprice-ui *,
+.flexprice-ui *::before,
+.flexprice-ui *::after {
+	box-sizing: border-box;
+	border-width: 0;
+	border-style: solid;
+	border-color: hsl(var(--border));
+}
+
+/* Theme tokens are scoped to the widget wrapper (not :root), so they can't leak onto host UI. */
+.flexprice-ui {
 	--background: 0 0% 100%;
 	--foreground: 0 0% 3.9%;
 	--card: 0 0% 100%;
@@ -46,7 +62,9 @@
 	--radius: 6px;
 }
 
-.dark {
+/* Dark tokens apply when the widget wrapper itself has `.dark`, or any ancestor does. */
+.flexprice-ui.dark,
+.dark .flexprice-ui {
 	--background: 240 3% 6%;
 	--foreground: 220 10% 94%;
 	--card: 240 3% 12%;

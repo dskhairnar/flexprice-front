@@ -306,6 +306,7 @@ const PricingCard: React.FC<PricingCardProps> = (rawProps) => {
 	return (
 		<div
 			className={cn(
+				'flexprice-ui',
 				'border transition-all shadow-md',
 				visualModern
 					? 'rounded-2xl border-slate-200/90 bg-gradient-to-b from-white to-slate-50/90 p-5 shadow-sm ring-1 ring-slate-100 hover:border-slate-300/90'
@@ -408,12 +409,13 @@ const PricingCard: React.FC<PricingCardProps> = (rawProps) => {
 				)}
 			</div>
 
-			{/* View plan — below price, above included / credits */}
-			{!isSetupPreview && (
+			{/* View plan — below price, above included / credits. Only rendered when a consumer wires
+			    `onSelectPlan`, so the CTA is never an enabled no-op. */}
+			{!isSetupPreview && onSelectPlan && (
 				<div className={cn(visualModern ? 'mt-5' : 'mt-6')}>
 					<Button
 						onClick={() => {
-							onSelectPlan?.(id);
+							onSelectPlan(id);
 						}}
 						className={cn(
 							'w-full py-3 text-sm font-medium transition-colors',

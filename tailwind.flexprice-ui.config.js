@@ -7,13 +7,19 @@
 // Thin consumer of the shared library Tailwind template in tailwind.lib.base.js.
 import { createLibTailwindConfig } from './tailwind.lib.base.js';
 
-export default createLibTailwindConfig([
-	'./src/exportable/**/*.{ts,tsx}',
-	// Pricing widget + the shared atoms/ui it renders.
-	'./src/pricing/**/*.{ts,tsx}',
-	'./src/components/molecules/PricingCard/**/*.{ts,tsx}',
-	'./src/components/ui/**/*.{ts,tsx}',
-	'./src/components/atoms/Select/**/*.{ts,tsx}',
-	'./src/components/atoms/Input/**/*.{ts,tsx}',
-	'./src/components/atoms/Label/**/*.{ts,tsx}',
-]);
+export default {
+	...createLibTailwindConfig([
+		'./src/exportable/**/*.{ts,tsx}',
+		// Pricing widget + the shared atoms/ui it renders.
+		'./src/pricing/**/*.{ts,tsx}',
+		'./src/components/molecules/PricingCard/**/*.{ts,tsx}',
+		'./src/components/ui/**/*.{ts,tsx}',
+		'./src/components/atoms/Select/**/*.{ts,tsx}',
+		'./src/components/atoms/Input/**/*.{ts,tsx}',
+		'./src/components/atoms/Label/**/*.{ts,tsx}',
+	]),
+	// Do NOT ship Tailwind's global Preflight into a consumer's page — it would reset the host's
+	// margins, headings, borders, etc. The package instead scopes its own minimal reset + theme
+	// tokens under the `.flexprice-ui` wrapper class (see src/exportable/styles.css).
+	corePlugins: { preflight: false },
+};
