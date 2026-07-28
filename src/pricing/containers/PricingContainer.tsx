@@ -1,4 +1,4 @@
-import { FC, ReactNode, useEffect, useMemo, useState } from 'react';
+import { FC, ReactNode, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Loader, Select } from '@/components/atoms';
 import usePagination from '@/hooks/usePagination';
@@ -95,8 +95,19 @@ const PricingContainer: FC<PricingContainerProps> = ({ onSelectPlan, getFeatureH
 		return filtered.map((plan) => adaptPlanToCard(plan, grantsByPlanId.get(plan.id) ?? []));
 	}, [plansWithData, selectedCurrency, selectedBillingPeriod, grantsByPlanId]);
 
+	// Report each error episode exactly once — even if `onError`'s identity changes (e.g. an inline
+	// arrow re-created every render) while `isError` stays true. The ref resets when the error
+	// clears, so a later, distinct error episode is reported again.
+	const errorReportedRef = useRef(false);
 	useEffect(() => {
-		if (isError) onError?.();
+		if (isError) {
+			if (!errorReportedRef.current) {
+				errorReportedRef.current = true;
+				onError?.();
+			}
+		} else {
+			errorReportedRef.current = false;
+		}
 	}, [isError, onError]);
 
 	const filters = (

@@ -439,7 +439,8 @@
 			"noWidget": "No Pricing Widget Exists",
 			"widgetsPageTitle": "Pricing Widgets",
 			"selectBillingPeriod": "Select billing period",
-			"selectCurrency": "Select currency"
+			"selectCurrency": "Select currency",
+			"fetchError": "Error fetching plans"
 		},
 		"organisms": {
 			"chargeLabels": {

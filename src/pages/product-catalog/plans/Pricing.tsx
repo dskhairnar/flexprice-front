@@ -44,7 +44,7 @@ const PricingPage = () => {
 				onSelectPlan={(planId) => navigate(`${RouteNames.plan}/${planId}`)}
 				getFeatureHref={(featureId) => `${RouteNames.featureDetails}/${featureId}`}
 				renderEmpty={renderEmpty}
-				onError={() => toast.error(t('catalog:plans.pricing.fetchError', 'Error fetching plans'))}>
+				onError={() => toast.error(t('catalog:plans.pricing.fetchError'))}>
 				{({ status, filters, content }) => (
 					<Page
 						headingClassName='items-center'

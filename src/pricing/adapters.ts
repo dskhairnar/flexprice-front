@@ -73,6 +73,8 @@ export const findBestPriceCombination = (
 	let bestCurrency = '';
 	let bestPeriod = '';
 
+	// Preferred: the recurring-price combination that shows the MOST plans (not merely the first
+	// non-empty one), so the default view maximizes visible plans.
 	for (const currency of availableCurrencyOptions) {
 		for (const period of availablePeriodOptions) {
 			const testFiltered = plans
@@ -85,10 +87,16 @@ export const findBestPriceCombination = (
 				}))
 				.filter((plan) => plan.prices && plan.prices.length > 0);
 
-			if (testFiltered.length > 0) {
-				return { currency: currency.value, period: period.value, hasPreferred: true };
+			if (testFiltered.length > maxPlans) {
+				maxPlans = testFiltered.length;
+				bestCurrency = currency.value;
+				bestPeriod = period.value;
 			}
 		}
+	}
+
+	if (maxPlans > 0) {
+		return { currency: bestCurrency, period: bestPeriod, hasPreferred: true };
 	}
 
 	for (const currency of availableCurrencyOptions) {

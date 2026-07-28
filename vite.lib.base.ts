@@ -64,13 +64,20 @@ export function createLibConfig(opts: CreateLibConfigOptions): UserConfig {
 				entry: resolve(__dirname, entry),
 				name,
 				formats: ['es', 'umd'],
-				fileName: (format) => (format === 'es' ? `${fileName}.mjs` : `${fileName}.umd.js`),
+				// UMD is emitted as `.cjs` so a CommonJS `require()` consumer loads it correctly under
+				// this package's `"type": "module"` (a `.js` UMD file would be parsed as ESM and throw).
+				fileName: (format) => (format === 'es' ? `${fileName}.mjs` : `${fileName}.cjs`),
 				cssFileName: 'style',
 			},
 			rollupOptions: {
-				external: ['react', 'react-dom', 'react/jsx-runtime'],
+				// Only react / react-dom are peer externals. `react/jsx-runtime` is intentionally NOT
+				// externalized: the automatic JSX runtime has no UMD/global equivalent, so externalizing
+				// it produces a broken UMD/CJS bundle ("jsxRuntime is not defined"). Bundling its tiny
+				// shim (which defers to the external React) keeps the UMD build valid without forcing the
+				// whole codebase onto the classic runtime.
+				external: ['react', 'react-dom'],
 				output: {
-					globals: { react: 'React', 'react-dom': 'ReactDOM', 'react/jsx-runtime': 'jsxRuntime' },
+					globals: { react: 'React', 'react-dom': 'ReactDOM' },
 				},
 			},
 		},

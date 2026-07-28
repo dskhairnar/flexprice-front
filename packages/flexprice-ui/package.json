@@ -7,14 +7,14 @@
 	"sideEffects": [
 		"**/*.css"
 	],
-	"main": "./dist/flexprice-ui.umd.js",
+	"main": "./dist/flexprice-ui.cjs",
 	"module": "./dist/flexprice-ui.mjs",
 	"types": "./dist/flexprice-ui.d.mts",
 	"exports": {
 		".": {
 			"types": "./dist/flexprice-ui.d.mts",
 			"import": "./dist/flexprice-ui.mjs",
-			"require": "./dist/flexprice-ui.umd.js"
+			"require": "./dist/flexprice-ui.cjs"
 		},
 		"./style.css": "./dist/style.css"
 	},

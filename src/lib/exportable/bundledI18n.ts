@@ -29,8 +29,16 @@ export function createBundledT<N extends string>(namespace: N, resources: Record
 	/** `t` for the component: the host's when it can serve the `namespace` bundle, else bundled defaults. */
 	function useBoundT(): TFunction<N> {
 		const { t, i18n } = useTranslation(namespace);
+		// Check the whole resolved fallback chain, not just the active language: a host on e.g.
+		// `en-GB` with resources under `en` can still serve the namespace via fallback, so we must
+		// keep the host translator. `i18n.languages` is that ordered chain; fall back to the single
+		// language (or resolvedLanguage) if it's unavailable.
+		const chain = i18n?.languages ?? [i18n?.resolvedLanguage ?? i18n?.language].filter(Boolean);
 		const hostCanServe =
-			!!i18n && i18n.isInitialized && typeof i18n.hasResourceBundle === 'function' && i18n.hasResourceBundle(i18n.language, namespace);
+			!!i18n &&
+			i18n.isInitialized &&
+			typeof i18n.hasResourceBundle === 'function' &&
+			chain.some((lng) => i18n.hasResourceBundle(lng as string, namespace));
 		return hostCanServe ? (t as TFunction<N>) : fallbackT;
 	}
 
