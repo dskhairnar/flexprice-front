@@ -6,7 +6,6 @@ import { AlertCircle, ArrowLeft, Bug, Code, Github, Home, Linkedin, MessageSquar
 import { Button } from '@/components/atoms';
 import { RouteNames } from '@/core/routes/Routes';
 import { Link } from 'react-router';
-import * as Sentry from '@sentry/react';
 import { config } from '@/config/config';
 import toast from 'react-hot-toast';
 
@@ -17,39 +16,16 @@ interface ErrorInfo {
 // Generate a unique error ID
 const generateErrorId = () => `err_${Date.now()}_${Math.random().toString(36).substring(2, 8)}`;
 
-// Log error to console in development and to Sentry in production
+// Log error to console
 const logError = (error: Error, info?: ErrorInfo, metadata?: Record<string, any>) => {
 	const errorId = generateErrorId();
-	const isProd = config.app.isProd;
 
-	if (!isProd) {
-		console.error('[ErrorBoundary]', {
-			error,
-			componentStack: info?.componentStack,
-			errorId,
-			...metadata,
-		});
-	} else {
-		// Send to Sentry in production
-		Sentry.withScope((scope) => {
-			// Add error ID and component stack
-			scope.setTag('errorId', errorId);
-
-			if (info?.componentStack) {
-				scope.setExtra('componentStack', info.componentStack);
-			}
-
-			// Add any additional metadata
-			if (metadata) {
-				Object.entries(metadata).forEach(([key, value]) => {
-					scope.setExtra(key, value);
-				});
-			}
-
-			// Capture the exception
-			Sentry.captureException(error);
-		});
-	}
+	console.error('[ErrorBoundary]', {
+		error,
+		componentStack: info?.componentStack,
+		errorId,
+		...metadata,
+	});
 
 	return errorId;
 };

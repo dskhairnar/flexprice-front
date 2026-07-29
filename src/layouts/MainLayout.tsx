@@ -8,7 +8,6 @@ import AppPrefetcher from '@/components/organisms/AppPrefetcher';
 import useUser from '@/hooks/useUser';
 import posthog from 'posthog-js';
 import { useEffect } from 'react';
-import * as Sentry from '@sentry/react';
 
 const MainLayout: React.FC = () => {
 	const { user } = useUser();
@@ -25,20 +24,6 @@ const MainLayout: React.FC = () => {
 			tenant_name: user.tenant?.name,
 		});
 
-		Sentry.setUser({
-			id: user.id,
-			email: user.email,
-			name: user.tenant?.name,
-			tenant_id: user.tenant?.id,
-			tenant_name: user.tenant?.name,
-		});
-
-		Sentry.setContext('tenant', {
-			created_at: user.tenant?.created_at,
-			tenant_id: user.tenant?.id,
-			tenant_name: user.tenant?.name,
-		});
-
 		if (window.Reo) {
 			window.Reo.identify({
 				username: user.email,
@@ -51,7 +36,6 @@ const MainLayout: React.FC = () => {
 
 	useEffect(() => {
 		if (!user && config.app.isProd) {
-			Sentry.setUser(null);
 			posthog.reset();
 		}
 	}, [user]);

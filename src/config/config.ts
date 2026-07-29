@@ -44,10 +44,6 @@ interface AuthConfig {
 	url: string;
 	anonKey: string;
 }
-interface SentryConfig {
-	enabled: boolean;
-	dsn: string;
-}
 interface PosthogConfig {
 	enabled: boolean;
 	key: string;
@@ -249,7 +245,6 @@ export interface Config {
 	app: AppConfig;
 	api: ApiConfig;
 	auth: AuthConfig;
-	sentry: SentryConfig;
 	posthog: PosthogConfig;
 	paddle: PaddleConfig;
 	intercom: IntercomConfig;
@@ -307,10 +302,6 @@ export const config: Config = {
 		provider: (import.meta.env.VITE_AUTH_PROVIDER ?? AUTH_PROVIDER.Supabase) as AUTH_PROVIDER,
 		url: import.meta.env.VITE_SUPABASE_URL ?? '',
 		anonKey: import.meta.env.VITE_SUPABASE_ANON_KEY ?? '',
-	},
-	sentry: {
-		enabled: import.meta.env.VITE_SENTRY_ENABLED === 'true',
-		dsn: import.meta.env.VITE_SENTRY_DSN ?? import.meta.env.VITE_APP_PUBLIC_SENTRY_DSN ?? '',
 	},
 	posthog: {
 		enabled: import.meta.env.VITE_POSTHOG_ENABLED === 'true',

@@ -1,5 +1,4 @@
 import { config } from '@/config/config';
-import * as Sentry from '@sentry/react';
 import posthog from 'posthog-js';
 
 /**
@@ -67,22 +66,8 @@ export class ErrorLoggingService {
 			console.error('[ErrorLoggingService]', errorPayload);
 		}
 
-		// Log to Sentry in production
+		// Log to PostHog in production
 		if (this.isProd) {
-			Sentry.withScope((scope) => {
-				scope.setExtra('errorId', errorId);
-				scope.setExtra('componentStack', errorInfo?.componentStack);
-
-				if (additionalData) {
-					Object.entries(additionalData).forEach(([key, value]) => {
-						scope.setExtra(key, value);
-					});
-				}
-
-				Sentry.captureException(error);
-			});
-
-			// Log to PostHog
 			posthog.capture('$exception', errorPayload);
 		}
 

@@ -91,7 +91,6 @@ src/
 | Recharts | Data visualization |
 | Zod | Schema validation |
 | Supabase | Authentication |
-| Sentry | Error monitoring |
 
 ## Development Conventions
 
