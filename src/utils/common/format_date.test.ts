@@ -29,13 +29,12 @@ describe('formatBillingPeriodDate / formatBillingPeriod (Asia/Kolkata)', () => {
 		expect(formatBillingPeriodDate('2025-07-30T18:30:00.000Z', 'utc')).toBe('30 Jul');
 	});
 
-	test('formats exclusive end in local time (not UTC)', () => {
-		// Exclusive end at 31 Jul 00:00 UTC → last included instant is still 31 Jul in IST
-		expect(formatBillingPeriod('2025-07-01T00:00:00.000Z', '2025-07-31T00:00:00.000Z')).toBe('1 Jul - 31 Jul');
+	test('formats IST-aligned invoice period as local calendar days (no exclusive-end shift)', () => {
+		// API: 1 Jul 00:00 IST → 31 Jul 00:00 IST
+		expect(formatBillingPeriod('2026-06-30T18:30:00.000Z', '2026-07-30T18:30:00.000Z')).toBe('1 Jul - 31 Jul');
 	});
 
-	test('IST-aligned exclusive month end shows last included day', () => {
-		// [1 Jul 00:00 IST, 1 Aug 00:00 IST)
-		expect(formatBillingPeriod('2025-06-30T18:30:00.000Z', '2025-07-31T18:30:00.000Z')).toBe('1 Jul - 31 Jul');
+	test('formats UTC midnight bounds in local time', () => {
+		expect(formatBillingPeriod('2025-07-01T00:00:00.000Z', '2025-07-31T00:00:00.000Z')).toBe('1 Jul - 31 Jul');
 	});
 });

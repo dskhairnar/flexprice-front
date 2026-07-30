@@ -203,8 +203,7 @@ export function formatBillingPeriodDate(date: string | Date, zone: DateTimezone 
 	return `${day} ${month}`;
 }
 
-/** Format a billing period as "7 Mar - 8 Dec". Both ends use the user's local timezone so IST (etc.) midnight boundaries (e.g. `…T18:30:00Z`) map to the intended calendar day. End date is shown as periodEnd - 1 second (exclusive end → last included day). */
+/** Format a billing period as "7 Mar - 8 Dec". Both ends use the user's local timezone so IST (etc.) midnight boundaries (e.g. `…T18:30:00Z`) map to the intended calendar day. */
 export function formatBillingPeriod(periodStart: string, periodEnd: string): string {
-	const endMinusOneSec = new Date(new Date(periodEnd).getTime() - 1000).toISOString();
-	return `${formatBillingPeriodDate(periodStart, 'local')} - ${formatBillingPeriodDate(endMinusOneSec, 'local')}`;
+	return `${formatBillingPeriodDate(periodStart, 'local')} - ${formatBillingPeriodDate(periodEnd, 'local')}`;
 }
