@@ -181,6 +181,7 @@ const FilterPopover: React.FC<Props> = ({ fields, value = [], onChange, classNam
 						popoverContentClassName='w-full !z-[110]'
 						className={cn(inputProps.className, 'h-9 text-xs')}
 						placeholder={t('queryBuilder.selectDate')}
+						clearable
 					/>
 				),
 				[FilterFieldType.RADIO]: (

@@ -11,6 +11,7 @@ import InvoiceStatusModal from './InvoiceStatusModal';
 import InvoicePaymentStatusModal from './InvoicePaymentStatusModal';
 import { useNavigate } from 'react-router';
 import { refetchQueries } from '@/core/services/tanstack/ReactQueryProvider';
+import { refetchInvoiceQueries } from '@/core/services/tanstack/queryKeys';
 import { PAYMENT_DESTINATION_TYPE } from '@/models/Payment';
 import { PAYMENT_STATUS } from '@/constants';
 import { RouteNames } from '@/core/routes/Routes';
@@ -29,9 +30,7 @@ const InvoiceTableMenu: FC<Props> = ({ data }) => {
 		},
 		onSuccess: () => {
 			toast.success('Communication triggered');
-			refetchQueries(['fetchInvoice', data.id]);
-			refetchQueries(['fetchInvoices']);
-			refetchQueries(['invoice', data.customer_id]);
+			void refetchInvoiceQueries();
 		},
 		onError: (error: Error) => {
 			toast.error(error.message || 'Unable to trigger communication');
@@ -73,9 +72,7 @@ const InvoiceTableMenu: FC<Props> = ({ data }) => {
 		},
 		onSuccess: () => {
 			toast.success('Invoice recalculation has been triggered. The replacement invoice will be available once the process completes.');
-			refetchQueries(['fetchInvoice', data.id]);
-			refetchQueries(['fetchInvoices']);
-			refetchQueries(['invoice', data.customer_id]);
+			void refetchInvoiceQueries();
 		},
 		onError: (error: Error) => {
 			toast.error(error.message || 'Unable to recalculate invoice');
@@ -184,10 +181,8 @@ const InvoiceTableMenu: FC<Props> = ({ data }) => {
 		},
 	];
 	const handlePaymentSuccess = () => {
-		refetchQueries(['fetchInvoice', data.id]);
-		refetchQueries(['payments', data.id]);
-		refetchQueries(['fetchInvoices']);
-		refetchQueries(['invoice', data.customer_id]);
+		void refetchInvoiceQueries();
+		void refetchQueries(['payments', data.id]);
 	};
 	return (
 		<div>

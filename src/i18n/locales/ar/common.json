@@ -255,7 +255,8 @@
 		"timezoneLocal": "محلي",
 		"timezoneUtc": "UTC",
 		"timezoneSectionAriaLabel": "المنطقة الزمنية",
-		"timezoneSectionLabel": "المنطقة الزمنية"
+		"timezoneSectionLabel": "المنطقة الزمنية",
+		"clear": "مسح التاريخ"
 	},
 	"breadcrumb": {
 		"navAriaLabel": "مسار التنقل",

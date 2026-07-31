@@ -1,5 +1,5 @@
 import { Button, CheckboxRadioGroupItem, FormHeader, Modal, Select, Spacer, Input, Textarea } from '@/components/atoms';
-import { refetchQueries } from '@/core/services/tanstack/ReactQueryProvider';
+import { refetchInvoiceQueries } from '@/core/services/tanstack/queryKeys';
 import { Invoice } from '@/models/Invoice';
 import InvoiceApi from '@/api/InvoiceApi';
 import { useMutation } from '@tanstack/react-query';
@@ -90,9 +90,7 @@ const InvoiceStatusModal: FC<InvoiceStatusProps> = ({ isOpen, onOpenChange, invo
 		},
 		async onSuccess() {
 			toast.success('Invoice status updated successfully');
-			await refetchQueries(['fetchInvoices']);
-			await refetchQueries(['fetchInvoice']);
-			await refetchQueries(['invoice']);
+			await refetchInvoiceQueries();
 		},
 		onError: (error: Error) => {
 			toast.error(error.message || 'Failed to update invoice status');

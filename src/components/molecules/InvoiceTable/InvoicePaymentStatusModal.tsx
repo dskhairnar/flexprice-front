@@ -1,5 +1,5 @@
 import { Button, CheckboxRadioGroupItem, FormHeader, Modal, Select, Spacer } from '@/components/atoms';
-import { refetchQueries } from '@/core/services/tanstack/ReactQueryProvider';
+import { refetchInvoiceQueries } from '@/core/services/tanstack/queryKeys';
 import { Invoice, INVOICE_STATUS } from '@/models/Invoice';
 import InvoiceApi from '@/api/InvoiceApi';
 import { useMutation } from '@tanstack/react-query';
@@ -74,8 +74,7 @@ const InvoicePaymentStatusModal: FC<Props> = ({ isOpen, onOpenChange, invoice })
 		},
 		async onSuccess() {
 			toast.success(t('invoices.details.paymentStatusModal.toastSuccess'));
-			await refetchQueries(['fetchInvoices']);
-			await refetchQueries(['fetchInvoice']);
+			await refetchInvoiceQueries();
 		},
 		onError(error: Error) {
 			toast.error(error.message || t('invoices.details.paymentStatusModal.toastError'));

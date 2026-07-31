@@ -15,6 +15,7 @@ import DropdownMenu, { DropdownMenuOption, getCopyIdOption } from '@/components/
 import { AlertSettingsDialog } from '@/components/molecules';
 import { ALERT_ENTITY_TYPE } from '@/models/AlertSetting';
 import { refetchQueries } from '@/core/services/tanstack/ReactQueryProvider';
+import { refetchSubscriptionQueries } from '@/core/services/tanstack/queryKeys';
 import { isInheritedSubscription } from '@/utils/subscription/isInheritedSubscription';
 import { useNavigate } from 'react-router';
 import { RouteNames } from '@/core/routes/Routes';
@@ -121,8 +122,7 @@ const SubscriptionActionButton: React.FC<Props> = ({ subscription }) => {
 		onSuccess: async () => {
 			resetCancelState();
 			toast.success('Subscription cancelled successfully');
-			await refetchQueries(['subscriptionDetails']);
-			await refetchQueries(['subscriptions']);
+			await refetchSubscriptionQueries();
 		},
 		onError: (err: Error) => {
 			resetCancelState();
@@ -138,8 +138,7 @@ const SubscriptionActionButton: React.FC<Props> = ({ subscription }) => {
 		onSuccess: async () => {
 			setState((prev) => ({ ...prev, isActivateModalOpen: false }));
 			toast.success('Subscription activated successfully');
-			await refetchQueries(['subscriptionDetails']);
-			await refetchQueries(['subscriptions']);
+			await refetchSubscriptionQueries();
 			await refetchQueries(['subscriptionInvoices']);
 		},
 		onError: (error: Error) => {
@@ -273,6 +272,7 @@ const SubscriptionActionButton: React.FC<Props> = ({ subscription }) => {
 									popoverContentClassName='!w-full'
 									placeholder={t('customers:organisms.subscriptionAction.selectCancellationDate')}
 									minDate={minCancelScheduledAt}
+									clearable
 								/>
 							</div>
 						)}

@@ -273,7 +273,8 @@
 		"timezoneLocal": "Local",
 		"timezoneUtc": "UTC",
 		"timezoneSectionAriaLabel": "Timezone",
-		"timezoneSectionLabel": "Timezone"
+		"timezoneSectionLabel": "Timezone",
+		"clear": "Clear date"
 	},
 	"breadcrumb": {
 		"navAriaLabel": "breadcrumb",

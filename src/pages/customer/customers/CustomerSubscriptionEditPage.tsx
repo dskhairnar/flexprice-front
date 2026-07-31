@@ -49,6 +49,7 @@ import { isInheritedSubscription } from '@/utils/subscription/isInheritedSubscri
 import { getPriceTypeFromLineItem, lineItemToPrice } from '@/utils/subscription/lineItemToPrice';
 import { RouteNames } from '@/core/routes/Routes';
 import { refetchQueries } from '@/core/services/tanstack/ReactQueryProvider';
+import { refetchSubscriptionQueries } from '@/core/services/tanstack/queryKeys';
 import { ENTITY_STATUS, CreditGrant, CREDIT_GRANT_SCOPE } from '@/models';
 import { useSubscriptionEditCoreQuery } from '@/hooks/useSubscriptionEditCoreQuery';
 import { subscriptionEditInheritedQueryKey, subscriptionEditScopeQueryKey } from '@/utils/subscription/subscriptionEditQueryKeys';
@@ -243,7 +244,7 @@ const CustomerSubscriptionEditPage: React.FC = () => {
 		onSuccess: () => {
 			toast.success(t('subscriptionEdit.toast.subscriptionUpdated'));
 			invalidateSubscriptionEdit();
-			refetchQueries(['subscriptions']);
+			void refetchSubscriptionQueries();
 			setUpdateSubscriptionDrawerOpen(false);
 		},
 		onError: (error: Error) => {
