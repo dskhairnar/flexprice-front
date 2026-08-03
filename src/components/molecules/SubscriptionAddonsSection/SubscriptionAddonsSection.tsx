@@ -6,7 +6,7 @@ import { Trash2, Copy } from 'lucide-react';
 import { Button, Card, CardHeader, Chip, DatePicker, Dialog, AddButton, Select, Tooltip, NoDataCard } from '@/components/atoms';
 import { FlexpriceTable, ColumnData } from '@/components/molecules';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { BsThreeDotsVertical } from 'react-icons/bs';
+import { BsThreeDots } from 'react-icons/bs';
 import SubscriptionApi from '@/api/SubscriptionApi';
 import { ADDON_ASSOCIATION_STATUS } from '@/models/AddonAssociation';
 import { AddonAssociationResponse } from '@/types/dto/Subscription';
@@ -323,7 +323,7 @@ const SubscriptionAddonsSection: FC<SubscriptionAddonsSectionProps> = ({
 							<DropdownMenu open={dropdownOpen === row.id} onOpenChange={(open) => setDropdownOpen(open ? row.id : null)}>
 								<DropdownMenuTrigger asChild>
 									<button className='focus:outline-none'>
-										<BsThreeDotsVertical className='text-base text-muted-foreground hover:text-foreground transition-colors' />
+										<BsThreeDots className='text-base text-muted-foreground hover:text-foreground transition-colors' />
 									</button>
 								</DropdownMenuTrigger>
 								<DropdownMenuContent align='end'>

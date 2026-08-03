@@ -1,7 +1,7 @@
 import { FC, useCallback, useMemo, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { ExternalLink } from 'lucide-react';
-import { BsThreeDotsVertical } from 'react-icons/bs';
+import { BsThreeDots } from 'react-icons/bs';
 import toast from 'react-hot-toast';
 import { useTranslation } from 'react-i18next';
 import { Button, Card, CardHeader, Dialog, Input } from '@/components/atoms';
@@ -290,7 +290,7 @@ const IntegrationMappingCard: FC<IntegrationMappingCardProps> = ({
 										type='button'
 										aria-label={t('integrations.actions')}
 										className='rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring'>
-										<BsThreeDotsVertical className='text-base text-muted-foreground hover:text-foreground transition-colors' />
+										<BsThreeDots className='text-base text-muted-foreground hover:text-foreground transition-colors' />
 									</button>
 								</DropdownMenuTrigger>
 								<DropdownMenuContent align='end'>
