@@ -164,6 +164,7 @@ const getEntitlementColumns = (
 					}}
 					refetchQueryKey='fetchAddon'
 					entityName={row?.feature?.name}
+					edit={{ enabled: false }}
 					archive={{
 						enabled: row?.status !== ENTITY_STATUS.ARCHIVED,
 						text: 'Delete',
