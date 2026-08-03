@@ -9,6 +9,7 @@ import { Settings, Landmark, Layers2, CodeXml, Puzzle, GalleryHorizontalEnd, Hom
 import { cn } from '@/lib/utils';
 import { useLocaleStore } from '@/store/useLocaleStore';
 import { Direction } from '@/config/branding';
+import { config } from '@/config/config';
 
 const AppSidebar: React.FC<React.ComponentProps<typeof Sidebar>> = ({ ...props }) => {
 	const { t } = useTranslation('common');
@@ -89,11 +90,15 @@ const AppSidebar: React.FC<React.ComponentProps<typeof Sidebar>> = ({ ...props }
 					},
 				],
 			},
-			{
-				title: t('sidebar.nav.revenue'),
-				url: RouteNames.revenue,
-				icon: BarChart3,
-			},
+			...(config.platform.revenue.enabled
+				? [
+						{
+							title: t('sidebar.nav.revenue'),
+							url: RouteNames.revenue,
+							icon: BarChart3,
+						},
+					]
+				: []),
 
 			{
 				title: t('sidebar.nav.tools'),

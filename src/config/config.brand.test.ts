@@ -193,6 +193,7 @@ describe('config object', () => {
 		expect(typeof config.platform.contact_us.enabled).toBe('boolean');
 		expect(typeof config.platform.production.enabled).toBe('boolean');
 		expect(typeof config.platform.signup.enabled).toBe('boolean');
+		expect(typeof config.platform.revenue.enabled).toBe('boolean');
 	});
 });
 
@@ -207,17 +208,19 @@ describe('parsePlatformConfig', () => {
 		expect(result.contact_us.enabled).toBe(false);
 		expect(result.production.enabled).toBe(false);
 		expect(result.signup.enabled).toBe(true);
+		expect(result.revenue.enabled).toBe(true);
 	});
 
 	it('applies per-feature overrides from VITE_PLATFORM_CONFIG JSON', async () => {
 		const { parsePlatformConfig } = await import('./config');
 		const result = parsePlatformConfig(
-			'{"api_reference":{"enabled":false},"sidebar_documentation":{"enabled":false},"guides":{"enabled":false},"onboarding":{"enabled":false}}',
+			'{"api_reference":{"enabled":false},"sidebar_documentation":{"enabled":false},"guides":{"enabled":false},"onboarding":{"enabled":false},"revenue":{"enabled":false}}',
 		);
 		expect(result.api_reference.enabled).toBe(false);
 		expect(result.sidebar_documentation.enabled).toBe(false);
 		expect(result.guides.enabled).toBe(false);
 		expect(result.onboarding.enabled).toBe(false);
+		expect(result.revenue.enabled).toBe(false);
 	});
 
 	it('leaves unspecified keys enabled when only some features are set in env', async () => {
@@ -227,6 +230,7 @@ describe('parsePlatformConfig', () => {
 		expect(result.sidebar_documentation.enabled).toBe(true);
 		expect(result.guides.enabled).toBe(false);
 		expect(result.onboarding.enabled).toBe(true);
+		expect(result.revenue.enabled).toBe(true);
 	});
 
 	it('falls back to defaults when JSON is invalid', async () => {
@@ -236,6 +240,7 @@ describe('parsePlatformConfig', () => {
 		expect(result.onboarding.enabled).toBe(true);
 		expect(result.contact_us.enabled).toBe(false);
 		expect(result.signup.enabled).toBe(true);
+		expect(result.revenue.enabled).toBe(true);
 	});
 
 	it('enables contact_us from boolean or enabled object', async () => {

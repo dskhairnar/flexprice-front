@@ -5,6 +5,7 @@ import { useUser } from '@/hooks/UserContext';
 import { TenantMetadataKey } from '@/models/Tenant';
 import { Suspense } from 'react';
 import { Loader } from '@/components/atoms';
+import { config } from '@/config/config';
 import {
 	// Auth pages
 	Auth,
@@ -510,10 +511,14 @@ export const MainRouter: any = createBrowserRouter([
 				path: RouteNames.pricing,
 				element: <PricingPage />,
 			},
-			{
-				path: RouteNames.revenue,
-				element: <Revenue />,
-			},
+			...(config.platform.revenue.enabled
+				? [
+						{
+							path: RouteNames.revenue,
+							element: <Revenue />,
+						},
+					]
+				: []),
 			{
 				path: RouteNames.developers,
 				children: [

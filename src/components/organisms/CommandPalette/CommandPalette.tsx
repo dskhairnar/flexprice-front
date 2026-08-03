@@ -5,8 +5,14 @@ import { useNavigate } from 'react-router';
 import { defaultFilter } from 'cmdk';
 import { CommandPaletteDialog, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command-palette';
 
-import { commandPaletteCommands, COMMAND_PALETTE_INITIAL_SUGGESTED_IDS, CommandPaletteGroup } from '@/config/command-palette';
+import {
+	commandPaletteCommands,
+	COMMAND_PALETTE_INITIAL_SUGGESTED_IDS,
+	CommandPaletteCommandId,
+	CommandPaletteGroup,
+} from '@/config/command-palette';
 import { isIntercomMessengerAvailable } from '@/config/intercom';
+import { config } from '@/config/config';
 import {
 	dispatchCommandPaletteAction,
 	getCommandPaletteActionEventName,
@@ -68,6 +74,9 @@ const CommandPalette = () => {
 		return commandPaletteCommands.filter((cmd) => {
 			if (cmd.actionId && isCommandPaletteActionDevOnly(cmd.actionId)) return isDevelopment;
 			if (cmd.actionId === CommandPaletteActionId.OpenIntercom && !isIntercomMessengerAvailable()) {
+				return false;
+			}
+			if (cmd.id === CommandPaletteCommandId.navToolsRevenue && !config.platform.revenue.enabled) {
 				return false;
 			}
 			return true;
