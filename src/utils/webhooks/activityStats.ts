@@ -58,9 +58,12 @@ export async function fetchWebhookActivity(params: {
 	const windows = buildHourlyWindows(now, HOURS);
 	const points: ActivityPoint[] = await Promise.all(
 		windows.map(async (window) => {
-			const stats = await Promise.all(
+			const results = await Promise.allSettled(
 				endpointIds.map((endpointId) => svix.endpoint.getStats(appId, endpointId, { since: window.start, until: window.end })),
 			);
+			// A single endpoint/window failing (transient error, rate limit, etc.) shouldn't blank
+			// out the whole activity view — treat it as no data for that endpoint/window instead.
+			const stats = results.map((result) => (result.status === 'fulfilled' ? result.value : { success: 0, fail: 0 }));
 			const { successful, failed } = aggregateEndpointStats(stats);
 			return { timestamp: window.label, successful, failed };
 		}),

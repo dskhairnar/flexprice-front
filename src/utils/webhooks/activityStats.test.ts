@@ -40,6 +40,27 @@ describe('activityStats', () => {
 		expect(summary.points[0]).toMatchObject({ successful: 2, failed: 4 });
 	});
 
+	it('treats a failed getStats call as zero instead of failing the whole summary', async () => {
+		const getStats = vi.fn().mockImplementation((_appId: string, endpointId: string) => {
+			if (endpointId === 'ep_flaky') return Promise.reject(new Error('rate limited'));
+			return Promise.resolve({ success: 1, fail: 2, pending: 0, sending: 0, canceled: 0 });
+		});
+		const svix = { endpoint: { getStats } } as never;
+
+		const summary = await fetchWebhookActivity({
+			svix,
+			appId: 'app_1',
+			endpointIds: ['ep_flaky', 'ep_2'],
+			now: new Date('2026-07-26T18:00:00.000Z'),
+		});
+
+		// ep_flaky rejects every window; ep_2 still contributes its 6 hours of data.
+		expect(summary.successfulAttempts).toBe(6);
+		expect(summary.failedAttempts).toBe(12);
+		expect(summary.points).toHaveLength(6);
+		expect(summary.points[0]).toMatchObject({ successful: 1, failed: 2 });
+	});
+
 	it('returns empty summary when there are no endpoints', async () => {
 		const getStats = vi.fn();
 		const svix = { endpoint: { getStats } } as never;
