@@ -297,9 +297,9 @@ const GcpMarketplaceConnectionDrawer: FC<GcpMarketplaceConnectionDrawerProps> = 
 					<>
 						{/* Step 1 — the setup script the tenant runs in their own GCP project */}
 						<div className='space-y-3'>
-							<div>
-								<p className='text-sm font-medium text-foreground'>{t('connection.gcpMarketplace.step1Title')}</p>
-								<p className='text-xs text-content-muted mt-1'>{t('connection.gcpMarketplace.step1Hint')}</p>
+							<div className='p-4 bg-info-muted border border-info-line rounded-lg'>
+								<h3 className='text-sm font-medium text-info-deep mb-2'>{t('connection.gcpMarketplace.step1Title')}</h3>
+								<p className='text-xs text-info-strong'>{t('connection.gcpMarketplace.step1Hint')}</p>
 							</div>
 
 							<CodeBlock

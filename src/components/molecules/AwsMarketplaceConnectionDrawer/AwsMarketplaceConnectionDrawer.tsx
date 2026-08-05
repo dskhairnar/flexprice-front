@@ -303,9 +303,9 @@ const AwsMarketplaceConnectionDrawer: FC<AwsMarketplaceConnectionDrawerProps> = 
 					<>
 						{/* Step 1 — policies to paste into the tenant's own AWS account */}
 						<div className='space-y-3'>
-							<div>
-								<p className='text-sm font-medium text-foreground'>{t('connection.awsMarketplace.step1Title')}</p>
-								<p className='text-xs text-content-muted mt-1'>{t('connection.awsMarketplace.step1Hint')}</p>
+							<div className='p-4 bg-info-muted border border-info-line rounded-lg'>
+								<h3 className='text-sm font-medium text-info-deep mb-2'>{t('connection.awsMarketplace.step1Title')}</h3>
+								<p className='text-xs text-info-strong'>{t('connection.awsMarketplace.step1Hint')}</p>
 							</div>
 
 							<PolicyBlock
