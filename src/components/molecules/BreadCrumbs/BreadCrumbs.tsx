@@ -6,6 +6,7 @@ import { useBreadcrumbs } from '@/hooks/useBreadcrumbs';
 import { SidebarTrigger } from '@/components/ui/sidebar';
 import ApiDocs from '../ApiDocs';
 import LocaleSelector from '@/components/molecules/LocaleSelector/LocaleSelector';
+import ThemeToggle from '@/components/molecules/ThemeToggle';
 import IntercomMessenger from '@/core/services/intercom/IntercomMessenger';
 import { Search } from 'lucide-react';
 import { Button } from '@/components/atoms';
@@ -93,6 +94,7 @@ const BreadCrumbs: FC = () => {
 					))}
 				</nav>
 				<div className='flex items-center gap-4'>
+					<ThemeToggle />
 					<LocaleSelector />
 					<BreadCrumbsSearchTrigger />
 					<IntercomMessenger />

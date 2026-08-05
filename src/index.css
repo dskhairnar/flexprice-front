@@ -306,6 +306,9 @@
 		--fp-chip-type-config-text: 91 33 182; /* #5b21b6 */
 		--fp-chip-type-default-bg: 249 250 251; /* #f9fafb */
 		--fp-chip-type-default-text: 107 114 128; /* #6b7280 */
+		--fp-chip-type-sky-bg: 240 249 255; /* #f0f9ff */
+		--fp-chip-type-sky-text: 7 89 133; /* #075985 */
+		--fp-chip-type-metered-deep-text: 30 58 138; /* #1e3a8a */
 
 		/* Brand blue — pre-existing literals from tailwind.config.js, now themable. Light unchanged. */
 		--fp-brand-blue: 50 147 217; /* #3293d9 — was colors.blue.DEFAULT */
@@ -612,6 +615,9 @@
 		--fp-chip-type-config-text: 185 166 245; /* #b9a6f5 */
 		--fp-chip-type-default-bg: 31 31 34; /* #1f1f22 */
 		--fp-chip-type-default-text: 138 143 152; /* #8a8f98 */
+		--fp-chip-type-sky-bg: 22 36 60; /* #16243c */
+		--fp-chip-type-sky-text: 127 195 245; /* #7fc3f5 */
+		--fp-chip-type-metered-deep-text: 127 179 245; /* #7fb3f5 */
 
 		/* Brand blue — pre-existing literals from tailwind.config.js, now themable. Light unchanged. */
 		--fp-brand-blue: 74 168 232; /* #4aa8e8 */
@@ -802,6 +808,47 @@ div[data-hot-toast-container] {
 	color: transparent;
 	animation: analyzing-prompt-shimmer 2.2s ease-in-out infinite;
 }
+/*
+ * View Transitions for the header theme toggle.
+ *
+ * The wipe is declared here rather than driven from JS with element.animate(). Doing it in script
+ * means the default animation has to be switched off first, so if the WAAPI call fails to attach for
+ * any reason there is no animation left at all and the theme just snaps. As a keyframe the browser
+ * owns it, and JS only has to hand over an origin.
+ *
+ * --theme-wipe-x/y are set to the centre of the toggle before the transition starts; the fallbacks
+ * make an un-anchored transition wipe from the middle rather than break.
+ */
+::view-transition-old(root) {
+	animation: none;
+	z-index: 1;
+}
+
+::view-transition-new(root) {
+	/* The new theme sits on top and is revealed; the old one underneath never moves. */
+	z-index: 2147483646;
+	mix-blend-mode: normal;
+	animation: theme-wipe 480ms cubic-bezier(0.4, 0, 0.2, 1) both;
+}
+
+@keyframes theme-wipe {
+	from {
+		clip-path: circle(0% at var(--theme-wipe-x, 50%) var(--theme-wipe-y, 50%));
+	}
+	to {
+		/* 150% of the viewport diagonal always clears the furthest corner from any origin. */
+		clip-path: circle(150% at var(--theme-wipe-x, 50%) var(--theme-wipe-y, 50%));
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	::view-transition-group(*),
+	::view-transition-old(*),
+	::view-transition-new(*) {
+		animation: none !important;
+	}
+}
+
 @media (prefers-reduced-motion: reduce) {
 	.analyzing-prompt-shimmer {
 		animation: none;
