@@ -51,6 +51,7 @@ const GroupDrawer: FC<Props> = ({ data, open, onOpenChange, trigger, refetchQuer
 	);
 
 	useEffect(() => {
+		if (!open) return;
 		if (data) {
 			setFormData({
 				id: data.id,
@@ -66,7 +67,7 @@ const GroupDrawer: FC<Props> = ({ data, open, onOpenChange, trigger, refetchQuer
 			});
 		}
 		setErrors({});
-	}, [data]);
+	}, [open, data]);
 
 	const validateForm = () => {
 		const newErrors: Partial<Record<keyof CreateGroupRequest, string>> = {};
