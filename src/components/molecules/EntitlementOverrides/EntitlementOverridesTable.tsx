@@ -236,17 +236,17 @@ const EntitlementOverridesTable: FC<EntitlementOverridesTableProps> = ({ entitle
 	const columns: ColumnData<any>[] = [
 		{
 			title: t('entitlements.overridesTable.columnFeatureName'),
-			width: '160px',
+			width: '28%',
 			render: (row: any) => <span>{row.feature?.name || t('entitlements.overridesTable.unknownFeature')}</span>,
 		},
 		{
 			title: t('entitlements.overridesTable.columnEntityType'),
-			width: '100px',
+			width: '16%',
 			render: (row: any) => <span className='capitalize'>{row.entity_type?.toLowerCase()}</span>,
 		},
 		{
 			title: t('entitlements.overridesTable.columnFeatureType'),
-			width: '130px',
+			width: '21%',
 			render: (row: any) => getFeatureTypeChip(row.feature_type),
 		},
 		{
@@ -255,7 +255,7 @@ const EntitlementOverridesTable: FC<EntitlementOverridesTableProps> = ({ entitle
 		},
 		{
 			title: '',
-			width: '30px',
+			width: '40px',
 			fieldVariant: 'interactive',
 			hideOnEmpty: true,
 			render: (row: any) => {
@@ -314,7 +314,7 @@ const EntitlementOverridesTable: FC<EntitlementOverridesTableProps> = ({ entitle
 
 	return (
 		<>
-			<FlexpriceTable showEmptyRow columns={columns} data={enrichedEntitlements} variant='no-bordered' />
+			<FlexpriceTable showEmptyRow columns={columns} data={enrichedEntitlements} variant='no-bordered' tableClassName='table-fixed' />
 			<EditEntitlementDrawer
 				isOpen={drawerOpen}
 				onOpenChange={handleCloseDrawer}
