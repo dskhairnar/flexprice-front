@@ -324,6 +324,9 @@ export default {
 				'chip-type-config-text': 'rgb(var(--fp-chip-type-config-text) / <alpha-value>)',
 				'chip-type-default-bg': 'rgb(var(--fp-chip-type-default-bg) / <alpha-value>)',
 				'chip-type-default-text': 'rgb(var(--fp-chip-type-default-text) / <alpha-value>)',
+				'chip-type-sky-bg': 'rgb(var(--fp-chip-type-sky-bg) / <alpha-value>)',
+				'chip-type-sky-text': 'rgb(var(--fp-chip-type-sky-text) / <alpha-value>)',
+				'chip-type-metered-deep-text': 'rgb(var(--fp-chip-type-metered-deep-text) / <alpha-value>)',
 
 				/* Brand blue — pre-existing literals from tailwind.config.js, now themable. Light unchanged. */
 				'brand-blue': 'rgb(var(--fp-brand-blue) / <alpha-value>)',

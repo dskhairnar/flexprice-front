@@ -265,7 +265,7 @@ const FlexpriceTable: FC<FlexpriceTableProps<any>> = ({
 								'!max-h-8 px-3 py-3 text-[14px]',
 								onCLick && 'cursor-pointer hover:bg-muted/50',
 								fieldVariant === 'title' ? 'font-regular text-foreground' : '!font-light text-content-secondary',
-								fieldVariant === 'link' && 'cursor-pointer text-primary hover:underline',
+								fieldVariant === 'link' && 'cursor-pointer text-primary dark:text-info hover:underline',
 								fieldVariant === 'icon' && 'w-10',
 								fieldVariant === 'interactive' && 'cursor-default',
 							)}

@@ -278,7 +278,7 @@ const IntegrationMappingCard: FC<IntegrationMappingCardProps> = ({
 							target='_blank'
 							rel='noopener noreferrer'
 							data-interactive='true'
-							className='inline-flex items-center text-primary hover:text-primary/80'>
+							className='inline-flex items-center text-primary dark:text-info hover:text-primary dark:text-info/80'>
 							<ExternalLink className='size-4' />
 						</a>
 					) : null,

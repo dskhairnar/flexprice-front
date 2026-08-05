@@ -86,7 +86,7 @@ const CouponAssociationTable: FC<Props> = ({ subscriptionId, onAdd, onRemove }) 
 			title: 'Coupon Name',
 			render: (row) =>
 				row.coupon ? (
-					<Link to={`${RouteNames.coupons}/${row.coupon_id}`} className='text-primary hover:underline'>
+					<Link to={`${RouteNames.coupons}/${row.coupon_id}`} className='text-primary dark:text-info hover:underline'>
 						{row.coupon.name}
 					</Link>
 				) : (
