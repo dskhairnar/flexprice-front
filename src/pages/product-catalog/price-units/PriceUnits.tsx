@@ -204,7 +204,7 @@ const PriceUnitsPage = () => {
 							refetchQueryKey='fetchPriceUnits'
 							entityName={row?.name}
 							edit={{
-								enabled: false,
+								enabled: true,
 								onClick: () => handleEdit(row),
 							}}
 							archive={{
