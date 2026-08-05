@@ -306,9 +306,6 @@
 		--fp-chip-type-config-text: 91 33 182; /* #5b21b6 */
 		--fp-chip-type-default-bg: 249 250 251; /* #f9fafb */
 		--fp-chip-type-default-text: 107 114 128; /* #6b7280 */
-		--fp-chip-type-sky-bg: 240 249 255; /* #f0f9ff */
-		--fp-chip-type-sky-text: 7 89 133; /* #075985 */
-		--fp-chip-type-metered-deep-text: 30 58 138; /* #1e3a8a */
 
 		/* Brand blue — pre-existing literals from tailwind.config.js, now themable. Light unchanged. */
 		--fp-brand-blue: 50 147 217; /* #3293d9 — was colors.blue.DEFAULT */
@@ -615,9 +612,6 @@
 		--fp-chip-type-config-text: 185 166 245; /* #b9a6f5 */
 		--fp-chip-type-default-bg: 31 31 34; /* #1f1f22 */
 		--fp-chip-type-default-text: 138 143 152; /* #8a8f98 */
-		--fp-chip-type-sky-bg: 22 36 60; /* #16243c */
-		--fp-chip-type-sky-text: 127 195 245; /* #7fc3f5 */
-		--fp-chip-type-metered-deep-text: 127 179 245; /* #7fb3f5 */
 
 		/* Brand blue — pre-existing literals from tailwind.config.js, now themable. Light unchanged. */
 		--fp-brand-blue: 74 168 232; /* #4aa8e8 */

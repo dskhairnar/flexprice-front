@@ -315,7 +315,10 @@ const PricingSetupPage = () => {
 										<img
 											src={selectedTemplate.iconSrc}
 											alt={t('pricingSetupPage.templateLogoAlt', { label: selectedTemplate.label })}
-											className='mr-2 inline-block h-4 w-4 object-contain align-[-2px] dark:brightness-0 dark:invert'
+											className={cn(
+												'mr-2 inline-block h-4 w-4 object-contain align-[-2px]',
+												selectedTemplate.iconIsMonochromeDark && 'dark:brightness-0 dark:invert',
+											)}
 										/>
 									) : (
 										<span className='mr-1.5 text-base'>{selectedTemplate.icon}</span>
@@ -392,7 +395,8 @@ const PricingSetupPage = () => {
 												src={tpl.iconSrc}
 												alt={t('pricingSetupPage.templateLogoAlt', { label: tpl.label })}
 												className={cn(
-													'h-4 w-4 object-contain dark:brightness-0 dark:invert',
+													'h-4 w-4 object-contain',
+													tpl.iconIsMonochromeDark && 'dark:brightness-0 dark:invert',
 													selectedTemplate?.label === tpl.label ? 'opacity-100' : 'opacity-70',
 												)}
 											/>

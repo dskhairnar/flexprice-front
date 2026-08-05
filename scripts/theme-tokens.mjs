@@ -362,15 +362,6 @@ export const TOKEN_GROUPS = [
 			{ name: 'chip-type-config-text', light: 'violet.800', dark: '#b9a6f5' },
 			{ name: 'chip-type-default-bg', light: 'gray.50', dark: '#1f1f22' },
 			{ name: 'chip-type-default-text', light: 'gray.500', dark: '#8a8f98' },
-
-			/*
-			 * The usage-table variants of the same chips. They were authored against a different pair of
-			 * ramps — sky.50 fills with sky.800 / blue.900 ink — so they cannot reuse the ones above
-			 * without changing light. Dark values match the metered chip so the family reads as one set.
-			 */
-			{ name: 'chip-type-sky-bg', light: 'sky.50', dark: '#16243c' },
-			{ name: 'chip-type-sky-text', light: 'sky.800', dark: '#7fc3f5' },
-			{ name: 'chip-type-metered-deep-text', light: 'blue.900', dark: '#7fb3f5' },
 		],
 	},
 	{

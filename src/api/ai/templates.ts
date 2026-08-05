@@ -11,6 +11,12 @@ export interface TemplateDefinition {
 	icon: string;
 	/** Optional logo to render inside template picker. */
 	iconSrc?: string;
+	/**
+	 * True when `iconSrc` is a single-colour mark drawn in black, so it has to be flipped to white on
+	 * a dark button or it disappears. Opt-in per asset rather than applied to the whole row: a
+	 * full-colour logo added later would be flattened to a white silhouette by the same transform.
+	 */
+	iconIsMonochromeDark?: boolean;
 	/** Simple natural-language text shown (read-only) in the textarea when selected. */
 	displayPrompt: string;
 	/** Exact schema — skips the LLM entirely. */
@@ -927,6 +933,7 @@ export const PRICING_TEMPLATES: TemplateDefinition[] = [
 		subtitle: 'Infra',
 		icon: '◉',
 		iconSrc: '/assets/railwaylogo.png',
+		iconIsMonochromeDark: true,
 		displayPrompt: `Please build me Railway's pricing. This is a credit-based system where 1 credit = $0.01.
 
 Resource costs (in credits):
@@ -946,6 +953,7 @@ Plans:
 		subtitle: 'Agentic AI',
 		icon: '⌘',
 		iconSrc: '/assets/cursor-logo.png',
+		iconIsMonochromeDark: true,
 		displayPrompt: `Please build me Cursor's pricing.
 
 - Free plan: 50 agent requests/month, 200 tab completions/month. Overage at $0.08/request and $0.01/completion.
@@ -959,6 +967,7 @@ Plans:
 		subtitle: 'Model Provider',
 		icon: '✦',
 		iconSrc: '/assets/gemini-logo.png',
+		iconIsMonochromeDark: true,
 		displayPrompt: `Please build me Google Gemini's API pricing.
 
 There is a free tier with free input and output tokens on Gemini 2.5 Flash-Lite and Gemini 2.5 Flash.
@@ -974,6 +983,7 @@ There is a free tier with free input and output tokens on Gemini 2.5 Flash-Lite 
 		subtitle: 'Credits + Sales',
 		icon: '◎',
 		iconSrc: '/assets/apollo-logo.png',
+		iconIsMonochromeDark: true,
 		displayPrompt: `Please build me Apollo.io-style credit-based pricing.
 
 - Starter at $49/month with 1,200 credits per month.
@@ -992,6 +1002,7 @@ Credits are consumed per action:
 		subtitle: 'Voice AI',
 		icon: '◈',
 		iconSrc: '/assets/vapilogo.png',
+		iconIsMonochromeDark: true,
 		displayPrompt: `Please build me Vapi's pricing.
 
 Single plan: Vapi Pay As You Go ($0/month platform fee).
