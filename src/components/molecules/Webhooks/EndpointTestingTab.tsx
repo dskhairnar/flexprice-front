@@ -26,8 +26,11 @@ const EndpointTestingTab: FC<Props> = ({ endpointId }) => {
 		try {
 			await svix.endpoint.sendExample(appId, endpointId, { eventType: selectedEventType });
 			toast.success(t('webhooks.endpoints.testing.sendSuccess'));
-		} catch {
-			toast.error(t('webhooks.endpoints.testing.sendFailed'));
+		} catch (err) {
+			// Svix's ApiException carries the real reason (e.g. "missing_schema") on `.body.detail`;
+			// surface it instead of a generic failure message so users aren't left guessing.
+			const detail = err && typeof err === 'object' && 'body' in err ? (err as { body?: { detail?: string } }).body?.detail : undefined;
+			toast.error(detail || t('webhooks.endpoints.testing.sendFailed'));
 		} finally {
 			setIsSending(false);
 		}
