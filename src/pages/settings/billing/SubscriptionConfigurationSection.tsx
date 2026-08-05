@@ -55,7 +55,9 @@ const SubscriptionConfigurationSection = () => {
 		<Card variant='default' className='rounded-xl border border-line bg-surface shadow-sm'>
 			<CardHeader title={t('billing.subscriptionConfiguration.title')} titleClassName='text-lg font-medium text-content-zinc-strong' />
 			{isLoading ? (
-				<Loader />
+				<div className='flex min-h-[200px] items-center justify-center'>
+					<Loader />
+				</div>
 			) : (
 				<>
 					<p className='mb-2 text-xs font-medium uppercase tracking-wide text-content-zinc-subtle'>

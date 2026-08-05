@@ -45,7 +45,9 @@ const CustomerPortalTab = () => {
 				infoAriaLabel={t('info.ariaLabel', { field: portalTitle })}
 			/>
 			{isLoading ? (
-				<Loader />
+				<div className='flex min-h-[200px] items-center justify-center'>
+					<Loader />
+				</div>
 			) : (
 				<>
 					<div className='mt-4 divide-y divide-line'>

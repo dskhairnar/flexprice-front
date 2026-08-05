@@ -237,7 +237,11 @@ const OnboardingActionSetEditor = ({
 							<Select
 								value={value.subscriptionPlanId}
 								options={resolvedPlanOptions}
-								placeholder={t('customerOnboarding.workflow.subscription.planPlaceholder')}
+								placeholder={
+									arePlansLoading
+										? t('customerOnboarding.workflow.subscription.plansLoading')
+										: t('customerOnboarding.workflow.subscription.planPlaceholder')
+								}
 								noOptionsText={t('customerOnboarding.workflow.subscription.noPlans')}
 								onChange={(next) => patch({ subscriptionPlanId: next })}
 								disabled={disabled || arePlansLoading}
