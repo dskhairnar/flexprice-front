@@ -69,7 +69,7 @@ const WalletAlertSettingsSection = () => {
 						<Switch
 							checked={draft.alert_enabled ?? false}
 							onCheckedChange={(enabled) => setDraft((prev) => ({ ...prev, alert_enabled: enabled }))}
-							disabled={updateSettings.isPending}
+							disabled={isLoading || updateSettings.isPending}
 							aria-label={alertsTitle}
 						/>
 					}
