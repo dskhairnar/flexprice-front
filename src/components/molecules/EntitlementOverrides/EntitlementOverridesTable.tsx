@@ -110,12 +110,14 @@ const EntitlementOverridesTable: FC<EntitlementOverridesTableProps> = ({ entitle
 
 			return (
 				<div className='flex items-center gap-2'>
-					<span>{valueText}</span>
+					<span className='max-w-[240px] truncate' title={valueText}>
+						{valueText}
+					</span>
 					{hasChangedValue && (
 						<TooltipProvider delayDuration={0}>
 							<Tooltip>
 								<TooltipTrigger>
-									<Info className='h-4 w-4 text-accent-orange hover:text-accent-orange transition-colors duration-150' />
+									<Info className='h-4 w-4 shrink-0 text-accent-orange hover:text-accent-orange transition-colors duration-150' />
 								</TooltipTrigger>
 								<TooltipContent
 									sideOffset={5}
@@ -141,12 +143,14 @@ const EntitlementOverridesTable: FC<EntitlementOverridesTableProps> = ({ entitle
 
 			return (
 				<div className='flex items-center gap-2'>
-					<span>{value}</span>
+					<span className='max-w-[240px] truncate' title={value}>
+						{value}
+					</span>
 					{hasOverride && value !== originalValue && (
 						<TooltipProvider delayDuration={0}>
 							<Tooltip>
 								<TooltipTrigger>
-									<Info className='h-4 w-4 text-accent-orange hover:text-accent-orange transition-colors duration-150' />
+									<Info className='h-4 w-4 shrink-0 text-accent-orange hover:text-accent-orange transition-colors duration-150' />
 								</TooltipTrigger>
 								<TooltipContent
 									sideOffset={5}
@@ -177,7 +181,7 @@ const EntitlementOverridesTable: FC<EntitlementOverridesTableProps> = ({ entitle
 						<TooltipProvider delayDuration={0}>
 							<Tooltip>
 								<TooltipTrigger>
-									<Info className='h-4 w-4 text-accent-orange hover:text-accent-orange transition-colors duration-150' />
+									<Info className='h-4 w-4 shrink-0 text-accent-orange hover:text-accent-orange transition-colors duration-150' />
 								</TooltipTrigger>
 								<TooltipContent
 									sideOffset={5}
@@ -205,7 +209,7 @@ const EntitlementOverridesTable: FC<EntitlementOverridesTableProps> = ({ entitle
 				<div className='flex items-center gap-2'>
 					<button
 						type='button'
-						className='font-mono text-xs text-left text-muted-foreground rounded border border-transparent transition-all hover:border-border hover:shadow-sm hover:text-foreground max-w-md'
+						className='font-mono text-xs text-left text-muted-foreground rounded border border-transparent transition-all hover:border-border hover:shadow-sm hover:text-foreground max-w-[240px]'
 						style={{ display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden', wordBreak: 'break-all' }}
 						onClick={() => setConfigSheet({ open: true, name: entitlement.feature?.name ?? '', value: cv ?? null })}>
 						{compact}
@@ -214,7 +218,7 @@ const EntitlementOverridesTable: FC<EntitlementOverridesTableProps> = ({ entitle
 						<TooltipProvider delayDuration={0}>
 							<Tooltip>
 								<TooltipTrigger>
-									<Info className='h-4 w-4 text-accent-orange hover:text-accent-orange transition-colors duration-150' />
+									<Info className='h-4 w-4 shrink-0 text-accent-orange hover:text-accent-orange transition-colors duration-150' />
 								</TooltipTrigger>
 								<TooltipContent
 									sideOffset={5}
@@ -236,17 +240,21 @@ const EntitlementOverridesTable: FC<EntitlementOverridesTableProps> = ({ entitle
 	const columns: ColumnData<any>[] = [
 		{
 			title: t('entitlements.overridesTable.columnFeatureName'),
-			width: '28%',
-			render: (row: any) => <span>{row.feature?.name || t('entitlements.overridesTable.unknownFeature')}</span>,
+			render: (row: any) => {
+				const name = row.feature?.name || t('entitlements.overridesTable.unknownFeature');
+				return (
+					<span className='block max-w-[240px] truncate' title={name}>
+						{name}
+					</span>
+				);
+			},
 		},
 		{
 			title: t('entitlements.overridesTable.columnEntityType'),
-			width: '16%',
 			render: (row: any) => <span className='capitalize'>{row.entity_type?.toLowerCase()}</span>,
 		},
 		{
 			title: t('entitlements.overridesTable.columnFeatureType'),
-			width: '21%',
 			render: (row: any) => getFeatureTypeChip(row.feature_type),
 		},
 		{
@@ -255,7 +263,6 @@ const EntitlementOverridesTable: FC<EntitlementOverridesTableProps> = ({ entitle
 		},
 		{
 			title: '',
-			width: '40px',
 			fieldVariant: 'interactive',
 			hideOnEmpty: true,
 			render: (row: any) => {
@@ -314,7 +321,7 @@ const EntitlementOverridesTable: FC<EntitlementOverridesTableProps> = ({ entitle
 
 	return (
 		<>
-			<FlexpriceTable showEmptyRow columns={columns} data={enrichedEntitlements} variant='no-bordered' tableClassName='table-fixed' />
+			<FlexpriceTable showEmptyRow columns={columns} data={enrichedEntitlements} />
 			<EditEntitlementDrawer
 				isOpen={drawerOpen}
 				onOpenChange={handleCloseDrawer}

@@ -211,9 +211,10 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
 						sizes[size].padding,
 						sizes[size].text,
 						sizes[size].display,
-						'w-full flex group items-center rounded-[6px] border bg-background ring-offset-background placeholder:text-muted-foreground disabled:opacity-50 disabled:cursor-not-allowed',
+						'w-full flex group items-center rounded-[6px] border bg-background ring-offset-background placeholder:text-muted-foreground',
 						error ? 'border-destructive' : 'border-input focus-within:ring-ring focus-within:ring-offset-2',
 						'focus-within:border-line-inverse',
+						disabled && 'cursor-not-allowed bg-surface-subtle opacity-60',
 						className,
 					)}>
 					{inputPrefix && <div className='me-2'>{inputPrefix}</div>}
@@ -226,7 +227,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
 						placeholder={placeholder}
 						className={cn(
 							'peer relative min-h-0 min-w-0 flex-1 bg-transparent outline-none ring-0 focus:outline-none placeholder:text-muted-foreground',
-							disabled && 'text-content-zinc-muted',
+							disabled && 'cursor-not-allowed text-content-muted',
 							className,
 						)}
 						onChange={handleChange}
