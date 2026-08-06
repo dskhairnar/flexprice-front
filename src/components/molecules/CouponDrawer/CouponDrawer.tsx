@@ -1,4 +1,4 @@
-import { Button, Input, Sheet, Spacer, Textarea, Select, SelectOption, DatePicker } from '@/components/atoms';
+import { Button, Input, Sheet, Textarea, Select, SelectOption, DatePicker } from '@/components/atoms';
 import { Coupon } from '@/models/Coupon';
 import { FC, useEffect, useState } from 'react';
 import { useMutation } from '@tanstack/react-query';
@@ -161,24 +161,22 @@ const CouponDrawer: FC<Props> = ({ data, open, onOpenChange, trigger, refetchQue
 			title={isEdit ? t('coupons.drawer.editTitle') : t('coupons.drawer.createTitle')}
 			description={isEdit ? t('coupons.drawer.descriptionEdit') : t('coupons.drawer.descriptionCreate')}
 			trigger={trigger}>
-			<Spacer height={'20px'} />
-			<Input
-				placeholder={t('coupons.drawer.namePlaceholder')}
-				description={t('coupons.drawer.nameHelp')}
-				label={t('coupons.drawer.couponName')}
-				value={formData.name}
-				error={errors.name}
-				onChange={(e) => {
-					setFormData({
-						...formData,
-						name: e,
-					});
-				}}
-			/>
+			<div className='space-y-5 mt-4'>
+				<Input
+					placeholder={t('coupons.drawer.namePlaceholder')}
+					description={t('coupons.drawer.nameHelp')}
+					label={t('coupons.drawer.couponName')}
+					value={formData.name}
+					error={errors.name}
+					onChange={(e) => {
+						setFormData({
+							...formData,
+							name: e,
+						});
+					}}
+				/>
 
-			{!isEdit && (
-				<>
-					<Spacer height={'20px'} />
+				{!isEdit && (
 					<Input
 						id='coupon_code'
 						label={t('coupons.drawer.couponCode')}
@@ -188,104 +186,95 @@ const CouponDrawer: FC<Props> = ({ data, open, onOpenChange, trigger, refetchQue
 						onChange={(e) => setFormData({ ...formData, coupon_code: e })}
 						description={t('coupons.drawer.couponCodeHelp')}
 					/>
-				</>
-			)}
+				)}
 
-			<Spacer height={'20px'} />
-			<Select
-				label={t('coupons.drawer.couponType')}
-				placeholder={t('coupons.drawer.selectCouponType')}
-				options={typeOptions}
-				value={formData.type}
-				onChange={(e) => setFormData({ ...formData, type: e as COUPON_TYPE })}
-				error={errors.type}
-				description={t('coupons.drawer.couponTypeHelp')}
-			/>
+				<Select
+					label={t('coupons.drawer.couponType')}
+					placeholder={t('coupons.drawer.selectCouponType')}
+					options={typeOptions}
+					value={formData.type}
+					onChange={(e) => setFormData({ ...formData, type: e as COUPON_TYPE })}
+					error={errors.type}
+					description={t('coupons.drawer.couponTypeHelp')}
+				/>
 
-			<Spacer height={'20px'} />
-			{formData.type === COUPON_TYPE.FIXED ? (
-				<div className='grid grid-cols-2 gap-4'>
+				{formData.type === COUPON_TYPE.FIXED ? (
+					<div className='grid grid-cols-2 gap-4'>
+						<Input
+							label={t('coupons.drawer.amountOff')}
+							placeholder={t('coupons.drawer.amountPlaceholder')}
+							type='number'
+							step='0.01'
+							value={formData.amount_off}
+							error={errors.amount_off}
+							onChange={(e) => setFormData({ ...formData, amount_off: e })}
+							description={t('coupons.drawer.amountHelp')}
+						/>
+						<Select
+							label={t('coupons.drawer.currency')}
+							placeholder={t('coupons.drawer.selectCurrency')}
+							options={currencyOptions}
+							value={formData.currency}
+							onChange={(e) => setFormData({ ...formData, currency: e })}
+							error={errors.currency}
+						/>
+					</div>
+				) : (
 					<Input
-						label={t('coupons.drawer.amountOff')}
-						placeholder={t('coupons.drawer.amountPlaceholder')}
+						label={t('coupons.drawer.percentageOff')}
+						placeholder={t('coupons.drawer.percentagePlaceholder')}
 						type='number'
 						step='0.01'
-						value={formData.amount_off}
-						error={errors.amount_off}
-						onChange={(e) => setFormData({ ...formData, amount_off: e })}
-						description={t('coupons.drawer.amountHelp')}
+						max='100'
+						value={formData.percentage_off}
+						error={errors.percentage_off}
+						onChange={(e) => setFormData({ ...formData, percentage_off: e })}
+						description={t('coupons.drawer.percentageHelp')}
 					/>
-					<Select
-						label={t('coupons.drawer.currency')}
-						placeholder={t('coupons.drawer.selectCurrency')}
-						options={currencyOptions}
-						value={formData.currency}
-						onChange={(e) => setFormData({ ...formData, currency: e })}
-						error={errors.currency}
+				)}
+
+				<Select
+					label={t('coupons.drawer.cadence')}
+					placeholder={t('coupons.drawer.selectCadence')}
+					options={cadenceOptions}
+					value={formData.cadence}
+					onChange={(e) => setFormData({ ...formData, cadence: e as COUPON_CADENCE })}
+					error={errors.cadence}
+					description={t('coupons.drawer.cadenceHelp')}
+				/>
+
+				<div>
+					<DatePicker
+						label={t('coupons.drawer.redeemAfter')}
+						date={formData.redeem_after ? new Date(formData.redeem_after) : undefined}
+						setDate={(date) => setFormData({ ...formData, redeem_after: date?.toISOString() })}
+						placeholder={t('coupons.drawer.selectStartDate')}
 					/>
+					<p className='text-xs text-muted-foreground mt-1'>{t('coupons.drawer.redeemAfterHelp')}</p>
+					{errors.redeem_after && <p className='text-xs text-danger-bright mt-1'>{errors.redeem_after}</p>}
 				</div>
-			) : (
+
+				<div>
+					<DatePicker
+						label={t('coupons.drawer.redeemBefore')}
+						date={formData.redeem_before ? new Date(formData.redeem_before) : undefined}
+						setDate={(date) => setFormData({ ...formData, redeem_before: date?.toISOString() })}
+						placeholder={t('coupons.drawer.selectExpiryDate')}
+					/>
+					<p className='text-xs text-muted-foreground mt-1'>{t('coupons.drawer.redeemBeforeHelp')}</p>
+					{errors.redeem_before && <p className='text-xs text-danger-bright mt-1'>{errors.redeem_before}</p>}
+				</div>
+
 				<Input
-					label={t('coupons.drawer.percentageOff')}
-					placeholder={t('coupons.drawer.percentagePlaceholder')}
+					label={t('coupons.drawer.maxRedemptions')}
+					placeholder={t('coupons.drawer.maxRedemptionsPlaceholder')}
 					type='number'
-					step='0.01'
-					max='100'
-					value={formData.percentage_off}
-					error={errors.percentage_off}
-					onChange={(e) => setFormData({ ...formData, percentage_off: e })}
-					description={t('coupons.drawer.percentageHelp')}
+					value={formData.max_redemptions?.toString()}
+					onChange={(e) => setFormData({ ...formData, max_redemptions: e ? parseInt(e) : undefined })}
+					description={t('coupons.drawer.maxRedemptionsHelp')}
 				/>
-			)}
 
-			<Spacer height={'20px'} />
-			<Select
-				label={t('coupons.drawer.cadence')}
-				placeholder={t('coupons.drawer.selectCadence')}
-				options={cadenceOptions}
-				value={formData.cadence}
-				onChange={(e) => setFormData({ ...formData, cadence: e as COUPON_CADENCE })}
-				error={errors.cadence}
-				description={t('coupons.drawer.cadenceHelp')}
-			/>
-
-			<Spacer height={'20px'} />
-			<div>
-				<DatePicker
-					label={t('coupons.drawer.redeemAfter')}
-					date={formData.redeem_after ? new Date(formData.redeem_after) : undefined}
-					setDate={(date) => setFormData({ ...formData, redeem_after: date?.toISOString() })}
-					placeholder={t('coupons.drawer.selectStartDate')}
-				/>
-				<p className='text-xs text-muted-foreground mt-1'>{t('coupons.drawer.redeemAfterHelp')}</p>
-				{errors.redeem_after && <p className='text-xs text-danger-bright mt-1'>{errors.redeem_after}</p>}
-			</div>
-
-			<Spacer height={'20px'} />
-			<div>
-				<DatePicker
-					label={t('coupons.drawer.redeemBefore')}
-					date={formData.redeem_before ? new Date(formData.redeem_before) : undefined}
-					setDate={(date) => setFormData({ ...formData, redeem_before: date?.toISOString() })}
-					placeholder={t('coupons.drawer.selectExpiryDate')}
-				/>
-				<p className='text-xs text-muted-foreground mt-1'>{t('coupons.drawer.redeemBeforeHelp')}</p>
-				{errors.redeem_before && <p className='text-xs text-danger-bright mt-1'>{errors.redeem_before}</p>}
-			</div>
-
-			<Spacer height={'20px'} />
-			<Input
-				label={t('coupons.drawer.maxRedemptions')}
-				placeholder={t('coupons.drawer.maxRedemptionsPlaceholder')}
-				type='number'
-				value={formData.max_redemptions?.toString()}
-				onChange={(e) => setFormData({ ...formData, max_redemptions: e ? parseInt(e) : undefined })}
-				description={t('coupons.drawer.maxRedemptionsHelp')}
-			/>
-
-			{formData.cadence === COUPON_CADENCE.REPEATED && (
-				<>
-					<Spacer height={'20px'} />
+				{formData.cadence === COUPON_CADENCE.REPEATED && (
 					<Input
 						label={t('coupons.drawer.durationInPeriods')}
 						placeholder={t('coupons.drawer.durationPlaceholder')}
@@ -295,33 +284,33 @@ const CouponDrawer: FC<Props> = ({ data, open, onOpenChange, trigger, refetchQue
 						error={errors.duration_in_periods}
 						description={t('coupons.drawer.durationHelp')}
 					/>
-				</>
-			)}
+				)}
 
-			<Spacer height={'20px'} />
-			<Textarea
-				value={formData.metadata ? JSON.stringify(formData.metadata, null, 2) : ''}
-				onChange={(e) => {
-					try {
-						const metadata = e ? JSON.parse(e) : undefined;
-						setFormData({ ...formData, metadata });
-					} catch {
-						setErrors({ ...errors, metadata: t('coupons.drawer.invalidMetadata') });
+				<Textarea
+					value={formData.metadata ? JSON.stringify(formData.metadata, null, 2) : ''}
+					onChange={(e) => {
+						try {
+							const metadata = e ? JSON.parse(e) : undefined;
+							setFormData({ ...formData, metadata });
+						} catch {
+							setErrors({ ...errors, metadata: t('coupons.drawer.invalidMetadata') });
+						}
+					}}
+					className='min-h-[100px]'
+					placeholder={t('shared.metadataPlaceholder')}
+					label={t('shared.metadataOptional')}
+					description={t('shared.metadataJsonAdditional')}
+				/>
+
+				<Button
+					isLoading={isPending}
+					disabled={
+						isPending || !formData.name?.trim() || !formData.type || !formData.cadence || (!isEdit && !formData.coupon_code?.trim())
 					}
-				}}
-				className='min-h-[100px]'
-				placeholder={t('shared.metadataPlaceholder')}
-				label={t('shared.metadataOptional')}
-				description={t('shared.metadataJsonAdditional')}
-			/>
-
-			<Spacer height={'20px'} />
-			<Button
-				isLoading={isPending}
-				disabled={isPending || !formData.name?.trim() || !formData.type || !formData.cadence || (!isEdit && !formData.coupon_code?.trim())}
-				onClick={handleSave}>
-				{isEdit ? t('common:actions.save') : t('common:actions.create')}
-			</Button>
+					onClick={handleSave}>
+					{isEdit ? t('common:actions.save') : t('common:actions.create')}
+				</Button>
+			</div>
 		</Sheet>
 	);
 };

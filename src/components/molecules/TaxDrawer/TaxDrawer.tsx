@@ -196,7 +196,10 @@ const TaxDrawer: FC<Props> = ({ data, open, onOpenChange, trigger, refetchQueryK
 						type='number'
 						placeholder={t('taxes.drawer.numericPlaceholder')}
 						value={formData.percentage_value?.toString() || ''}
-						onChange={(e) => setFormData({ ...formData, percentage_value: parseFloat(e) || undefined })}
+						onChange={(e) => {
+							const parsed = parseFloat(e);
+							setFormData({ ...formData, percentage_value: Number.isFinite(parsed) ? parsed : undefined });
+						}}
 						error={errors.percentage_value}
 						description={isEdit ? t('taxes.drawer.percentageHintEdit') : t('taxes.drawer.percentageHintCreate')}
 						suffix={t('taxes.drawer.percentSuffix')}
@@ -208,7 +211,10 @@ const TaxDrawer: FC<Props> = ({ data, open, onOpenChange, trigger, refetchQueryK
 						type='number'
 						placeholder={t('taxes.drawer.numericPlaceholder')}
 						value={formData.fixed_value?.toString() || ''}
-						onChange={(e) => setFormData({ ...formData, fixed_value: parseFloat(e) || undefined })}
+						onChange={(e) => {
+							const parsed = parseFloat(e);
+							setFormData({ ...formData, fixed_value: Number.isFinite(parsed) ? parsed : undefined });
+						}}
 						error={errors.fixed_value}
 						description={isEdit ? t('taxes.drawer.fixedHintEdit') : t('taxes.drawer.fixedHintCreate')}
 						inputPrefix={t('taxes.drawer.fixedAmountPrefix')}
