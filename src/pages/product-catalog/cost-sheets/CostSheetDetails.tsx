@@ -346,14 +346,14 @@ const CostSheetDetails = () => {
 						/>
 
 						<div className='mt-4 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between'>
-							<div className='relative w-full lg:max-w-sm'>
-								<Search className='pointer-events-none absolute start-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground' />
+							<div className='w-full lg:max-w-sm'>
 								<Input
 									type='search'
+									size='sm'
 									placeholder={t('catalog:costSheets.details.searchCharges')}
 									value={searchTerm}
 									onChange={handleSearch}
-									className='ps-9'
+									inputPrefix={<Search className='h-4 w-4 text-muted-foreground' />}
 								/>
 							</div>
 							<QueryBuilder
