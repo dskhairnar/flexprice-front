@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { ExternalLink } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useEnvironment } from '@/hooks/useEnvironment';
@@ -7,8 +7,10 @@ import useUser from '@/hooks/useUser';
 import { ENVIRONMENT_TYPE } from '@/models/Environment';
 import ContactUsDialog from '../ContactUsDialog/ContactUsDialog';
 
-function daysLeft(expiresAt: string): number {
-	return Math.max(0, Math.ceil((new Date(expiresAt).getTime() - Date.now()) / (1000 * 60 * 60 * 24)));
+const MAX_TIMEOUT_MS = 2_147_483_647;
+
+function daysLeft(expiresAt: string, nowMs: number): number {
+	return Math.max(0, Math.ceil((new Date(expiresAt).getTime() - nowMs) / (1000 * 60 * 60 * 24)));
 }
 
 type RestrictionEntry = { envId: string; result: { state: EnvRestrictionState; expiresAt?: string } };
@@ -41,10 +43,34 @@ const RestrictedEnvBanner: React.FC = () => {
 	const { environments } = useEnvironment();
 	const { isTenantRestricted, getRestrictionResultsForTenant } = useRestrictedEnvs();
 	const [isContactDialogOpen, setIsContactDialogOpen] = useState(false);
+	const [nowMs, setNowMs] = useState(() => Date.now());
 
 	const tenantId = user?.tenant?.id ?? '';
-	const tenantEntries = useMemo(() => getRestrictionResultsForTenant(tenantId), [tenantId, getRestrictionResultsForTenant]);
+	const tenantEntries = useMemo(() => getRestrictionResultsForTenant(tenantId), [tenantId, getRestrictionResultsForTenant, nowMs]);
 	const chosen = useMemo(() => pickEnvToShow(tenantEntries, environments), [tenantEntries, environments]);
+
+	useEffect(() => {
+		const expiresAt = chosen?.result.expiresAt;
+		if (!expiresAt || chosen.result.state !== EnvRestrictionState.GracePeriod) return;
+
+		const expiresMs = new Date(expiresAt).getTime();
+		if (Number.isNaN(expiresMs)) return;
+
+		const timers: ReturnType<typeof setTimeout>[] = [];
+		const schedule = (delayMs: number) => {
+			timers.push(setTimeout(() => setNowMs(Date.now()), Math.min(Math.max(delayMs, 0), MAX_TIMEOUT_MS)));
+		};
+
+		// Recompute when grace expires (grace → suspended UI)
+		schedule(expiresMs - Date.now() + 50);
+
+		// Recompute at local midnight so the day count stays accurate
+		const nextMidnight = new Date();
+		nextMidnight.setHours(24, 0, 0, 0);
+		schedule(nextMidnight.getTime() - Date.now());
+
+		return () => timers.forEach(clearTimeout);
+	}, [chosen?.result.expiresAt, chosen?.result.state, nowMs]);
 
 	if (!tenantId || !isTenantRestricted(tenantId)) {
 		return null;
@@ -65,7 +91,7 @@ const RestrictedEnvBanner: React.FC = () => {
 	}
 
 	if (restriction.state === EnvRestrictionState.GracePeriod && restriction.expiresAt) {
-		const days = daysLeft(restriction.expiresAt);
+		const days = daysLeft(restriction.expiresAt, nowMs);
 		const dayWord = days === 1 ? t('environment.restrictedBanner.dayWordOne') : t('environment.restrictedBanner.dayWordPlural');
 		return (
 			<>

@@ -26,12 +26,14 @@ const BreadCrumbsSearchTrigger: React.FC = () => {
 			onClick={handleClick}
 			variant='outline'
 			size='sm'
-			className='flex w-full min-w-[180px] sm:min-w-[220px] items-center border-line bg-surface hover:bg-surface-subtle hover:border-line !ps-3 !pe-2 [&>div]:w-full [&>div]:min-w-0 [&>div]:gap-2'
+			className='flex w-auto min-w-0 sm:min-w-[180px] md:min-w-[220px] items-center border-line bg-surface hover:bg-surface-subtle hover:border-line !ps-2 sm:!ps-3 !pe-2 [&>div]:w-full [&>div]:min-w-0 [&>div]:gap-2'
 			aria-label={t('commandPalette.searchAriaLabel')}>
 			<Search className='h-4 w-4 shrink-0 text-content-subtle order-first' />
-			<span className='flex-1 min-w-0 truncate text-start text-muted-foreground order-2'>{t('commandPalette.searchPlaceholder')}</span>
+			<span className='hidden sm:block flex-1 min-w-0 truncate text-start text-muted-foreground order-2'>
+				{t('commandPalette.searchPlaceholder')}
+			</span>
 			<kbd
-				className='pointer-events-none order-last ms-auto hidden h-6 shrink-0 items-center justify-center rounded border border-line bg-surface-subtle px-1.5 font-mono text-xs font-medium text-content-muted sm:inline-flex'
+				className='pointer-events-none order-last ms-auto hidden h-6 shrink-0 items-center justify-center rounded border border-line bg-surface-subtle px-1.5 font-mono text-xs font-medium text-content-muted md:inline-flex'
 				title={t('commandPalette.keyboardShortcutTitle')}>
 				{t('commandPalette.kbdDisplay')}
 			</kbd>
@@ -47,8 +49,8 @@ const BreadCrumbs: FC = () => {
 
 	if (isLoading) {
 		return (
-			<header className='bg-surface sticky top-0 z-10 border-b-[1.5px] border-line-strong'>
-				<div className='px-6 py-4'>
+			<header className='bg-surface sticky top-0 z-10 border-b-[1.5px] border-line-strong overflow-x-hidden'>
+				<div className='px-4 sm:px-6 py-4'>
 					<div className='h-6 animate-pulse bg-surface-strong rounded w-48'></div>
 				</div>
 			</header>
@@ -56,11 +58,11 @@ const BreadCrumbs: FC = () => {
 	}
 
 	return (
-		<header className='bg-surface sticky top-0 z-10 border-b-[1.5px] border-line'>
-			<div className='px-6 py-4 flex items-center justify-between'>
+		<header className='bg-surface sticky top-0 z-10 border-b-[1.5px] border-line overflow-x-hidden'>
+			<div className='px-4 sm:px-6 py-4 flex items-center justify-between gap-2 min-w-0'>
 				{/* Breadcrumbs */}
-				<nav className='flex items-center space-x-2 text-sm text-content-muted'>
-					<div className='flex items-center gap-2 me-2'>
+				<nav className='flex min-w-0 flex-1 items-center space-x-2 overflow-hidden text-sm text-content-muted'>
+					<div className='flex shrink-0 items-center gap-2 me-2'>
 						<SidebarTrigger className='text-content-heading' />
 						<div className='h-5 w-[1px] border-r border-line'></div>
 					</div>
@@ -93,7 +95,7 @@ const BreadCrumbs: FC = () => {
 						</span>
 					))}
 				</nav>
-				<div className='flex items-center gap-4'>
+				<div className='flex shrink-0 items-center gap-2 sm:gap-4'>
 					<ThemeToggle />
 					<LocaleSelector />
 					<BreadCrumbsSearchTrigger />
