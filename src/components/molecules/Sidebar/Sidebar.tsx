@@ -102,13 +102,15 @@ const AppSidebar: React.FC<React.ComponentProps<typeof Sidebar>> = ({ ...props }
 
 			{
 				title: t('sidebar.nav.tools'),
-				url: RouteNames.bulkImports,
+				url: RouteNames.exports,
 				icon: Settings,
 				items: [
-					{
-						title: t('sidebar.nav.imports'),
-						url: RouteNames.bulkImports,
-					},
+					// Imports tab hidden from the sidebar for now — keep the entry (and its route)
+					// around so it's a one-line uncomment to bring back.
+					// {
+					// 	title: t('sidebar.nav.imports'),
+					// 	url: RouteNames.bulkImports,
+					// },
 					{
 						title: t('sidebar.nav.exports'),
 						url: RouteNames.exports,
