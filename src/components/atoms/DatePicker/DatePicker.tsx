@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { CalendarIcon, X } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
@@ -88,6 +88,14 @@ const DatePicker = ({
 
 	const displayDate = date ? toCalendarDisplayDate(date, timezone as DateTimezone) : undefined;
 	const displayLabel = date ? formatDateInZone(date, timezone as DateTimezone) : placeholder;
+	// Stable reference so the calendar doesn't recompute "today" (and re-seed react-day-picker's
+	// initial month state) on every render — only when the selected date or timezone actually changes.
+	const dateTime = date?.getTime();
+	const initialCalendarMonth = useMemo(
+		() => (date ? toCalendarDisplayDate(date, timezone as DateTimezone) : new Date()),
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+		[dateTime, timezone],
+	);
 
 	const dateBounds = [...(minDate ? [{ before: minDate }] : []), ...(maxDate ? [{ after: maxDate }] : [])];
 
@@ -129,6 +137,11 @@ const DatePicker = ({
 					mode='single'
 					disabled={disabled || (dateBounds.length ? dateBounds : undefined)}
 					selected={displayDate}
+					defaultMonth={initialCalendarMonth}
+					// Keeps every month at a constant 6-row height so the popover doesn't reposition
+					// itself (Radix's collision avoidance reacts to height changes) as you navigate
+					// between months of different lengths/day-of-week alignments.
+					fixedWeeks
 					onSelect={handleSelect}
 					autoFocus
 					startMonth={minDate}
