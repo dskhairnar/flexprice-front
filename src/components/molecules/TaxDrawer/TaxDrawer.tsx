@@ -1,4 +1,4 @@
-import { Button, Input, Sheet, Spacer, Textarea, Select, SelectOption } from '@/components/atoms';
+import { Button, Input, Sheet, Textarea, Select, SelectOption } from '@/components/atoms';
 import { FC, useEffect, useMemo, useState } from 'react';
 import { useMutation } from '@tanstack/react-query';
 import TaxApi from '@/api/TaxApi';
@@ -161,82 +161,84 @@ const TaxDrawer: FC<Props> = ({ data, open, onOpenChange, trigger, refetchQueryK
 			title={isEdit ? t('taxes.drawer.titleEdit') : t('taxes.drawer.titleCreate')}
 			description={isEdit ? t('taxes.drawer.descEdit') : t('taxes.drawer.descCreate')}
 			trigger={trigger}>
-			<Spacer height={'20px'} />
-			<Input
-				placeholder={t('taxes.drawer.namePlaceholder')}
-				description={t('taxes.drawer.nameHint')}
-				label={t('taxes.drawer.nameLabel')}
-				value={formData.name}
-				error={errors.name}
-				onChange={handleNameChange}
-			/>
-
-			<Spacer height={'20px'} />
-			<Input
-				label={t('taxes.drawer.codeLabel')}
-				disabled={isEdit}
-				error={errors.code}
-				onChange={(e) => setFormData({ ...formData, code: e })}
-				value={formData.code}
-				placeholder={t('taxes.drawer.codePlaceholder')}
-				description={isEdit ? t('taxes.drawer.codeHintEdit') : t('taxes.drawer.codeHintCreate')}
-			/>
-
-			<Spacer height={'20px'} />
-			<Select
-				label={t('taxes.drawer.taxTypeLabel')}
-				options={taxTypeOptions}
-				value={formData.tax_rate_type}
-				onChange={(e) => setFormData({ ...formData, tax_rate_type: e as TAX_RATE_TYPE })}
-				description={isEdit ? t('taxes.drawer.taxTypeHintEdit') : t('taxes.drawer.taxTypeHintCreate')}
-				disabled={isEdit}
-			/>
-
-			<Spacer height={'20px'} />
-			{formData.tax_rate_type === TAX_RATE_TYPE.PERCENTAGE ? (
+			<div className='space-y-5 mt-4'>
 				<Input
-					label={t('taxes.drawer.percentageLabel')}
-					type='number'
-					placeholder={t('taxes.drawer.numericPlaceholder')}
-					value={formData.percentage_value?.toString() || ''}
-					onChange={(e) => setFormData({ ...formData, percentage_value: parseFloat(e) || undefined })}
-					error={errors.percentage_value}
-					description={isEdit ? t('taxes.drawer.percentageHintEdit') : t('taxes.drawer.percentageHintCreate')}
-					suffix={t('taxes.drawer.percentSuffix')}
+					placeholder={t('taxes.drawer.namePlaceholder')}
+					description={t('taxes.drawer.nameHint')}
+					label={t('taxes.drawer.nameLabel')}
+					value={formData.name}
+					error={errors.name}
+					onChange={handleNameChange}
+				/>
+
+				<Input
+					label={t('taxes.drawer.codeLabel')}
+					disabled={isEdit}
+					error={errors.code}
+					onChange={(e) => setFormData({ ...formData, code: e })}
+					value={formData.code}
+					placeholder={t('taxes.drawer.codePlaceholder')}
+					description={isEdit ? t('taxes.drawer.codeHintEdit') : t('taxes.drawer.codeHintCreate')}
+				/>
+
+				<Select
+					label={t('taxes.drawer.taxTypeLabel')}
+					options={taxTypeOptions}
+					value={formData.tax_rate_type}
+					onChange={(e) => setFormData({ ...formData, tax_rate_type: e as TAX_RATE_TYPE })}
+					description={isEdit ? t('taxes.drawer.taxTypeHintEdit') : t('taxes.drawer.taxTypeHintCreate')}
 					disabled={isEdit}
 				/>
-			) : (
-				<Input
-					label={t('taxes.drawer.fixedAmountLabel')}
-					type='number'
-					placeholder={t('taxes.drawer.numericPlaceholder')}
-					value={formData.fixed_value?.toString() || ''}
-					onChange={(e) => setFormData({ ...formData, fixed_value: parseFloat(e) || undefined })}
-					error={errors.fixed_value}
-					description={isEdit ? t('taxes.drawer.fixedHintEdit') : t('taxes.drawer.fixedHintCreate')}
-					inputPrefix={t('taxes.drawer.fixedAmountPrefix')}
-					disabled={isEdit}
-				/>
-			)}
 
-			<Spacer height={'20px'} />
-			<Textarea
-				value={formData.description}
-				onChange={(e) => {
-					setFormData({ ...formData, description: e });
-				}}
-				className='min-h-[100px]'
-				placeholder={t('taxes.drawer.descriptionPlaceholder')}
-				label={t('taxes.drawer.descriptionLabel')}
-				description={t('taxes.drawer.descriptionHint')}
-			/>
-			<Spacer height={'20px'} />
-			<Button
-				isLoading={isPending}
-				disabled={isPending || !formData.name?.trim() || (!isEdit && !formData.code?.trim())}
-				onClick={handleSave}>
-				{isEdit ? t('taxes.drawer.saveChanges') : t('taxes.drawer.createSubmit')}
-			</Button>
+				{formData.tax_rate_type === TAX_RATE_TYPE.PERCENTAGE ? (
+					<Input
+						label={t('taxes.drawer.percentageLabel')}
+						type='number'
+						placeholder={t('taxes.drawer.numericPlaceholder')}
+						value={formData.percentage_value?.toString() || ''}
+						onChange={(e) => {
+							const parsed = parseFloat(e);
+							setFormData({ ...formData, percentage_value: Number.isFinite(parsed) ? parsed : undefined });
+						}}
+						error={errors.percentage_value}
+						description={isEdit ? t('taxes.drawer.percentageHintEdit') : t('taxes.drawer.percentageHintCreate')}
+						suffix={t('taxes.drawer.percentSuffix')}
+						disabled={isEdit}
+					/>
+				) : (
+					<Input
+						label={t('taxes.drawer.fixedAmountLabel')}
+						type='number'
+						placeholder={t('taxes.drawer.numericPlaceholder')}
+						value={formData.fixed_value?.toString() || ''}
+						onChange={(e) => {
+							const parsed = parseFloat(e);
+							setFormData({ ...formData, fixed_value: Number.isFinite(parsed) ? parsed : undefined });
+						}}
+						error={errors.fixed_value}
+						description={isEdit ? t('taxes.drawer.fixedHintEdit') : t('taxes.drawer.fixedHintCreate')}
+						inputPrefix={t('taxes.drawer.fixedAmountPrefix')}
+						disabled={isEdit}
+					/>
+				)}
+
+				<Textarea
+					value={formData.description}
+					onChange={(e) => {
+						setFormData({ ...formData, description: e });
+					}}
+					className='min-h-[100px]'
+					placeholder={t('taxes.drawer.descriptionPlaceholder')}
+					label={t('taxes.drawer.descriptionLabel')}
+					description={t('taxes.drawer.descriptionHint')}
+				/>
+				<Button
+					isLoading={isPending}
+					disabled={isPending || !formData.name?.trim() || (!isEdit && !formData.code?.trim())}
+					onClick={handleSave}>
+					{isEdit ? t('taxes.drawer.saveChanges') : t('taxes.drawer.createSubmit')}
+				</Button>
+			</div>
 		</Sheet>
 	);
 };
