@@ -912,7 +912,9 @@ const AggregationSection = ({
 				{showExpressionInput && (
 					<div className='space-y-1'>
 						<div className='flex items-center justify-between gap-2'>
-							<label className='text-sm font-medium text-gray-700'>{t('catalog:features.form.customExpression')}</label>
+							<label htmlFor='feature-custom-expression' className='text-sm font-medium text-gray-700'>
+								{t('catalog:features.form.customExpression')}
+							</label>
 							<button
 								type='button'
 								onClick={toggleCustomExpression}
@@ -921,6 +923,7 @@ const AggregationSection = ({
 							</button>
 						</div>
 						<Input
+							id='feature-custom-expression'
 							value={meter?.aggregation?.expression || ''}
 							onChange={handleAggregationExpressionChange}
 							placeholder={t('catalog:features.form.customExpressionPh')}
