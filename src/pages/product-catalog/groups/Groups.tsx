@@ -24,6 +24,7 @@ const GroupsPage = () => {
 	const { t: tGuide } = useTranslation('guides');
 	const guides = useMemo(() => buildGuides(tGuide), [tGuide]);
 	const navigate = useNavigate();
+	const [activeGroup, setActiveGroup] = useState<Group | null>(null);
 	const [groupDrawerOpen, setGroupDrawerOpen] = useState(false);
 
 	const groupsQueryBuilderConfig = useMemo(
@@ -36,6 +37,12 @@ const GroupsPage = () => {
 	);
 
 	const handleOnAdd = () => {
+		setActiveGroup(null);
+		setGroupDrawerOpen(true);
+	};
+
+	const handleEdit = (group: Group) => {
+		setActiveGroup(group);
 		setGroupDrawerOpen(true);
 	};
 
@@ -76,7 +83,10 @@ const GroupsPage = () => {
 						deleteMutationFn={(id) => GroupApi.deleteGroup(id)}
 						refetchQueryKey='fetchGroups'
 						entityName={t('groups.table.entityName')}
-						edit={{ enabled: false }}
+						edit={{
+							enabled: true,
+							onClick: () => handleEdit(row),
+						}}
 						archive={{ enabled: row.status === ENTITY_STATUS.PUBLISHED }}
 					/>
 				),
@@ -87,7 +97,7 @@ const GroupsPage = () => {
 
 	return (
 		<Page heading={t('groups.listPage.title')} headingCTA={<AddButton onClick={handleOnAdd} />}>
-			<GroupDrawer data={null} open={groupDrawerOpen} onOpenChange={setGroupDrawerOpen} refetchQueryKeys={['fetchGroups']} />
+			<GroupDrawer data={activeGroup} open={groupDrawerOpen} onOpenChange={setGroupDrawerOpen} refetchQueryKeys={['fetchGroups']} />
 			<ApiDocsContent tags={API_DOCS_TAGS.Groups} />
 			<div className='space-y-6'>
 				<QueryableDataArea<Group>
