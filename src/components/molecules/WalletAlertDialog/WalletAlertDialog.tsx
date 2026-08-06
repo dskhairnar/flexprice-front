@@ -131,27 +131,25 @@ const WalletAlertDialog: React.FC<WalletAlertDialogProps> = ({ open, alertSettin
 					disabled={isSaving}
 				/>
 
-				{localAlertSettings.alert_enabled && (
-					<div className='space-y-4'>
-						{ALERT_LEVELS.map((level) => (
-							<WalletAlertThresholdCard
-								key={level}
-								threshold={localAlertSettings[level]}
-								labels={getLevelLabels(level)}
-								conditionDisabled={isWalletAlertConditionDisabled(level, localAlertSettings)}
-								disabled={isSaving}
-								onAdd={() => setLocalAlertSettings((prev) => addWalletAlertThreshold(prev, level))}
-								onRemove={() => setLocalAlertSettings((prev) => updateWalletAlertThreshold(prev, level, null))}
-								onThresholdChange={(value) =>
-									setLocalAlertSettings((prev) => applyWalletAlertThresholdChange(prev, level, 'threshold', value))
-								}
-								onConditionChange={(value) =>
-									setLocalAlertSettings((prev) => applyWalletAlertThresholdChange(prev, level, 'condition', value))
-								}
-							/>
-						))}
-					</div>
-				)}
+				<div className='space-y-4'>
+					{ALERT_LEVELS.map((level) => (
+						<WalletAlertThresholdCard
+							key={level}
+							threshold={localAlertSettings[level]}
+							labels={getLevelLabels(level)}
+							conditionDisabled={isWalletAlertConditionDisabled(level, localAlertSettings)}
+							disabled={isSaving || !localAlertSettings.alert_enabled}
+							onAdd={() => setLocalAlertSettings((prev) => addWalletAlertThreshold(prev, level))}
+							onRemove={() => setLocalAlertSettings((prev) => updateWalletAlertThreshold(prev, level, null))}
+							onThresholdChange={(value) =>
+								setLocalAlertSettings((prev) => applyWalletAlertThresholdChange(prev, level, 'threshold', value))
+							}
+							onConditionChange={(value) =>
+								setLocalAlertSettings((prev) => applyWalletAlertThresholdChange(prev, level, 'condition', value))
+							}
+						/>
+					))}
+				</div>
 
 				<div className='mt-6 flex justify-end gap-2'>
 					<Button variant='outline' onClick={handleClose} disabled={isSaving}>

@@ -81,23 +81,21 @@ const WalletAlertSettingsSection = () => {
 				</div>
 			) : (
 				<div className='space-y-6 px-6 pb-6 pt-6'>
-					{draft.alert_enabled && (
-						<div className='space-y-4'>
-							{ALERT_LEVELS.map((level) => (
-								<WalletAlertThresholdCard
-									key={level}
-									threshold={draft[level]}
-									labels={getLevelLabels(level)}
-									conditionDisabled={isWalletAlertConditionDisabled(level, draft)}
-									disabled={isDisabled}
-									onAdd={() => setDraft((prev) => addWalletAlertThreshold(prev, level))}
-									onRemove={() => setDraft((prev) => updateWalletAlertThreshold(prev, level, null))}
-									onThresholdChange={(value) => setDraft((prev) => updateWalletAlertThreshold(prev, level, { threshold: value }))}
-									onConditionChange={(value) => setDraft((prev) => updateWalletAlertThreshold(prev, level, { condition: value }))}
-								/>
-							))}
-						</div>
-					)}
+					<div className='space-y-4'>
+						{ALERT_LEVELS.map((level) => (
+							<WalletAlertThresholdCard
+								key={level}
+								threshold={draft[level]}
+								labels={getLevelLabels(level)}
+								conditionDisabled={isWalletAlertConditionDisabled(level, draft)}
+								disabled={isDisabled}
+								onAdd={() => setDraft((prev) => addWalletAlertThreshold(prev, level))}
+								onRemove={() => setDraft((prev) => updateWalletAlertThreshold(prev, level, null))}
+								onThresholdChange={(value) => setDraft((prev) => updateWalletAlertThreshold(prev, level, { threshold: value }))}
+								onConditionChange={(value) => setDraft((prev) => updateWalletAlertThreshold(prev, level, { condition: value }))}
+							/>
+						))}
+					</div>
 					<div className='flex justify-end'>
 						<Button onClick={handleSave} isLoading={updateSettings.isPending} disabled={updateSettings.isPending}>
 							{t('alerts.walletAlerts.saveChanges')}
