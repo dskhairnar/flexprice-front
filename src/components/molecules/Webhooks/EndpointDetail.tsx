@@ -10,7 +10,9 @@ import formatDate from '@/utils/common/format_date';
 import { copyToClipboard } from '@/utils/common/helper_functions';
 import EventTypePicker from './EventTypePicker';
 import EndpointOverviewTab from './EndpointOverviewTab';
-import EndpointTestingTab from './EndpointTestingTab';
+// Testing tab is disabled until event types have example schemas registered in Svix —
+// "Send Example" currently 400s with "missing_schema" for any event type without one.
+// import EndpointTestingTab from './EndpointTestingTab';
 import EndpointAdvancedTab from './EndpointAdvancedTab';
 import MessageAttemptsSection from './MessageAttemptsSection';
 import MessageDetail from './MessageDetail';
@@ -199,7 +201,7 @@ const EndpointDetail: FC<Props> = ({ endpointId, onBack, onDeleted }) => {
 
 	const subTabs = [
 		{ value: 'overview', label: t('webhooks.endpoints.detail.tabs.overview') },
-		{ value: 'testing', label: t('webhooks.endpoints.detail.tabs.testing') },
+		// { value: 'testing', label: t('webhooks.endpoints.detail.tabs.testing') },
 		{ value: 'advanced', label: t('webhooks.endpoints.detail.tabs.advanced') },
 	];
 
@@ -255,9 +257,9 @@ const EndpointDetail: FC<Props> = ({ endpointId, onBack, onDeleted }) => {
 						<TabsContent value='overview' className='mt-0'>
 							<EndpointOverviewTab endpoint={data} onUpdated={endpoint.reload} />
 						</TabsContent>
-						<TabsContent value='testing' className='mt-0'>
+						{/* <TabsContent value='testing' className='mt-0'>
 							<EndpointTestingTab endpointId={data.id} />
-						</TabsContent>
+						</TabsContent> */}
 						<TabsContent value='advanced' className='mt-0'>
 							<EndpointAdvancedTab endpoint={data} onUpdated={endpoint.reload} />
 						</TabsContent>
