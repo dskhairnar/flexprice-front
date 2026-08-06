@@ -910,14 +910,27 @@ const AggregationSection = ({
 				)}
 
 				{showExpressionInput && (
-					<Input
-						value={meter?.aggregation?.expression || ''}
-						onChange={handleAggregationExpressionChange}
-						label={t('catalog:features.form.customExpression')}
-						placeholder={t('catalog:features.form.customExpressionPh')}
-						description={<span className='whitespace-pre-line'>{t('catalog:features.form.customExpressionHelp')}</span>}
-						error={meterErrors.aggregation_expression}
-					/>
+					<div className='space-y-1'>
+						<div className='flex items-center justify-between gap-2'>
+							<label htmlFor='feature-custom-expression' className='text-sm font-medium text-gray-700'>
+								{t('catalog:features.form.customExpression')}
+							</label>
+							<button
+								type='button'
+								onClick={toggleCustomExpression}
+								className='text-sm text-gray-500 hover:text-gray-800 underline-offset-2 hover:underline'>
+								{t('common:form.remove')}
+							</button>
+						</div>
+						<Input
+							id='feature-custom-expression'
+							value={meter?.aggregation?.expression || ''}
+							onChange={handleAggregationExpressionChange}
+							placeholder={t('catalog:features.form.customExpressionPh')}
+							description={<span className='whitespace-pre-line'>{t('catalog:features.form.customExpressionHelp')}</span>}
+							error={meterErrors.aggregation_expression}
+						/>
+					</div>
 				)}
 
 				{showMultiplierInput && (
