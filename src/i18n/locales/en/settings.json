@@ -280,6 +280,7 @@
 				"description": "Create a subscription for every new customer.",
 				"plan": "Plan",
 				"planPlaceholder": "Select a plan",
+				"plansLoading": "Loading plans...",
 				"noPlans": "No published plans found",
 				"planHint": "The plan to subscribe newly created customers to.",
 				"billingCycle": "Billing cycle",

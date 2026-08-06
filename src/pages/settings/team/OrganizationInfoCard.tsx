@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import { Pencil } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import { Button, Card, Chip, Loader } from '@/components/atoms';
+import { Button, Card, Chip } from '@/components/atoms';
 import { UpdateTenantDrawer } from '@/components/molecules';
 import useUser from '@/hooks/useUser';
 import { isAdminMember, type SettingsMember } from './memberUtils';
@@ -25,6 +25,23 @@ const OrganizationInfoCard = () => {
 	const tenantName = user?.tenant?.name ?? t('organization.title');
 	const initials = useMemo(() => getTenantInitials(user?.tenant?.name, 'OA'), [user?.tenant?.name]);
 	const isAdmin = user ? isAdminMember(user as SettingsMember) : false;
+
+	if (loading) {
+		return (
+			<Card variant='default' noPadding className='rounded-lg border border-line bg-surface p-5 shadow-none'>
+				<div className='flex items-center justify-between gap-4'>
+					<div className='flex min-w-0 items-center gap-3'>
+						<div className='size-10 shrink-0 rounded-lg bg-surface-strong animate-pulse' />
+						<div className='min-w-0 space-y-2'>
+							<div className='h-4 w-32 rounded bg-surface-strong animate-pulse' />
+							<div className='h-3.5 w-40 rounded bg-surface-strong animate-pulse' />
+						</div>
+					</div>
+					<div className='h-5 w-16 shrink-0 rounded-full bg-surface-strong animate-pulse' />
+				</div>
+			</Card>
+		);
+	}
 
 	return (
 		<Card variant='default' noPadding className='rounded-lg border border-line bg-surface p-5 shadow-none'>
@@ -53,11 +70,11 @@ const OrganizationInfoCard = () => {
 								/>
 							) : null}
 						</div>
-						{loading ? <Loader /> : user?.email ? <p className='text-sm text-content-zinc-muted'>{user.email}</p> : null}
+						{user?.email ? <p className='text-sm text-content-zinc-muted'>{user.email}</p> : null}
 					</div>
 				</div>
 
-				{!loading && user ? (
+				{user ? (
 					<div className='flex shrink-0 flex-col items-end gap-1'>
 						<Chip
 							label={isAdmin ? t('members.roleAdmin') : t('members.roleMember')}

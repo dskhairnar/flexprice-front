@@ -69,14 +69,16 @@ const WalletAlertSettingsSection = () => {
 						<Switch
 							checked={draft.alert_enabled ?? false}
 							onCheckedChange={(enabled) => setDraft((prev) => ({ ...prev, alert_enabled: enabled }))}
-							disabled={updateSettings.isPending}
+							disabled={isLoading || updateSettings.isPending}
 							aria-label={alertsTitle}
 						/>
 					}
 				/>
 			</div>
 			{isLoading ? (
-				<Loader />
+				<div className='flex min-h-[200px] items-center justify-center'>
+					<Loader />
+				</div>
 			) : (
 				<div className='space-y-6 px-6 pb-6 pt-6'>
 					{draft.alert_enabled && (

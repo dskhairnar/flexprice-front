@@ -132,7 +132,9 @@ const CustomerOnboardingTab = () => {
 				infoAriaLabel={t('info.ariaLabel', { field: workflowTitle })}
 			/>
 			{isLoading ? (
-				<Loader />
+				<div className='flex min-h-[200px] items-center justify-center'>
+					<Loader />
+				</div>
 			) : (
 				<>
 					<div className='rounded-lg border border-line bg-surface-subtle p-4'>

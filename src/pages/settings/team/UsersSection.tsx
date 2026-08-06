@@ -267,7 +267,11 @@ function UsersSection() {
 						</div>
 					}
 				/>
-				{isLoading && <Loader />}
+				{isLoading && (
+					<div className='flex min-h-[200px] items-center justify-center'>
+						<Loader />
+					</div>
+				)}
 				{!isLoading && isError && (
 					<div className='flex flex-col items-center justify-center gap-3 py-8 text-center'>
 						<p className='text-sm text-danger-strong'>{t('members.errors.loadError')}</p>
