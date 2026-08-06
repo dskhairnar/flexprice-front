@@ -8,11 +8,12 @@ import { JsonObject } from '@/types/common';
 import toast from 'react-hot-toast';
 import { useTranslation } from 'react-i18next';
 import { cn } from '@/lib/utils';
+import type { EnrichedEntitlementRow } from './EntitlementOverridesTable';
 
 interface EditEntitlementDrawerProps {
 	isOpen: boolean;
 	onOpenChange: (open: boolean) => void;
-	entitlement: any | null;
+	entitlement: EnrichedEntitlementRow | null;
 	onSave: (override: EntitlementOverrideRequest) => void;
 	onReset?: (entitlementId: string) => void;
 }
@@ -36,7 +37,7 @@ const EditEntitlementDrawer: FC<EditEntitlementDrawerProps> = ({ isOpen, onOpenC
 
 	useEffect(() => {
 		if (entitlement) {
-			const currentLimit = 'displayUsageLimit' in entitlement ? entitlement.displayUsageLimit : entitlement.usage_limit;
+			const currentLimit = entitlement.displayUsageLimit;
 			const isCurrentlyInfinite = currentLimit === null;
 
 			setIsInfinite(isCurrentlyInfinite);
@@ -106,7 +107,7 @@ const EditEntitlementDrawer: FC<EditEntitlementDrawerProps> = ({ isOpen, onOpenC
 	const handleOpenChange = (open: boolean) => {
 		onOpenChange(open);
 		if (!open) {
-			const currentLimit = entitlement && 'displayUsageLimit' in entitlement ? entitlement.displayUsageLimit : entitlement?.usage_limit;
+			const currentLimit = entitlement?.displayUsageLimit;
 			const isCurrentlyInfinite = currentLimit === null;
 
 			setIsInfinite(isCurrentlyInfinite);

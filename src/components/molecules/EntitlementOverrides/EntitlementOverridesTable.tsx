@@ -8,13 +8,23 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui';
 import { BsThreeDotsVertical } from 'react-icons/bs';
 import { EntitlementOverrideRequest } from '@/types/dto/Subscription';
+import { EntitlementResponse } from '@/types/dto/Entitlement';
 import { JsonObject } from '@/types/common';
 import EditEntitlementDrawer from './EditEntitlementDrawer';
 import { useTranslation } from 'react-i18next';
 import { copyToClipboard } from '@/utils/common/helper_functions';
 
+/** Plan/addon entitlement row with local override display fields applied. */
+export interface EnrichedEntitlementRow extends EntitlementResponse {
+	displayUsageLimit: number | null;
+	displayStaticValue: string;
+	displayIsEnabled: boolean;
+	displayConfigValue: JsonObject | null | undefined;
+	hasOverride: boolean;
+}
+
 interface EntitlementOverridesTableProps {
-	entitlements: any[];
+	entitlements: EntitlementResponse[];
 	overrides: Record<string, EntitlementOverrideRequest>;
 	onOverrideChange: (entitlementId: string, override: EntitlementOverrideRequest) => void;
 	onOverrideReset?: (entitlementId: string) => void;
@@ -23,7 +33,7 @@ interface EntitlementOverridesTableProps {
 const EntitlementOverridesTable: FC<EntitlementOverridesTableProps> = ({ entitlements, overrides, onOverrideChange, onOverrideReset }) => {
 	const { t } = useTranslation('catalog');
 	const { t: tc } = useTranslation('common');
-	const [selectedEntitlement, setSelectedEntitlement] = useState<any | null>(null);
+	const [selectedEntitlement, setSelectedEntitlement] = useState<EnrichedEntitlementRow | null>(null);
 	const [drawerOpen, setDrawerOpen] = useState(false);
 	const [dropdownOpen, setDropdownOpen] = useState<string | null>(null);
 	const [configSheet, setConfigSheet] = useState<{ open: boolean; name: string; value: JsonObject | null }>({
@@ -33,14 +43,14 @@ const EntitlementOverridesTable: FC<EntitlementOverridesTableProps> = ({ entitle
 	});
 
 	// Merge entitlements with their overrides
-	const enrichedEntitlements = useMemo(() => {
+	const enrichedEntitlements = useMemo((): EnrichedEntitlementRow[] => {
 		return entitlements.map((ent) => {
 			const override = overrides[ent.id];
 			return {
 				...ent,
 				// Show override values if they exist, otherwise show original values
 				// Use 'usage_limit' in override to check if it exists (including null for unlimited)
-				displayUsageLimit: override && 'usage_limit' in override ? override.usage_limit : ent.usage_limit,
+				displayUsageLimit: override && 'usage_limit' in override ? (override.usage_limit ?? null) : ent.usage_limit,
 				displayStaticValue: override?.static_value ?? ent.static_value,
 				displayIsEnabled: override?.is_enabled ?? ent.is_enabled,
 				displayConfigValue: override?.config_value ?? ent.config_value,
@@ -49,7 +59,7 @@ const EntitlementOverridesTable: FC<EntitlementOverridesTableProps> = ({ entitle
 		});
 	}, [entitlements, overrides]);
 
-	const handleEdit = (entitlement: any) => {
+	const handleEdit = (entitlement: EnrichedEntitlementRow) => {
 		setDropdownOpen(null); // Close dropdown first
 		setSelectedEntitlement(entitlement);
 		setDrawerOpen(true);
@@ -92,7 +102,7 @@ const EntitlementOverridesTable: FC<EntitlementOverridesTableProps> = ({ entitle
 		}
 	};
 
-	const getEntitlementValue = (entitlement: any) => {
+	const getEntitlementValue = (entitlement: EnrichedEntitlementRow) => {
 		const featureType = entitlement.feature_type;
 		const hasOverride = entitlement.hasOverride;
 
@@ -202,7 +212,7 @@ const EntitlementOverridesTable: FC<EntitlementOverridesTableProps> = ({ entitle
 				</div>
 			);
 		} else if (featureType === FEATURE_TYPE.CONFIG) {
-			const cv = entitlement.displayConfigValue as JsonObject | null | undefined;
+			const cv = entitlement.displayConfigValue;
 			const compact = cv && Object.keys(cv).length > 0 ? JSON.stringify(cv) : null;
 			if (!compact) return <span className='text-muted-foreground'>{t('entitlements.overridesTable.valuePlaceholder')}</span>;
 			return (
@@ -237,10 +247,10 @@ const EntitlementOverridesTable: FC<EntitlementOverridesTableProps> = ({ entitle
 		return t('entitlements.overridesTable.valuePlaceholder');
 	};
 
-	const columns: ColumnData<any>[] = [
+	const columns: ColumnData<EnrichedEntitlementRow>[] = [
 		{
 			title: t('entitlements.overridesTable.columnFeatureName'),
-			render: (row: any) => {
+			render: (row) => {
 				const name = row.feature?.name || t('entitlements.overridesTable.unknownFeature');
 				return (
 					<span className='block max-w-[240px] truncate' title={name}>
@@ -251,21 +261,21 @@ const EntitlementOverridesTable: FC<EntitlementOverridesTableProps> = ({ entitle
 		},
 		{
 			title: t('entitlements.overridesTable.columnEntityType'),
-			render: (row: any) => <span className='capitalize'>{row.entity_type?.toLowerCase()}</span>,
+			render: (row) => <span className='capitalize'>{row.entity_type?.toLowerCase()}</span>,
 		},
 		{
 			title: t('entitlements.overridesTable.columnFeatureType'),
-			render: (row: any) => getFeatureTypeChip(row.feature_type),
+			render: (row) => getFeatureTypeChip(row.feature_type),
 		},
 		{
 			title: t('entitlements.overridesTable.columnValue'),
-			render: (row: any) => getEntitlementValue(row),
+			render: (row) => getEntitlementValue(row),
 		},
 		{
 			title: '',
 			fieldVariant: 'interactive',
 			hideOnEmpty: true,
-			render: (row: any) => {
+			render: (row) => {
 				// Only show edit button for plan entitlements, not addon entitlements
 				if (row.entity_type?.toLowerCase() === 'addon') {
 					return null;
