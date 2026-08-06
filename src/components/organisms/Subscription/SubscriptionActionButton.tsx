@@ -6,7 +6,7 @@ import {
 	SUBSCRIPTION_STATUS,
 } from '@/models/Subscription';
 import { useMutation } from '@tanstack/react-query';
-import { X, Plus, Pencil, Play, Bell } from 'lucide-react';
+import { X, Pencil, Play, Bell } from 'lucide-react';
 import React, { useState, useMemo } from 'react';
 import SubscriptionApi from '@/api/SubscriptionApi';
 import { DatePicker, Label, Modal, Input, Button, FormHeader, Spacer, Select, Toggle } from '@/components/atoms';
@@ -33,7 +33,6 @@ const SubscriptionActionButton: React.FC<Props> = ({ subscription }) => {
 		// isPauseModalOpen: false,
 		// isResumeModalOpen: false,
 		isCancelModalOpen: false,
-		isAddPhaseModalOpen: false,
 		isActivateModalOpen: false,
 		isAlertSettingsOpen: false,
 		// pauseStartDate: new Date(),
@@ -146,7 +145,6 @@ const SubscriptionActionButton: React.FC<Props> = ({ subscription }) => {
 		},
 	});
 
-	const isPaused = subscription.subscription_status.toUpperCase() === 'PAUSED';
 	const isCancelled = subscription.subscription_status.toUpperCase() === 'CANCELLED';
 	const isDraft = subscription.subscription_status === SUBSCRIPTION_STATUS.DRAFT;
 	const readOnly = isInheritedSubscription(subscription);
@@ -183,12 +181,6 @@ const SubscriptionActionButton: React.FC<Props> = ({ subscription }) => {
 					// 	onSelect: () => setState((prev) => ({ ...prev, isPauseModalOpen: true })),
 					// 	disabled: isPaused || isCancelled || readOnly,
 					// },
-					{
-						label: 'Add Subscription Phase',
-						icon: <Plus className='h-4 w-4' />,
-						onSelect: () => setState((prev) => ({ ...prev, isAddPhaseModalOpen: true })),
-						disabled: isPaused || isCancelled || readOnly,
-					},
 				]
 			: []),
 		// ...(isPaused && !isCancelled
