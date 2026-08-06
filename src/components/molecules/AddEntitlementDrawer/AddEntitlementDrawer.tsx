@@ -1,6 +1,6 @@
 import { Button, Checkbox, Dialog, FormHeader, Input, Select, SelectFeature, Spacer, Toggle } from '@/components/atoms';
 import { Sheet as ShadcnSheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '@/components/ui/sheet';
-import { isPortaledSelectTarget } from '@/components/atoms/Sheet/Sheet';
+import { useSheetOutsideDismissGuards } from '@/components/atoms/Sheet/Sheet';
 import { JsonObject } from '@/types/common';
 import { JsonEditor } from '@/components/molecules/JsonEditor';
 import { getFeatureIcon } from '@/components/atoms/SelectFeature/SelectFeature';
@@ -318,27 +318,14 @@ const AddEntitlementDrawer: FC<Props> = ({
 		return [...new Set([...currentEntitlementFeatureIds, ...existingFeatureIds])];
 	}, [entitlements, existingFeatureIds]);
 
-	// Handle drawer close
+	const outsideDismissGuards = useSheetOutsideDismissGuards(isOpen);
+
 	const handleDrawerClose = (open: boolean) => {
 		if (!open) {
 			resetState();
 		}
 		onOpenChange(open);
 	};
-
-	const preventPortaledSelectDismiss = useCallback((event: Event) => {
-		if (isPortaledSelectTarget(event.target)) {
-			event.preventDefault();
-		}
-	}, []);
-
-	// Non-modal dialogs get no default protection against focus-outside dismissal (Radix only
-	// applies that to modal dialogs). Without it, opening this drawer from a menu item/action
-	// button would close it the instant that trigger reclaims focus after its own menu finishes
-	// closing. Focus moving elsewhere should never by itself close the drawer.
-	const preventFocusOutsideDismiss = useCallback((event: Event) => {
-		event.preventDefault();
-	}, []);
 
 	// Reset states when drawer opens/closes
 	useEffect(() => {
@@ -485,9 +472,7 @@ const AddEntitlementDrawer: FC<Props> = ({
 				<SheetContent
 					side={sheetSide}
 					className={cn('h-screen overflow-y-auto rounded-[10px] sm:max-w-sm bg-surface')}
-					onPointerDownOutside={preventPortaledSelectDismiss}
-					onInteractOutside={preventPortaledSelectDismiss}
-					onFocusOutside={preventFocusOutsideDismiss}>
+					{...outsideDismissGuards}>
 					<SheetHeader>
 						<SheetTitle>{t('entitlements.addDrawer.title')}</SheetTitle>
 						<SheetDescription>{t('entitlements.addDrawer.description')}</SheetDescription>
