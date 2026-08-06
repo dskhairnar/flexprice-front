@@ -3,7 +3,7 @@ import AsyncSearchableSelect from '@/components/atoms/Select/AsyncSearchableSele
 import { cn } from '@/lib/utils';
 import Feature, { FEATURE_TYPE } from '@/models/Feature';
 import FeatureApi from '@/api/FeatureApi';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import { Gauge, Settings2, SquareCheckBig, Wrench } from 'lucide-react';
 import { FC, useMemo } from 'react';
 import { ENTITY_STATUS } from '@/models/base';
@@ -52,7 +52,6 @@ const SelectFeature: FC<Props> = ({
 	popoverAlign = 'start',
 }) => {
 	const { t } = useTranslation('common');
-	const queryClient = useQueryClient();
 	const label = labelProp ?? t('features.title');
 	const placeholder = placeholderProp ?? t('features.selectFeature');
 	// Fetch the selected feature if value is provided (for initial display)
@@ -137,10 +136,6 @@ const SelectFeature: FC<Props> = ({
 				value={currentValue}
 				onChange={(feature) => {
 					if (feature) {
-						// Seed the cache with what we already have so the `value` prop change below
-						// resolves the by-id query instantly instead of blanking the control while
-						// it re-fetches data we were just handed (see SelectFeature.tsx:58-63).
-						queryClient.setQueryData(['fetchFeatureById', feature.id], feature);
 						onChange(feature);
 					}
 					// If feature is undefined (deselected), we don't call onChange
