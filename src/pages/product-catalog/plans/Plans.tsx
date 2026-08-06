@@ -24,7 +24,8 @@ import { useNavigate } from 'react-router';
 import { RouteNames } from '@/core/routes/Routes';
 import formatDate from '@/utils/common/format_date';
 import toast from 'react-hot-toast';
-import { Copy, EllipsisVertical, EyeOff, Pencil, WandSparkles } from 'lucide-react';
+import { Copy, EyeOff, Pencil, WandSparkles } from 'lucide-react';
+import { BsThreeDots } from 'react-icons/bs';
 import { refetchQueries } from '@/core/services/tanstack/ReactQueryProvider';
 import { useTranslation } from 'react-i18next';
 
@@ -227,7 +228,7 @@ const PlansPage = () => {
 						options={getRowDropdownOptions(row)}
 						trigger={
 							<Button variant='ghost' size='icon' className='size-8'>
-								<EllipsisVertical className='size-4' />
+								<BsThreeDots className='size-4' />
 							</Button>
 						}
 					/>

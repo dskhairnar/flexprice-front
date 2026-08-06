@@ -6,7 +6,7 @@ import { FEATURE_TYPE } from '@/models';
 import { Pencil, Info, Copy } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui';
-import { BsThreeDotsVertical } from 'react-icons/bs';
+import { BsThreeDots } from 'react-icons/bs';
 import { EntitlementOverrideRequest } from '@/types/dto/Subscription';
 import { JsonObject } from '@/types/common';
 import EditEntitlementDrawer from './EditEntitlementDrawer';
@@ -274,7 +274,7 @@ const EntitlementOverridesTable: FC<EntitlementOverridesTableProps> = ({ entitle
 						<DropdownMenu open={dropdownOpen === row.id} onOpenChange={(open) => setDropdownOpen(open ? row.id : null)}>
 							<DropdownMenuTrigger asChild>
 								<button className='focus:outline-none'>
-									<BsThreeDotsVertical className='text-base text-muted-foreground hover:text-foreground transition-colors' />
+									<BsThreeDots className='text-base text-muted-foreground hover:text-foreground transition-colors' />
 								</button>
 							</DropdownMenuTrigger>
 							<DropdownMenuContent align='end'>
