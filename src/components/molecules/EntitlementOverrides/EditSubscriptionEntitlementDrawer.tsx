@@ -9,6 +9,7 @@ import EntitlementApi from '@/api/EntitlementApi';
 import { useMutation } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
 import { useTranslation } from 'react-i18next';
+import { cn } from '@/lib/utils';
 import {
 	EnrichedSubscriptionEntitlement,
 	SubscriptionEntitlementOverrideValues,
@@ -184,35 +185,40 @@ const EditSubscriptionEntitlementDrawer: FC<EditSubscriptionEntitlementDrawerPro
 
 				{entitlement.feature_type === FEATURE_TYPE.METERED && (
 					<div className='space-y-4'>
-						<div className='space-y-3'>
-							<Label label={t('entitlements.editDrawer.usageLimit')} />
-							<Input
-								type='number'
-								value={isInfinite ? t('entitlements.addDrawer.unlimitedDisplay') : usageLimit}
-								onChange={(value) => setUsageLimit(value)}
-								placeholder={t('entitlements.editDrawer.enterUsageLimitPlaceholder')}
-								disabled={isInfinite}
-							/>
-							{(originalLimit !== undefined || entitlement.isOverrideOfParent) && (
-								<div className='text-xs text-content-muted'>
-									{t('entitlements.editDrawer.originalPrefix')}{' '}
-									{originalLimit === null ? t('entitlements.addDrawer.unlimitedDisplay') : (originalLimit ?? '—')}
-									{resetPeriod && t('entitlements.editDrawer.resetsSuffix', { period: resetPeriod.toLowerCase() })}
-								</div>
-							)}
-						</div>
-
-						<Checkbox
-							id='subscription-set-infinite'
-							label={t('entitlements.editDrawer.setInfiniteLabel')}
-							checked={isInfinite}
-							onCheckedChange={(checked) => {
-								setIsInfinite(checked);
-								if (checked) {
-									setUsageLimit('');
-								}
-							}}
+						<Input
+							id='subscription-edit-entitlement-usage-limit'
+							label={t('entitlements.editDrawer.usageLimit')}
+							type={isInfinite ? 'text' : 'number'}
+							value={isInfinite ? t('entitlements.addDrawer.unlimitedDisplay') : usageLimit}
+							onChange={(value) => setUsageLimit(value)}
+							placeholder={t('entitlements.editDrawer.enterUsageLimitPlaceholder')}
+							disabled={isInfinite}
+							description={
+								originalLimit !== undefined || entitlement.isOverrideOfParent
+									? `${t('entitlements.editDrawer.originalPrefix')} ${
+											originalLimit === null ? t('entitlements.addDrawer.unlimitedDisplay') : (originalLimit ?? '—')
+										}${resetPeriod ? t('entitlements.editDrawer.resetsSuffix', { period: resetPeriod.toLowerCase() }) : ''}`
+									: undefined
+							}
 						/>
+
+						<div
+							className={cn(
+								'flex items-start gap-2 rounded-md border border-line px-3 py-2.5 transition-colors',
+								isInfinite && 'border-line-strong bg-surface-subtle',
+							)}>
+							<Checkbox
+								id='subscription-set-infinite'
+								label={t('entitlements.editDrawer.setInfiniteLabel')}
+								checked={isInfinite}
+								onCheckedChange={(checked) => {
+									setIsInfinite(checked);
+									if (checked) {
+										setUsageLimit('');
+									}
+								}}
+							/>
+						</div>
 					</div>
 				)}
 

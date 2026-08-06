@@ -984,15 +984,17 @@ const SubscriptionForm = ({
 
 			{/* Entitlements Section */}
 			{state.selectedPlan && !isLoadingPlanDetails && allEntitlements.length > 0 && (
-				<div className='space-y-4 mt-4 pt-3 border-t border-line'>
-					<FormHeader className='mb-0' title={t('organisms.subscriptionForm.entitlements')} variant='sub-header' />
-					<div className='rounded-[6px] border border-line-strong space-y-6 mt-2'>
-						<EntitlementOverridesTable
-							entitlements={allEntitlements}
-							overrides={state.entitlementOverrides}
-							onOverrideChange={handleEntitlementOverride}
-							onOverrideReset={handleEntitlementOverrideReset}
-						/>
+				<div className='mt-6 pt-6 border-t border-line'>
+					<div className='space-y-4'>
+						<FormHeader className='mb-0' title={t('organisms.subscriptionForm.entitlements')} variant='sub-header' />
+						<div className='rounded-[6px] border border-line-strong'>
+							<EntitlementOverridesTable
+								entitlements={allEntitlements}
+								overrides={state.entitlementOverrides}
+								onOverrideChange={handleEntitlementOverride}
+								onOverrideReset={handleEntitlementOverrideReset}
+							/>
+						</div>
 					</div>
 				</div>
 			)}
