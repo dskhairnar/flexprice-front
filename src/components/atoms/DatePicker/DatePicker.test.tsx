@@ -84,3 +84,31 @@ describe('DatePicker clear button', () => {
 		expect(screen.queryByRole('grid')).not.toBeInTheDocument();
 	});
 });
+
+describe('DatePicker calendar initial month', () => {
+	it('opens on the selected date’s month/year, not the current month', () => {
+		render(
+			<TestWrapper>
+				<DatePicker date={new Date(2027, 7, 3)} setDate={vi.fn()} />
+			</TestWrapper>,
+		);
+
+		fireEvent.click(screen.getByRole('button'));
+
+		expect(screen.getByText('August 2027')).toBeInTheDocument();
+	});
+
+	it('opens on the current month when no date is selected', () => {
+		render(
+			<TestWrapper>
+				<DatePicker date={undefined} setDate={vi.fn()} />
+			</TestWrapper>,
+		);
+
+		fireEvent.click(screen.getByRole('button'));
+
+		const now = new Date();
+		const expectedCaption = now.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+		expect(screen.getByText(expectedCaption)).toBeInTheDocument();
+	});
+});

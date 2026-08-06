@@ -36,13 +36,16 @@ function Calendar({ className, classNames, showOutsideDays = true, timezone, onT
 					// on the DayPicker's own className) rather than to `month_caption` — pin `top`
 					// explicitly rather than relying on the absolute-positioning "static position"
 					// fallback, which put them on top of the day grid instead of the caption row.
+					// `z-10`: day cells are also `position: relative` (for focus/selection styling) and
+					// sit later in the DOM, so without an explicit stacking order the day grid's top
+					// row paints over part of these buttons, leaving only their outer edge clickable.
 					button_previous: cn(
 						buttonVariants({ variant: 'outline' }),
-						'h-7 w-7 bg-transparent p-0 opacity-50 hover:opacity-100 absolute left-1 top-3',
+						'h-7 w-7 bg-transparent p-0 opacity-50 hover:opacity-100 absolute left-1 top-3 z-10',
 					),
 					button_next: cn(
 						buttonVariants({ variant: 'outline' }),
-						'h-7 w-7 bg-transparent p-0 opacity-50 hover:opacity-100 absolute right-1 top-3',
+						'h-7 w-7 bg-transparent p-0 opacity-50 hover:opacity-100 absolute right-1 top-3 z-10',
 					),
 					month_grid: 'w-full border-collapse space-y-1',
 					weekdays: 'flex',
