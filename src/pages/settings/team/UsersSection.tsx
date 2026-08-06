@@ -321,13 +321,13 @@ function UsersSection() {
 				return (
 					<ActionButton
 						id={row.id}
-						deleteMutationFn={() => UserApi.deleteUser(row.id)}
+						deleteMutationFn={() => UserApi.removeUserFromTenant(row.id)}
 						refetchQueryKey={settingsQueryKeys.teamMembersRoot()[0]}
 						entityName={row.email || row.id}
 						edit={{ enabled: false }}
 						archive={{
 							enabled: !isOnlyUser,
-							text: t('common:actions.delete'),
+							text: t('members.actions.remove'),
 							icon: <Trash2 className='h-4 w-4' />,
 						}}
 					/>
