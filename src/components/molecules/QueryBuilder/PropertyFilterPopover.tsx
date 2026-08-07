@@ -425,7 +425,7 @@ const PropertyFilterPopover: React.FC<Props> = ({
 									</SortableOverlay>
 								</Sortable>
 
-								{propertyFilters ? (
+								{propertyFilters && propertyFilters.rows.length > 0 ? (
 									<div className='pt-3 mt-2 border-t border-border flex flex-col gap-1.5'>
 										<h4 className='text-sm font-medium leading-none'>{t('queryBuilder.propertyFiltersHeading')}</h4>
 										<div className='space-y-3'>
@@ -455,9 +455,7 @@ const PropertyFilterPopover: React.FC<Props> = ({
 														variant='ghost'
 														size='icon'
 														className='h-7 w-7 shrink-0 hover:bg-destructive/10 hover:text-destructive'
-														onClick={() =>
-															propertyFilters.setRows((prev) => (prev.length > 1 ? prev.filter((r) => r.id !== row.id) : prev))
-														}
+														onClick={() => propertyFilters.setRows((prev) => prev.filter((r) => r.id !== row.id))}
 														aria-label={t('queryBuilder.removePropertyFilterAria')}>
 														<Trash2 className='h-3.5 w-3.5' />
 													</Button>
@@ -486,7 +484,7 @@ const PropertyFilterPopover: React.FC<Props> = ({
 									size='sm'
 									onClick={() => {
 										onChange([]);
-										if (propertyFilters) propertyFilters.setRows([propertyFilters.createEmpty()]);
+										if (propertyFilters) propertyFilters.setRows([]);
 										onResetCallback?.();
 									}}
 									className='h-9 text-sm px-2.5'>

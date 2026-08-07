@@ -7,15 +7,7 @@ import { Event } from '@/models/Event';
 import EventsApi from '@/api/EventsApi';
 import { Skeleton } from '@/components/ui/skeleton';
 import { RefreshCw } from 'lucide-react';
-import {
-	FilterField,
-	FilterFieldType,
-	DEFAULT_OPERATORS_PER_DATA_TYPE,
-	DataType,
-	FilterOperator,
-	SortOption,
-	SortDirection,
-} from '@/types/common/QueryBuilder';
+import { FilterField, FilterFieldType, DataType, FilterOperator, SortOption, SortDirection } from '@/types/common/QueryBuilder';
 import useFilterSorting from '@/hooks/useFilterSorting';
 import usePagination from '@/hooks/usePagination';
 import { TypedBackendFilter } from '@/types/formatters/QueryBuilder';
@@ -95,7 +87,7 @@ const EventsPage: React.FC = () => {
 	const [hasMore, setHasMore] = useState(true);
 	const [loading, setLoading] = useState(false);
 	const [iterLastKey, setIterLastKey] = useState<string | undefined>(undefined);
-	const [propertyFilters, setPropertyFilters] = useState<PropertyFilterRow[]>(() => [createEmptyPropertyFilter()]);
+	const [propertyFilters, setPropertyFilters] = useState<PropertyFilterRow[]>([]);
 	const observer = useRef<IntersectionObserver | null>(null);
 
 	const sortingOptions: SortOption[] = useMemo(
@@ -120,28 +112,28 @@ const EventsPage: React.FC = () => {
 				field: 'event_id',
 				label: t('events.queryBuilder.filters.eventId'),
 				fieldType: FilterFieldType.INPUT,
-				operators: DEFAULT_OPERATORS_PER_DATA_TYPE[DataType.STRING],
+				operators: [FilterOperator.EQUAL],
 				dataType: DataType.STRING,
 			},
 			{
 				field: 'event_name',
 				label: t('events.queryBuilder.filters.eventName'),
 				fieldType: FilterFieldType.INPUT,
-				operators: DEFAULT_OPERATORS_PER_DATA_TYPE[DataType.STRING],
+				operators: [FilterOperator.EQUAL],
 				dataType: DataType.STRING,
 			},
 			{
 				field: 'external_customer_id',
 				label: t('events.queryBuilder.filters.externalCustomerId'),
 				fieldType: FilterFieldType.INPUT,
-				operators: DEFAULT_OPERATORS_PER_DATA_TYPE[DataType.STRING],
+				operators: [FilterOperator.EQUAL],
 				dataType: DataType.STRING,
 			},
 			{
 				field: 'source',
 				label: t('events.queryBuilder.filters.source'),
 				fieldType: FilterFieldType.INPUT,
-				operators: DEFAULT_OPERATORS_PER_DATA_TYPE[DataType.STRING],
+				operators: [FilterOperator.EQUAL],
 				dataType: DataType.STRING,
 			},
 			{
@@ -165,46 +157,11 @@ const EventsPage: React.FC = () => {
 	const initialFilters = useMemo(() => {
 		return [
 			{
-				field: 'event_id',
-				operator: FilterOperator.EQUAL,
-				valueString: '',
-				dataType: DataType.STRING,
-				id: 'initial-event-id',
-			},
-			{
-				field: 'event_name',
-				operator: FilterOperator.EQUAL,
-				valueString: '',
-				dataType: DataType.STRING,
-				id: 'initial-event-name',
-			},
-			{
-				field: 'external_customer_id',
-				operator: FilterOperator.EQUAL,
-				valueString: '',
-				dataType: DataType.STRING,
-				id: 'initial-customer-id',
-			},
-			{
-				field: 'source',
-				operator: FilterOperator.EQUAL,
-				valueString: '',
-				dataType: DataType.STRING,
-				id: 'initial-source',
-			},
-			{
 				field: 'start_time',
 				operator: FilterOperator.AFTER,
 				valueDate: new Date(new Date().setDate(new Date().getDate() - 30)),
 				dataType: DataType.DATE,
 				id: 'initial-start-time',
-			},
-			{
-				field: 'end_time',
-				operator: FilterOperator.BEFORE,
-				valueDate: undefined,
-				dataType: DataType.DATE,
-				id: 'initial-end-time',
 			},
 		];
 	}, []);
@@ -284,7 +241,7 @@ const EventsPage: React.FC = () => {
 
 	const resetFilters = () => {
 		setFilters(initialFilters);
-		setPropertyFilters([createEmptyPropertyFilter()]);
+		setPropertyFilters([]);
 		refetchEvents();
 	};
 
