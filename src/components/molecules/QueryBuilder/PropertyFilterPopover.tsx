@@ -304,7 +304,7 @@ const PropertyFilterPopover: React.FC<Props> = ({
 				className={cn('w-screen border-border/70 shadow-lg bg-surface-panel', POPOVER_PADDING)}
 				style={{ maxWidth: '600px', minWidth: MIN_POPOVER_WIDTH }}>
 				<div className='flex flex-col gap-1.5'>
-					{value.length === 0 ? (
+					{value.length === 0 && (!propertyFilters || propertyFilters.rows.length === 0) ? (
 						<div className='flex flex-col gap-2 p-2'>
 							<div className='flex justify-between items-start'>
 								<div className='flex flex-col gap-1'>
@@ -324,9 +324,12 @@ const PropertyFilterPopover: React.FC<Props> = ({
 										variant='outline'
 										size='sm'
 										onClick={() => {
-											onChange([]);
-											if (propertyFilters) propertyFilters.setRows([propertyFilters.createEmpty()]);
-											onResetCallback?.();
+											if (onResetCallback) {
+												onResetCallback();
+											} else {
+												onChange([]);
+											}
+											if (propertyFilters) propertyFilters.setRows([]);
 										}}
 										className='h-9 text-sm px-2.5'>
 										{t('queryBuilder.resetFilters')}
@@ -483,9 +486,12 @@ const PropertyFilterPopover: React.FC<Props> = ({
 									variant='outline'
 									size='sm'
 									onClick={() => {
-										onChange([]);
+										if (onResetCallback) {
+											onResetCallback();
+										} else {
+											onChange([]);
+										}
 										if (propertyFilters) propertyFilters.setRows([]);
-										onResetCallback?.();
 									}}
 									className='h-9 text-sm px-2.5'>
 									{t('queryBuilder.resetFilters')}

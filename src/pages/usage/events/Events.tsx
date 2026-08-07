@@ -232,17 +232,9 @@ const EventsPage: React.FC = () => {
 		[apiParams, hasMore, loading],
 	);
 
-	const refetchEvents = () => {
-		setEvents([]);
-		setIterLastKey(undefined);
-		setHasMore(true);
-		fetchEvents(undefined);
-	};
-
 	const resetFilters = () => {
 		setFilters(initialFilters);
 		setPropertyFilters([]);
-		refetchEvents();
 	};
 
 	// Reset pagination when filters change
