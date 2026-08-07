@@ -89,6 +89,7 @@ const EventsPage: React.FC = () => {
 	const [iterLastKey, setIterLastKey] = useState<string | undefined>(undefined);
 	const [propertyFilters, setPropertyFilters] = useState<PropertyFilterRow[]>([]);
 	const observer = useRef<IntersectionObserver | null>(null);
+	const requestIdRef = useRef(0);
 
 	const sortingOptions: SortOption[] = useMemo(
 		() => [
@@ -206,10 +207,12 @@ const EventsPage: React.FC = () => {
 		return params;
 	}, [sanitizedFilters, propertyFilters]);
 
-	// Fetch events from API
+	// Fetch events from API. `force` bypasses the in-flight guard so a filter/sort
+	// change always supersedes a stale in-flight pagination request instead of being dropped by it.
 	const fetchEvents = useCallback(
-		async (iterLastKey?: string) => {
-			if (!hasMore || loading) return;
+		async (iterLastKey?: string, force = false) => {
+			if (!force && (!hasMore || loading)) return;
+			const requestId = ++requestIdRef.current;
 			setLoading(true);
 			try {
 				const response = await EventsApi.getRawEvents({
@@ -217,6 +220,8 @@ const EventsPage: React.FC = () => {
 					page_size: 10,
 					...apiParams,
 				});
+
+				if (requestIdRef.current !== requestId) return;
 
 				if (response.events) {
 					setEvents((prevEvents) => (iterLastKey ? [...prevEvents, ...response.events] : response.events));
@@ -226,7 +231,7 @@ const EventsPage: React.FC = () => {
 			} catch (error) {
 				logger.error('Error fetching events:', error);
 			} finally {
-				setLoading(false);
+				if (requestIdRef.current === requestId) setLoading(false);
 			}
 		},
 		[apiParams, hasMore, loading],
@@ -247,7 +252,7 @@ const EventsPage: React.FC = () => {
 		setEvents([]);
 		setIterLastKey(undefined);
 		setHasMore(true);
-		fetchEvents(undefined);
+		fetchEvents(undefined, true);
 	}, [apiParams]);
 
 	return (
