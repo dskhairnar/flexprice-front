@@ -319,6 +319,15 @@ const PropertyFilterPopover: React.FC<Props> = ({
 								<Button size='sm' onClick={handleAddFilter} className='w-fit h-9 text-sm px-2.5'>
 									{t('queryBuilder.addFilter')}
 								</Button>
+								{propertyFilters && (
+									<Button
+										variant='outline'
+										size='sm'
+										className='h-9 text-sm px-2.5'
+										onClick={() => propertyFilters.setRows((prev) => [...prev, propertyFilters.createEmpty()])}>
+										{t('queryBuilder.addPropertyFilter')}
+									</Button>
+								)}
 								{(onResetCallback != null || propertyFilters != null) && (
 									<Button
 										variant='outline'

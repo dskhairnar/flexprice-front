@@ -12,6 +12,13 @@ import { SelectOption } from './SearchableSelect';
 export interface SearchConfig<T = any> {
 	/** Function that performs the search and returns objects with SelectOption format */
 	searchFn: (query: string) => Promise<Array<SelectOption & { data: T }>>;
+	/**
+	 * Uniquely identifies this picker's search config for query caching. Every consumer of
+	 * AsyncSearchableSelect shares one query cache, so this must include anything that affects
+	 * searchFn's output (e.g. which entity type, filters, exclusions) - otherwise unrelated
+	 * pickers opened within the same staleTime window can silently serve each other's cached results.
+	 */
+	queryKeyPrefix: Array<string | number | boolean | undefined>;
 	/** Debounce time in milliseconds (default: 300) */
 	debounceTime?: number;
 	/** Search input placeholder */
@@ -90,7 +97,13 @@ const AsyncSearchableSelect = <T = any,>({
 	disabled = false,
 }: AsyncSearchableSelectProps<T>) => {
 	const { t } = useTranslation('common');
-	const { searchFn, debounceTime = 300, placeholder: searchPlaceholder = t('search.placeholderShort'), initialOptions = [] } = search;
+	const {
+		searchFn,
+		queryKeyPrefix,
+		debounceTime = 300,
+		placeholder: searchPlaceholder = t('search.placeholderShort'),
+		initialOptions = [],
+	} = search;
 
 	const { valueExtractor, labelExtractor, descriptionExtractor } = extractors;
 
@@ -140,7 +153,7 @@ const AsyncSearchableSelect = <T = any,>({
 		isError,
 		error: queryError,
 	} = useQuery<Array<SelectOption & { data: T }>, Error>({
-		queryKey: ['async-searchable-select', debouncedQuery],
+		queryKey: ['async-searchable-select', ...queryKeyPrefix, debouncedQuery],
 		queryFn: () => searchFn(debouncedQuery),
 		enabled: open,
 		staleTime: 30000, // Cache for 30 seconds

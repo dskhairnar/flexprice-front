@@ -123,6 +123,7 @@ const ApplyCouponDialog: FC<Props> = ({ subscriptionId, lineItems, prefilledLine
 					<AsyncSearchableSelect<Coupon>
 						search={{
 							searchFn: couponSearchFn,
+							queryKeyPrefix: ['coupon'],
 							placeholder: t('subscriptions.applyCouponDialog.couponCodePlaceholder', 'Search by name or code…'),
 						}}
 						extractors={{

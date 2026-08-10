@@ -1,71 +1,11 @@
-import { FC, ReactNode, useRef, useEffect, useCallback } from 'react';
+import { FC, ReactNode, useRef, useEffect } from 'react';
 import { Sheet as ShadcnSheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { cn } from '@/lib/utils';
-import { hasRegisteredOpenModals, hasOpenOverlayInDom, registerModalOpen } from '@/lib/modal-scroll-lock';
+import { hasRegisteredOpenModals, hasOpenOverlayInDom, registerModalOpen, useSheetOutsideDismissGuards } from '@/lib/modal-scroll-lock';
 import { useLocaleStore } from '@/store/useLocaleStore';
 import { Direction } from '@/config/branding';
 
-const PORTALED_OVERLAY_SELECTOR = [
-	'[data-radix-popper-content-wrapper]',
-	'[data-radix-select-content]',
-	'[data-radix-menu-content]',
-	'[data-radix-dropdown-menu-content]',
-	'[data-radix-popover-content]',
-].join(', ');
-
-const isPortaledOverlayTarget = (target: EventTarget | null) =>
-	target instanceof Element && !!target.closest(PORTALED_OVERLAY_SELECTOR);
-
-const hasOpenPortaledOverlay = () => !!document.querySelector(PORTALED_OVERLAY_SELECTOR);
-
-/** @deprecated Prefer useSheetOutsideDismissGuards — kept for drawers that still import this helper. */
-export const isPortaledSelectTarget = (target: EventTarget | null) => isPortaledOverlayTarget(target);
-
-/**
- * Side sheets use `modal={false}` so portaled selects stay clickable.
- * Outside click still closes the sheet, except while a portaled dropdown is open
- * (or the click landed on one) — then only the dropdown dismisses.
- */
-export function useSheetOutsideDismissGuards(enabled = true) {
-	const suppressDismissRef = useRef(false);
-
-	useEffect(() => {
-		if (!enabled) {
-			suppressDismissRef.current = false;
-			return;
-		}
-
-		// Capture before nested dismissable layers unmount open dropdowns.
-		const onPointerDownCapture = () => {
-			if (!hasOpenPortaledOverlay()) return;
-			suppressDismissRef.current = true;
-			// Backup clear if this gesture never hits the sheet outside handlers (e.g. click inside sheet).
-			window.setTimeout(() => {
-				suppressDismissRef.current = false;
-			}, 100);
-		};
-
-		document.addEventListener('pointerdown', onPointerDownCapture, true);
-		return () => document.removeEventListener('pointerdown', onPointerDownCapture, true);
-	}, [enabled]);
-
-	const preventOutsideDismiss = useCallback((event: Event) => {
-		if (isPortaledOverlayTarget(event.target) || suppressDismissRef.current || hasOpenPortaledOverlay()) {
-			event.preventDefault();
-			suppressDismissRef.current = false;
-		}
-	}, []);
-
-	const preventFocusOutsideDismiss = useCallback((event: Event) => {
-		event.preventDefault();
-	}, []);
-
-	return {
-		onPointerDownOutside: preventOutsideDismiss,
-		onInteractOutside: preventOutsideDismiss,
-		onFocusOutside: preventFocusOutsideDismiss,
-	};
-}
+export { useSheetOutsideDismissGuards };
 
 interface Props {
 	trigger?: ReactNode;

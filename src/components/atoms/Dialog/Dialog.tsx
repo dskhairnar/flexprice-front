@@ -1,6 +1,6 @@
 import { Dialog as ShadcnDialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { cn } from '@/lib/utils';
-import { hasRegisteredOpenModals, hasOpenOverlayInDom, registerModalOpen } from '@/lib/modal-scroll-lock';
+import { hasRegisteredOpenModals, hasOpenOverlayInDom, registerModalOpen, useSheetOutsideDismissGuards } from '@/lib/modal-scroll-lock';
 import React, { FC, ReactNode, useEffect } from 'react';
 
 interface Props {
@@ -35,6 +35,8 @@ const Dialog: FC<Props> = ({
 	showCloseButton = true,
 	interactiveContent = false,
 }) => {
+	const outsideDismissGuards = useSheetOutsideDismissGuards(isOpen);
+
 	// Register while open so the safety net below (and every other Dialog/Sheet instance) knows
 	// not to clear the shared body lock while this one is still legitimately open.
 	useEffect(() => {
@@ -60,12 +62,13 @@ const Dialog: FC<Props> = ({
 	}, [isOpen]);
 
 	return (
-		<ShadcnDialog open={isOpen} onOpenChange={onOpenChange}>
+		<ShadcnDialog open={isOpen} onOpenChange={onOpenChange} modal={false}>
 			<DialogContent
 				className={cn('bg-surface rounded-[10px] max-h-[80vh] overflow-y-auto', className)}
 				showCloseButton={showCloseButton}
 				data-interactive={interactiveContent ? 'true' : undefined}
-				onClick={interactiveContent ? (e: React.MouseEvent) => e.stopPropagation() : undefined}>
+				onClick={interactiveContent ? (e: React.MouseEvent) => e.stopPropagation() : undefined}
+				{...outsideDismissGuards}>
 				<DialogHeader className=''>
 					<DialogTitle className={cn('font-medium text-xl', titleClassName)}>
 						{typeof title === 'string' ? title : <>{title}</>}

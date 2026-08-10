@@ -115,6 +115,7 @@ const SelectFeature: FC<Props> = ({
 			<AsyncSearchableSelect<Feature>
 				search={{
 					searchFn: searchFeatures,
+					queryKeyPrefix: ['feature', featureTypes.slice().sort().join(','), (disabledFeatures ?? []).slice().sort().join(',')],
 					debounceTime: 300,
 					placeholder: t('features.searchPlaceholder'),
 				}}
