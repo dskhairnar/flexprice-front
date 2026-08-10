@@ -36,7 +36,7 @@ const CustomerSearchSelect: React.FC<CustomerSearchSelectProps> = ({
 	includeNoneOption = true,
 	...props
 }) => {
-	const { t } = useTranslation('customers');
+	const { t, i18n } = useTranslation('customers');
 	const resolvedPlaceholder = searchPlaceholder ?? t('select.searchCustomer');
 	const noneLabel = t('select.none');
 	const selfLabel = t('select.self');
@@ -106,7 +106,7 @@ const CustomerSearchSelect: React.FC<CustomerSearchSelectProps> = ({
 			{...props}
 			search={{
 				searchFn,
-				queryKeyPrefix: ['customer', limit, excludeIdsForKey.slice().sort().join(','), selfCustomer?.id, includeNoneOption],
+				queryKeyPrefix: ['customer', limit, excludeIdsForKey.slice().sort().join(','), selfCustomer?.id, includeNoneOption, i18n.language],
 				placeholder: resolvedPlaceholder,
 			}}
 			extractors={{

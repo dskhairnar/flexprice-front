@@ -41,12 +41,19 @@ export function hasOpenOverlayInDom(): boolean {
 	return !!document.querySelector(OPEN_OVERLAY_SELECTOR);
 }
 
+/**
+ * Require `data-state="open"` so a `forceMount`-ed overlay that's actually closed (kept in the
+ * DOM for its own exit animation) doesn't get mistaken for something open — that would make
+ * useSheetOutsideDismissGuards block every outside-click dismissal indefinitely. Radix puts
+ * `data-state` on the content element itself, not on the outer `data-radix-popper-content-wrapper`
+ * positioning div, hence the descendant combinator (space) for that one selector.
+ */
 const PORTALED_OVERLAY_SELECTOR = [
-	'[data-radix-popper-content-wrapper]',
-	'[data-radix-select-content]',
-	'[data-radix-menu-content]',
-	'[data-radix-dropdown-menu-content]',
-	'[data-radix-popover-content]',
+	'[data-radix-popper-content-wrapper] [data-state="open"]',
+	'[data-radix-select-content][data-state="open"]',
+	'[data-radix-menu-content][data-state="open"]',
+	'[data-radix-dropdown-menu-content][data-state="open"]',
+	'[data-radix-popover-content][data-state="open"]',
 ].join(', ');
 
 const isPortaledOverlayTarget = (target: EventTarget | null) => target instanceof Element && !!target.closest(PORTALED_OVERLAY_SELECTOR);
