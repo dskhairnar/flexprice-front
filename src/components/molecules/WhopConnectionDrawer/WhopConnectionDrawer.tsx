@@ -1,6 +1,6 @@
 import { config } from '@/config/config';
 import { FC, useState, useEffect } from 'react';
-import { Trans, useTranslation } from 'react-i18next';
+import { useTranslation } from 'react-i18next';
 import { Button, Input, Sheet, Spacer } from '@/components/atoms';
 import { Switch } from '@/components/ui';
 import { useMutation } from '@tanstack/react-query';
@@ -255,9 +255,6 @@ const WhopConnectionDrawer: FC<WhopConnectionDrawerProps> = ({ isOpen, onOpenCha
 				{/* Webhook Section */}
 				<div className='p-4 bg-info-muted border border-info-line rounded-lg'>
 					<h3 className='text-sm font-medium text-info-deep mb-2'>{t('connection.webhook.sectionTitle')}</h3>
-					<p className='text-xs text-info-strong mb-3'>
-						<Trans ns='settings' i18nKey='connection.whop.webhookIntroHtml' components={{ event: <code className='font-mono' /> }} />
-					</p>
 					<div className='mb-3 space-y-2'>
 						<Input
 							label={t('connection.whop.webhookSecret')}

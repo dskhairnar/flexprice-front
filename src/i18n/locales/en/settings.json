@@ -959,7 +959,7 @@
 			"webhookSecret": "Webhook Secret",
 			"webhookSecretPlaceholderCreate": "Webhook signing secret from Whop",
 			"webhookSecretPlaceholderEdit": "Leave blank to keep existing secret, or enter a new secret to rotate",
-			"webhookSecretDescCreate": "Required. Must match the secret in Whop so Flexprice can verify webhook signatures. Stored encrypted with your connection.",
+			"webhookSecretDescCreate": "Required for webhook verification. Must match the secret configured in Whop. Stored encrypted.",
 			"webhookSecretDescEdit": "Stored encrypted. Leave blank to keep the current secret when updating."
 		},
 		"tabs": {
