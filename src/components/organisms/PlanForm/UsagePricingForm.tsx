@@ -58,6 +58,27 @@ interface TieredPrice {
 	flat_amount: string;
 }
 
+/**
+ * Only the last tier should ever be unbounded (up_to: null) - VolumeTieredPricingForm renders
+ * whichever row has up_to === null as the disabled/∞ row regardless of its position. Backend data
+ * should already guarantee this, but normalize defensively on load anyway: a stray null on a
+ * non-last tier (e.g. from an older client/API path) would otherwise permanently lock a row that
+ * isn't actually the last one.
+ */
+const normalizeTiers = (tiers: TieredPrice[]): PriceTier[] =>
+	tiers.map((tier, index) => {
+		const isLast = index === tiers.length - 1;
+		if (isLast) {
+			return { from: tier.from, up_to: null, unit_amount: tier.unit_amount, flat_amount: tier.flat_amount };
+		}
+		return {
+			from: tier.from,
+			up_to: tier.up_to === null ? (tiers[index + 1]?.from ?? tier.from) : tier.up_to,
+			unit_amount: tier.unit_amount,
+			flat_amount: tier.flat_amount,
+		};
+	});
+
 // TODO: Remove disabled once the feature is released
 export const billingModels: SelectOption[] = [
 	{
@@ -188,14 +209,7 @@ const UsagePricingForm: FC<Props> = ({
 					unit: price.transform_quantity?.divide_by?.toString() || '',
 				});
 			} else if (price.billing_model === BILLING_MODEL.TIERED && Array.isArray(price.tiers)) {
-				setTieredPrices(
-					(price.tiers as unknown as TieredPrice[]).map((tier) => ({
-						from: tier.from,
-						up_to: tier.up_to,
-						unit_amount: tier.unit_amount,
-						flat_amount: tier.flat_amount,
-					})),
-				);
+				setTieredPrices(normalizeTiers(price.tiers as unknown as TieredPrice[]));
 
 				// Set the appropriate billing model based on tier_mode
 				if (price.tier_mode === TIER_MODE.SLAB) {

@@ -52,9 +52,9 @@ const VolumeTieredPricingForm: FC<Props> = ({ setTieredPrices, tieredPrices, cur
 	const addTieredPrice = () => {
 		setTieredPrices((prev) => {
 			const lastTier = prev[prev.length - 1];
-
+			const updatedTiers = [...prev];
 			if (lastTier.up_to === null) {
-				prev[prev.length - 1] = { ...lastTier, up_to: lastTier.from + 1 };
+				updatedTiers[updatedTiers.length - 1] = { ...lastTier, up_to: lastTier.from + 1 };
 			}
 			const newFrom = lastTier.up_to ?? lastTier.from + 1;
 
@@ -64,7 +64,7 @@ const VolumeTieredPricingForm: FC<Props> = ({ setTieredPrices, tieredPrices, cur
 				unit_amount: '',
 				flat_amount: '0',
 			};
-			return [...prev, newTier];
+			return [...updatedTiers, newTier];
 		});
 	};
 
@@ -76,7 +76,8 @@ const VolumeTieredPricingForm: FC<Props> = ({ setTieredPrices, tieredPrices, cur
 		setTieredPrices((prev) => {
 			const updatedTiers = prev.filter((_, i) => i !== index);
 			if (updatedTiers.length > 0 && index === prev.length - 1) {
-				updatedTiers[updatedTiers.length - 1].up_to = null;
+				const newLastTier = updatedTiers[updatedTiers.length - 1];
+				updatedTiers[updatedTiers.length - 1] = { ...newLastTier, up_to: null };
 			}
 			return updatedTiers;
 		});
@@ -87,22 +88,30 @@ const VolumeTieredPricingForm: FC<Props> = ({ setTieredPrices, tieredPrices, cur
 		const newValue = formatNumber(value);
 		setTieredPrices((prev) => {
 			const updatedTiers = [...prev];
+			const isLastTier = index === prev.length - 1;
 			if (newValue !== null) {
 				updatedTiers[index] = { ...updatedTiers[index], [key]: newValue };
 
 				// Adjust the 'from' and 'up_to' values based on the tier being updated
 				if (key === 'up_to' && index < prev.length - 1) {
 					// If 'up_to' is updated, adjust the 'from' value of the next tier
-					const nextTier = updatedTiers[index + 1];
-					nextTier.from = newValue;
+					updatedTiers[index + 1] = { ...updatedTiers[index + 1], from: newValue };
 				}
 
 				if (key === 'from' && index > 0) {
 					// If 'from' is updated, adjust the 'up_to' value of the previous tier
-					const previousTier = updatedTiers[index - 1];
-					previousTier.up_to = newValue;
+					updatedTiers[index - 1] = { ...updatedTiers[index - 1], up_to: newValue };
 				}
+			} else if (key === 'up_to' && isLastTier) {
+				// Clearing the last tier's "up to" reverts it to unbounded (∞) rather than writing
+				// an invalid empty string into a number|null field - matches the "up_to is null for
+				// the last tier" contract, and is the only direct way to re-open a tier that was
+				// just locked to ∞ by deleting the tier that used to be last.
+				updatedTiers[index] = { ...updatedTiers[index], up_to: null };
 			} else {
+				// Any other field being cleared (e.g. backspacing a non-last tier's "up to" mid-edit,
+				// before typing the replacement digits) - allow the transient empty value so the
+				// field can actually be cleared and retyped, instead of silently rejecting the edit.
 				updatedTiers[index] = { ...updatedTiers[index], [key]: '' };
 			}
 			return updatedTiers;
@@ -170,9 +179,8 @@ const VolumeTieredPricingForm: FC<Props> = ({ setTieredPrices, tieredPrices, cur
 										<DecimalUsageInput
 											label=''
 											className='h-9 w-full min-w-0'
-											value={tier.up_to === null ? '∞' : tier.up_to.toString()}
+											value={tier.up_to === null ? '' : tier.up_to.toString()}
 											onChange={(e) => updateTier(index, 'up_to', e)}
-											disabled={tier.up_to === null}
 											precision={3}
 											min={0}
 											placeholder='∞'

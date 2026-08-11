@@ -15,7 +15,7 @@ import { Switch } from '@/components/ui';
 import { cn } from '@/lib/utils';
 import { toSentenceCase, getCurrencySymbol } from '@/utils/common/helper_functions';
 import { PlanResponse } from '@/types';
-import { useMemo, useEffect, useRef, useState } from 'react';
+import { useCallback, useMemo, useEffect, useRef, useState } from 'react';
 import toast from 'react-hot-toast';
 import SubscriptionCreditGrantTable from '@/components/molecules/CreditGrant/SubscriptionCreditGrantTable';
 import SubscriptionAddonTable from '@/components/molecules/SubscriptionAddonTable/SubscriptionAddonTable';
@@ -48,7 +48,9 @@ import SubscriptionTaxAssociationTable from '@/components/molecules/Subscription
 import PhaseList from './PhaseList';
 import { SubscriptionPhaseCreateRequest, EntitlementOverrideRequest } from '@/types/dto/Subscription';
 import SubscriptionPriceTable from './SubscriptionPriceTable';
-import AddSubscriptionChargeDialog from './AddSubscriptionChargeDialog';
+import AddSubscriptionChargeDialog, { type AddedSubscriptionLineItem } from './AddSubscriptionChargeDialog';
+import type { LineItemCommitmentConfig } from '@/types/dto/LineItemCommitmentConfig';
+import type { CommitmentTimeBucket } from '@/types/dto/CommitmentTimeBucket';
 import { CustomerSearchSelect, InheritedCustomersTable } from '@/components/molecules/Customer';
 import { usePriceOverrides } from '@/hooks/usePriceOverrides';
 import { Coupon } from '@/models/Coupon';
@@ -171,9 +173,13 @@ const SubscriptionForm = ({
 
 	// Current prices for subscription-level and phase management (hook already returns only active prices).
 	// Includes plan one-time (ONETIME) prices for the selected currency regardless of recurring billing period.
-	const currentPrices = selectedPlanPrices?.items
-		? filterPlanPricesForSubscriptionCharges(selectedPlanPrices.items, state.billingPeriod, state.currency)
-		: [];
+	const currentPrices = useMemo(
+		() =>
+			selectedPlanPrices?.items
+				? filterPlanPricesForSubscriptionCharges(selectedPlanPrices.items, state.billingPeriod, state.currency)
+				: [],
+		[selectedPlanPrices?.items, state.billingPeriod, state.currency],
+	);
 
 	const hasFixedSubscriptionChargePrice = useMemo(() => {
 		if (!selectedPlanPrices?.items?.length) return false;
@@ -402,6 +408,71 @@ const SubscriptionForm = ({
 	const [isAddChargeDialogOpen, setAddChargeDialogOpen] = useState(false);
 	// When set, dialog is in edit mode for this added line item (tempId)
 	const [editingAddedChargeTempId, setEditingAddedChargeTempId] = useState<string | null>(null);
+
+	// Stable identities so SubscriptionPriceTable's row memoization isn't invalidated by every
+	// unrelated SubscriptionForm re-render (was rebuilding every price row on any state change,
+	// e.g. applying a discount to a single line item re-rendered the whole table).
+	const handleLineItemCouponsChange = useCallback(
+		(priceId: string, coupon: Coupon | null) => {
+			setState((prev) => {
+				const newLineItemCoupons = { ...prev.lineItemCoupons };
+				if (coupon) {
+					newLineItemCoupons[priceId] = coupon;
+				} else {
+					delete newLineItemCoupons[priceId];
+				}
+				return {
+					...prev,
+					lineItemCoupons: newLineItemCoupons,
+				};
+			});
+		},
+		[setState],
+	);
+
+	const handleCommitmentChange = useCallback(
+		(priceId: string, config: LineItemCommitmentConfig | null, timeBuckets?: CommitmentTimeBucket[]) => {
+			if (config) {
+				overridePrice(priceId, {
+					commitment: config,
+					commitment_time_buckets: timeBuckets === undefined ? undefined : timeBuckets.length > 0 ? timeBuckets : undefined,
+				});
+			} else {
+				const currentOverride = overriddenPrices[priceId];
+				if (currentOverride) {
+					const restOverride = { ...currentOverride };
+					delete restOverride.commitment;
+					delete restOverride.commitment_time_buckets;
+					if (Object.keys(restOverride).length > 1) {
+						overridePrice(priceId, restOverride);
+					} else {
+						resetOverride(priceId);
+					}
+				}
+			}
+		},
+		[overridePrice, overriddenPrices, resetOverride],
+	);
+
+	const handleAddCharge = useCallback(() => {
+		setEditingAddedChargeTempId(null);
+		setAddChargeDialogOpen(true);
+	}, []);
+
+	const handleRemoveAddedCharge = useCallback(
+		(tempId: string) => {
+			setState((prev) => ({
+				...prev,
+				addedSubscriptionLineItems: (prev.addedSubscriptionLineItems ?? []).filter((i) => i.tempId !== tempId),
+			}));
+		},
+		[setState],
+	);
+
+	const handleEditAddedCharge = useCallback((item: AddedSubscriptionLineItem) => {
+		setEditingAddedChargeTempId(item.tempId);
+		setAddChargeDialogOpen(true);
+	}, []);
 
 	// Combine plan credit grants with user-added credit grants (all editable now)
 	const relevantCreditGrants = useMemo(() => {
@@ -720,57 +791,14 @@ const SubscriptionForm = ({
 							onResetOverride={resetOverride}
 							overriddenPrices={overriddenPrices}
 							lineItemCoupons={state.lineItemCoupons}
-							onLineItemCouponsChange={(priceId, coupon) => {
-								setState((prev) => {
-									const newLineItemCoupons = { ...prev.lineItemCoupons };
-									if (coupon) {
-										newLineItemCoupons[priceId] = coupon;
-									} else {
-										delete newLineItemCoupons[priceId];
-									}
-									return {
-										...prev,
-										lineItemCoupons: newLineItemCoupons,
-									};
-								});
-							}}
-							onCommitmentChange={(priceId, config, timeBuckets) => {
-								if (config) {
-									overridePrice(priceId, {
-										commitment: config,
-										commitment_time_buckets: timeBuckets === undefined ? undefined : timeBuckets.length > 0 ? timeBuckets : undefined,
-									});
-								} else {
-									const currentOverride = overriddenPrices[priceId];
-									if (currentOverride) {
-										const restOverride = { ...currentOverride };
-										delete restOverride.commitment;
-										delete restOverride.commitment_time_buckets;
-										if (Object.keys(restOverride).length > 1) {
-											overridePrice(priceId, restOverride);
-										} else {
-											resetOverride(priceId);
-										}
-									}
-								}
-							}}
+							onLineItemCouponsChange={handleLineItemCouponsChange}
+							onCommitmentChange={handleCommitmentChange}
 							disabled={isDisabled}
 							subscriptionLevelCoupon={state.linkedCoupon}
 							addedLineItems={state.addedSubscriptionLineItems}
-							onAddCharge={() => {
-								setEditingAddedChargeTempId(null);
-								setAddChargeDialogOpen(true);
-							}}
-							onRemoveAddedCharge={(tempId) =>
-								setState((prev) => ({
-									...prev,
-									addedSubscriptionLineItems: (prev.addedSubscriptionLineItems ?? []).filter((i) => i.tempId !== tempId),
-								}))
-							}
-							onEditAddedCharge={(item) => {
-								setEditingAddedChargeTempId(item.tempId);
-								setAddChargeDialogOpen(true);
-							}}
+							onAddCharge={handleAddCharge}
+							onRemoveAddedCharge={handleRemoveAddedCharge}
+							onEditAddedCharge={handleEditAddedCharge}
 						/>
 					</div>
 

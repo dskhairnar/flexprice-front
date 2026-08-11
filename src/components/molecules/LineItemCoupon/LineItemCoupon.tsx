@@ -48,12 +48,17 @@ const LineItemCoupon: React.FC<Props> = ({
 		}
 	}, [isModalOpen, selectedCoupon]);
 
+	// This component mounts fresh each time a line item's coupon picker opens (SubscriptionPriceTable
+	// only renders it while that row's dialog is open), so with the default staleTime of 0 every open
+	// re-fetches the full coupon list from the network. A short staleTime lets repeat opens across
+	// different line items in the same sitting reuse the cache instead of refetching each time.
 	const { data: availableCoupons = [] } = useQuery({
 		queryKey: ['availableCoupons'],
 		queryFn: async () => {
 			const response = await CouponApi.getAllCoupons({ limit: 1000, offset: 0 });
 			return filterValidCoupons(response.items);
 		},
+		staleTime: 60000,
 	});
 
 	// Count local usage of coupons across line items and subscription level
