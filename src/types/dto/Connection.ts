@@ -104,6 +104,13 @@ export interface CreateConnectionPayload {
 				client_secret?: string;
 		  }
 		| {
+				provider_type: CONNECTION_PROVIDER_TYPE.WHOP;
+				api_key?: string;
+				company_id?: string;
+				product_id?: string;
+				webhook_secret?: string;
+		  }
+		| {
 				api_key?: string;
 				webhook_secret?: string;
 		  };

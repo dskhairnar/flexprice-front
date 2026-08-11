@@ -955,9 +955,12 @@
 			"productIdPlaceholder": "prod_... — leave blank to auto-create",
 			"productIdHint": "Whop product used for invoices. Leave blank to have Flexprice create one automatically.",
 			"invoiceSyncHint": "Push Flexprice invoices to Whop as send_invoice payments",
-			"webhookIntroPrefix": "Register this URL in your Whop dashboard under Webhooks. Flexprice will listen for",
-			"webhookEventName": "invoice.paid",
-			"webhookIntroSuffix": "events to automatically mark invoices as paid."
+			"webhookIntroHtml": "In Whop, create a webhook with this URL and subscribe to <event>invoice.paid</event>. Paste the same signing secret below so Flexprice can verify events and mark invoices as paid.",
+			"webhookSecret": "Webhook Secret",
+			"webhookSecretPlaceholderCreate": "Webhook signing secret from Whop",
+			"webhookSecretPlaceholderEdit": "Leave blank to keep existing secret, or enter a new secret to rotate",
+			"webhookSecretDescCreate": "Required. Must match the secret in Whop so Flexprice can verify webhook signatures. Stored encrypted with your connection.",
+			"webhookSecretDescEdit": "Stored encrypted. Leave blank to keep the current secret when updating."
 		},
 		"tabs": {
 			"description": "Configure your Tabs integration with the required credentials.",
@@ -1374,7 +1377,7 @@
 						"webhooks": {
 							"title": "Webhooks",
 							"paragraphs": [
-								"Register the Flexprice webhook URL in your Whop developer settings to receive invoice.paid events. When Whop fires this event, Flexprice automatically marks the corresponding invoice as paid and records the payment."
+								"Register the Flexprice webhook URL in your Whop developer settings, subscribe to invoice.paid, and use the same webhook signing secret in Flexprice. When Whop fires this event, Flexprice verifies the signature, marks the corresponding invoice as paid, and records the payment."
 							]
 						}
 					}

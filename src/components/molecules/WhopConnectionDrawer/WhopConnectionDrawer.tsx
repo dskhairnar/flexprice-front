@@ -1,6 +1,6 @@
 import { config } from '@/config/config';
 import { FC, useState, useEffect } from 'react';
-import { useTranslation } from 'react-i18next';
+import { Trans, useTranslation } from 'react-i18next';
 import { Button, Input, Sheet, Spacer } from '@/components/atoms';
 import { Switch } from '@/components/ui';
 import { useMutation } from '@tanstack/react-query';
@@ -23,6 +23,7 @@ interface WhopFormData {
 	api_key: string;
 	company_id: string;
 	product_id: string;
+	webhook_secret: string;
 	sync_config: {
 		invoice: boolean;
 	};
@@ -43,6 +44,7 @@ const WhopConnectionDrawer: FC<WhopConnectionDrawerProps> = ({ isOpen, onOpenCha
 		api_key: '',
 		company_id: '',
 		product_id: '',
+		webhook_secret: '',
 		sync_config: {
 			invoice: false,
 		},
@@ -59,6 +61,7 @@ const WhopConnectionDrawer: FC<WhopConnectionDrawerProps> = ({ isOpen, onOpenCha
 					api_key: '',
 					company_id: encryptedData.company_id || '',
 					product_id: encryptedData.product_id || '',
+					webhook_secret: '',
 					sync_config: {
 						invoice: syncConfig.invoice?.outbound || false,
 					},
@@ -69,6 +72,7 @@ const WhopConnectionDrawer: FC<WhopConnectionDrawerProps> = ({ isOpen, onOpenCha
 					api_key: '',
 					company_id: '',
 					product_id: '',
+					webhook_secret: '',
 					sync_config: { invoice: false },
 				});
 			}
@@ -92,6 +96,7 @@ const WhopConnectionDrawer: FC<WhopConnectionDrawerProps> = ({ isOpen, onOpenCha
 		if (!connection) {
 			if (!formData.api_key.trim()) newErrors.api_key = t('connection.validation.apiKeyRequiredUpper');
 			if (!formData.company_id.trim()) newErrors.company_id = t('connection.whop.companyIdRequired');
+			if (!formData.webhook_secret.trim()) newErrors.webhook_secret = t('connection.validation.webhookSecretRequired');
 		}
 		setErrors(newErrors);
 		return Object.keys(newErrors).length === 0;
@@ -106,6 +111,7 @@ const WhopConnectionDrawer: FC<WhopConnectionDrawerProps> = ({ isOpen, onOpenCha
 					provider_type: CONNECTION_PROVIDER_TYPE.WHOP,
 					api_key: formData.api_key,
 					company_id: formData.company_id,
+					webhook_secret: formData.webhook_secret,
 					...(formData.product_id.trim() ? { product_id: formData.product_id.trim() } : {}),
 				},
 				sync_config: {} as Record<string, { inbound: boolean; outbound: boolean }>,
@@ -134,8 +140,15 @@ const WhopConnectionDrawer: FC<WhopConnectionDrawerProps> = ({ isOpen, onOpenCha
 			if (formData.sync_config.invoice) {
 				payload.sync_config.invoice = { inbound: false, outbound: true };
 			}
+			const secretUpdates: Record<string, string> = {};
 			if (formData.product_id.trim()) {
-				payload.encrypted_secret_data = { product_id: formData.product_id.trim() };
+				secretUpdates.product_id = formData.product_id.trim();
+			}
+			if (formData.webhook_secret.trim()) {
+				secretUpdates.webhook_secret = formData.webhook_secret.trim();
+			}
+			if (Object.keys(secretUpdates).length > 0) {
+				payload.encrypted_secret_data = secretUpdates;
 			}
 			return await ConnectionApi.Update(connection.id, payload);
 		},
@@ -243,11 +256,23 @@ const WhopConnectionDrawer: FC<WhopConnectionDrawerProps> = ({ isOpen, onOpenCha
 				<div className='p-4 bg-info-muted border border-info-line rounded-lg'>
 					<h3 className='text-sm font-medium text-info-deep mb-2'>{t('connection.webhook.sectionTitle')}</h3>
 					<p className='text-xs text-info-strong mb-3'>
-						{t('connection.whop.webhookIntroPrefix')} <code className='font-mono'>{t('connection.whop.webhookEventName')}</code>{' '}
-						{t('connection.whop.webhookIntroSuffix')}
+						<Trans ns='settings' i18nKey='connection.whop.webhookIntroHtml' components={{ event: <code className='font-mono' /> }} />
 					</p>
-					<div>
+					<div className='mb-3 space-y-2'>
+						<Input
+							label={t('connection.whop.webhookSecret')}
+							type='password'
+							placeholder={
+								connection ? t('connection.whop.webhookSecretPlaceholderEdit') : t('connection.whop.webhookSecretPlaceholderCreate')
+							}
+							value={formData.webhook_secret}
+							onChange={(value) => handleChange('webhook_secret', value)}
+							error={errors.webhook_secret}
+							className='text-info-deep'
+							description={connection ? t('connection.whop.webhookSecretDescEdit') : t('connection.whop.webhookSecretDescCreate')}
+						/>
 						<label className='text-sm font-medium text-info-deep mb-2 block'>{t('connection.webhook.url')}</label>
+
 						<div className='flex items-center gap-2 p-2 bg-surface border border-info-line rounded-md'>
 							<code className='flex-1 text-xs text-content-heading font-mono break-all'>{webhookUrl}</code>
 							<Button size='xs' variant='outline' onClick={handleCopyWebhookUrl} className='flex items-center gap-1'>

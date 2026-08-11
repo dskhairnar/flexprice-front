@@ -958,9 +958,12 @@
 			"productIdPlaceholder": "prod_... — اتركه فارغاً للإنشاء التلقائي",
 			"productIdHint": "منتج Whop المستخدم للفواتير. اتركه فارغاً لينشئ Flexprice واحداً تلقائياً.",
 			"invoiceSyncHint": "ادفع فواتير Flexprice إلى Whop كمدفوعات send_invoice",
-			"webhookIntroPrefix": "سجّل هذا العنوان في لوحة Whop ضمن Webhooks. سيتابع Flexprice",
-			"webhookEventName": "invoice.paid",
-			"webhookIntroSuffix": "لتحديث حالة الفاتورة تلقائياً عند الدفع."
+			"webhookIntroHtml": "في Whop، أنشئ ويب هوك بهذا العنوان واشترك في <event>invoice.paid</event>. الصق نفس سرّ التوقيع أدناه ليتحقق Flexprice من الأحداث ويحدّث الفواتير كمدفوعة.",
+			"webhookSecret": "سرّ الويب هوك",
+			"webhookSecretPlaceholderCreate": "سرّ توقيع الويب هوك من Whop",
+			"webhookSecretPlaceholderEdit": "اتركه فارغاً للإبقاء على السرّ، أو أدخل سراً جديداً للتدوير",
+			"webhookSecretDescCreate": "مطلوب. يجب أن يطابق سرّ Whop ليتحقق Flexprice من التوقيع. يُخزَّن مشفّراً مع الاتصال.",
+			"webhookSecretDescEdit": "مُخزَّن مشفّراً. اتركه فارغاً عند التحديث للإبقاء على السرّ الحالي."
 		},
 		"tabs": {
 			"description": "اضبط تكامل Tabs باستخدام بيانات الاعتماد المطلوبة.",
@@ -1308,6 +1311,31 @@
 						"webhooksPaddle": {
 							"title": "تكامل الويبهوك",
 							"paragraphs": ["استقبل إشعارات فورية عن أحداث الدفع عبر الويبهوك؛ اشترك في حدث transactions.completed لمتابعة حالة الدفع."]
+						}
+					}
+				},
+				"whop": {
+					"name": "Whop",
+					"description": "زامن الفواتير مع Whop مع تحديثات تلقائية لحالة الدفع.",
+					"sections": {
+						"overview": {
+							"title": "نظرة عامة",
+							"paragraphs": [
+								"يتيح تكامل Flexprice مع Whop إرسال الفواتير مباشرة إلى Whop كمدفوعات send_invoice لمرة واحدة. يدفع العملاء عبر صفحة الدفع المستضافة على Whop، ويتحدّث Flexprice تلقائياً عند استلام الدفع."
+							]
+						},
+						"invoiceSync": {
+							"title": "مزامنة الفواتير",
+							"paragraphs": [
+								"عند تفعيل مزامنة الفواتير، ينشئ Flexprice تلقائياً فاتورة مقابلة في Whop كلما اكتملت فاتورة في Flexprice. يضمن التكامل وجود منتج Whop (وينشئ واحداً عند الحاجة).",
+								"يمكنك أيضاً تعليم فاتورة Whop كمدفوعة من Flexprice، والذي يستدعي واجهة mark_paid في Whop نيابةً عنك."
+							]
+						},
+						"webhooks": {
+							"title": "الويبهوك",
+							"paragraphs": [
+								"سجّل عنوان ويبهوك Flexprice في إعدادات مطور Whop، واشترك في invoice.paid، واستخدم نفس سرّ توقيع الويبهوك في Flexprice. عند إطلاق Whop لهذا الحدث، يتحقق Flexprice من التوقيع، ويعلّم الفاتورة المقابلة كمدفوعة، ويسجّل الدفع."
+							]
 						}
 					}
 				},
