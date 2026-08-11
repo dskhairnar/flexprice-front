@@ -109,9 +109,9 @@ const WhopConnectionDrawer: FC<WhopConnectionDrawerProps> = ({ isOpen, onOpenCha
 				provider_type: CONNECTION_PROVIDER_TYPE.WHOP,
 				encrypted_secret_data: {
 					provider_type: CONNECTION_PROVIDER_TYPE.WHOP,
-					api_key: formData.api_key,
-					company_id: formData.company_id,
-					webhook_secret: formData.webhook_secret,
+					api_key: formData.api_key.trim(),
+					company_id: formData.company_id.trim(),
+					webhook_secret: formData.webhook_secret.trim(),
 					...(formData.product_id.trim() ? { product_id: formData.product_id.trim() } : {}),
 				},
 				sync_config: {} as Record<string, { inbound: boolean; outbound: boolean }>,
@@ -140,15 +140,19 @@ const WhopConnectionDrawer: FC<WhopConnectionDrawerProps> = ({ isOpen, onOpenCha
 			if (formData.sync_config.invoice) {
 				payload.sync_config.invoice = { inbound: false, outbound: true };
 			}
-			const secretUpdates: Record<string, string> = {};
-			if (formData.product_id.trim()) {
-				secretUpdates.product_id = formData.product_id.trim();
+			// EE UpdateConnection merges Whop webhook_secret only (flat or nested). Always send
+			// product_id (including "") so a clear is explicit if/when the backend persists it.
+			const originalProductId = String(connection?.encrypted_secret_data?.product_id ?? '').trim();
+			const nextProductId = formData.product_id.trim();
+			const whopUpdate: Record<string, string> = {};
+			if (nextProductId !== originalProductId) {
+				whopUpdate.product_id = nextProductId;
 			}
 			if (formData.webhook_secret.trim()) {
-				secretUpdates.webhook_secret = formData.webhook_secret.trim();
+				whopUpdate.webhook_secret = formData.webhook_secret.trim();
 			}
-			if (Object.keys(secretUpdates).length > 0) {
-				payload.encrypted_secret_data = secretUpdates;
+			if (Object.keys(whopUpdate).length > 0) {
+				payload.encrypted_secret_data = { whop: whopUpdate };
 			}
 			return await ConnectionApi.Update(connection.id, payload);
 		},
