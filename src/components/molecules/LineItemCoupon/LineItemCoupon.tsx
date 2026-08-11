@@ -52,11 +52,14 @@ const LineItemCoupon: React.FC<Props> = ({
 	// only renders it while that row's dialog is open), so with the default staleTime of 0 every open
 	// re-fetches the full coupon list from the network. A short staleTime lets repeat opens across
 	// different line items in the same sitting reuse the cache instead of refetching each time.
+	// Cache the raw list, not the filterValidCoupons result - that filter is time-sensitive
+	// (redeem_after/redeem_before vs. `new Date()`), so baking it into the cached value would keep
+	// a coupon that becomes valid mid-cache-window hidden until the next refetch.
 	const { data: availableCoupons = [] } = useQuery({
 		queryKey: ['availableCoupons'],
 		queryFn: async () => {
 			const response = await CouponApi.getAllCoupons({ limit: 1000, offset: 0 });
-			return filterValidCoupons(response.items);
+			return response.items;
 		},
 		staleTime: 60000,
 	});
@@ -79,7 +82,6 @@ const LineItemCoupon: React.FC<Props> = ({
 	}, [allLineItemCoupons, subscriptionLevelCoupons]);
 
 	const currencyFilteredCoupons: Coupon[] = useMemo(() => {
-		if (!currency) return availableCoupons as Coupon[];
 		const validCoupons = filterValidCoupons(availableCoupons as Coupon[], currency);
 
 		// Filter out coupons that have reached their redemption limit

@@ -507,7 +507,8 @@
 			"autoInvoiceHelp": "مبلغ الاستخدام الذي قد يستدعي فاتورة قبل نهاية الفترة. متاح عند الرسوم بالاستخدام؛ الرسوم الثابتة تعطّله.",
 			"autoInvoicePlaceholder": "100.00",
 			"autoInvoiceAmountAria": "مبلغ حد الفاتورة التلقائية",
-			"planNoCharges": "لا توجد رسوم مضافة إلى هذه الخطة"
+			"planNoCharges": "لا توجد رسوم مضافة إلى هذه الخطة",
+			"addedChargesLostOnPhaseConversion": "الرسوم المضافة غير مدعومة في الاشتراكات المرحلية وتمت إزالتها. أضفها مرة أخرى ضمن مرحلة، أو بعد إنشاء الاشتراك."
 		},
 		"subscriptionPriceTable": {
 			"overridePrice": "تجاوز السعر",

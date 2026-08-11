@@ -485,7 +485,8 @@
 			"autoInvoiceHelp": "Usage amount that can trigger an invoice before the period ends. Available when charges are usage-based; fixed-price subscription charges disable this field.",
 			"autoInvoicePlaceholder": "100.00",
 			"autoInvoiceAmountAria": "Auto invoice threshold amount",
-			"planNoCharges": "No charges added to this plan"
+			"planNoCharges": "No charges added to this plan",
+			"addedChargesLostOnPhaseConversion": "Added charges are not supported in phased subscriptions and have been removed. Add them again within a phase, or after the subscription is created."
 		},
 		"subscriptionPriceTable": {
 			"overridePrice": "Override Price",

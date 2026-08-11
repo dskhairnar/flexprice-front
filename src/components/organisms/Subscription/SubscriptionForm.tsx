@@ -838,12 +838,20 @@ const SubscriptionForm = ({
 						onConvertToPhases={() => {
 							// Clear subscription-level data after conversion
 							// IMPORTANT: Clear endDate to avoid deadlock when adding more phases
+							// Phases have no equivalent of subscription-level "added charges" (AddSubscriptionChargeDialog
+							// is hidden once phases.length > 0, and the create payload's line_items is always omitted
+							// when phases are present - see CreateCustomerSubscriptionPage). Warn and clear them here
+							// instead of letting them silently vanish from the payload at submit time.
+							if ((state.addedSubscriptionLineItems?.length ?? 0) > 0) {
+								toast.error(t('organisms.subscriptionForm.addedChargesLostOnPhaseConversion'));
+							}
 							setState((prev) => ({
 								...prev,
 								endDate: undefined,
 								linkedCoupon: null,
 								lineItemCoupons: {},
 								priceOverrides: {},
+								addedSubscriptionLineItems: [],
 							}));
 						}}
 						onConvertBackToSubscription={(subscriptionData) => {
