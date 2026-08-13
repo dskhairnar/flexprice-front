@@ -13,7 +13,7 @@ const Switch = React.forwardRef<
 			'peer inline-flex h-5 w-9 shrink-0 cursor-pointer items-center rounded-full transition-colors duration-200 border-2 border-transparent',
 			'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background',
 			'disabled:cursor-not-allowed disabled:opacity-50',
-			// Track: primary when on; surface-track when off (dark track in light, light track in dark — token-driven).
+			// Track: primary when on; surface-track when off (light track in light, light track in dark — token-driven).
 			'data-[state=checked]:bg-primary data-[state=unchecked]:bg-surface-track',
 			className,
 		)}

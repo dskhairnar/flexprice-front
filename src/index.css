@@ -85,7 +85,7 @@
 		--fp-surface-cool: 248 250 252; /* #f8fafc */
 		--fp-surface-inverse: 17 24 39; /* #111827 — dark-on-light chips invert */
 		--fp-surface-inverse-zinc: 24 24 27; /* #18181b — inverted tooltips built on zinc rather than gray */
-		--fp-surface-track: 30 41 59; /* #1e293b — switch track when off — dark on light cards, must lighten on dark ones */
+		--fp-surface-track: 229 229 229; /* #e5e5e5 — switch track when off — matches the original --input light value */
 		--fp-surface-scrim: 0 0 0; /* #000000 — modal scrim — black in both themes */
 
 		/* Content — text, icons, fills. The light ramp inverts to the Midnight text ramp. */
