@@ -554,7 +554,7 @@ const UsagePricingForm: FC<Props> = ({
 			<Spacer height='8px' />
 			<Select
 				value={billingPeriod}
-				options={billlingPeriodOptions}
+				options={billlingPeriodOptions.filter((option) => option.value !== BILLING_PERIOD.ONETIME)}
 				onChange={(value) => {
 					setBillingPeriod(value as BILLING_PERIOD);
 				}}
