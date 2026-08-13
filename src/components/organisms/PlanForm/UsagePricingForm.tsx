@@ -103,6 +103,11 @@ export const billingModels: SelectOption[] = [
 	}, // Maps to TIERED with SLAB tier_mode
 ];
 
+// ONETIME isn't offered for usage charges (they're inherently metered/recurring), but older prices
+// may still have it saved — fall back to MONTHLY rather than leaving the Select without a matching option.
+const normalizeUsageBillingPeriod = (billingPeriod?: BILLING_PERIOD): BILLING_PERIOD =>
+	billingPeriod && billingPeriod !== BILLING_PERIOD.ONETIME ? billingPeriod : BILLING_PERIOD.MONTHLY;
+
 const UsagePricingForm: FC<Props> = ({
 	onAdd,
 	onUpdate,
@@ -127,7 +132,7 @@ const UsagePricingForm: FC<Props> = ({
 		{ from: 0, up_to: 1, unit_amount: '', flat_amount: '0' },
 		{ from: 1, up_to: null, unit_amount: '', flat_amount: '0' },
 	]);
-	const [billingPeriod, setBillingPeriod] = useState(price.billing_period || BILLING_PERIOD.MONTHLY);
+	const [billingPeriod, setBillingPeriod] = useState(normalizeUsageBillingPeriod(price.billing_period));
 	const [flatFee, setFlatFee] = useState<string>(price.amount || '');
 	const [packagedFee, setPackagedFee] = useState<{ unit: string; price: string }>({
 		unit: '',
@@ -198,7 +203,7 @@ const UsagePricingForm: FC<Props> = ({
 			setBillingModel(price.billing_model || billingModels[0].value);
 			// Set display_name from price or feature name (will be set when feature is loaded)
 			setDisplayName(price.display_name || '');
-			setBillingPeriod(price.billing_period || BILLING_PERIOD.MONTHLY);
+			setBillingPeriod(normalizeUsageBillingPeriod(price.billing_period));
 			setStartDate(price.start_date ? new Date(price.start_date) : undefined);
 
 			if (price.billing_model === BILLING_MODEL.FLAT_FEE) {

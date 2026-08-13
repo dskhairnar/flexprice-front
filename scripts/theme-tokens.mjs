@@ -37,9 +37,9 @@ export const TOKEN_GROUPS = [
 			{ name: 'surface-inverse-zinc', light: 'zinc.900', dark: '#eeeff1', note: 'inverted tooltips built on zinc rather than gray' },
 			{
 				name: 'surface-track',
-				light: 'slate.800',
+				light: 'neutral.200',
 				dark: '#e8e8ea',
-				note: 'switch track when off — dark on light cards, light on dark cards',
+				note: 'switch track when off — matches the original --input light value',
 			},
 			{ name: 'surface-scrim', light: 'black', dark: '#000000', note: 'modal scrim — black in both themes' },
 		],
