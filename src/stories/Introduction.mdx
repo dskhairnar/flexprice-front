@@ -1,0 +1,82 @@
+import { Meta } from '@storybook/addon-docs/blocks';
+
+<Meta title='Introduction' />
+
+# Flexprice Design System
+
+The component library behind the Flexprice dashboard — usage metering, credit management, pricing
+configuration and invoicing. Everything here renders inside the app's real provider stack, with the
+app's real stylesheet, so what you see is what ships.
+
+---
+
+## How this is organised
+
+| Section           | What lives there                                                                                 |
+| ----------------- | ------------------------------------------------------------------------------------------------ |
+| **Design System** | Foundations — colour tokens, typography, spacing, radius, iconography.                           |
+| **Atoms**         | Indivisible primitives: `Button`, `Input`, `Chip`, `Checkbox`. No business logic.                |
+| **Molecules**     | Compositions of atoms with a single job: `DetailsCard`, `RolePicker`, `WalletTransactionsTable`. |
+| **Organisms**     | Page-sized assemblies: `PlanForm`, `CommandPalette`, `QueryableDataArea`.                        |
+| **UI**            | Unmodified shadcn/Radix primitives. Prefer the Atoms wrapper over these directly.                |
+
+The sidebar mirrors `src/components/`, so a story's position tells you where the file is.
+
+---
+
+## The toolbar
+
+Four controls change how every story renders:
+
+- **Theme** — toggles `.dark` on `<html>`, exactly like the app's `initTheme()`. Tailwind is
+  configured `darkMode: ['class']`, so this one switch re-points all ~234 tokens. **Check both.**
+- **Locale** — `EN` / `AR`. Arabic also flips the canvas to RTL through Radix's `DirectionProvider`,
+  which is how you catch hardcoded `ml-`/`pl-` that should have been `ms-`/`ps-`.
+- **Viewport** — Mobile / Tablet / Desktop.
+- **Accessibility** panel — axe runs against every story. Violations are reported, not fatal.
+
+---
+
+## Non-negotiables
+
+**Never hardcode a colour.** Use the semantic token whose _name_ describes the role —
+`bg-surface`, `text-content-muted`, `border-line`. Dark mode then follows for free. A raw hex or a
+`gray-500` is a bug: it will look correct in light and wrong in dark. See **Design System → Tokens**.
+
+**Use logical properties.** `ms-2` / `pe-4` / `text-start`, not `ml-2` / `pr-4` / `text-left`. The
+product ships Arabic.
+
+**Style with `cn()`.** Conditional classes go through `cn()` from `src/lib/utils.ts` so
+tailwind-merge can resolve conflicts. No `style={}` except for values Tailwind genuinely can't
+express (a computed width, an inline gradient stop).
+
+**Components don't fetch.** Server state is TanStack Query in `src/api/`; a reusable component takes
+data as props. If a story needs a spinner, it's because you're documenting a container — those
+belong in Organisms.
+
+---
+
+## Writing a story
+
+Don't hand-write the boilerplate — scaffold it:
+
+```bash
+npm run storybook:gen -- src/components/atoms/Button/Button.tsx
+```
+
+The generator reads the component's real prop types and JSDoc, infers `argTypes`, picks plausible
+default `args`, and emits a `.stories.tsx` next to the source. See what's still uncovered with:
+
+```bash
+npm run storybook:coverage
+```
+
+Then make it a _good_ story:
+
+- **Prefer `args` over `render`.** A story built from `args` gets working Controls and a Docs page
+  for free. A `render`-only story gets an empty Controls table.
+- **Document the props, not just the happy path.** Add JSDoc to the props interface — it becomes the
+  Description column automatically.
+- **Cover the states that break.** Loading, empty, error, long text, `disabled`. The default state
+  is the one nobody reports bugs against.
+- **Use `fn()` from `storybook/test`** for callback props, so interactions land in the Actions panel.

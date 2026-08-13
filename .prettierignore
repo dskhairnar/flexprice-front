@@ -2,3 +2,8 @@ node_modules
 
 # Ignore artifacts:
 build
+storybook-static
+
+# Prettier's markdown printer rewrites MDX expression comments — `{/* … */}` comes back out as
+# `{/_ … _/}`, which is not valid JS and breaks the docs build. Leave MDX to the author.
+*.mdx

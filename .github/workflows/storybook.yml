@@ -1,0 +1,51 @@
+name: Storybook
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+
+    env:
+      # Read once at job level so the publish step can test for it in an `if:` — the `secrets`
+      # context isn't available in step conditions.
+      CHROMATIC_PROJECT_TOKEN: ${{ secrets.CHROMATIC_PROJECT_TOKEN }}
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # Chromatic needs full history to diff a build against its baseline.
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      # A broken story is a broken build — this is the gate that was missing, which is how the
+      # config sat misconfigured without anyone noticing.
+      - name: Build Storybook
+        run: npm run build-storybook -- --quiet
+
+      # No `--min` yet: this reports today's number so the team can pick a floor to ratchet from.
+      # Once that floor is agreed, add `-- --min <n>` and coverage can only go up.
+      - name: Story coverage
+        run: npm run storybook:coverage
+
+      # Publishes the static build and diffs every story against its baseline. Skipped on forks and
+      # whenever the token isn't configured, so the build step above still gates those PRs.
+      - name: Publish to Chromatic
+        if: ${{ github.event_name == 'push' && env.CHROMATIC_PROJECT_TOKEN != '' }}
+        uses: chromaui/action@v11
+        with:
+          projectToken: ${{ env.CHROMATIC_PROJECT_TOKEN }}
+          storybookBuildDir: storybook-static
+          onlyChanged: true
+          exitZeroOnChanges: true

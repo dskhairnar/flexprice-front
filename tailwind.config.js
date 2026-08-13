@@ -2,7 +2,9 @@ import animatePlugin from 'tailwindcss-animate';
 
 export default {
 	darkMode: ['class'],
-	content: ['./index.html', './src/**/*.{ts,tsx,js,jsx}'],
+	// `.mdx` and `.storybook` are here so the docs pages and Storybook decorators get their utilities
+	// generated — without them the design-system docs render unstyled.
+	content: ['./index.html', './src/**/*.{ts,tsx,js,jsx}', './src/**/*.mdx', './.storybook/**/*.{ts,tsx}'],
 	theme: {
 		extend: {
 			fontSize: {

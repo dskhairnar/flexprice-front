@@ -1,0 +1,28 @@
+import type { Meta, StoryObj } from '@storybook/react-vite';
+import NoDataCard from './NoDataCard';
+
+/**
+ * Scaffolded by `npm run storybook:gen`. Edit freely — this file is never regenerated in place
+ * unless you pass `--force`.
+ *
+ * Before you call it done: cover the states that actually break — loading, empty, error, long
+ * text, disabled — and check the story in dark mode and in Arabic (toolbar).
+ */
+const meta: Meta<typeof NoDataCard> = {
+	title: 'Atoms/NoDataCard',
+	component: NoDataCard,
+	args: {
+		title: 'Metered usage',
+		subtitle: 'Sample content',
+	},
+	argTypes: {
+		title: { control: 'text' },
+		subtitle: { control: 'text' },
+		cta: { control: 'text' },
+	},
+};
+
+export default meta;
+type Story = StoryObj<typeof NoDataCard>;
+
+export const Default: Story = {};

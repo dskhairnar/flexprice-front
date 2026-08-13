@@ -111,5 +111,11 @@ export default tseslint.config(
 		files: ['**/*Demo.{ts,tsx}'],
 		rules: { 'i18next/no-literal-string': 'off' },
 	},
+	{
+		// Stories and design-system docs are dev-only surfaces. Their copy is sample data and prose
+		// about the system itself — it is never shipped to a tenant, so it is never translated.
+		files: ['**/*.stories.{ts,tsx}', 'src/stories/**/*.{ts,tsx}', '.storybook/**/*.{ts,tsx}'],
+		rules: { 'i18next/no-literal-string': 'off' },
+	},
 	storybook.configs['flat/recommended'],
 );
