@@ -3,6 +3,7 @@
 		"save": "Save",
 		"cancel": "Cancel",
 		"add": "Add",
+		"adding": "Adding...",
 		"edit": "Edit",
 		"archive": "Archive",
 		"delete": "Delete",
@@ -253,7 +254,9 @@
 		"keyboardTip": "Press Tab to navigate, Enter to select",
 		"notFoundTitle": "404 Error Page",
 		"notFoundSubtitle": "Oops! Looks like you took a wrong turn",
-		"notFoundBackToHome": "Back to Home"
+		"notFoundBackToHome": "Back to Home",
+		"forbiddenTitle": "Access denied",
+		"forbiddenSubtitle": "You don't have permission to view this page. Ask a tenant admin for access."
 	},
 	"copyId": {
 		"genericLabel": "Copy ID",

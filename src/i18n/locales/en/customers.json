@@ -317,6 +317,7 @@
 			"title": "Invoices",
 			"emptySubtitle": "No invoices found",
 			"addInvoice": "Add Invoice",
+			"writeDeniedTooltip": "You don't have permission to create invoices. Ask a tenant admin for access.",
 			"paginationUnit": "Invoices"
 		},
 		"overview": {

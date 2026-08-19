@@ -411,6 +411,7 @@
 				"archive": "Archive"
 			},
 			"createWithAi": "Create with AI",
+			"writeDeniedTooltip": "You don't have permission to create plans. Ask a tenant admin for access.",
 			"emptyStateCustom": {
 				"heading": "Plans",
 				"description": "Create a plan to display pricing and start billing customers."
@@ -428,12 +429,17 @@
 			"configSheet": {
 				"keysCount": "{{count}} keys",
 				"title": "Config Value"
-			}
+			},
+			"writeDeniedTooltip": "You don't have permission to modify entitlements"
+		},
+		"creditGrantsTab": {
+			"writeDeniedTooltip": "You don't have permission to modify credit grants"
 		},
 		"information": {
 			"loading": "Loading plan details...",
 			"planDetails": "Plan Details",
-			"metadata": "Metadata"
+			"metadata": "Metadata",
+			"writeDeniedTooltip": "You don't have permission to edit this plan"
 		},
 		"pricing": {
 			"noWidget": "No Pricing Widget Exists",
@@ -512,6 +518,7 @@
 				"noDateInformation": "No date information",
 				"fallbackName": "--",
 				"charges": "Charges",
+				"writeDeniedTooltip": "You don't have permission to modify this plan. Ask a tenant admin for access.",
 				"recurring": "Recurring",
 				"advance": "Advance",
 				"arrear": "Arrear",
