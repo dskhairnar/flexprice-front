@@ -1,5 +1,5 @@
 import { config } from '@/config/config';
-import { Outlet, useNavigate } from 'react-router';
+import { useNavigate } from 'react-router';
 import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar';
 import { Sidebar } from '@/components/molecules/Sidebar';
 import { BreadCrumbs, DebugMenu, RestrictedEnvBanner } from '@/components/molecules';
@@ -8,6 +8,7 @@ import AppPrefetcher from '@/components/organisms/AppPrefetcher';
 import useUser from '@/hooks/useUser';
 import posthog from 'posthog-js';
 import { useEffect } from 'react';
+import RouteGuard from '@/core/routes/RouteGuard';
 
 const MainLayout: React.FC = () => {
 	const { user } = useUser();
@@ -52,7 +53,7 @@ const MainLayout: React.FC = () => {
 				<RestrictedEnvBanner />
 				{/* Main Content */}
 				<main className='flex-1 px-4 relative overflow-y-auto '>
-					<Outlet />
+					<RouteGuard />
 					<DebugMenu />
 				</main>
 			</SidebarInset>

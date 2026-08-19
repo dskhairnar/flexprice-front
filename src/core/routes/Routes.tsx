@@ -6,6 +6,7 @@ import { TenantMetadataKey } from '@/models/Tenant';
 import { Suspense } from 'react';
 import { Loader } from '@/components/atoms';
 import { config } from '@/config/config';
+import { requirePermission } from '@/core/routes/useRouteAccess';
 import {
 	// Auth pages
 	Auth,
@@ -257,7 +258,7 @@ export const MainRouter: any = createBrowserRouter([
 	{
 		path: RouteNames.home,
 		element: (
-			<AuthMiddleware requiredRole={['admin']}>
+			<AuthMiddleware>
 				<MainLayout />
 			</AuthMiddleware>
 		),
@@ -289,10 +290,12 @@ export const MainRouter: any = createBrowserRouter([
 					{
 						path: RouteNames.plan,
 						element: <PricingPlans />,
+						handle: requirePermission('plan', 'read'),
 					},
 					{
 						path: `${RouteNames.plan}/:planId`,
 						element: <PlanDetailsPage />,
+						handle: requirePermission('plan', 'read'),
 						children: [
 							{
 								path: '',
@@ -316,6 +319,9 @@ export const MainRouter: any = createBrowserRouter([
 					{
 						path: RouteNames.addCharges,
 						element: <AddChargesPage />,
+						// Gated on `price`, not `plan` — POST/PUT/DELETE /prices is independently
+						// permissioned server-side (internal/api/router.go's price group).
+						handle: requirePermission('price', 'write'),
 					},
 					{
 						path: RouteNames.coupons,
@@ -412,10 +418,12 @@ export const MainRouter: any = createBrowserRouter([
 					{
 						path: RouteNames.invoices,
 						element: <InvoicePage />,
+						handle: requirePermission('invoice', 'read'),
 					},
 					{
 						path: `${RouteNames.invoices}/:invoiceId`,
 						element: <InvoiceDetailsPage />,
+						handle: requirePermission('invoice', 'read'),
 					},
 					{
 						path: RouteNames.creditNotes,
@@ -483,6 +491,10 @@ export const MainRouter: any = createBrowserRouter([
 							{
 								path: 'invoice/:invoice_id/credit-note',
 								element: <AddCreditPage />,
+								// Route-sibling of /billing/invoices, not a descendant — does not
+								// inherit its `invoice` handle. Reachable by direct URL even though
+								// the only discoverable path to it (the menu item) is already gated.
+								handle: requirePermission('invoice', 'write'),
 							},
 							{
 								path: 'subscription/:subscription_id',
@@ -501,6 +513,7 @@ export const MainRouter: any = createBrowserRouter([
 					{
 						path: `${RouteNames.customers}/:customerId/invoices/create`,
 						element: <CreateInvoicePage />,
+						handle: requirePermission('invoice', 'write'),
 					},
 				],
 			},
