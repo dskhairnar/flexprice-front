@@ -16,6 +16,7 @@ import { refetchInvoiceQueries } from '@/core/services/tanstack/queryKeys';
 import { PAYMENT_DESTINATION_TYPE } from '@/models/Payment';
 import { PAYMENT_STATUS } from '@/constants';
 import { RouteNames } from '@/core/routes/Routes';
+import { useCurrentUserPermissions } from '@/hooks/useCurrentUserPermissions';
 
 interface Props {
 	data: InvoiceListItem;
@@ -24,6 +25,8 @@ interface Props {
 const InvoiceTableMenu: FC<Props> = ({ data }) => {
 	const navigate = useNavigate();
 	const { t: tc } = useTranslation('common');
+	const { can } = useCurrentUserPermissions();
+	const canWrite = can('invoice', 'write');
 
 	const { mutate: triggerCommunication } = useMutation({
 		mutationFn: async (invoice_id: string) => {
@@ -108,6 +111,7 @@ const InvoiceTableMenu: FC<Props> = ({ data }) => {
 			onSelect: () => {
 				triggerCommunication(data.id);
 			},
+			disabled: !canWrite,
 		},
 		{
 			label: 'Record Payment',
@@ -120,6 +124,7 @@ const InvoiceTableMenu: FC<Props> = ({ data }) => {
 				});
 			},
 			disabled:
+				!canWrite ||
 				data?.payment_status === PAYMENT_STATUS.SUCCEEDED ||
 				data?.invoice_status === INVOICE_STATUS.VOIDED ||
 				(data?.amount_remaining ?? 0) === 0,
@@ -134,6 +139,7 @@ const InvoiceTableMenu: FC<Props> = ({ data }) => {
 					activeInvoice: data,
 				});
 			},
+			disabled: !canWrite,
 		},
 		{
 			label: 'Update Payment Status',
@@ -145,11 +151,12 @@ const InvoiceTableMenu: FC<Props> = ({ data }) => {
 					activeInvoice: data,
 				});
 			},
+			disabled: !canWrite,
 		},
 		{
 			label: 'Issue a Credit Note',
 			group: 'Actions',
-			disabled: data?.invoice_status !== 'FINALIZED' || data?.payment_status === 'REFUNDED',
+			disabled: !canWrite || data?.invoice_status !== 'FINALIZED' || data?.payment_status === 'REFUNDED',
 			onSelect: () => {
 				navigate(`${RouteNames.customers}/${data?.customer_id}/invoice/${data?.id}/credit-note`);
 			},
@@ -158,6 +165,7 @@ const InvoiceTableMenu: FC<Props> = ({ data }) => {
 			label: 'Recalculate Invoice',
 			group: 'Actions',
 			disabled:
+				!canWrite ||
 				data?.invoice_status === INVOICE_STATUS.DRAFT ||
 				data?.invoice_type !== INVOICE_TYPE.SUBSCRIPTION ||
 				!!data?.recalculated_invoice_id ||
