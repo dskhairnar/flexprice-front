@@ -13,6 +13,7 @@ import { ChevronRight, Copy } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { TFunction } from 'i18next';
 import { copyToClipboard } from '@/utils/common/helper_functions';
+import { Tooltip } from '@/components/atoms';
 
 interface DropdownMenuProps {
 	options: DropdownMenuOption[];
@@ -29,6 +30,8 @@ export interface DropdownMenuOption {
 	icon?: React.ReactNode;
 	onSelect?: (e: Event) => void;
 	disabled?: boolean;
+	/** Tooltip shown on hover/focus when `disabled` is true — e.g. explaining a missing RBAC permission. */
+	disabledReason?: string;
 	children?: DropdownMenuOption[];
 	className?: string;
 	group?: string;
@@ -82,48 +85,62 @@ const DropdownMenu: React.FC<DropdownMenuProps> = ({ options, trigger, isOpen, o
 		{} as Record<string, DropdownMenuOption[]>,
 	);
 
-	const renderMenuItem = (option: DropdownMenuOption) => (
-		<DropdownMenuItem
-			className={cn(
-				'w-full px-3 py-2 text-sm cursor-pointer hover:bg-accent/50 focus:bg-accent/50 focus:text-accent-foreground',
-				option.disabled && 'opacity-50 cursor-not-allowed',
-				option.className,
-			)}
-			disabled={option.disabled}
-			key={option.label}
-			onSelect={(e) => {
-				if (option.onSelect && !option.children?.length) {
-					e.preventDefault();
-					e.stopPropagation();
-					option.onSelect(e);
-					// Always close the menu after onSelect is called
-					handleOpenChange(false);
-				}
-			}}>
-			{option.children && option.children.length > 0 ? (
-				<DropdownMenu
-					className={cn('w-full', className)}
-					trigger={
-						<div className='flex justify-between gap-2 items-center w-full'>
-							<div className='flex gap-2 items-center w-full'>
-								{option.icon && <span className='text-muted-foreground'>{option.icon}</span>}
-								<span className='font-medium'>{option.label}</span>
-							</div>
-							<span className='text-muted-foreground'>
-								<ChevronRight className='h-4 w-4' />
-							</span>
-						</div>
+	const renderMenuItem = (option: DropdownMenuOption) => {
+		const item = (
+			<DropdownMenuItem
+				className={cn(
+					'w-full px-3 py-2 text-sm cursor-pointer hover:bg-accent/50 focus:bg-accent/50 focus:text-accent-foreground',
+					option.disabled && 'opacity-50 cursor-not-allowed',
+					option.className,
+				)}
+				disabled={option.disabled}
+				key={option.label}
+				onSelect={(e) => {
+					if (option.onSelect && !option.children?.length) {
+						e.preventDefault();
+						e.stopPropagation();
+						option.onSelect(e);
+						// Always close the menu after onSelect is called
+						handleOpenChange(false);
 					}
-					options={option.children || []}
-				/>
-			) : (
-				<div className={cn('flex gap-2 items-center w-full', option.className)}>
-					{option.icon && <span className='text-muted-foreground'>{option.icon}</span>}
-					<span className='font-medium'>{option.label}</span>
-				</div>
-			)}
-		</DropdownMenuItem>
-	);
+				}}>
+				{option.children && option.children.length > 0 ? (
+					<DropdownMenu
+						className={cn('w-full', className)}
+						trigger={
+							<div className='flex justify-between gap-2 items-center w-full'>
+								<div className='flex gap-2 items-center w-full'>
+									{option.icon && <span className='text-muted-foreground'>{option.icon}</span>}
+									<span className='font-medium'>{option.label}</span>
+								</div>
+								<span className='text-muted-foreground'>
+									<ChevronRight className='h-4 w-4' />
+								</span>
+							</div>
+						}
+						options={option.children || []}
+					/>
+				) : (
+					<div className={cn('flex gap-2 items-center w-full', option.className)}>
+						{option.icon && <span className='text-muted-foreground'>{option.icon}</span>}
+						<span className='font-medium'>{option.label}</span>
+					</div>
+				)}
+			</DropdownMenuItem>
+		);
+
+		if (!option.disabled || !option.disabledReason) return item;
+
+		// A disabled DropdownMenuItem gets pointer-events:none, so it never fires hover/focus —
+		// no wrapping element, the tooltip never shows.
+		return (
+			<Tooltip key={option.label} content={option.disabledReason}>
+				<span tabIndex={0} className='block'>
+					{item}
+				</span>
+			</Tooltip>
+		);
+	};
 
 	return (
 		<div className={cn('', className)} onClick={handleClick} data-interactive='true'>

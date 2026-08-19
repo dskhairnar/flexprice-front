@@ -5,13 +5,16 @@ import { useNavigate } from 'react-router';
 import { useMutation } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
 import { useTranslation } from 'react-i18next';
-import { Button, Dialog } from '@/components/atoms';
+import { Button, Dialog, Tooltip } from '@/components/atoms';
 import { Copy, EyeOff, Pencil } from 'lucide-react';
 import { refetchQueries } from '@/core/services/tanstack/ReactQueryProvider';
 import { copyToClipboard } from '@/utils/common/helper_functions';
 
 interface EditActionConfig {
 	enabled?: boolean;
+	/** RBAC-style gating: item stays visible but inert, with a tooltip explaining why. Prefer this over `enabled: false` for permission checks so the menu doesn't reflow. */
+	disabled?: boolean;
+	disabledReason?: string;
 	path?: string;
 	onClick?: () => void;
 	text?: string;
@@ -20,6 +23,8 @@ interface EditActionConfig {
 
 interface ArchiveActionConfig {
 	enabled?: boolean;
+	disabled?: boolean;
+	disabledReason?: string;
 	text?: string;
 	icon?: React.ReactNode;
 }
@@ -29,6 +34,8 @@ interface CustomAction {
 	icon?: React.ReactNode;
 	onClick: () => void;
 	enabled?: boolean;
+	disabled?: boolean;
+	disabledReason?: string;
 }
 
 interface CopyIdActionConfig {
@@ -142,6 +149,47 @@ const ActionButton: FC<ActionProps> = ({
 	const defaultTriggerIcon = <BsThreeDots className='text-base size-4' />;
 	const trigger = triggerIcon || defaultTriggerIcon;
 
+	const renderMenuItem = ({
+		key,
+		icon,
+		text,
+		disabled,
+		disabledReason,
+		onSelect,
+	}: {
+		key: React.Key;
+		icon?: React.ReactNode;
+		text?: string;
+		disabled?: boolean;
+		disabledReason?: string;
+		onSelect: () => void;
+	}) => {
+		const item = (
+			<DropdownMenuItem
+				key={key}
+				disabled={disabled}
+				onSelect={(event) => {
+					event.preventDefault();
+					if (disabled) return;
+					onSelect();
+				}}
+				className='flex gap-2 items-center w-full cursor-pointer'>
+				{icon}
+				<span>{text}</span>
+			</DropdownMenuItem>
+		);
+
+		if (!disabled || !disabledReason) return item;
+
+		return (
+			<Tooltip key={key} content={disabledReason}>
+				<span tabIndex={0} className='block'>
+					{item}
+				</span>
+			</Tooltip>
+		);
+	};
+
 	return (
 		<>
 			<div data-interactive='true' onClick={handleClick}>
@@ -165,49 +213,50 @@ const ActionButton: FC<ActionProps> = ({
 								<span>{copyId.label || t('copyId.genericLabel')}</span>
 							</DropdownMenuItem>
 						)}
-						{editConfig.enabled !== false && (
-							<DropdownMenuItem
-								onSelect={(event) => {
-									event.preventDefault();
+						{editConfig.enabled !== false &&
+							renderMenuItem({
+								// eslint-disable-next-line i18next/no-literal-string -- React key identifier, not UI text
+								key: 'edit',
+								icon: editConfig.icon || <Pencil />,
+								text: editActionText,
+								disabled: editConfig.disabled,
+								disabledReason: editConfig.disabledReason,
+								onSelect: () => {
 									setIsOpen(false);
 									if (editConfig.onClick) {
 										editConfig.onClick();
 									} else if (editConfig.path) {
 										navigate(editConfig.path);
 									}
-								}}
-								className='flex gap-2 items-center w-full cursor-pointer'>
-								{editConfig.icon || <Pencil />}
-								<span>{editActionText}</span>
-							</DropdownMenuItem>
-						)}
-						{archiveConfig.enabled !== false && (
-							<DropdownMenuItem
-								onSelect={(event) => {
-									event.preventDefault();
+								},
+							})}
+						{archiveConfig.enabled !== false &&
+							renderMenuItem({
+								// eslint-disable-next-line i18next/no-literal-string -- React key identifier, not UI text
+								key: 'archive',
+								icon: archiveConfig.icon || <EyeOff />,
+								text: archiveActionText,
+								disabled: archiveConfig.disabled,
+								disabledReason: archiveConfig.disabledReason,
+								onSelect: () => {
 									setIsOpen(false);
 									setIsDialogOpen(true);
-								}}
-								className='flex gap-2 items-center w-full cursor-pointer'>
-								{archiveConfig.icon || <EyeOff />}
-								<span>{archiveActionText}</span>
-							</DropdownMenuItem>
-						)}
+								},
+							})}
 						{customActions?.map(
 							(action, index) =>
-								action.enabled !== false && (
-									<DropdownMenuItem
-										key={index}
-										onSelect={(event) => {
-											event.preventDefault();
-											setIsOpen(false);
-											action.onClick();
-										}}
-										className='flex gap-2 items-center w-full cursor-pointer'>
-										{action.icon}
-										<span>{action.text}</span>
-									</DropdownMenuItem>
-								),
+								action.enabled !== false &&
+								renderMenuItem({
+									key: index,
+									icon: action.icon,
+									text: action.text,
+									disabled: action.disabled,
+									disabledReason: action.disabledReason,
+									onSelect: () => {
+										setIsOpen(false);
+										action.onClick();
+									},
+								}),
 						)}
 					</DropdownMenuContent>
 				</DropdownMenu>
