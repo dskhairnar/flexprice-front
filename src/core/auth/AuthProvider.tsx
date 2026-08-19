@@ -6,8 +6,9 @@ import useUserhook from '@/hooks/useUser';
 
 interface AuthMiddlewareProps {
 	children: ReactNode;
-	requiredRole: string[];
 }
+
+/** Authentication only — per-route permission gating lives in MainLayout (see useRouteAccess). */
 const AuthMiddleware: React.FC<AuthMiddlewareProps> = ({ children }) => {
 	const userContext = useUser();
 	const { user, loading, error } = useUserhook();
@@ -26,11 +27,6 @@ const AuthMiddleware: React.FC<AuthMiddlewareProps> = ({ children }) => {
 		return <Navigate to='/auth' />;
 	}
 
-	// if (requiredRole && !requiredRole.includes(user.role)) {
-	//     return <Navigate to="/not-authorized" />;
-	// }
-
-	// Wrap children with AuthStateListener to handle auth state changes
 	return <div>{children}</div>;
 };
 
