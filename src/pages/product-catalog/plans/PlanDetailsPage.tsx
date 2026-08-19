@@ -20,6 +20,7 @@ import { PlanApi, WorkflowApi } from '@/api';
 
 // Core services and routes
 import { RouteNames } from '@/core/routes/Routes';
+import { useCurrentUserPermissions } from '@/hooks/useCurrentUserPermissions';
 
 // Models and types
 import { Plan, ENTITY_STATUS } from '@/models';
@@ -61,7 +62,7 @@ type Params = {
 };
 
 const PlanDetailsPage = () => {
-	const { t } = useTranslation(['common']);
+	const { t } = useTranslation(['catalog', 'common']);
 	const navigate = useNavigate();
 	const location = useLocation();
 	const { planId } = useParams<Params>();
@@ -69,6 +70,8 @@ const PlanDetailsPage = () => {
 	const [activeTab, setActiveTab] = useState<TabId>(tabs[0]?.id);
 	const [planDrawerOpen, setPlanDrawerOpen] = useState(false);
 	const [duplicateDialogOpen, setDuplicateDialogOpen] = useState(false);
+	const { can } = useCurrentUserPermissions();
+	const canWritePlan = can('plan', 'write');
 
 	const {
 		data: planData,
@@ -146,6 +149,8 @@ const PlanDetailsPage = () => {
 				label: 'Edit',
 				icon: <Pencil />,
 				onSelect: () => setPlanDrawerOpen(true),
+				disabled: !canWritePlan,
+				disabledReason: canWritePlan ? undefined : t('plans.information.writeDeniedTooltip'),
 			},
 			{
 				label: 'Duplicate',
@@ -159,7 +164,7 @@ const PlanDetailsPage = () => {
 				disabled: planData?.status !== ENTITY_STATUS.PUBLISHED,
 			},
 		],
-		[archivePlan, planData?.status],
+		[archivePlan, planData?.status, canWritePlan, t],
 	);
 
 	// Handle tab changes based on URL
@@ -228,7 +233,7 @@ const PlanDetailsPage = () => {
 								<span className='inline-block'>
 									<Button
 										onClick={() => syncPlan()}
-										disabled={isSyncing || isSyncRunning}
+										disabled={isSyncing || isSyncRunning || !canWritePlan}
 										isLoading={isSyncing}
 										variant='outline'
 										className='flex gap-2'>
@@ -238,7 +243,9 @@ const PlanDetailsPage = () => {
 								</span>
 							</TooltipTrigger>
 							<TooltipContent>
-								{isSyncing ? (
+								{!canWritePlan ? (
+									<span className='text-sm'>{t('plans.detailsPage.syncWriteDeniedTooltip')}</span>
+								) : isSyncing ? (
 									<span className='text-sm'>Syncing...</span>
 								) : isSyncRunning ? (
 									<span className='text-sm'>

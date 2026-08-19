@@ -435,6 +435,9 @@
 		"creditGrantsTab": {
 			"writeDeniedTooltip": "ليس لديك إذن لتعديل منح الرصيد"
 		},
+		"detailsPage": {
+			"syncWriteDeniedTooltip": "ليس لديك صلاحية مزامنة أسعار هذه الخطة. اطلب الوصول من مسؤول المستأجر."
+		},
 		"information": {
 			"loading": "جاري تحميل تفاصيل الخطة…",
 			"planDetails": "تفاصيل الخطة",
