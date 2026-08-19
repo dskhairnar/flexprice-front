@@ -18,8 +18,14 @@ const useUser = () => {
 		enabled: !!tokenStr,
 		retry: 4,
 		retryDelay: 1000,
-		// gcTime: 1000 * 60 * 5,
-		// staleTime: 1000 * 60 * 5,
+		// The app's global query defaults disable every refetch trigger
+		// (refetchOnWindowFocus/Mount/Reconnect: false, refetchInterval: false,
+		// gcTime: 0) — without an override here, this stays mounted for the whole
+		// session (via MainLayout) and, once fetched, never refetches again.
+		// `roles` feeds every RBAC permission check, so if an admin changes this
+		// user's roles mid-session, they'd otherwise see stale permissions until
+		// a full page reload. Poll instead of relying on any global trigger.
+		refetchInterval: 60 * 1000,
 	});
 
 	return { user, loading, error, refetch };
