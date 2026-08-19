@@ -1,6 +1,6 @@
 import { useParams } from 'react-router';
 import { useQuery } from '@tanstack/react-query';
-import { Button, Spacer, Divider, Chip } from '@/components/atoms';
+import { Button, Spacer, Divider, Chip, Tooltip } from '@/components/atoms';
 import { Pencil } from 'lucide-react';
 import { MetadataModal, DetailsCard, PlanDrawer, IntegrationMappingCard } from '@/components/molecules';
 import { ENTITY_STATUS, Plan } from '@/models';
@@ -13,9 +13,12 @@ import { useState, useEffect } from 'react';
 import { logger } from '@/utils/common/Logger';
 import toast from 'react-hot-toast';
 import { useTranslation } from 'react-i18next';
+import { useCurrentUserPermissions } from '@/hooks/useCurrentUserPermissions';
 
 const PlanInformationTab = () => {
 	const { t } = useTranslation(['catalog']);
+	const { can } = useCurrentUserPermissions();
+	const canWritePlan = can('plan', 'write');
 	const { planId } = useParams<{ planId: string }>();
 	const [showMetadataModal, setShowMetadataModal] = useState(false);
 	const [planDrawerOpen, setPlanDrawerOpen] = useState(false);
@@ -92,19 +95,28 @@ const PlanInformationTab = () => {
 					<div className='flex justify-between items-center'>
 						<h3 className={getTypographyClass('card-header') + '!text-[16px]'}>{t('catalog:plans.information.planDetails')}</h3>
 						<div className='flex gap-2'>
-							{!isArchived && (
-								<PlanDrawer
-									trigger={
-										<Button variant={'outline'} size={'icon'}>
-											<Pencil />
-										</Button>
-									}
-									open={planDrawerOpen}
-									onOpenChange={setPlanDrawerOpen}
-									data={planData as Plan}
-									refetchQueryKeys={['fetchPlan', planId!]}
-								/>
-							)}
+							{!isArchived &&
+								(canWritePlan ? (
+									<PlanDrawer
+										trigger={
+											<Button variant={'outline'} size={'icon'}>
+												<Pencil />
+											</Button>
+										}
+										open={planDrawerOpen}
+										onOpenChange={setPlanDrawerOpen}
+										data={planData as Plan}
+										refetchQueryKeys={['fetchPlan', planId!]}
+									/>
+								) : (
+									<Tooltip content={t('catalog:plans.information.writeDeniedTooltip')}>
+										<span tabIndex={0} className='inline-block cursor-not-allowed'>
+											<Button variant={'outline'} size={'icon'} disabled>
+												<Pencil />
+											</Button>
+										</span>
+									</Tooltip>
+								))}
 						</div>
 					</div>
 					<Spacer className='!h-4' />
@@ -115,11 +127,20 @@ const PlanInformationTab = () => {
 					<div className='mt-8'>
 						<div className='flex justify-between items-center mb-2'>
 							<h3 className={getTypographyClass('card-header') + '!text-[16px]'}>{t('catalog:plans.information.metadata')}</h3>
-							{!isArchived && (
-								<Button variant='outline' size='icon' onClick={() => setShowMetadataModal(true)}>
-									<Pencil className='size-5' />
-								</Button>
-							)}
+							{!isArchived &&
+								(canWritePlan ? (
+									<Button variant='outline' size='icon' onClick={() => setShowMetadataModal(true)}>
+										<Pencil className='size-5' />
+									</Button>
+								) : (
+									<Tooltip content={t('catalog:plans.information.writeDeniedTooltip')}>
+										<span tabIndex={0} className='inline-block cursor-not-allowed'>
+											<Button variant='outline' size='icon' disabled>
+												<Pencil className='size-5' />
+											</Button>
+										</span>
+									</Tooltip>
+								))}
 						</div>
 						<DetailsCard
 							variant='stacked'

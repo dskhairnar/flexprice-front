@@ -1,8 +1,9 @@
 import { useParams } from 'react-router';
 import { useQuery } from '@tanstack/react-query';
 import { useState } from 'react';
-import { Button, Card, CardHeader, NoDataCard, Loader, Sheet } from '@/components/atoms';
+import { Button, Card, CardHeader, NoDataCard, Loader, Sheet, Tooltip } from '@/components/atoms';
 import { Plus } from 'lucide-react';
+import { useCurrentUserPermissions } from '@/hooks/useCurrentUserPermissions';
 import JsonCodeBlock from '@/components/molecules/Events/JsonCodeBlock';
 import { EntitlementApi } from '@/api';
 import { FlexpriceTable, ColumnData, RedirectCell, AddEntitlementDrawer } from '@/components/molecules';
@@ -20,6 +21,8 @@ import { JsonObject } from '@/types/common';
 
 const PlanEntitlementsTab = () => {
 	const { t } = useTranslation(['catalog', 'common']);
+	const { can } = useCurrentUserPermissions();
+	const canWriteEntitlement = can('entitlement', 'write');
 	const { planId } = useParams<{ planId: string }>();
 	const [drawerOpen, setDrawerOpen] = useState(false);
 	const [configSheet, setConfigSheet] = useState<{ open: boolean; name: string; value: JsonObject | null }>({
@@ -135,6 +138,8 @@ const PlanEntitlementsTab = () => {
 							enabled: row?.status !== ENTITY_STATUS.ARCHIVED,
 							text: 'Delete',
 							icon: <Trash2 />,
+							disabled: !canWriteEntitlement,
+							disabledReason: !canWriteEntitlement ? t('catalog:plans.entitlementsTab.writeDeniedTooltip') : undefined,
 						}}
 					/>
 				);
@@ -152,6 +157,20 @@ const PlanEntitlementsTab = () => {
 	}
 
 	const entitlements = entitlementsData?.items || [];
+
+	const addButton = canWriteEntitlement ? (
+		<Button prefixIcon={<Plus />} onClick={() => setDrawerOpen(true)}>
+			{t('common:actions.add')}
+		</Button>
+	) : (
+		<Tooltip content={t('catalog:plans.entitlementsTab.writeDeniedTooltip')}>
+			<span tabIndex={0} className='inline-block cursor-not-allowed'>
+				<Button disabled prefixIcon={<Plus />}>
+					{t('common:actions.add')}
+				</Button>
+			</span>
+		</Tooltip>
+	);
 
 	return (
 		<>
@@ -178,26 +197,11 @@ const PlanEntitlementsTab = () => {
 			<div className='space-y-6'>
 				{entitlements.length > 0 ? (
 					<Card variant='notched'>
-						<CardHeader
-							title={t('catalog:plans.tabs.entitlements')}
-							cta={
-								<Button prefixIcon={<Plus />} onClick={() => setDrawerOpen(true)}>
-									Add
-								</Button>
-							}
-						/>
+						<CardHeader title={t('catalog:plans.tabs.entitlements')} cta={addButton} />
 						<FlexpriceTable showEmptyRow data={entitlements} columns={columnData} />
 					</Card>
 				) : (
-					<NoDataCard
-						title={t('catalog:plans.tabs.entitlements')}
-						subtitle='No entitlements added to the plan yet'
-						cta={
-							<Button prefixIcon={<Plus />} onClick={() => setDrawerOpen(true)}>
-								Add
-							</Button>
-						}
-					/>
+					<NoDataCard title={t('catalog:plans.tabs.entitlements')} subtitle='No entitlements added to the plan yet' cta={addButton} />
 				)}
 			</div>
 		</>

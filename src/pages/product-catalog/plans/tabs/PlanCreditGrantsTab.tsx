@@ -1,8 +1,9 @@
 import { useParams } from 'react-router';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { useState } from 'react';
-import { Button, Card, CardHeader, NoDataCard, Loader } from '@/components/atoms';
+import { Button, Card, CardHeader, NoDataCard, Loader, Tooltip } from '@/components/atoms';
 import { Plus } from 'lucide-react';
+import { useCurrentUserPermissions } from '@/hooks/useCurrentUserPermissions';
 import { uniqueId } from 'lodash';
 import CreditGrantApi from '@/api/CreditGrantApi';
 import { CreditGrantsTable, CreditGrantModal } from '@/components/molecules';
@@ -20,7 +21,9 @@ import { InternalCreditGrantRequest, CreateCreditGrantRequest } from '@/types/dt
 import { useTranslation } from 'react-i18next';
 
 const PlanCreditGrantsTab = () => {
-	const { t } = useTranslation(['catalog']);
+	const { t } = useTranslation(['catalog', 'common']);
+	const { can } = useCurrentUserPermissions();
+	const canWriteCreditGrant = can('creditgrant', 'write');
 	const { planId } = useParams<{ planId: string }>();
 	const [creditGrantModalOpen, setCreditGrantModalOpen] = useState(false);
 
@@ -96,6 +99,20 @@ const PlanCreditGrantsTab = () => {
 
 	const creditGrants = creditGrantsData?.items || [];
 
+	const addButton = canWriteCreditGrant ? (
+		<Button prefixIcon={<Plus />} onClick={() => setCreditGrantModalOpen(true)} disabled={isCreatingCreditGrant}>
+			{isCreatingCreditGrant ? t('common:actions.adding') : t('common:actions.add')}
+		</Button>
+	) : (
+		<Tooltip content={t('catalog:plans.creditGrantsTab.writeDeniedTooltip')}>
+			<span tabIndex={0} className='inline-block cursor-not-allowed'>
+				<Button disabled prefixIcon={<Plus />}>
+					{t('common:actions.add')}
+				</Button>
+			</span>
+		</Tooltip>
+	);
+
 	return (
 		<>
 			<CreditGrantModal
@@ -109,14 +126,7 @@ const PlanCreditGrantsTab = () => {
 			<div className='space-y-6'>
 				{creditGrants.length > 0 ? (
 					<Card variant='notched'>
-						<CardHeader
-							title={t('catalog:plans.tabs.creditGrants')}
-							cta={
-								<Button prefixIcon={<Plus />} onClick={() => setCreditGrantModalOpen(true)} disabled={isCreatingCreditGrant}>
-									{isCreatingCreditGrant ? 'Adding...' : 'Add'}
-								</Button>
-							}
-						/>
+						<CardHeader title={t('catalog:plans.tabs.creditGrants')} cta={addButton} />
 						<CreditGrantsTable
 							data={creditGrants}
 							onDelete={async () => {
@@ -126,15 +136,7 @@ const PlanCreditGrantsTab = () => {
 						/>
 					</Card>
 				) : (
-					<NoDataCard
-						title={t('catalog:plans.tabs.creditGrants')}
-						subtitle='No credit grants added to the plan yet'
-						cta={
-							<Button prefixIcon={<Plus />} onClick={() => setCreditGrantModalOpen(true)} disabled={isCreatingCreditGrant}>
-								{isCreatingCreditGrant ? 'Adding...' : 'Add'}
-							</Button>
-						}
-					/>
+					<NoDataCard title={t('catalog:plans.tabs.creditGrants')} subtitle='No credit grants added to the plan yet' cta={addButton} />
 				)}
 			</div>
 		</>
