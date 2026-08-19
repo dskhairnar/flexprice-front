@@ -28,6 +28,7 @@ import { sanitizeFilterConditions, sanitizeSortConditions } from '@/types/format
 import usePagination, { PAGINATION_PREFIX } from '@/hooks/usePagination';
 import { ShortPagination } from '@/components/atoms';
 import type { SearchPricesResponse } from '@/types/dto';
+import { useCurrentUserPermissions } from '@/hooks/useCurrentUserPermissions';
 import type { TFunction } from 'i18next';
 import { useTranslation } from 'react-i18next';
 
@@ -59,9 +60,19 @@ interface PriceDropdownProps {
 	onEditPrice: (price: Price) => void;
 	onEditDetails: (price: Price) => void;
 	onTerminatePrice: (price: Price) => void;
+	canWritePrice: boolean;
+	writeDeniedTooltip: string;
 }
 
-const PriceDropdown: FC<PriceDropdownProps> = ({ row, hasEndDate, onEditPrice, onEditDetails, onTerminatePrice }) => {
+const PriceDropdown: FC<PriceDropdownProps> = ({
+	row,
+	hasEndDate,
+	onEditPrice,
+	onEditDetails,
+	onTerminatePrice,
+	canWritePrice,
+	writeDeniedTooltip,
+}) => {
 	const [isOpen, setIsOpen] = useState(false);
 
 	const handleClick = (e: React.MouseEvent) => {
@@ -94,7 +105,8 @@ const PriceDropdown: FC<PriceDropdownProps> = ({ row, hasEndDate, onEditPrice, o
 							setIsOpen(false);
 							onEditPrice(row);
 						},
-						disabled: hasEndDate,
+						disabled: hasEndDate || !canWritePrice,
+						disabledReason: !canWritePrice ? writeDeniedTooltip : undefined,
 					},
 					{
 						label: 'Edit Details',
@@ -104,7 +116,8 @@ const PriceDropdown: FC<PriceDropdownProps> = ({ row, hasEndDate, onEditPrice, o
 							setIsOpen(false);
 							onEditDetails(row);
 						},
-						disabled: hasEndDate,
+						disabled: hasEndDate || !canWritePrice,
+						disabledReason: !canWritePrice ? writeDeniedTooltip : undefined,
 					},
 					{
 						label: 'Terminate Price',
@@ -114,7 +127,8 @@ const PriceDropdown: FC<PriceDropdownProps> = ({ row, hasEndDate, onEditPrice, o
 							setIsOpen(false);
 							onTerminatePrice(row);
 						},
-						disabled: hasEndDate,
+						disabled: hasEndDate || !canWritePrice,
+						disabledReason: !canWritePrice ? writeDeniedTooltip : undefined,
 					},
 				]}
 			/>
@@ -257,6 +271,10 @@ const chargeSortOptions = [
 const PlanPriceTable: FC<PlanChargesTableProps> = ({ plan, onPriceUpdate }) => {
 	const { t } = useTranslation(['catalog', 'common']);
 	const navigate = useNavigate();
+	const { can } = useCurrentUserPermissions();
+	// Charges/prices are gated by the `price` entity server-side (internal/api/router.go's
+	// price group), not `plan` — a role can hold plan:write without price:write or vice versa.
+	const canWritePrice = can('price', 'write');
 	const [showTerminateModal, setShowTerminateModal] = useState(false);
 	const [selectedPriceForTermination, setSelectedPriceForTermination] = useState<Price | null>(null);
 	const [selectedPriceForEdit, setSelectedPriceForEdit] = useState<Price | null>(null);
@@ -505,12 +523,14 @@ const PlanPriceTable: FC<PlanChargesTableProps> = ({ plan, onPriceUpdate }) => {
 							onEditPrice={handleEditPrice}
 							onEditDetails={handleEditDetails}
 							onTerminatePrice={handleTerminatePrice}
+							canWritePrice={canWritePrice}
+							writeDeniedTooltip={t('catalog:plans.organisms.planPriceTable.writeDeniedTooltip')}
 						/>
 					);
 				},
 			},
 		],
-		[t, handleEditPrice, handleEditDetails, handleTerminatePrice],
+		[t, handleEditPrice, handleEditDetails, handleTerminatePrice, canWritePrice],
 	);
 
 	// ===== RENDER =====
@@ -555,9 +575,19 @@ const PlanPriceTable: FC<PlanChargesTableProps> = ({ plan, onPriceUpdate }) => {
 				<CardHeader
 					title={t('catalog:plans.organisms.planPriceTable.charges')}
 					cta={
-						<Button prefixIcon={<Plus />} onClick={() => navigate(`${RouteNames.plan}/${plan.id}/add-charges`)}>
-							{t('common:actions.add')}
-						</Button>
+						canWritePrice ? (
+							<Button prefixIcon={<Plus />} onClick={() => navigate(`${RouteNames.plan}/${plan.id}/add-charges`)}>
+								{t('common:actions.add')}
+							</Button>
+						) : (
+							<Tooltip content={t('catalog:plans.organisms.planPriceTable.writeDeniedTooltip')}>
+								<span tabIndex={0} className='inline-block cursor-not-allowed'>
+									<Button disabled prefixIcon={<Plus />}>
+										{t('common:actions.add')}
+									</Button>
+								</span>
+							</Tooltip>
+						)
 					}
 				/>
 				<div>
