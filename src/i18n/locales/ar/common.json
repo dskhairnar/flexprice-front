@@ -3,6 +3,7 @@
 		"save": "حفظ",
 		"cancel": "إلغاء",
 		"add": "إضافة",
+		"adding": "جارٍ الإضافة...",
 		"edit": "تعديل",
 		"archive": "أرشفة",
 		"delete": "حذف",
@@ -235,7 +236,9 @@
 		"keyboardTip": "اضغط Tab للتنقل و Enter للاختيار",
 		"notFoundTitle": "صفحة خطأ 404",
 		"notFoundSubtitle": "عذراً! يبدو أنك سلكت مساراً خاطئاً",
-		"notFoundBackToHome": "العودة إلى الرئيسية"
+		"notFoundBackToHome": "العودة إلى الرئيسية",
+		"forbiddenTitle": "الوصول مرفوض",
+		"forbiddenSubtitle": "ليس لديك إذن لعرض هذه الصفحة. اطلب من مسؤول المستأجر منحك الوصول."
 	},
 	"copyId": {
 		"genericLabel": "نسخ المعرّف",

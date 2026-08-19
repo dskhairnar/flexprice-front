@@ -316,6 +316,7 @@
 			"title": "الفواتير",
 			"emptySubtitle": "لا توجد فواتير",
 			"addInvoice": "إضافة فاتورة",
+			"writeDeniedTooltip": "ليس لديك صلاحية إنشاء الفواتير. اطلب الوصول من مسؤول المستأجر.",
 			"paginationUnit": "الفواتير"
 		},
 		"overview": {

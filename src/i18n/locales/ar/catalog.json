@@ -411,6 +411,7 @@
 				"archive": "أرشفة"
 			},
 			"createWithAi": "إنشاء بالذكاء الاصطناعي",
+			"writeDeniedTooltip": "ليس لديك صلاحية إنشاء الخطط. اطلب الوصول من مسؤول المستأجر.",
 			"emptyStateCustom": {
 				"heading": "الخطط",
 				"description": "أنشئ خطة لعرض التسعير والبدء بفوترة العملاء."
@@ -428,12 +429,17 @@
 			"configSheet": {
 				"keysCount": "{{count}} مفاتيح",
 				"title": "قيمة الإعداد"
-			}
+			},
+			"writeDeniedTooltip": "ليس لديك إذن لتعديل الاستحقاقات"
+		},
+		"creditGrantsTab": {
+			"writeDeniedTooltip": "ليس لديك إذن لتعديل منح الرصيد"
 		},
 		"information": {
 			"loading": "جاري تحميل تفاصيل الخطة…",
 			"planDetails": "تفاصيل الخطة",
-			"metadata": "البيانات الوصفية"
+			"metadata": "البيانات الوصفية",
+			"writeDeniedTooltip": "ليس لديك إذن لتعديل هذه الخطة"
 		},
 		"pricing": {
 			"noWidget": "لا يوجد عنصر واجهة للتسعير",
@@ -512,6 +518,7 @@
 				"noDateInformation": "لا توجد معلومات عن التواريخ",
 				"fallbackName": "--",
 				"charges": "الرسوم",
+				"writeDeniedTooltip": "ليس لديك صلاحية تعديل هذه الخطة. اطلب الوصول من مسؤول المستأجر.",
 				"recurring": "متكرر",
 				"advance": "مقدّمًا",
 				"arrear": "مؤخرًا",
