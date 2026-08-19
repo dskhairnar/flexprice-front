@@ -49,7 +49,7 @@ describe('useCurrentUserPermissions.can()', () => {
 		setup(['a'], [role('a', { '*': ['*'] })]);
 		const { result } = renderHook(() => useCurrentUserPermissions());
 		expect(result.current.can('invoice', 'write')).toBe(true);
-		expect(result.current.can('anything-unlisted', 'read')).toBe(true);
+		expect(result.current.can('workflow', 'read')).toBe(true);
 	});
 
 	it('*:read grants read on any entity but not write', () => {
@@ -114,6 +114,19 @@ describe('useCurrentUserPermissions.can()', () => {
 		setup(['a'], [role('a', { '*': ['read'] })], { rolesLoading: true });
 		const { result: r2 } = renderHook(() => useCurrentUserPermissions());
 		expect(r2.current.isLoading).toBe(true);
+	});
+
+	it('reports isLoading true when the user has loaded but the roles query has not fetched even once yet (enabled just flipped true, fetch not dispatched)', () => {
+		// Reproduces a real race: TanStack Query's own isLoading (isPending && isFetching) can
+		// read false for one render right as `enabled` flips from false to true — data is still
+		// undefined, but the fetch hasn't been dispatched. Without this guard, can() would
+		// evaluate against an empty role catalog and every permission check would report denied.
+		mockUseUser.mockReturnValue({ user: { roles: ['a'], type: 'user' }, loading: false });
+		mockUseRbacRoles.mockReturnValue({ data: undefined, isLoading: false, isError: false });
+
+		const { result } = renderHook(() => useCurrentUserPermissions());
+		expect(result.current.isLoading).toBe(true);
+		expect(result.current.can('plan', 'write')).toBe(false);
 	});
 
 	it('surfaces isError from the roles query', () => {

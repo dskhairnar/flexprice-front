@@ -5,17 +5,53 @@ import { RbacRole, SUPER_ADMIN_ROLE_ID } from '@/api/RbacApi';
 
 export type RbacAction = 'read' | 'write';
 
+// Mirrors internal/types/rbac.go's Entity constants exactly — keep in sync with the backend.
+export type RbacEntity =
+	| 'user'
+	| 'environment'
+	| 'event'
+	| 'meter'
+	| 'price'
+	| 'customer'
+	| 'plan'
+	| 'addon'
+	| 'group'
+	| 'alert_settings'
+	| 'subscription'
+	| 'wallet'
+	| 'tenant'
+	| 'invoice'
+	| 'feature'
+	| 'entitlement'
+	| 'creditgrant'
+	| 'payment'
+	| 'integration'
+	| 'task'
+	| 'tax'
+	| 'secret'
+	| 'connection'
+	| 'costsheet'
+	| 'creditnote'
+	| 'coupon'
+	| 'ai'
+	| 'portal'
+	| 'webhook'
+	| 'cron'
+	| 'setting'
+	| 'oauth'
+	| 'checkoutsession'
+	| 'workflow';
+
 interface CurrentUserPermissions {
 	roles: string[];
 	isSuperAdmin: boolean;
-	can: (entity: string, action: RbacAction) => boolean;
+	can: (entity: RbacEntity, action: RbacAction) => boolean;
 	isLoading: boolean;
 	isError: boolean;
 }
 
 /**
  * Derives "can the current session do (entity, action)?" from the roles
- * already fetched via useUser() and the role->permission map fetched via
  * useRbacRoles(). Both are server-fetched data (AGENTS.md forbids putting
  * server-fetched data in Zustand), so this stays a plain TanStack-Query-backed
  * hook rather than a store.
@@ -40,7 +76,7 @@ export function useCurrentUserPermissions(): CurrentUserPermissions {
 	}, [roleDefs]);
 
 	const can = useCallback(
-		(entity: string, action: RbacAction) =>
+		(entity: RbacEntity, action: RbacAction) =>
 			roles.some((roleId) => {
 				const perms = roleDefsById[roleId]?.permissions;
 				if (!perms) return false;
@@ -51,11 +87,21 @@ export function useCurrentUserPermissions(): CurrentUserPermissions {
 		[roles, roleDefsById],
 	);
 
+	// TanStack Query's own `isLoading` (isPending && isFetching) can be false for one
+	// render right as `enabled` flips from false to true — the query has no data yet,
+	// but the fetch hasn't been dispatched. During that render, `userLoading` has
+	// already gone false too, so relying on the two `isLoading` flags alone lets
+	// can() briefly evaluate against an empty role catalog and report every
+	// permission as denied (RouteGuard flashes "Access denied" before the real
+	// roles arrive). Treat "logged in but roles not fetched even once yet" as
+	// loading regardless of what the query's own flag says.
+	const rolesNotYetFetched = !!user && roleDefs === undefined;
+
 	return {
 		roles,
 		isSuperAdmin: roles.includes(SUPER_ADMIN_ROLE_ID),
 		can,
-		isLoading: userLoading || rolesLoading,
+		isLoading: userLoading || rolesLoading || rolesNotYetFetched,
 		isError,
 	};
 }
