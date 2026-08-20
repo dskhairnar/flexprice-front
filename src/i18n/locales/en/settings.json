@@ -484,6 +484,7 @@
 		"chooseFile": "Choose File to Upload"
 	},
 	"bulkImports": {
+		"writeDeniedTooltip": "You don't have permission to create import tasks. Ask a tenant admin for access.",
 		"title": "Bulk Imports",
 		"columns": {
 			"fileName": "File Name",
@@ -1061,6 +1062,7 @@
 			"backToExportDetails": "Back to Export Details"
 		},
 		"integrations": {
+			"writeDeniedTooltip": "You don't have permission to manage connections. Ask a tenant admin for access.",
 			"pageHeading": "Integrations",
 			"availableSection": "Available",
 			"premiumAddonsSection": "Premium add-ons",

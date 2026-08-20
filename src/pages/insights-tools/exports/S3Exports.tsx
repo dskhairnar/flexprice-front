@@ -1,4 +1,5 @@
-import { FormHeader, Loader, Page, Button } from '@/components/atoms';
+import { FormHeader, Loader, Page, Button, Tooltip } from '@/components/atoms';
+import { useCurrentUserPermissions } from '@/hooks/useCurrentUserPermissions';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router';
@@ -16,6 +17,8 @@ const S3Exports = () => {
 	const { i18n } = useTranslation();
 	const navigate = useNavigate();
 	const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+	const { can } = useCurrentUserPermissions();
+	const canWriteConnection = can('connection', 'write');
 
 	// Fetch S3 connections
 	const {
@@ -93,14 +96,25 @@ const S3Exports = () => {
 					<ArrowLeft className='w-4 h-4' />
 					{t('insightsTools.exports.backToExports')}
 				</Button>
-				<Button
-					onClick={() => {
-						setIsDrawerOpen(true);
-					}}
-					className='flex items-center gap-2'>
-					<Plus className='w-4 h-4' />
-					{i18n.t('actions.add', { ns: 'common' })}
-				</Button>
+				{canWriteConnection ? (
+					<Button
+						onClick={() => {
+							setIsDrawerOpen(true);
+						}}
+						className='flex items-center gap-2'>
+						<Plus className='w-4 h-4' />
+						{i18n.t('actions.add', { ns: 'common' })}
+					</Button>
+				) : (
+					<Tooltip content={t('insightsTools.integrations.writeDeniedTooltip')}>
+						<span tabIndex={0} className='inline-block'>
+							<Button disabled className='flex items-center gap-2'>
+								<Plus className='w-4 h-4' />
+								{i18n.t('actions.add', { ns: 'common' })}
+							</Button>
+						</span>
+					</Tooltip>
+				)}
 			</div>
 
 			{/* Connections List */}
@@ -147,7 +161,7 @@ const S3Exports = () => {
 											variant='outline'
 											size='icon'
 											onClick={() => handleDeleteConnection(connection.id, connection.name)}
-											disabled={isDeletingConnection}
+											disabled={isDeletingConnection || !canWriteConnection}
 											isLoading={isDeletingConnection}>
 											<Trash2 className='size-4' />
 										</Button>
@@ -162,15 +176,26 @@ const S3Exports = () => {
 					<div className='text-content-muted mb-4'>
 						<h3 className='text-lg font-medium text-content mb-2'>{t('insightsTools.exports.noS3Connections')}</h3>
 						<p className='text-content-muted mb-6'>{t('insightsTools.exports.noS3ConnectionsHint')}</p>
-						<Button
-							variant='outline'
-							onClick={() => {
-								setIsDrawerOpen(true);
-							}}
-							className='flex items-center gap-2 mx-auto'>
-							<Plus className='w-4 h-4' />
-							{t('insightsTools.exports.addS3Connection')}
-						</Button>
+						{canWriteConnection ? (
+							<Button
+								variant='outline'
+								onClick={() => {
+									setIsDrawerOpen(true);
+								}}
+								className='flex items-center gap-2 mx-auto'>
+								<Plus className='w-4 h-4' />
+								{t('insightsTools.exports.addS3Connection')}
+							</Button>
+						) : (
+							<Tooltip content={t('insightsTools.integrations.writeDeniedTooltip')}>
+								<span tabIndex={0} className='inline-block'>
+									<Button disabled variant='outline' className='flex items-center gap-2 mx-auto'>
+										<Plus className='w-4 h-4' />
+										{t('insightsTools.exports.addS3Connection')}
+									</Button>
+								</span>
+							</Tooltip>
+						)}
 					</div>
 				</div>
 			)}

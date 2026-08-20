@@ -490,6 +490,7 @@
 		"chooseFile": "اختر ملفاً للرفع"
 	},
 	"bulkImports": {
+		"writeDeniedTooltip": "ليس لديك صلاحية إنشاء مهام الاستيراد. اطلب الوصول من مسؤول المستأجر.",
 		"title": "الاستيراد الجماعي",
 		"columns": {
 			"fileName": "اسم الملف",
@@ -1067,6 +1068,7 @@
 			"backToExportDetails": "العودة إلى تفاصيل التصدير"
 		},
 		"integrations": {
+			"writeDeniedTooltip": "ليس لديك صلاحية إدارة الاتصالات. اطلب الوصول من مسؤول المستأجر.",
 			"pageHeading": "التكاملات",
 			"availableSection": "متاح",
 			"premiumAddonsSection": "إضافات بريميوم",
