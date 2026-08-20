@@ -1,5 +1,6 @@
-import { AddButton, Page, ActionButton, Chip } from '@/components/atoms';
+import { AddButton, Page, ActionButton, Chip, Tooltip } from '@/components/atoms';
 import { CreateCustomerDrawer, ApiDocsContent } from '@/components/molecules';
+import { useCurrentUserPermissions } from '@/hooks/useCurrentUserPermissions';
 import { ColumnData } from '@/components/molecules/Table';
 import { QueryableDataArea } from '@/components/organisms';
 import { buildGuides } from '@/constants/guides';
@@ -32,6 +33,8 @@ import { mergeCustomerSearchMetadata } from '@/utils/customer/mergeCustomerSearc
 const ActionButtonWithPortal: FC<{ customer: Customer; onEdit: (customer: Customer) => void }> = ({ customer, onEdit }) => {
 	const { t } = useTranslation(['customers', 'common']);
 	const { openInNewTab } = useCustomerPortalUrl(customer.external_id);
+	const { can } = useCurrentUserPermissions();
+	const canWriteCustomer = can('customer', 'write');
 	return (
 		<ActionButton
 			id={customer.id}
@@ -43,9 +46,13 @@ const ActionButtonWithPortal: FC<{ customer: Customer; onEdit: (customer: Custom
 				enabled: customer.status === ENTITY_STATUS.PUBLISHED,
 				path: `/billing/customers/edit-customer?id=${customer.id}`,
 				onClick: () => onEdit(customer),
+				disabled: !canWriteCustomer,
+				disabledReason: canWriteCustomer ? undefined : t('list.writeDeniedTooltip'),
 			}}
 			archive={{
 				enabled: customer.status === ENTITY_STATUS.PUBLISHED,
+				disabled: !canWriteCustomer,
+				disabledReason: canWriteCustomer ? undefined : t('list.writeDeniedTooltip'),
 			}}
 			customActions={[
 				{
@@ -67,6 +74,8 @@ const CustomerListPage = () => {
 	const [orgTypeFilter, setOrgTypeFilter] = useState<CustomerOrgTypeFilterValue | null>(null);
 	const showOrgTypeFilter = useTenantFeatureAllowlist();
 	const navigate = useNavigate();
+	const { can } = useCurrentUserPermissions();
+	const canWriteCustomer = can('customer', 'write');
 
 	const handleCreateCustomer = useCallback(() => {
 		setactiveCustomer(undefined);
@@ -229,11 +238,19 @@ const CustomerListPage = () => {
 				<div className='flex justify-between gap-2 items-center'>
 					<CreateCustomerDrawer
 						trigger={
-							<AddButton
-								onClick={() => {
-									setactiveCustomer(undefined);
-								}}
-							/>
+							canWriteCustomer ? (
+								<AddButton
+									onClick={() => {
+										setactiveCustomer(undefined);
+									}}
+								/>
+							) : (
+								<Tooltip content={t('list.writeDeniedTooltip')}>
+									<span tabIndex={0} className='inline-block'>
+										<AddButton disabled />
+									</span>
+								</Tooltip>
+							)
 						}
 						open={customerDrawerOpen}
 						onOpenChange={setcustomerDrawerOpen}
@@ -297,6 +314,8 @@ const CustomerListPage = () => {
 					description: t('list.emptyDescription'),
 					buttonLabel: t('list.createCustomer'),
 					buttonAction: handleCreateCustomer,
+					buttonDisabled: !canWriteCustomer,
+					buttonDisabledReason: canWriteCustomer ? undefined : t('list.writeDeniedTooltip'),
 					tags: API_DOCS_TAGS.Customers,
 					tutorials: guides.customers.tutorials,
 				}}

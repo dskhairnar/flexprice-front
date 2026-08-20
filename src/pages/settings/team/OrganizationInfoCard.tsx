@@ -1,10 +1,11 @@
 import { useMemo, useState } from 'react';
 import { Pencil } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import { Button, Card, Chip } from '@/components/atoms';
+import { Button, Card, Chip, Tooltip } from '@/components/atoms';
 import { UpdateTenantDrawer } from '@/components/molecules';
 import useUser from '@/hooks/useUser';
 import { isAdminMember, type SettingsMember } from './memberUtils';
+import { useCurrentUserPermissions } from '@/hooks/useCurrentUserPermissions';
 
 function getTenantInitials(name: string | undefined, fallback: string): string {
 	return (
@@ -21,6 +22,8 @@ const OrganizationInfoCard = () => {
 	const { t } = useTranslation(['settings', 'common']);
 	const { user, loading } = useUser();
 	const [editOpen, setEditOpen] = useState(false);
+	const { can } = useCurrentUserPermissions();
+	const canWriteTenant = can('tenant', 'write');
 
 	const tenantName = user?.tenant?.name ?? t('organization.title');
 	const initials = useMemo(() => getTenantInitials(user?.tenant?.name, 'OA'), [user?.tenant?.name]);
@@ -59,13 +62,28 @@ const OrganizationInfoCard = () => {
 									open={editOpen}
 									onOpenChange={setEditOpen}
 									trigger={
-										<Button
-											variant='ghost'
-											size='icon'
-											className='h-6 w-6 shrink-0 text-content-zinc-subtle hover:text-content-zinc-tertiary'
-											aria-label={t('organization.editOrganization')}>
-											<Pencil className='h-4 w-4' />
-										</Button>
+										canWriteTenant ? (
+											<Button
+												variant='ghost'
+												size='icon'
+												className='h-6 w-6 shrink-0 text-content-zinc-subtle hover:text-content-zinc-tertiary'
+												aria-label={t('organization.editOrganization')}>
+												<Pencil className='h-4 w-4' />
+											</Button>
+										) : (
+											<Tooltip content={t('organization.writeDeniedTooltip')}>
+												<span tabIndex={0} className='inline-block'>
+													<Button
+														variant='ghost'
+														size='icon'
+														disabled
+														className='h-6 w-6 shrink-0 text-content-zinc-subtle'
+														aria-label={t('organization.editOrganization')}>
+														<Pencil className='h-4 w-4' />
+													</Button>
+												</span>
+											</Tooltip>
+										)
 									}
 								/>
 							) : null}

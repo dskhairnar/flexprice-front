@@ -534,7 +534,7 @@
 				"noDateInformation": "No date information",
 				"fallbackName": "--",
 				"charges": "Charges",
-				"writeDeniedTooltip": "You don't have permission to modify this plan. Ask a tenant admin for access.",
+				"writeDeniedTooltip": "You don't have permission to modify prices. Ask a tenant admin for access.",
 				"recurring": "Recurring",
 				"advance": "Advance",
 				"arrear": "Arrear",

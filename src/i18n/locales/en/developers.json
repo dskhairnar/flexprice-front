@@ -55,6 +55,7 @@
 		}
 	},
 	"apiKeys": {
+		"writeDeniedTooltip": "You don't have permission to manage API keys. Ask a tenant admin for access.",
 		"toastFetchError": "Error fetching secret keys",
 		"paginationUnit": "Secret Keys",
 		"emptyCard": {
@@ -78,6 +79,7 @@
 		}
 	},
 	"serviceAccounts": {
+		"writeDeniedTooltip": "You don't have permission to manage service accounts. Ask a tenant admin for access.",
 		"toastFetchError": "Error fetching service accounts",
 		"paginationUnit": "Service Accounts",
 		"noRoles": "No Roles",

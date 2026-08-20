@@ -20,6 +20,7 @@ import { isInheritedSubscription } from '@/utils/subscription/isInheritedSubscri
 import { useNavigate } from 'react-router';
 import { RouteNames } from '@/core/routes/Routes';
 import { useTranslation } from 'react-i18next';
+import { useCurrentUserPermissions } from '@/hooks/useCurrentUserPermissions';
 
 interface Props {
 	subscription: Subscription;
@@ -29,6 +30,9 @@ const SubscriptionActionButton: React.FC<Props> = ({ subscription }) => {
 	const navigate = useNavigate();
 	const { t } = useTranslation(['customers', 'common']);
 	const { t: tc } = useTranslation('common');
+	const { can } = useCurrentUserPermissions();
+	const canWriteSubscription = can('subscription', 'write');
+	const canWriteAlertSettings = can('alert_settings', 'write');
 	const [state, setState] = useState({
 		// isPauseModalOpen: false,
 		// isResumeModalOpen: false,
@@ -157,7 +161,8 @@ const SubscriptionActionButton: React.FC<Props> = ({ subscription }) => {
 						label: 'Activate Subscription',
 						icon: <Play className='h-4 w-4' />,
 						onSelect: () => setState((prev) => ({ ...prev, isActivateModalOpen: true })),
-						disabled: readOnly,
+						disabled: readOnly || !canWriteSubscription,
+						disabledReason: !readOnly && !canWriteSubscription ? t('customers:organisms.subscriptionAction.writeDeniedTooltip') : undefined,
 					},
 				]
 			: []),
@@ -165,13 +170,17 @@ const SubscriptionActionButton: React.FC<Props> = ({ subscription }) => {
 			label: 'Edit Subscription',
 			icon: <Pencil className='h-4 w-4' />,
 			onSelect: () => navigate(`${RouteNames.subscriptions}/${subscription.id}/edit`),
-			disabled: isCancelled || readOnly,
+			disabled: isCancelled || readOnly || !canWriteSubscription,
+			disabledReason:
+				!isCancelled && !readOnly && !canWriteSubscription ? t('customers:organisms.subscriptionAction.writeDeniedTooltip') : undefined,
 		},
 		{
 			label: 'Alert Settings',
 			icon: <Bell className='h-4 w-4' />,
 			onSelect: () => setState((prev) => ({ ...prev, isAlertSettingsOpen: true })),
-			disabled: readOnly,
+			disabled: readOnly || !canWriteAlertSettings,
+			disabledReason:
+				!readOnly && !canWriteAlertSettings ? t('customers:organisms.subscriptionAction.alertSettingsWriteDeniedTooltip') : undefined,
 		},
 		...(!isCancelled && !isDraft
 			? [
@@ -197,7 +206,9 @@ const SubscriptionActionButton: React.FC<Props> = ({ subscription }) => {
 			label: 'Cancel Subscription',
 			icon: <X className='h-4 w-4' />,
 			onSelect: () => setState((prev) => ({ ...prev, isCancelModalOpen: true })),
-			disabled: isCancelled || readOnly,
+			disabled: isCancelled || readOnly || !canWriteSubscription,
+			disabledReason:
+				!isCancelled && !readOnly && !canWriteSubscription ? t('customers:organisms.subscriptionAction.writeDeniedTooltip') : undefined,
 			className: 'text-destructive',
 		},
 	];

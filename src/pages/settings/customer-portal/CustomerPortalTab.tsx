@@ -7,10 +7,13 @@ import type { PortalConfig } from '@/types/dto/PortalConfig';
 import SettingsFormActions from '../SettingsFormActions';
 import { applyPortalVisibility, getPortalVisibility, type PortalVisibility } from './portalVisibility';
 import { useCustomerPortalConfig } from './useCustomerPortalConfig';
+import { useCurrentUserPermissions } from '@/hooks/useCurrentUserPermissions';
 
 const CustomerPortalTab = () => {
 	const { t } = useTranslation(['settings', 'common']);
 	const { config, isLoading, updateConfig } = useCustomerPortalConfig();
+	const { can } = useCurrentUserPermissions();
+	const canWritePortal = can('portal', 'write');
 	const [draftConfig, setDraftConfig] = useState<PortalConfig>(config);
 
 	useEffect(() => {
@@ -84,7 +87,12 @@ const CustomerPortalTab = () => {
 							onCheckedChange={(checked) => handleToggle('showSubscriptions', checked)}
 						/>
 					</div>
-					<SettingsFormActions onReset={handleReset} onSave={handleSave} isSaving={updateConfig.isPending} disabled={isLoading} />
+					<SettingsFormActions
+						onReset={handleReset}
+						onSave={handleSave}
+						isSaving={updateConfig.isPending}
+						disabled={isLoading || !canWritePortal}
+					/>
 				</>
 			)}
 		</Card>

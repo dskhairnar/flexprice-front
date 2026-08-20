@@ -1,5 +1,6 @@
 {
 	"list": {
+		"writeDeniedTooltip": "You don't have permission to manage customers. Ask a tenant admin for access.",
 		"title": "Customers",
 		"paginationUnit": "Customers",
 		"entityName": "Customer",
@@ -326,6 +327,7 @@
 			"entitlementsCardTitle": "Entitlements"
 		},
 		"tax": {
+			"writeDeniedTooltip": "You don't have permission to manage tax associations. Ask a tenant admin for access.",
 			"emptyTitle": "Tax",
 			"emptySubtitle": "No tax rate assigned to this customer",
 			"associationsTitle": "Tax Associations",
@@ -337,6 +339,8 @@
 			"noEventsFound": "No events found"
 		},
 		"wallet": {
+			"writeDeniedTooltip": "You don't have permission to manage this wallet. Ask a tenant admin for access.",
+			"alertSettingsWriteDeniedTooltip": "You don't have permission to manage alert settings for this wallet. Ask a tenant admin for access.",
 			"emptyTitle": "Wallets",
 			"emptySubtitle": "No wallets linked to the customer",
 			"addWallet": "Add Wallet",
@@ -410,6 +414,8 @@
 			"chargeFallback": "Charge"
 		},
 		"subscriptionAction": {
+			"writeDeniedTooltip": "You don't have permission to manage subscriptions. Ask a tenant admin for access.",
+			"alertSettingsWriteDeniedTooltip": "You don't have permission to manage alert settings for this subscription. Ask a tenant admin for access.",
 			"cancelTitle": "Cancel Subscription",
 			"cancelSubtitle": "This action cannot be undone. Choose cancellation and invoice behavior before continuing.",
 			"cancellationType": "Cancellation Type",

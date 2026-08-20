@@ -7,10 +7,13 @@ import { cn } from '@/lib/utils';
 import type { SubscriptionConfig } from '@/types/dto/BillingSettings';
 import { useSubscriptionConfiguration } from './useSubscriptionConfiguration';
 import SettingsFormActions from '../SettingsFormActions';
+import { useCurrentUserPermissions } from '@/hooks/useCurrentUserPermissions';
 
 const SubscriptionConfigurationSection = () => {
 	const { t } = useTranslation(['settings', 'common']);
 	const { configuration, savedConfiguration, isLoading, updateConfiguration } = useSubscriptionConfiguration();
+	const { can } = useCurrentUserPermissions();
+	const canWriteSetting = can('setting', 'write');
 	const [draft, setDraft] = useState<SubscriptionConfig>(configuration);
 	const [gracePeriodInput, setGracePeriodInput] = useState(String(configuration.grace_period_days));
 
@@ -143,7 +146,12 @@ const SubscriptionConfigurationSection = () => {
 						</div>
 					) : null}
 
-					<SettingsFormActions onReset={handleReset} onSave={handleSave} isSaving={updateConfiguration.isPending} disabled={isLoading} />
+					<SettingsFormActions
+						onReset={handleReset}
+						onSave={handleSave}
+						isSaving={updateConfiguration.isPending}
+						disabled={isLoading || !canWriteSetting}
+					/>
 				</>
 			)}
 		</Card>

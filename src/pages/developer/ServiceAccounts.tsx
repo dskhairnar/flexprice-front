@@ -1,4 +1,5 @@
-import { Button, Page, ShortPagination, SectionHeader, ActionButton, CopyIdButton } from '@/components/atoms';
+import { Button, Page, ShortPagination, SectionHeader, ActionButton, CopyIdButton, Tooltip } from '@/components/atoms';
+import { useCurrentUserPermissions } from '@/hooks/useCurrentUserPermissions';
 import { ColumnData, FlexpriceTable, ApiDocsContent } from '@/components/molecules';
 import { UserApi } from '@/api/UserApi';
 import { useQuery } from '@tanstack/react-query';
@@ -19,6 +20,8 @@ const ServiceAccountsPage = () => {
 	const { page, limit, offset } = usePagination();
 	const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 	const [selectedAccount, setSelectedAccount] = useState<User | null>(null);
+	const { can } = useCurrentUserPermissions();
+	const canWriteUser = can('user', 'write');
 
 	const {
 		data: serviceAccountsResponse,
@@ -109,19 +112,23 @@ const ServiceAccountsPage = () => {
 						edit={{
 							enabled: true,
 							onClick: () => handleEdit(row),
+							disabled: !canWriteUser,
+							disabledReason: canWriteUser ? undefined : t('serviceAccounts.writeDeniedTooltip'),
 						}}
 						// edit={{ enabled: false }}
 						archive={{
 							enabled: true,
 							text: t('common:actions.delete'),
 							icon: <Trash2 className='h-4 w-4' />,
+							disabled: !canWriteUser,
+							disabledReason: canWriteUser ? undefined : t('serviceAccounts.writeDeniedTooltip'),
 						}}
 					/>
 				),
 			},
 		],
 		// [t],
-		[t, handleEdit],
+		[t, handleEdit, canWriteUser],
 	);
 
 	if (isLoadingServiceAccounts) {
@@ -148,14 +155,26 @@ const ServiceAccountsPage = () => {
 						buttonAction: handleAdd,
 					}}
 					tags={API_DOCS_TAGS.Users}
+					addDisabled={!canWriteUser}
+					addDisabledReason={canWriteUser ? undefined : t('serviceAccounts.writeDeniedTooltip')}
 				/>
 			)}
 			{(serviceAccountsResponse?.items.length || 0) > 0 && (
 				<Page>
 					<SectionHeader title={t('common:nav.serviceAccounts')} titleClassName='text-3xl font-medium'>
-						<Button prefixIcon={<Plus />} onClick={handleAdd}>
-							{t('common:actions.add')}
-						</Button>
+						{canWriteUser ? (
+							<Button prefixIcon={<Plus />} onClick={handleAdd}>
+								{t('common:actions.add')}
+							</Button>
+						) : (
+							<Tooltip content={t('serviceAccounts.writeDeniedTooltip')}>
+								<span tabIndex={0} className='inline-block'>
+									<Button disabled prefixIcon={<Plus />}>
+										{t('common:actions.add')}
+									</Button>
+								</span>
+							</Tooltip>
+						)}
 					</SectionHeader>
 					<div className='pb-12 mt-2'>
 						<FlexpriceTable showEmptyRow columns={serviceAccountColumns} data={serviceAccountsResponse?.items || []} />
