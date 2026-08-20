@@ -548,6 +548,7 @@
 		}
 	},
 	"priceUnits": {
+		"writeDeniedTooltip": "You don't have permission to manage price units. Ask a tenant admin for access.",
 		"listPage": {
 			"title": "Price Units",
 			"paginationUnit": "Price Units",
