@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react';
-import { Page, Spacer, Loader, ShortPagination, AddButton } from '@/components/atoms';
+import { Page, Spacer, Loader, ShortPagination, AddButton, Tooltip } from '@/components/atoms';
+import { useCurrentUserPermissions } from '@/hooks/useCurrentUserPermissions';
 import { ApiDocsContent } from '@/components/molecules';
 import { useQuery } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
@@ -21,6 +22,8 @@ const TaxPage = () => {
 	const { limit, offset, page } = usePagination();
 	const [taxDrawerOpen, setTaxDrawerOpen] = useState(false);
 	const [activeTax, setActiveTax] = useState<TaxRateResponse | null>(null);
+	const { can } = useCurrentUserPermissions();
+	const canWriteTax = can('tax', 'write');
 
 	const fetchTaxRates = async () => {
 		return await TaxApi.listTaxRates({
@@ -68,7 +71,9 @@ const TaxPage = () => {
 					buttonAction: handleCreateNew,
 				}}
 				tutorials={guides.taxes.tutorials}
-				onAddClick={handleCreateNew}>
+				onAddClick={handleCreateNew}
+				addDisabled={!canWriteTax}
+				addDisabledReason={canWriteTax ? undefined : t('taxes.writeDeniedTooltip')}>
 				<TaxDrawer
 					data={activeTax as TaxRate | null}
 					open={taxDrawerOpen}
@@ -80,7 +85,19 @@ const TaxPage = () => {
 	}
 
 	return (
-		<Page heading={t('taxes.list.pageHeading')} headingCTA={<AddButton onClick={handleCreateNew} />}>
+		<Page
+			heading={t('taxes.list.pageHeading')}
+			headingCTA={
+				canWriteTax ? (
+					<AddButton onClick={handleCreateNew} />
+				) : (
+					<Tooltip content={t('taxes.writeDeniedTooltip')}>
+						<span tabIndex={0} className='inline-block'>
+							<AddButton disabled />
+						</span>
+					</Tooltip>
+				)
+			}>
 			<ApiDocsContent tags={API_DOCS_TAGS.TaxRates} />
 			<div className='px-0'>
 				<TaxTable data={taxData?.items || []} onEdit={handleEdit} />

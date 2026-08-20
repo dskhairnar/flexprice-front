@@ -412,26 +412,32 @@ export const MainRouter: any = createBrowserRouter([
 					{
 						path: RouteNames.subscriptions,
 						element: <SubscriptionsPage />,
+						handle: requirePermission('subscription', 'read'),
 					},
 					{
 						path: RouteNames.createSubscription,
 						element: <CreateCustomerSubscriptionPage />,
+						handle: requirePermission('subscription', 'write'),
 					},
 					{
 						path: `${RouteNames.subscriptions}/:id/edit`,
 						element: <CustomerSubscriptionEditPage />,
+						handle: requirePermission('subscription', 'write'),
 					},
 					{
 						path: `${RouteNames.customers}/:id/add-subscription`,
 						element: <CreateCustomerSubscriptionPage />,
+						handle: requirePermission('subscription', 'write'),
 					},
 					{
 						path: RouteNames.taxes,
 						element: <TaxPage />,
+						handle: requirePermission('tax', 'read'),
 					},
 					{
 						path: `${RouteNames.taxes}/:taxrateId`,
 						element: <TaxrateDetailsPage />,
+						handle: requirePermission('tax', 'read'),
 					},
 					{
 						path: RouteNames.invoices,
@@ -523,10 +529,12 @@ export const MainRouter: any = createBrowserRouter([
 							{
 								path: 'subscription/:subscription_id',
 								element: <CustomerSubscriptionDetailsPage />,
+								handle: requirePermission('subscription', 'read'),
 							},
 							{
 								path: 'subscription/:subscription_id/edit',
 								element: <CustomerSubscriptionEditPage />,
+								handle: requirePermission('subscription', 'write'),
 							},
 							{
 								path: 'usage-events',

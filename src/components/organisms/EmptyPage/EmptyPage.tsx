@@ -1,4 +1,4 @@
-import { Page, AddButton, Button } from '@/components/atoms';
+import { Page, AddButton, Button, Tooltip } from '@/components/atoms';
 import { FC, ReactNode } from 'react';
 import { ApiDocsContent } from '@/components/molecules/ApiDocs/ApiDocs';
 import { TutorialItem } from '@/pages';
@@ -29,28 +29,54 @@ interface Props {
 	addButtonLabel?: string;
 	emptyStateCard?: EmptyStateCardItem;
 	tutorials?: TutorialItem[];
+	/** Disables the header Add button and the empty-state card's button (e.g. missing RBAC write permission) without hiding either. */
+	addDisabled?: boolean;
+	/** Tooltip shown on hover/focus when `addDisabled` is true. */
+	addDisabledReason?: string;
 }
 
-const EmptyPage: FC<Props> = ({ onAddClick, tags, heading, children, addButtonLabel, emptyStateCard, tutorials }) => {
+const EmptyPage: FC<Props> = ({
+	onAddClick,
+	tags,
+	heading,
+	children,
+	addButtonLabel,
+	emptyStateCard,
+	tutorials,
+	addDisabled = false,
+	addDisabledReason,
+}) => {
 	const card = emptyStateCard;
 	// Use heading as documentTitle if it's a string, otherwise use undefined to avoid "[object Object]"
 	const documentTitle = typeof heading === 'string' ? heading : undefined;
+
+	const headerAddButton = onAddClick && (
+		<AddButton
+			label={addButtonLabel}
+			disabled={addDisabled}
+			onClick={() => {
+				if (onAddClick && !addDisabled) {
+					onAddClick();
+				}
+			}}
+		/>
+	);
 
 	return (
 		<Page
 			heading={heading}
 			documentTitle={documentTitle}
 			headingCTA={
-				onAddClick && (
-					<AddButton
-						label={addButtonLabel}
-						onClick={() => {
-							if (onAddClick) {
-								onAddClick();
-							}
-						}}
-					/>
-				)
+				headerAddButton &&
+				(addDisabled ? (
+					<Tooltip content={addDisabledReason}>
+						<span tabIndex={0} className='inline-block'>
+							{headerAddButton}
+						</span>
+					</Tooltip>
+				) : (
+					headerAddButton
+				))
 			}>
 			<div className='bg-surface-faint border border-line-hairline dark:bg-surface dark:border-line rounded-[6px] w-full h-[360px] flex flex-col items-center justify-center mx-auto '>
 				{card?.icon && <div className='mb-8'>{card?.icon}</div>}
@@ -62,11 +88,21 @@ const EmptyPage: FC<Props> = ({ onAddClick, tags, heading, children, addButtonLa
 						{card?.description}
 					</div>
 				)}
-				{card?.buttonAction && card?.buttonLabel && (
-					<Button variant={'outline'} onClick={card?.buttonAction} className='!p-5 !bg-surface-panel !border-line-muted'>
-						{card?.buttonLabel}
-					</Button>
-				)}
+				{card?.buttonAction &&
+					card?.buttonLabel &&
+					(addDisabled ? (
+						<Tooltip content={addDisabledReason}>
+							<span tabIndex={0} className='inline-block'>
+								<Button disabled variant={'outline'} className='!p-5 !bg-surface-panel !border-line-muted'>
+									{card.buttonLabel}
+								</Button>
+							</span>
+						</Tooltip>
+					) : (
+						<Button variant={'outline'} onClick={card?.buttonAction} className='!p-5 !bg-surface-panel !border-line-muted'>
+							{card?.buttonLabel}
+						</Button>
+					))}
 			</div>
 			{/* Quick Start Section */}
 			<ApiDocsContent tags={tags} />
