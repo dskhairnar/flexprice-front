@@ -63,9 +63,9 @@ const SamlSsoTab = () => {
 	const { user } = useUserContext();
 	const { config, isLoading, isForbidden, updateConfig, refetch } = useSamlConfig();
 	const { can } = useCurrentUserPermissions();
-	// No dedicated RBAC entity for SAML/SSO configuration — gated on 'oauth' as the closest semantic
-	// fit among the entities the backend exposes.
-	const canWriteOauth = can('oauth', 'write');
+	// SAML config is stored and enforced backend-side as a generic setting (PUT
+	// /settings/saml_config requires setting:write, not a dedicated SSO/oauth entity).
+	const canWriteSetting = can('setting', 'write');
 	const [draft, setDraft] = useState<SamlConfig>(config);
 	const [errors, setErrors] = useState<FormErrors>({});
 
@@ -299,7 +299,7 @@ const SamlSsoTab = () => {
 						/>
 					</div>
 
-					<SettingsFormActions onReset={handleReset} onSave={handleSave} isSaving={isSaving} disabled={isLoading || !canWriteOauth} />
+					<SettingsFormActions onReset={handleReset} onSave={handleSave} isSaving={isSaving} disabled={isLoading || !canWriteSetting} />
 				</>
 			)}
 		</Card>
