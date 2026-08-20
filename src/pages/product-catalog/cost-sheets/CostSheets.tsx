@@ -1,5 +1,6 @@
-import { AddButton, Page, ActionButton, Chip } from '@/components/atoms';
+import { AddButton, Page, ActionButton, Chip, Tooltip } from '@/components/atoms';
 import { ApiDocsContent, CostSheetDrawer } from '@/components/molecules';
+import { useCurrentUserPermissions } from '@/hooks/useCurrentUserPermissions';
 import { ColumnData } from '@/components/molecules/Table';
 import { QueryableDataArea } from '@/components/organisms';
 import CostSheet from '@/models/CostSheet';
@@ -47,6 +48,8 @@ const CostSheetsPage = () => {
 	const [activeCostSheet, setActiveCostSheet] = useState<CostSheet | null>(null);
 	const [costSheetDrawerOpen, setCostSheetDrawerOpen] = useState(false);
 	const navigate = useNavigate();
+	const { can } = useCurrentUserPermissions();
+	const canWriteCostSheet = can('costsheet', 'write');
 
 	const sortingOptions: SortOption[] = useMemo(
 		() => [
@@ -167,20 +170,36 @@ const CostSheetsPage = () => {
 							edit={{
 								enabled: true,
 								onClick: () => handleEdit(row),
+								disabled: !canWriteCostSheet,
+								disabledReason: canWriteCostSheet ? undefined : t('costSheets.writeDeniedTooltip'),
 							}}
 							archive={{
 								enabled: row?.status !== ENTITY_STATUS.ARCHIVED,
+								disabled: !canWriteCostSheet,
+								disabledReason: canWriteCostSheet ? undefined : t('costSheets.writeDeniedTooltip'),
 							}}
 						/>
 					);
 				},
 			},
 		],
-		[t],
+		[t, canWriteCostSheet],
 	);
 
 	return (
-		<Page heading={t('costSheets.listPage.title')} headingCTA={<AddButton onClick={handleOnAdd} />}>
+		<Page
+			heading={t('costSheets.listPage.title')}
+			headingCTA={
+				canWriteCostSheet ? (
+					<AddButton onClick={handleOnAdd} />
+				) : (
+					<Tooltip content={t('costSheets.writeDeniedTooltip')}>
+						<span tabIndex={0} className='inline-block'>
+							<AddButton disabled onClick={handleOnAdd} />
+						</span>
+					</Tooltip>
+				)
+			}>
 			<CostSheetDrawer
 				data={activeCostSheet}
 				open={costSheetDrawerOpen}

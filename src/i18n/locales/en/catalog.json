@@ -103,6 +103,7 @@
 		}
 	},
 	"costSheets": {
+		"writeDeniedTooltip": "You don't have permission to manage cost sheets. Ask a tenant admin for access.",
 		"listPage": {
 			"title": "Cost Sheets",
 			"paginationUnit": "Cost Sheets",
@@ -141,6 +142,7 @@
 		"details": {
 			"title": "Cost Sheet Details",
 			"charges": "Charges",
+			"chargesWriteDeniedTooltip": "You don't have permission to modify cost sheet charges. Ask a tenant admin for access.",
 			"chargeCount": "{{count}} charges",
 			"searchCharges": "Search charges...",
 			"noDescription": "No description",

@@ -103,6 +103,7 @@
 		}
 	},
 	"costSheets": {
+		"writeDeniedTooltip": "ليس لديك صلاحية إدارة أوراق التكلفة. اطلب الوصول من مسؤول المستأجر.",
 		"listPage": {
 			"title": "أوراق التكلفة",
 			"paginationUnit": "أوراق التكلفة",
@@ -141,6 +142,7 @@
 		"details": {
 			"title": "تفاصيل جدول التكلفة",
 			"charges": "الرسوم",
+			"chargesWriteDeniedTooltip": "ليس لديك صلاحية تعديل رسوم ورقة التكلفة. اطلب الوصول من مسؤول المستأجر.",
 			"chargeCount": "{{count}} رسوم",
 			"searchCharges": "البحث في الرسوم...",
 			"noDescription": "لا يوجد وصف",

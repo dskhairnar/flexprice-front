@@ -4,6 +4,7 @@ import type { Detail } from '@/components/molecules/DetailsCard/DetailsCard';
 import { API_DOCS_TAGS } from '@/constants/apiDocsTags';
 import usePagination, { PAGINATION_PREFIX } from '@/hooks/usePagination';
 import useFilterSorting from '@/hooks/useFilterSorting';
+import { useCurrentUserPermissions } from '@/hooks/useCurrentUserPermissions';
 import { RouteNames } from '@/core/routes/Routes';
 import { Price } from '@/models/Price';
 import { ENTITY_STATUS } from '@/models';
@@ -172,6 +173,9 @@ const CostSheetDetails = () => {
 	const navigate = useNavigate();
 	const { id } = useParams<Params>();
 	const [costSheetDrawerOpen, setCostSheetDrawerOpen] = useState(false);
+	const { can } = useCurrentUserPermissions();
+	const canWriteCostSheet = can('costsheet', 'write');
+	const canWritePrice = can('price', 'write');
 
 	const {
 		data: costSheetData,
@@ -291,6 +295,20 @@ const CostSheetDetails = () => {
 		return null;
 	}
 
+	const addChargeCta = canWritePrice ? (
+		<Button prefixIcon={<Plus />} onClick={handleAddCharges}>
+			{t('common:actions.add')}
+		</Button>
+	) : (
+		<Tooltip content={t('catalog:costSheets.details.chargesWriteDeniedTooltip')}>
+			<span tabIndex={0} className='inline-block'>
+				<Button disabled prefixIcon={<Plus />}>
+					{t('common:actions.add')}
+				</Button>
+			</span>
+		</Tooltip>
+	);
+
 	const costSheetDetails: Detail[] = [
 		{ label: t('catalog:costSheets.details.fields.costSheetName'), value: costSheetData.name },
 		{ label: t('catalog:costSheets.details.fields.lookupKey'), value: costSheetData.lookup_key },
@@ -312,16 +330,36 @@ const CostSheetDetails = () => {
 			heading={costSheetData.name}
 			headingCTA={
 				<div className='flex flex-wrap items-center gap-2'>
-					<Button onClick={() => setCostSheetDrawerOpen(true)} variant='outline' prefixIcon={<Pencil />}>
-						{t('common:actions.edit')}
-					</Button>
-					<Button
-						onClick={() => archiveCostSheet()}
-						disabled={costSheetData.status !== ENTITY_STATUS.PUBLISHED}
-						variant='outline'
-						prefixIcon={<EyeOff />}>
-						{t('common:actions.archive')}
-					</Button>
+					{canWriteCostSheet ? (
+						<Button onClick={() => setCostSheetDrawerOpen(true)} variant='outline' prefixIcon={<Pencil />}>
+							{t('common:actions.edit')}
+						</Button>
+					) : (
+						<Tooltip content={t('catalog:costSheets.writeDeniedTooltip')}>
+							<span tabIndex={0} className='inline-block'>
+								<Button disabled variant='outline' prefixIcon={<Pencil />}>
+									{t('common:actions.edit')}
+								</Button>
+							</span>
+						</Tooltip>
+					)}
+					{canWriteCostSheet ? (
+						<Button
+							onClick={() => archiveCostSheet()}
+							disabled={costSheetData.status !== ENTITY_STATUS.PUBLISHED}
+							variant='outline'
+							prefixIcon={<EyeOff />}>
+							{t('common:actions.archive')}
+						</Button>
+					) : (
+						<Tooltip content={t('catalog:costSheets.writeDeniedTooltip')}>
+							<span tabIndex={0} className='inline-block'>
+								<Button disabled variant='outline' prefixIcon={<EyeOff />}>
+									{t('common:actions.archive')}
+								</Button>
+							</span>
+						</Tooltip>
+					)}
 				</div>
 			}>
 			<CostSheetDrawer
@@ -336,14 +374,7 @@ const CostSheetDetails = () => {
 
 				{showChargesSection ? (
 					<Card noPadding className='card bg-surface overflow-hidden'>
-						<CardHeader
-							title={t('catalog:costSheets.details.charges')}
-							cta={
-								<Button prefixIcon={<Plus />} onClick={handleAddCharges}>
-									{t('common:actions.add')}
-								</Button>
-							}
-						/>
+						<CardHeader title={t('catalog:costSheets.details.charges')} cta={addChargeCta} />
 
 						<div className='mt-4 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between'>
 							<div className='w-full lg:max-w-sm'>
@@ -388,11 +419,7 @@ const CostSheetDetails = () => {
 					<NoDataCard
 						title={t('catalog:costSheets.details.charges')}
 						subtitle={t('catalog:costSheets.details.noChargesSubtitle')}
-						cta={
-							<Button prefixIcon={<Plus />} onClick={handleAddCharges}>
-								{t('common:actions.add')}
-							</Button>
-						}
+						cta={addChargeCta}
 					/>
 				)}
 
