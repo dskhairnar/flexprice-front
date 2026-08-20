@@ -289,6 +289,7 @@
 		}
 	},
 	"groups": {
+		"writeDeniedTooltip": "ليس لديك صلاحية إدارة المجموعات. اطلب الوصول من مسؤول المستأجر.",
 		"listPage": {
 			"title": "المجموعات",
 			"sortLabels": {

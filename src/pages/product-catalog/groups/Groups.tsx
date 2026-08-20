@@ -1,5 +1,6 @@
-import { AddButton, Page, ActionButton, Chip } from '@/components/atoms';
+import { AddButton, Page, ActionButton, Chip, Tooltip } from '@/components/atoms';
 import { ApiDocsContent, GroupDrawer } from '@/components/molecules';
+import { useCurrentUserPermissions } from '@/hooks/useCurrentUserPermissions';
 import { ColumnData } from '@/components/molecules/Table';
 import { QueryableDataArea } from '@/components/organisms';
 import { useNavigate } from 'react-router';
@@ -26,6 +27,8 @@ const GroupsPage = () => {
 	const navigate = useNavigate();
 	const [activeGroup, setActiveGroup] = useState<Group | null>(null);
 	const [groupDrawerOpen, setGroupDrawerOpen] = useState(false);
+	const { can } = useCurrentUserPermissions();
+	const canWriteGroup = can('group', 'write');
 
 	const groupsQueryBuilderConfig = useMemo(
 		() => ({
@@ -86,17 +89,35 @@ const GroupsPage = () => {
 						edit={{
 							enabled: true,
 							onClick: () => handleEdit(row),
+							disabled: !canWriteGroup,
+							disabledReason: canWriteGroup ? undefined : t('groups.writeDeniedTooltip'),
 						}}
-						archive={{ enabled: row.status === ENTITY_STATUS.PUBLISHED }}
+						archive={{
+							enabled: row.status === ENTITY_STATUS.PUBLISHED,
+							disabled: !canWriteGroup,
+							disabledReason: canWriteGroup ? undefined : t('groups.writeDeniedTooltip'),
+						}}
 					/>
 				),
 			},
 		],
-		[t],
+		[t, canWriteGroup],
 	);
 
 	return (
-		<Page heading={t('groups.listPage.title')} headingCTA={<AddButton onClick={handleOnAdd} />}>
+		<Page
+			heading={t('groups.listPage.title')}
+			headingCTA={
+				canWriteGroup ? (
+					<AddButton onClick={handleOnAdd} />
+				) : (
+					<Tooltip content={t('groups.writeDeniedTooltip')}>
+						<span tabIndex={0} className='inline-block'>
+							<AddButton disabled onClick={handleOnAdd} />
+						</span>
+					</Tooltip>
+				)
+			}>
 			<GroupDrawer data={activeGroup} open={groupDrawerOpen} onOpenChange={setGroupDrawerOpen} refetchQueryKeys={['fetchGroups']} />
 			<ApiDocsContent tags={API_DOCS_TAGS.Groups} />
 			<div className='space-y-6'>
