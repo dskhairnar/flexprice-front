@@ -411,6 +411,8 @@
 			"chargeFallback": "Charge"
 		},
 		"subscriptionAction": {
+			"writeDeniedTooltip": "You don't have permission to manage subscriptions. Ask a tenant admin for access.",
+			"alertSettingsWriteDeniedTooltip": "You don't have permission to manage alert settings for this subscription. Ask a tenant admin for access.",
 			"cancelTitle": "Cancel Subscription",
 			"cancelSubtitle": "This action cannot be undone. Choose cancellation and invoice behavior before continuing.",
 			"cancellationType": "Cancellation Type",

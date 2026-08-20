@@ -24,6 +24,7 @@ import {
 	getEffectiveConfigValue,
 } from '@/utils/subscription/subscriptionEntitlementHelpers';
 import { JsonObject } from '@/types/common';
+import { useCurrentUserPermissions } from '@/hooks/useCurrentUserPermissions';
 
 interface SubscriptionEntitlementsSectionProps {
 	subscriptionId: string;
@@ -34,6 +35,8 @@ interface SubscriptionEntitlementsSectionProps {
 const SubscriptionEntitlementsSection: FC<SubscriptionEntitlementsSectionProps> = ({ subscriptionId, readOnly = false }) => {
 	const { t: tc } = useTranslation('common');
 	const { t } = useTranslation('catalog');
+	const { can } = useCurrentUserPermissions();
+	const canWriteEntitlement = can('entitlement', 'write');
 	const [addDrawerOpen, setAddDrawerOpen] = useState(false);
 	const [editDrawerOpen, setEditDrawerOpen] = useState(false);
 	const [selectedEntitlement, setSelectedEntitlement] = useState<EnrichedSubscriptionEntitlement | null>(null);
@@ -424,21 +427,25 @@ const SubscriptionEntitlementsSection: FC<SubscriptionEntitlementsSectionProps> 
 							</DropdownMenuTrigger>
 							<DropdownMenuContent align='end'>
 								<DropdownMenuItem
+									disabled={!canWriteEntitlement}
 									onSelect={(e) => {
 										e.preventDefault();
+										if (!canWriteEntitlement) return;
 										handleEdit(row);
 									}}
-									className='flex gap-2 items-center cursor-pointer'>
+									className={`flex gap-2 items-center cursor-pointer ${!canWriteEntitlement ? 'opacity-50 cursor-not-allowed' : ''}`}>
 									<Pencil className='h-4 w-4' />
 									<span>{t('entitlements.overridesTable.edit')}</span>
 								</DropdownMenuItem>
 								{canDelete && (
 									<DropdownMenuItem
+										disabled={!canWriteEntitlement}
 										onSelect={(e) => {
 											e.preventDefault();
+											if (!canWriteEntitlement) return;
 											handleDelete(row);
 										}}
-										className='flex gap-2 items-center cursor-pointer text-danger'>
+										className={`flex gap-2 items-center cursor-pointer text-danger ${!canWriteEntitlement ? 'opacity-50 cursor-not-allowed' : ''}`}>
 										<Trash2 className='h-4 w-4' />
 										<span>{row.isOverrideOfParent ? t('entitlements.subscriptionEdit.resetAction') : tc('actions.delete')}</span>
 									</DropdownMenuItem>
@@ -494,7 +501,7 @@ const SubscriptionEntitlementsSection: FC<SubscriptionEntitlementsSectionProps> 
 					<CardHeader
 						title={tc('labels.entitlements')}
 						cta={
-							<Button prefixIcon={<Plus />} onClick={() => setAddDrawerOpen(true)} disabled={readOnly}>
+							<Button prefixIcon={<Plus />} onClick={() => setAddDrawerOpen(true)} disabled={readOnly || !canWriteEntitlement}>
 								{tc('actions.add')}
 							</Button>
 						}
@@ -506,7 +513,7 @@ const SubscriptionEntitlementsSection: FC<SubscriptionEntitlementsSectionProps> 
 					title={tc('labels.entitlements')}
 					subtitle={tc('labels.noEntitlementsAddedYet')}
 					cta={
-						<Button prefixIcon={<Plus />} onClick={() => setAddDrawerOpen(true)} disabled={readOnly}>
+						<Button prefixIcon={<Plus />} onClick={() => setAddDrawerOpen(true)} disabled={readOnly || !canWriteEntitlement}>
 							{tc('actions.add')}
 						</Button>
 					}

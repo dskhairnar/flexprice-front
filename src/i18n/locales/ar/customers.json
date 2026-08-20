@@ -433,6 +433,8 @@
 			"chargeFallback": "رسم"
 		},
 		"subscriptionAction": {
+			"writeDeniedTooltip": "ليس لديك صلاحية إدارة الاشتراكات. اطلب الوصول من مسؤول المستأجر.",
+			"alertSettingsWriteDeniedTooltip": "ليس لديك صلاحية إدارة إعدادات التنبيهات لهذا الاشتراك. اطلب الوصول من مسؤول المستأجر.",
 			"cancelTitle": "إلغاء الاشتراك",
 			"cancelSubtitle": "لا يمكن التراجع عن هذا الإجراء. اختر سلوك الإلغاء والفاتورة قبل المتابعة.",
 			"cancellationType": "نوع الإلغاء",

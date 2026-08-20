@@ -255,6 +255,7 @@
 			},
 			"inheritedReadOnlyTooltip": "Inherited subscriptions are read-only. Make changes on the parent subscription.",
 			"cancelAction": "Cancel",
+			"writeDeniedTooltip": "You don't have permission to manage subscriptions. Ask a tenant admin for access.",
 			"entityNameForActions": "Subscription"
 		},
 		"empty": "No subscriptions found",
