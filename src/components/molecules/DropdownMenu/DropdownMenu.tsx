@@ -90,12 +90,16 @@ const DropdownMenu: React.FC<DropdownMenuProps> = ({ options, trigger, isOpen, o
 			<DropdownMenuItem
 				className={cn(
 					'w-full px-3 py-2 text-sm cursor-pointer hover:bg-accent/50 focus:bg-accent/50 focus:text-accent-foreground',
-					option.disabled && 'opacity-50 cursor-not-allowed',
+					option.disabled && 'opacity-50 cursor-not-allowed hover:bg-transparent focus:bg-transparent',
 					option.className,
 				)}
-				disabled={option.disabled}
+				aria-disabled={option.disabled}
 				key={option.label}
 				onSelect={(e) => {
+					if (option.disabled) {
+						e.preventDefault();
+						return;
+					}
 					if (option.onSelect && !option.children?.length) {
 						e.preventDefault();
 						e.stopPropagation();
@@ -131,13 +135,13 @@ const DropdownMenu: React.FC<DropdownMenuProps> = ({ options, trigger, isOpen, o
 
 		if (!option.disabled || !option.disabledReason) return item;
 
-		// A disabled DropdownMenuItem gets pointer-events:none, so it never fires hover/focus —
-		// no wrapping element, the tooltip never shows.
+		// Tooltip wraps the item directly (asChild merges its trigger props into it) rather than
+		// adding a wrapping <span> — the item keeps `disabled` off Radix's own prop so it stays in
+		// the menu's roving-focus/collection structure and remains reachable by arrow-key nav,
+		// with the select itself blocked in onSelect above instead of via Radix's disabled state.
 		return (
 			<Tooltip key={option.label} content={option.disabledReason}>
-				<span tabIndex={0} className='block'>
-					{item}
-				</span>
+				{item}
 			</Tooltip>
 		);
 	};

@@ -6,3 +6,4 @@ export { SubscriptionPriceTable, SubscriptionActionButton, SubscriptionForm, Sub
 export { QueryableDataArea } from './QueryableDataArea';
 export { default as AppPrefetcher } from './AppPrefetcher';
 export { default as WebhooksPortal } from './WebhooksPortal';
+export { default as ErrorPage } from './ErrorPage/ErrorPage';

@@ -436,7 +436,8 @@
 				"keysCount": "{{count}} keys",
 				"title": "Config Value"
 			},
-			"writeDeniedTooltip": "You don't have permission to modify entitlements"
+			"writeDeniedTooltip": "You don't have permission to modify entitlements",
+			"emptyStateSubtitle": "No entitlements added to the plan yet"
 		},
 		"creditGrantsTab": {
 			"writeDeniedTooltip": "You don't have permission to modify credit grants"

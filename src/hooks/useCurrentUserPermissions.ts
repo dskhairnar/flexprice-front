@@ -95,7 +95,7 @@ export function useCurrentUserPermissions(): CurrentUserPermissions {
 	// permission as denied (RouteGuard flashes "Access denied" before the real
 	// roles arrive). Treat "logged in but roles not fetched even once yet" as
 	// loading regardless of what the query's own flag says.
-	const rolesNotYetFetched = !!user && roleDefs === undefined;
+	const rolesNotYetFetched = !!user && roleDefs === undefined && !isError;
 
 	return {
 		roles,

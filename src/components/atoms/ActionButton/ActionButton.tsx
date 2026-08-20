@@ -8,6 +8,7 @@ import { useTranslation } from 'react-i18next';
 import { Button, Dialog, Tooltip } from '@/components/atoms';
 import { Copy, EyeOff, Pencil } from 'lucide-react';
 import { refetchQueries } from '@/core/services/tanstack/ReactQueryProvider';
+import { cn } from '@/lib/utils';
 import { copyToClipboard } from '@/utils/common/helper_functions';
 
 interface EditActionConfig {
@@ -167,13 +168,13 @@ const ActionButton: FC<ActionProps> = ({
 		const item = (
 			<DropdownMenuItem
 				key={key}
-				disabled={disabled}
+				aria-disabled={disabled}
 				onSelect={(event) => {
 					event.preventDefault();
 					if (disabled) return;
 					onSelect();
 				}}
-				className='flex gap-2 items-center w-full cursor-pointer'>
+				className={cn('flex gap-2 items-center w-full cursor-pointer', disabled && 'opacity-50 cursor-not-allowed hover:bg-transparent')}>
 				{icon}
 				<span>{text}</span>
 			</DropdownMenuItem>
@@ -181,11 +182,13 @@ const ActionButton: FC<ActionProps> = ({
 
 		if (!disabled || !disabledReason) return item;
 
+		// Tooltip wraps the item directly (asChild merges its trigger props into it) rather than
+		// adding a wrapping <span> — keeping `disabled` off Radix's own prop keeps the item in the
+		// menu's roving-focus/collection structure and reachable by arrow-key nav; the select itself
+		// is blocked in onSelect above instead of via Radix's disabled state.
 		return (
 			<Tooltip key={key} content={disabledReason}>
-				<span tabIndex={0} className='block'>
-					{item}
-				</span>
+				{item}
 			</Tooltip>
 		);
 	};

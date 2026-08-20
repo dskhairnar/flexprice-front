@@ -7,9 +7,6 @@ export * from './customer';
 // Developer pages
 export * from './developer';
 
-// Error pages
-export * from './error';
-
 // Insights tools pages
 export * from './insights-tools';
 

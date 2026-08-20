@@ -90,13 +90,12 @@ import {
 	ExportDetails,
 	TaskRunsPage,
 	QuickBooksOAuthCallback,
-	// Error pages
-	ErrorPage,
 	DashboardPage,
 	CustomerPortalWrapper,
 	// Checkout
 	CheckoutPage,
 } from '@/pages';
+import { ErrorPage } from '@/components/organisms';
 import { RouterErrorElement } from '@/components/atoms/ErrorBoundary';
 
 export const RouteNames = {

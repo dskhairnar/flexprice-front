@@ -436,7 +436,8 @@
 				"keysCount": "{{count}} مفاتيح",
 				"title": "قيمة الإعداد"
 			},
-			"writeDeniedTooltip": "ليس لديك إذن لتعديل الاستحقاقات"
+			"writeDeniedTooltip": "ليس لديك إذن لتعديل الاستحقاقات",
+			"emptyStateSubtitle": "لم تتم إضافة أي استحقاقات إلى الخطة بعد"
 		},
 		"creditGrantsTab": {
 			"writeDeniedTooltip": "ليس لديك إذن لتعديل منح الرصيد"

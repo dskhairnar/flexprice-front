@@ -22,6 +22,19 @@ function readStoredSession(): { token?: string; user?: unknown } | null {
 	}
 }
 
+/**
+ * supabase-js derives its localStorage key as `sb-${hostname}-auth-token` from
+ * the project URL (see SupabaseClient's constructor) when no explicit
+ * `storageKey` is configured, which this app doesn't set.
+ */
+function supabaseStorageKey(): string | null {
+	try {
+		return `sb-${new URL(config.auth.url).hostname.split('.')[0]}-auth-token`;
+	} catch {
+		return null;
+	}
+}
+
 class AuthService {
 	/**
 	 * A locally stored token wins wherever one exists, in any environment.
@@ -59,6 +72,37 @@ class AuthService {
 	 * A SAML session stores no user: the callback deliberately omits it, and
 	 * callers load the user from /users/me against the token itself.
 	 */
+	/**
+	 * Synchronous best-effort read of the current session token, for use as a
+	 * React Query cache key / `enabled` guard where an async call can't run
+	 * inline (getAcessToken() is async even for the locally-stored-token path,
+	 * so it always resolves to a Promise object — always truthy, and always
+	 * serializing to the same shape — which silently defeated per-session
+	 * cache scoping and `enabled: !!token` checks built on top of it).
+	 *
+	 * Self-hosted/SAML sessions resolve directly from the same local key
+	 * getAcessToken() reads. Hosted sessions are read straight out of
+	 * supabase-js's own persisted-session storage instead of waiting on
+	 * getSession()'s async round trip.
+	 */
+	public static peekStoredToken(): string | null {
+		const stored = readStoredSession();
+		if (stored) return stored.token ?? null;
+
+		if (config.app.env === APP_ENV.SelfHosted) return null;
+
+		try {
+			const key = supabaseStorageKey();
+			if (!key) return null;
+			const raw = localStorage.getItem(key);
+			if (!raw) return null;
+			const parsed = JSON.parse(raw);
+			return typeof parsed?.access_token === 'string' ? parsed.access_token : null;
+		} catch {
+			return null;
+		}
+	}
+
 	public static async getUser() {
 		const stored = readStoredSession();
 		if (stored) return stored.user ?? null;

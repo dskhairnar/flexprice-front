@@ -13,5 +13,7 @@ export function requirePermission(entity: RbacEntity, action: RbacAction): Route
 
 /** `useMatches()` types `handle` as `unknown` — narrow before reading `entity`/`action`. */
 export function isRouteAccessHandle(handle: unknown): handle is RouteAccessHandle {
-	return typeof handle === 'object' && handle !== null && 'entity' in handle && 'action' in handle;
+	if (typeof handle !== 'object' || handle === null) return false;
+	const { entity, action } = handle as Record<string, unknown>;
+	return typeof entity === 'string' && (action === 'read' || action === 'write');
 }

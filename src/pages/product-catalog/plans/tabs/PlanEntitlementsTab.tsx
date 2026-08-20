@@ -201,7 +201,11 @@ const PlanEntitlementsTab = () => {
 						<FlexpriceTable showEmptyRow data={entitlements} columns={columnData} />
 					</Card>
 				) : (
-					<NoDataCard title={t('catalog:plans.tabs.entitlements')} subtitle='No entitlements added to the plan yet' cta={addButton} />
+					<NoDataCard
+						title={t('catalog:plans.tabs.entitlements')}
+						subtitle={t('catalog:plans.entitlementsTab.emptyStateSubtitle')}
+						cta={addButton}
+					/>
 				)}
 			</div>
 		</>

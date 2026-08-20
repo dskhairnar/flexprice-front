@@ -70,6 +70,10 @@ const PlansPage = () => {
 	// Computed once and reused everywhere on this page that needs the same
 	// decision, rather than each control independently re-deriving it.
 	const canWritePlan = can('plan', 'write');
+	// The AI pricing flow also creates features alongside the plan itself, so its entry
+	// CTA needs both permissions — plan:write alone lets a user start a flow that then
+	// fails partway through on the feature-creation step.
+	const canUseAiPricing = canWritePlan && can('feature', 'write');
 
 	const sortingOptions: SortOption[] = useMemo(
 		() => [
@@ -256,7 +260,7 @@ const PlansPage = () => {
 				<div className='mb-8 max-w-[350px] bg-surface-faint-inner text-center text-[16px] font-normal leading-normal text-content-subtle dark:bg-transparent'>
 					{t('plans.listPage.emptyStateCustom.description')}
 				</div>
-				{canWritePlan ? (
+				{canUseAiPricing ? (
 					<Button
 						variant='outline'
 						prefixIcon={<WandSparkles className='text-content-black' />}
@@ -279,7 +283,7 @@ const PlansPage = () => {
 				)}
 			</div>
 		),
-		[t, navigate, canWritePlan],
+		[t, navigate, canUseAiPricing],
 	);
 
 	return (
@@ -288,7 +292,7 @@ const PlansPage = () => {
 			headingCTA={
 				<div className='flex items-center gap-2'>
 					{hasAnyPlanInSystem &&
-						(canWritePlan ? (
+						(canUseAiPricing ? (
 							<Button
 								variant='outline'
 								prefixIcon={<WandSparkles className='text-accent-indigo' />}

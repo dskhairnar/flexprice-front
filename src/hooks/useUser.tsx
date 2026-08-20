@@ -3,7 +3,11 @@ import { UserApi } from '@/api/UserApi';
 import AuthService from '@/core/auth/AuthService';
 
 const useUser = () => {
-	const tokenStr = AuthService.getAcessToken();
+	// A synchronous peek, not getAcessToken() — that's async even for the
+	// locally-stored-token path, so it always resolves to a Promise object:
+	// always truthy (breaking `enabled` for logged-out users) and always
+	// serializing to the same shape (defeating per-session cache scoping).
+	const tokenStr = AuthService.peekStoredToken();
 
 	const {
 		data: user,
