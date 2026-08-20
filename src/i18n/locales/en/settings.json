@@ -7,6 +7,7 @@
 		"ariaLabel": "More information about {{field}}"
 	},
 	"members": {
+		"writeDeniedTooltip": "You don't have permission to invite team members. Ask a tenant admin for access.",
 		"roleAdmin": "Admin",
 		"roleMember": "Member",
 		"errors": {
@@ -114,6 +115,7 @@
 		"unitUsers_other": "users"
 	},
 	"organization": {
+		"writeDeniedTooltip": "You don't have permission to edit the organization. Ask a tenant admin for access.",
 		"title": "Organization",
 		"workspaceOwner": "Workspace owner",
 		"editOrganization": "Edit organization"
@@ -484,6 +486,7 @@
 		"chooseFile": "Choose File to Upload"
 	},
 	"bulkImports": {
+		"writeDeniedTooltip": "You don't have permission to create import tasks. Ask a tenant admin for access.",
 		"title": "Bulk Imports",
 		"columns": {
 			"fileName": "File Name",
@@ -1061,6 +1064,7 @@
 			"backToExportDetails": "Back to Export Details"
 		},
 		"integrations": {
+			"writeDeniedTooltip": "You don't have permission to manage connections. Ask a tenant admin for access.",
 			"pageHeading": "Integrations",
 			"availableSection": "Available",
 			"premiumAddonsSection": "Premium add-ons",

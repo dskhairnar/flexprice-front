@@ -366,6 +366,9 @@
 		"unlinkConfirmDescription": "This will remove the link between this entity and {{provider}}. You can re-link it again later."
 	},
 	"labels": {
+		"addonWriteDeniedTooltip": "You don't have permission to manage addons on this subscription. Ask a tenant admin for access.",
+		"couponWriteDeniedTooltip": "You don't have permission to manage coupons on this subscription. Ask a tenant admin for access.",
+		"taxWriteDeniedTooltip": "You don't have permission to manage taxes on this subscription. Ask a tenant admin for access.",
 		"payload": "Payload",
 		"sort": "Sort",
 		"na": "--",

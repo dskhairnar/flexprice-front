@@ -9,6 +9,7 @@ import { RouteNames } from '@/core/routes/Routes';
 import { useNavigate } from 'react-router';
 import { useTranslation } from 'react-i18next';
 import { ENTITY_STATUS } from '@/models';
+import { useCurrentUserPermissions } from '@/hooks/useCurrentUserPermissions';
 
 interface Props {
 	data: TaxRateResponse[];
@@ -19,6 +20,8 @@ const TaxTable: FC<Props> = ({ data, onEdit }) => {
 	const navigate = useNavigate();
 	const { t } = useTranslation('billing');
 	const naLabel = t('taxes.table.na');
+	const { can } = useCurrentUserPermissions();
+	const canWriteTax = can('tax', 'write');
 
 	const columns: ColumnData<TaxRate>[] = useMemo(() => {
 		const getTaxTypeLabel = (type: TAX_RATE_TYPE) => {
@@ -96,16 +99,20 @@ const TaxTable: FC<Props> = ({ data, onEdit }) => {
 							edit={{
 								enabled: true,
 								onClick: () => onEdit?.(row),
+								disabled: !canWriteTax,
+								disabledReason: canWriteTax ? undefined : t('taxes.writeDeniedTooltip'),
 							}}
 							archive={{
 								enabled: row?.status !== ENTITY_STATUS.ARCHIVED,
+								disabled: !canWriteTax,
+								disabledReason: canWriteTax ? undefined : t('taxes.writeDeniedTooltip'),
 							}}
 						/>
 					);
 				},
 			},
 		];
-	}, [t, naLabel, onEdit]);
+	}, [t, naLabel, onEdit, canWriteTax]);
 
 	return (
 		<div>

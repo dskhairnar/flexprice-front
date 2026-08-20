@@ -16,6 +16,7 @@ import {
 	ShortPaginationControls,
 	AddButton,
 	ActionButton,
+	Tooltip,
 } from '@/components/atoms';
 import { FlexpriceTable, OptionFilterPopover, type OptionFilterGroup } from '@/components/molecules';
 import RolePicker from '@/components/molecules/RolePicker/RolePicker';
@@ -55,7 +56,8 @@ function UsersSection() {
 	const [selectedRoleIds, setSelectedRoleIds] = useState<string[]>([]);
 	const [editingUser, setEditingUser] = useState<SettingsMember | null>(null);
 
-	const { isSuperAdmin } = useCurrentUserPermissions();
+	const { isSuperAdmin, can } = useCurrentUserPermissions();
+	const canWriteUser = can('user', 'write');
 	const { user: currentUser } = useUser();
 
 	const {
@@ -346,7 +348,15 @@ function UsersSection() {
 								groups={memberFilterGroups}
 								activeFilterCount={activeFilterCount}
 							/>
-							<AddButton label={t('members.actions.invite')} onClick={openInviteDialog} />
+							{canWriteUser ? (
+								<AddButton label={t('members.actions.invite')} onClick={openInviteDialog} />
+							) : (
+								<Tooltip content={t('members.writeDeniedTooltip')}>
+									<span tabIndex={0} className='inline-block'>
+										<AddButton label={t('members.actions.invite')} disabled />
+									</span>
+								</Tooltip>
+							)}
 						</div>
 					}
 				/>

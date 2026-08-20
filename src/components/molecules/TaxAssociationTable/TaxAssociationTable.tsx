@@ -2,12 +2,13 @@ import { FC, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import FlexpriceTable, { ColumnData, RedirectCell } from '../Table';
 import { TaxAssociationResponse } from '@/types/dto/tax';
-import { Chip, ActionButton, Card, CardHeader, AddButton, NoDataCard } from '@/components/atoms';
+import { Chip, ActionButton, Card, CardHeader, AddButton, NoDataCard, Tooltip } from '@/components/atoms';
 import { DropdownMenu, getCopyIdOption } from '@/components/molecules';
 import { formatDateShort } from '@/utils/common/helper_functions';
 import TaxApi from '@/api/TaxApi';
 import { RouteNames } from '@/core/routes/Routes';
 import { TrashIcon } from 'lucide-react';
+import { useCurrentUserPermissions } from '@/hooks/useCurrentUserPermissions';
 
 interface Props {
 	data: TaxAssociationResponse[];
@@ -24,6 +25,8 @@ interface RowActionsProps {
 
 const RowActions: FC<RowActionsProps> = ({ row, onRemove }) => {
 	const { t } = useTranslation('common');
+	const { can } = useCurrentUserPermissions();
+	const canWriteTax = can('tax', 'write');
 	const [isOpen, setIsOpen] = useState(false);
 	const handleClick = (e: React.MouseEvent) => {
 		e.preventDefault();
@@ -45,6 +48,8 @@ const RowActions: FC<RowActionsProps> = ({ row, onRemove }) => {
 							setIsOpen(false);
 							onRemove(row);
 						},
+						disabled: !canWriteTax,
+						disabledReason: canWriteTax ? undefined : t('labels.taxWriteDeniedTooltip'),
 					},
 				]}
 			/>
@@ -54,13 +59,23 @@ const RowActions: FC<RowActionsProps> = ({ row, onRemove }) => {
 
 const TaxAssociationTable: FC<Props> = ({ data, onAdd, showDelete = true, refetchQueryKey = 'fetchTaxAssociations', onRemove }) => {
 	const { t } = useTranslation('common');
+	const { can } = useCurrentUserPermissions();
+	const canWriteTax = can('tax', 'write');
 
 	const rows = useMemo(() => {
 		const now = new Date();
 		return data.filter((a) => !a.valid_to || new Date(a.valid_to) > now);
 	}, [data]);
 
-	const addButton = onAdd ? <AddButton onClick={onAdd} /> : undefined;
+	const addButton = !onAdd ? undefined : canWriteTax ? (
+		<AddButton onClick={onAdd} />
+	) : (
+		<Tooltip content={t('labels.taxWriteDeniedTooltip')}>
+			<span tabIndex={0} className='inline-block'>
+				<AddButton disabled />
+			</span>
+		</Tooltip>
+	);
 	const title = t('subscriptionEdit.taxAssociations', 'Tax Associations');
 
 	const columns: ColumnData<TaxAssociationResponse>[] = [
@@ -107,6 +122,8 @@ const TaxAssociationTable: FC<Props> = ({ data, onAdd, showDelete = true, refetc
 							enabled: showDelete,
 							icon: <TrashIcon className='h-4 w-4' />,
 							text: t('actions.delete'),
+							disabled: !canWriteTax,
+							disabledReason: canWriteTax ? undefined : t('labels.taxWriteDeniedTooltip'),
 						}}
 					/>
 				);

@@ -14,12 +14,15 @@ import {
 	updateWalletAlertThreshold,
 } from '@/utils/wallet/walletAlertUtils';
 import { useWalletAlertSettings } from './useWalletAlertSettings';
+import { useCurrentUserPermissions } from '@/hooks/useCurrentUserPermissions';
 
 const ALERT_LEVELS = [WalletAlertLevel.CRITICAL, WalletAlertLevel.WARNING, WalletAlertLevel.INFO] as const;
 
 const WalletAlertSettingsSection = () => {
 	const { t } = useTranslation(['settings', 'common']);
 	const { settings, isLoading, updateSettings } = useWalletAlertSettings();
+	const { can } = useCurrentUserPermissions();
+	const canWriteAlertSettings = can('alert_settings', 'write');
 	const [draft, setDraft] = useState<WalletAlertSettings>(settings);
 
 	useEffect(() => {
@@ -97,7 +100,7 @@ const WalletAlertSettingsSection = () => {
 						))}
 					</div>
 					<div className='flex justify-end'>
-						<Button onClick={handleSave} isLoading={updateSettings.isPending} disabled={updateSettings.isPending}>
+						<Button onClick={handleSave} isLoading={updateSettings.isPending} disabled={updateSettings.isPending || !canWriteAlertSettings}>
 							{t('alerts.walletAlerts.saveChanges')}
 						</Button>
 					</div>

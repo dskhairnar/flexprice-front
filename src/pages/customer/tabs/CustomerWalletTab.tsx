@@ -10,6 +10,7 @@ import {
 	ShortPagination,
 	Spacer,
 	WalletAlertStatusBadge,
+	Tooltip as SimpleTooltip,
 } from '@/components/atoms';
 import { hasActiveWalletAlertStatus } from '@/utils/wallet/walletAlertUtils';
 import {
@@ -44,6 +45,7 @@ import { refetchQueries } from '@/core/services/tanstack/ReactQueryProvider';
 import { logger } from '@/utils/common/Logger';
 import { PremiumFeatureIcon } from '@/components/molecules/PremiumFeature/PremiumFeature';
 import { useTranslation } from 'react-i18next';
+import { useCurrentUserPermissions } from '@/hooks/useCurrentUserPermissions';
 
 const formatWalletStatus = (status?: string) => {
 	const statusMap: Record<string, string> = {
@@ -94,6 +96,9 @@ const CustomerWalletTab = () => {
 	const [metadata, setMetadata] = useState<Record<string, string>>({});
 
 	const { isArchived } = useOutletContext<{ isArchived: boolean }>();
+	const { can } = useCurrentUserPermissions();
+	const canWriteWallet = can('wallet', 'write');
+	const canWriteAlertSettings = can('alert_settings', 'write');
 
 	// Wallet Queries
 	const {
@@ -161,6 +166,8 @@ const CustomerWalletTab = () => {
 				icon: <WalletIcon />,
 				label: 'Create Wallet',
 				onSelect: () => setShowCreateWalletModal(true),
+				disabled: !canWriteWallet,
+				disabledReason: canWriteWallet ? undefined : t('tabPanels.wallet.writeDeniedTooltip'),
 			},
 			...(activeWallet
 				? [
@@ -168,26 +175,34 @@ const CustomerWalletTab = () => {
 							icon: <RefreshCw />,
 							label: 'Auto Topup',
 							onSelect: () => setShowAutoTopupModal(true),
+							disabled: !canWriteWallet,
+							disabledReason: canWriteWallet ? undefined : t('tabPanels.wallet.writeDeniedTooltip'),
 						},
 						{
 							icon: <Bell />,
 							label: 'Alert Settings',
 							onSelect: () => setShowAlertDialog(true),
+							disabled: !canWriteAlertSettings,
+							disabledReason: canWriteAlertSettings ? undefined : t('tabPanels.wallet.alertSettingsWriteDeniedTooltip'),
 						},
 						{
 							icon: <Minus />,
 							label: 'Manual Debit',
 							onSelect: () => setShowDebitModal(true),
+							disabled: !canWriteWallet,
+							disabledReason: canWriteWallet ? undefined : t('tabPanels.wallet.writeDeniedTooltip'),
 						},
 						{
 							icon: <Trash2 />,
 							label: 'Terminate',
 							onSelect: () => setShowTerminateModal(true),
+							disabled: !canWriteWallet,
+							disabledReason: canWriteWallet ? undefined : t('tabPanels.wallet.writeDeniedTooltip'),
 						},
 					]
 				: []),
 		],
-		[activeWallet],
+		[activeWallet, canWriteWallet, canWriteAlertSettings, t],
 	);
 
 	// Effect to set initial active wallet
@@ -323,7 +338,18 @@ const CustomerWalletTab = () => {
 				<NoDataCard
 					title={t('tabPanels.wallet.emptyTitle')}
 					subtitle={t('tabPanels.wallet.emptySubtitle')}
-					cta={!isArchived && <AddButton label={t('tabPanels.wallet.addWallet')} onClick={() => setShowCreateWalletModal(true)} />}
+					cta={
+						!isArchived &&
+						(canWriteWallet ? (
+							<AddButton label={t('tabPanels.wallet.addWallet')} onClick={() => setShowCreateWalletModal(true)} />
+						) : (
+							<SimpleTooltip content={t('tabPanels.wallet.writeDeniedTooltip')}>
+								<span tabIndex={0} className='inline-block'>
+									<AddButton label={t('tabPanels.wallet.addWallet')} disabled />
+								</span>
+							</SimpleTooltip>
+						))
+					}
 				/>
 			) : (
 				<>
@@ -345,12 +371,22 @@ const CustomerWalletTab = () => {
 						<div className='flex items-center space-x-2'>
 							{!isArchived && (
 								<>
-									{activeWallet && (
-										<Button onClick={() => setShowTopupModal(true)}>
-											<WalletIcon />
-											<span>{t('tabPanels.wallet.topupWallet')}</span>
-										</Button>
-									)}
+									{activeWallet &&
+										(canWriteWallet ? (
+											<Button onClick={() => setShowTopupModal(true)}>
+												<WalletIcon />
+												<span>{t('tabPanels.wallet.topupWallet')}</span>
+											</Button>
+										) : (
+											<SimpleTooltip content={t('tabPanels.wallet.writeDeniedTooltip')}>
+												<span tabIndex={0} className='inline-block'>
+													<Button disabled>
+														<WalletIcon />
+														<span>{t('tabPanels.wallet.topupWallet')}</span>
+													</Button>
+												</span>
+											</SimpleTooltip>
+										))}
 								</>
 							)}
 
@@ -506,11 +542,20 @@ const CustomerWalletTab = () => {
 								<CardHeader
 									title={t('tabPanels.common.metadata')}
 									cta={
-										!isArchived && (
+										!isArchived &&
+										(canWriteWallet ? (
 											<Button variant='outline' size='icon' onClick={() => setShowMetadataModal(true)}>
 												<Pencil className='size-5' />
 											</Button>
-										)
+										) : (
+											<SimpleTooltip content={t('tabPanels.wallet.writeDeniedTooltip')}>
+												<span tabIndex={0} className='inline-block'>
+													<Button disabled variant='outline' size='icon'>
+														<Pencil className='size-5' />
+													</Button>
+												</span>
+											</SimpleTooltip>
+										))
 									}
 								/>
 								{metadata && Object.keys(metadata).length > 0 ? (

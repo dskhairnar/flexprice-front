@@ -20,6 +20,7 @@ import toast from 'react-hot-toast';
 import AddAddonDialog from './AddAddonDialog';
 import { formatDateTimeWithSecondsAndTimezone } from '@/utils/common/format_date';
 import { refetchQueries } from '@/core/services/tanstack/ReactQueryProvider';
+import { useCurrentUserPermissions } from '@/hooks/useCurrentUserPermissions';
 
 interface SubscriptionAddonsSectionProps {
 	subscriptionId: string;
@@ -151,6 +152,8 @@ const SubscriptionAddonsSection: FC<SubscriptionAddonsSectionProps> = ({
 	subscriptionCurrentPeriodEnd,
 }) => {
 	const { t } = useTranslation('common');
+	const { can } = useCurrentUserPermissions();
+	const canWriteAddon = can('addon', 'write');
 	const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
 	const [isCancelDialogOpen, setIsCancelDialogOpen] = useState(false);
 	const [addonToCancel, setAddonToCancel] = useState<AddonAssociationResponse | null>(null);
@@ -337,13 +340,13 @@ const SubscriptionAddonsSection: FC<SubscriptionAddonsSectionProps> = ({
 										<span>{t('copyId.genericLabel')}</span>
 									</DropdownMenuItem>
 									<DropdownMenuItem
-										disabled={hasEndDate}
+										disabled={hasEndDate || !canWriteAddon}
 										onSelect={(e) => {
-											if (hasEndDate) return;
+											if (hasEndDate || !canWriteAddon) return;
 											e.preventDefault();
 											handleCancel(row);
 										}}
-										className={`flex gap-2 items-center cursor-pointer text-danger ${hasEndDate ? 'opacity-50 cursor-not-allowed' : ''}`}>
+										className={`flex gap-2 items-center cursor-pointer text-danger ${hasEndDate || !canWriteAddon ? 'opacity-50 cursor-not-allowed' : ''}`}>
 										<Trash2 className='h-4 w-4' />
 										<span>{t('actions.cancel')}</span>
 									</DropdownMenuItem>
@@ -354,10 +357,18 @@ const SubscriptionAddonsSection: FC<SubscriptionAddonsSectionProps> = ({
 				},
 			},
 		],
-		[dropdownOpen, handleCancel, readOnly, t],
+		[dropdownOpen, handleCancel, readOnly, canWriteAddon, t],
 	);
 
-	const addButton = readOnly ? undefined : <AddButton onClick={() => setIsAddDialogOpen(true)} />;
+	const addButton = readOnly ? undefined : canWriteAddon ? (
+		<AddButton onClick={() => setIsAddDialogOpen(true)} />
+	) : (
+		<Tooltip content={t('labels.addonWriteDeniedTooltip')}>
+			<span tabIndex={0} className='inline-block'>
+				<AddButton disabled />
+			</span>
+		</Tooltip>
+	);
 
 	if (isLoading) {
 		return (

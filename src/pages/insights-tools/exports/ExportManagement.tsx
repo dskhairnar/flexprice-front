@@ -1,4 +1,5 @@
-import { FormHeader, Loader, Page, Button, AddButton } from '@/components/atoms';
+import { FormHeader, Loader, Page, Button, AddButton, Tooltip } from '@/components/atoms';
+import { useCurrentUserPermissions } from '@/hooks/useCurrentUserPermissions';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useParams, useNavigate } from 'react-router';
@@ -16,6 +17,8 @@ const ExportManagement = () => {
 	const { connectionId } = useParams<{ connectionId: string }>();
 	const navigate = useNavigate();
 	const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+	const { can } = useCurrentUserPermissions();
+	const canWriteTask = can('task', 'write');
 
 	// Fetch connection details
 	const { data: connection, isLoading: isLoadingConnection } = useQuery({
@@ -79,11 +82,19 @@ const ExportManagement = () => {
 					<ArrowLeft className='w-4 h-4' />
 					{t('insightsTools.exports.backToS3Connections')}
 				</Button>
-				<AddButton
-					onClick={() => {
-						setIsDrawerOpen(true);
-					}}
-				/>
+				{canWriteTask ? (
+					<AddButton
+						onClick={() => {
+							setIsDrawerOpen(true);
+						}}
+					/>
+				) : (
+					<Tooltip content={t('bulkImports.writeDeniedTooltip')}>
+						<span tabIndex={0} className='inline-block'>
+							<AddButton disabled />
+						</span>
+					</Tooltip>
+				)}
 			</div>
 
 			{/* Exports List */}
@@ -115,7 +126,7 @@ const ExportManagement = () => {
 										variant='outline'
 										size='icon'
 										onClick={() => handleDeleteTask(task.id, task.entity_type)}
-										disabled={isDeletingTask}
+										disabled={isDeletingTask || !canWriteTask}
 										isLoading={isDeletingTask}>
 										<Trash2 className='size-4' />
 									</Button>
@@ -129,15 +140,26 @@ const ExportManagement = () => {
 					<div className='text-content-muted mb-4'>
 						<h3 className='text-lg font-medium text-content mb-2'>{t('insightsTools.exports.noExportTasks')}</h3>
 						<p className='text-content-muted mb-4 max-w-[500px] mx-auto'>{t('insightsTools.exports.noExportTasksHint')}</p>
-						<Button
-							variant='outline'
-							onClick={() => {
-								setIsDrawerOpen(true);
-							}}
-							className='!p-5 !bg-surface-panel !border-line-muted flex items-center gap-2 mx-auto'>
-							<Plus className='w-4 h-4' />
-							{t('insightsTools.exports.addExportTask')}
-						</Button>
+						{canWriteTask ? (
+							<Button
+								variant='outline'
+								onClick={() => {
+									setIsDrawerOpen(true);
+								}}
+								className='!p-5 !bg-surface-panel !border-line-muted flex items-center gap-2 mx-auto'>
+								<Plus className='w-4 h-4' />
+								{t('insightsTools.exports.addExportTask')}
+							</Button>
+						) : (
+							<Tooltip content={t('bulkImports.writeDeniedTooltip')}>
+								<span tabIndex={0} className='inline-block'>
+									<Button disabled variant='outline' className='!p-5 !bg-surface-panel !border-line-muted flex items-center gap-2 mx-auto'>
+										<Plus className='w-4 h-4' />
+										{t('insightsTools.exports.addExportTask')}
+									</Button>
+								</span>
+							</Tooltip>
+						)}
 					</div>
 				</div>
 			)}

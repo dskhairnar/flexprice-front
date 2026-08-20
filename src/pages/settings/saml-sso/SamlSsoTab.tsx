@@ -10,6 +10,7 @@ import { copyToClipboard } from '@/utils/common/helper_functions';
 import { SAML_DEFAULT_ROLES, isSameSamlConfig, isValidIdpSsoUrl, type SamlConfig, type SamlDefaultRole } from '@/types/dto/SamlConfig';
 import SettingsFormActions from '../SettingsFormActions';
 import { SamlDisabledError, useSamlConfig } from './useSamlConfig';
+import { useCurrentUserPermissions } from '@/hooks/useCurrentUserPermissions';
 
 /** SP metadata URL the customer pastes into their IdP. Built from the API base URL and tenant id —
  * onboarding must happen in this order: create the app in the IdP with this URL first, THEN fill
@@ -61,6 +62,10 @@ const SamlSsoTab = () => {
 	const { t } = useTranslation(['settings', 'common']);
 	const { user } = useUserContext();
 	const { config, isLoading, isForbidden, updateConfig, refetch } = useSamlConfig();
+	const { can } = useCurrentUserPermissions();
+	// SAML config is stored and enforced backend-side as a generic setting (PUT
+	// /settings/saml_config requires setting:write, not a dedicated SSO/oauth entity).
+	const canWriteSetting = can('setting', 'write');
 	const [draft, setDraft] = useState<SamlConfig>(config);
 	const [errors, setErrors] = useState<FormErrors>({});
 
@@ -294,7 +299,7 @@ const SamlSsoTab = () => {
 						/>
 					</div>
 
-					<SettingsFormActions onReset={handleReset} onSave={handleSave} isSaving={isSaving} disabled={isLoading} />
+					<SettingsFormActions onReset={handleReset} onSave={handleSave} isSaving={isSaving} disabled={isLoading || !canWriteSetting} />
 				</>
 			)}
 		</Card>

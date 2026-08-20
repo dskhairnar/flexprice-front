@@ -1,7 +1,8 @@
 import { useParams } from 'react-router';
 import { useIntegrationsCatalog } from './useIntegrationsCatalog';
 import { cn } from '@/lib/utils';
-import { Button, FormHeader, Page, Dialog } from '@/components/atoms';
+import { Button, FormHeader, Page, Dialog, Tooltip } from '@/components/atoms';
+import { useCurrentUserPermissions } from '@/hooks/useCurrentUserPermissions';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import IntegrationDrawer from '@/components/molecules/IntegrationDrawer/IntegrationDrawer';
@@ -28,6 +29,8 @@ import { CONNECTION_PROVIDER_TYPE } from '@/models/Connection';
 const IntegrationDetails = () => {
 	const { t } = useTranslation('settings');
 	const { i18n } = useTranslation();
+	const { can } = useCurrentUserPermissions();
+	const canWriteConnection = can('connection', 'write');
 	const integrations = useIntegrationsCatalog();
 	const { id: name } = useParams() as { id: string };
 	const integration = integrations.find((i) => i.id === name.toLowerCase());
@@ -143,10 +146,18 @@ const IntegrationDetails = () => {
 						<Button disabled variant='outline' className='flex gap-2 items-center'>
 							{t('insightsTools.integrations.comingSoon')}
 						</Button>
-					) : hasActiveConnection ? null : (
+					) : hasActiveConnection ? null : canWriteConnection ? (
 						<Button onClick={handleAdd} className='flex gap-2 items-center'>
 							{t('insightsTools.integrations.addConnection')}
 						</Button>
+					) : (
+						<Tooltip content={t('insightsTools.integrations.writeDeniedTooltip')}>
+							<span tabIndex={0} className='inline-block'>
+								<Button disabled className='flex gap-2 items-center'>
+									{t('insightsTools.integrations.addConnection')}
+								</Button>
+							</span>
+						</Tooltip>
 					)}
 				</div>
 			</div>
@@ -291,14 +302,14 @@ const IntegrationDetails = () => {
 										</p>
 									</div>
 									<div className='flex items-center gap-2'>
-										<Button variant='outline' size='icon' onClick={() => handleEdit(item)}>
+										<Button variant='outline' size='icon' onClick={() => handleEdit(item)} disabled={!canWriteConnection}>
 											<PencilIcon className='size-4' />
 										</Button>
 										<Button
 											variant='outline'
 											size='icon'
 											onClick={() => handleDeleteConnection(item.id, item.name)}
-											disabled={isDeletingConnection}
+											disabled={isDeletingConnection || !canWriteConnection}
 											isLoading={isDeletingConnection}>
 											<TrashIcon className='size-4' />
 										</Button>

@@ -407,30 +407,37 @@ export const MainRouter: any = createBrowserRouter([
 					{
 						path: RouteNames.customers,
 						element: <CustomerPage />,
+						handle: requirePermission('customer', 'read'),
 					},
 					{
 						path: RouteNames.subscriptions,
 						element: <SubscriptionsPage />,
+						handle: requirePermission('subscription', 'read'),
 					},
 					{
 						path: RouteNames.createSubscription,
 						element: <CreateCustomerSubscriptionPage />,
+						handle: requirePermission('subscription', 'write'),
 					},
 					{
 						path: `${RouteNames.subscriptions}/:id/edit`,
 						element: <CustomerSubscriptionEditPage />,
+						handle: requirePermission('subscription', 'write'),
 					},
 					{
 						path: `${RouteNames.customers}/:id/add-subscription`,
 						element: <CreateCustomerSubscriptionPage />,
+						handle: requirePermission('subscription', 'write'),
 					},
 					{
 						path: RouteNames.taxes,
 						element: <TaxPage />,
+						handle: requirePermission('tax', 'read'),
 					},
 					{
 						path: `${RouteNames.taxes}/:taxrateId`,
 						element: <TaxrateDetailsPage />,
+						handle: requirePermission('tax', 'read'),
 					},
 					{
 						path: RouteNames.invoices,
@@ -461,6 +468,7 @@ export const MainRouter: any = createBrowserRouter([
 					{
 						path: `${RouteNames.customers}/:id`,
 						element: <CustomerProfilePage />,
+						handle: requirePermission('customer', 'read'),
 						children: [
 							{
 								path: '',
@@ -504,6 +512,11 @@ export const MainRouter: any = createBrowserRouter([
 							{
 								path: 'invoice/:invoice_id',
 								element: <CustomerInvoiceDetailsPage />,
+								// Route-sibling of /billing/invoices, not a descendant — needs its own
+								// handle rather than relying on that route's `invoice` requirement.
+								// RouteGuard requires every handle in the matched chain, so this still
+								// combines with the parent customer-profile route's `customer:read`.
+								handle: requirePermission('invoice', 'read'),
 							},
 							{
 								path: 'invoice/:invoice_id/credit-note',
@@ -516,10 +529,12 @@ export const MainRouter: any = createBrowserRouter([
 							{
 								path: 'subscription/:subscription_id',
 								element: <CustomerSubscriptionDetailsPage />,
+								handle: requirePermission('subscription', 'read'),
 							},
 							{
 								path: 'subscription/:subscription_id/edit',
 								element: <CustomerSubscriptionEditPage />,
+								handle: requirePermission('subscription', 'write'),
 							},
 							{
 								path: 'usage-events',
@@ -574,22 +589,27 @@ export const MainRouter: any = createBrowserRouter([
 								<WebhookDashboardLazy />
 							</Suspense>
 						),
+						handle: requirePermission('webhook', 'read'),
 					},
 					{
 						path: RouteNames.apiKeys,
 						element: <DeveloperPage />,
+						handle: requirePermission('secret', 'read'),
 					},
 					{
 						path: RouteNames.serviceAccounts,
 						element: <ServiceAccountsPage />,
+						handle: requirePermission('user', 'read'),
 					},
 					{
 						path: RouteNames.workflows,
 						element: <WorkflowsPage />,
+						handle: requirePermission('workflow', 'read'),
 					},
 					{
 						path: RouteNames.workflowDetails,
 						element: <WorkflowDetailsPage />,
+						handle: requirePermission('workflow', 'read'),
 					},
 				],
 			},
@@ -599,12 +619,15 @@ export const MainRouter: any = createBrowserRouter([
 					{
 						path: RouteNames.integrations,
 						element: <Integrations />,
+						handle: requirePermission('connection', 'read'),
 					},
 					{
 						path: `${RouteNames.integrationDetails}/:id`,
 						element: <IntegrationDetails />,
+						handle: requirePermission('connection', 'read'),
 					},
 					{
+						// OAuth redirect landing page — must stay reachable mid-flow regardless of RBAC.
 						path: RouteNames.oauthCallback,
 						element: <QuickBooksOAuthCallback />,
 					},
@@ -615,26 +638,32 @@ export const MainRouter: any = createBrowserRouter([
 					{
 						path: RouteNames.bulkImports,
 						element: <ImportExport />,
+						handle: requirePermission('task', 'read'),
 					},
 					{
 						path: RouteNames.exports,
 						element: <Exports />,
+						handle: requirePermission('task', 'read'),
 					},
 					{
 						path: RouteNames.s3Exports,
 						element: <S3Exports />,
+						handle: requirePermission('connection', 'read'),
 					},
 					{
 						path: RouteNames.s3ExportManagement,
 						element: <ExportManagement />,
+						handle: requirePermission('task', 'read'),
 					},
 					{
 						path: RouteNames.s3ExportDetails,
 						element: <ExportDetails />,
+						handle: requirePermission('task', 'read'),
 					},
 					{
 						path: RouteNames.s3TaskRuns,
 						element: <TaskRunsPage />,
+						handle: requirePermission('task', 'read'),
 					},
 				],
 			},
