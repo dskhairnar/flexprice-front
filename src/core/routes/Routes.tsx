@@ -452,14 +452,17 @@ export const MainRouter: any = createBrowserRouter([
 					{
 						path: RouteNames.creditNotes,
 						element: <CreditNotesPage />,
+						handle: requirePermission('creditnote', 'read'),
 					},
 					{
 						path: `${RouteNames.creditNotes}/:credit_note_id`,
 						element: <CreditNoteDetailsPage />,
+						handle: requirePermission('creditnote', 'read'),
 					},
 					{
 						path: RouteNames.payments,
 						element: <PaymentPage />,
+						handle: requirePermission('payment', 'read'),
 					},
 					// {
 					// 	path: RouteNames.analytics,

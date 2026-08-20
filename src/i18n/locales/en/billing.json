@@ -136,6 +136,8 @@
 	},
 	"creditNotes": {
 		"title": "Credit Notes",
+		"writeDeniedTooltip": "You don't have permission to create credit notes. Ask a tenant admin for access.",
+		"addCreditNote": "Add Credit Note",
 		"empty": "No credit notes found",
 		"toast": {
 			"fetchListError": "Error fetching credit notes"

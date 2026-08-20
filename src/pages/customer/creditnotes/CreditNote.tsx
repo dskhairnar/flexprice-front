@@ -1,4 +1,5 @@
-import { AddButton, CardHeader, Loader, NoDataCard } from '@/components/atoms';
+import { AddButton, CardHeader, Loader, NoDataCard, Tooltip } from '@/components/atoms';
+import { useCurrentUserPermissions } from '@/hooks/useCurrentUserPermissions';
 import { ApiDocsContent } from '@/components/molecules';
 import { API_DOCS_TAGS } from '@/constants/apiDocsTags';
 import { CreditNoteTable } from '@/components/molecules/CreditNoteTable';
@@ -13,6 +14,10 @@ const CreditNote = () => {
 	const { t } = useTranslation('billing');
 	const { id: customerId } = useParams();
 	const navigate = useNavigate();
+	const { can } = useCurrentUserPermissions();
+	// Creating a credit note happens via the invoice's own credit-note route (already gated on
+	// 'invoice' write), so this navigation-only button matches that permission rather than 'creditnote'.
+	const canCreateCreditNote = can('invoice', 'write');
 
 	const { data, isLoading } = useQuery({
 		queryKey: ['customerCreditNotes', customerId],
@@ -39,43 +44,29 @@ const CreditNote = () => {
 		return <Loader />;
 	}
 
+	const goToInvoiceTab = () => navigate(`${RouteNames.customers}/${customerId}/invoice`);
+
+	const addCreditNoteCta =
+		!isArchived &&
+		(canCreateCreditNote ? (
+			<AddButton label={t('creditNotes.addCreditNote')} onClick={goToInvoiceTab} />
+		) : (
+			<Tooltip content={t('creditNotes.writeDeniedTooltip')}>
+				<span tabIndex={0} className='inline-block'>
+					<AddButton label={t('creditNotes.addCreditNote')} disabled />
+				</span>
+			</Tooltip>
+		));
+
 	if (data?.items?.length === 0) {
-		return (
-			<NoDataCard
-				title={t('creditNotes.title')}
-				subtitle={t('creditNotes.empty')}
-				cta={
-					!isArchived && (
-						<AddButton
-							label='Add Credit Note'
-							onClick={() => {
-								// Navigate to invoices tab to create credit note from invoice
-								navigate(`${RouteNames.customers}/${customerId}/invoice`);
-							}}
-						/>
-					)
-				}
-			/>
-		);
+		return <NoDataCard title={t('creditNotes.title')} subtitle={t('creditNotes.empty')} cta={addCreditNoteCta} />;
 	}
 
 	return (
 		<div>
 			<ApiDocsContent tags={API_DOCS_TAGS.CreditNotes} />
 			<Card variant='notched'>
-				<CardHeader
-					title={t('creditNotes.title')}
-					cta={
-						!isArchived && (
-							<AddButton
-								onClick={() => {
-									// Navigate to invoices tab to create credit note from invoice
-									navigate(`${RouteNames.customers}/${customerId}/invoice`);
-								}}
-							/>
-						)
-					}
-				/>
+				<CardHeader title={t('creditNotes.title')} cta={addCreditNoteCta} />
 				<CreditNoteTable data={data?.items ?? []} />
 			</Card>
 		</div>
