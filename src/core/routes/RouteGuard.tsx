@@ -24,7 +24,10 @@ const RouteGuard = () => {
 	// evaluates against an empty role catalog and this would flash "Access denied" on every load.
 	if (isLoading) return <Loader />;
 
-	if (required.some((handle) => !can(handle.entity, handle.action))) return <ErrorPage variant='forbidden' />;
+	const passes = (handle: (typeof required)[number]) =>
+		Array.isArray(handle.action) ? handle.action.some((action) => can(handle.entity, action)) : can(handle.entity, handle.action);
+
+	if (required.some((handle) => !passes(handle))) return <ErrorPage variant='forbidden' />;
 
 	return <Outlet />;
 };

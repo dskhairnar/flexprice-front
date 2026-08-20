@@ -452,17 +452,19 @@ export const MainRouter: any = createBrowserRouter([
 					{
 						path: RouteNames.creditNotes,
 						element: <CreditNotesPage />,
-						handle: requirePermission('creditnote', 'read'),
+						// ['read', 'write'] — this list is the only navigable path to creating a
+						// credit note, so a write-only role still needs to reach it.
+						handle: requirePermission('creditnote', ['read', 'write']),
 					},
 					{
 						path: `${RouteNames.creditNotes}/:credit_note_id`,
 						element: <CreditNoteDetailsPage />,
-						handle: requirePermission('creditnote', 'read'),
+						handle: requirePermission('creditnote', ['read', 'write']),
 					},
 					{
 						path: RouteNames.payments,
 						element: <PaymentPage />,
-						handle: requirePermission('payment', 'read'),
+						handle: requirePermission('payment', ['read', 'write']),
 					},
 					// {
 					// 	path: RouteNames.analytics,
