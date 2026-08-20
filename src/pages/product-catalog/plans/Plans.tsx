@@ -193,12 +193,14 @@ const PlansPage = () => {
 					icon: <Pencil />,
 					onSelect: () => handleEdit(row),
 					disabled: !canWritePlan,
+					disabledReason: canWritePlan ? undefined : t('plans.listPage.writeDeniedTooltip'),
 				},
 				{
 					label: t('plans.listPage.rowActions.duplicate'),
 					icon: <Copy />,
 					onSelect: () => handleDuplicate(row),
 					disabled: !canWritePlan,
+					disabledReason: canWritePlan ? undefined : t('plans.listPage.writeDeniedTooltip'),
 				},
 				{
 					label: t('plans.listPage.rowActions.archive'),
@@ -208,6 +210,7 @@ const PlansPage = () => {
 						setArchiveDialogOpen(true);
 					},
 					disabled: row.status !== ENTITY_STATUS.PUBLISHED || !canWritePlan,
+					disabledReason: canWritePlan ? undefined : t('plans.listPage.writeDeniedTooltip'),
 				},
 			];
 		},

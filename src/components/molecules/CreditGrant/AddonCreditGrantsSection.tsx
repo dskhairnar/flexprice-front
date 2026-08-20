@@ -30,7 +30,7 @@ interface Props {
 const AddonCreditGrantsSection = ({ addonId }: Props) => {
 	const { t } = useTranslation(['catalog', 'common']);
 	const [creditGrantModalOpen, setCreditGrantModalOpen] = useState(false);
-	const { can } = useCurrentUserPermissions();
+	const { can, isLoading: permissionsLoading } = useCurrentUserPermissions();
 	const canWriteCreditGrant = can('creditgrant', 'write');
 
 	const {
@@ -100,7 +100,7 @@ const AddonCreditGrantsSection = ({ addonId }: Props) => {
 		}
 	}, [isError]);
 
-	if (isLoading) {
+	if (isLoading || permissionsLoading) {
 		return <Loader />;
 	}
 

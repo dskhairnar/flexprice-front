@@ -27,6 +27,7 @@ const InvoiceTableMenu: FC<Props> = ({ data }) => {
 	const { t: tc } = useTranslation('common');
 	const { can } = useCurrentUserPermissions();
 	const canWrite = can('invoice', 'write');
+	const writeDeniedReason = canWrite ? undefined : "You don't have permission to modify invoices";
 
 	const { mutate: triggerCommunication } = useMutation({
 		mutationFn: async (invoice_id: string) => {
@@ -112,6 +113,7 @@ const InvoiceTableMenu: FC<Props> = ({ data }) => {
 				triggerCommunication(data.id);
 			},
 			disabled: !canWrite,
+			disabledReason: writeDeniedReason,
 		},
 		{
 			label: 'Record Payment',
@@ -128,6 +130,7 @@ const InvoiceTableMenu: FC<Props> = ({ data }) => {
 				data?.payment_status === PAYMENT_STATUS.SUCCEEDED ||
 				data?.invoice_status === INVOICE_STATUS.VOIDED ||
 				(data?.amount_remaining ?? 0) === 0,
+			disabledReason: writeDeniedReason,
 		},
 		{
 			label: 'Update Invoice Status',
@@ -140,6 +143,7 @@ const InvoiceTableMenu: FC<Props> = ({ data }) => {
 				});
 			},
 			disabled: !canWrite,
+			disabledReason: writeDeniedReason,
 		},
 		{
 			label: 'Update Payment Status',
@@ -152,11 +156,13 @@ const InvoiceTableMenu: FC<Props> = ({ data }) => {
 				});
 			},
 			disabled: !canWrite,
+			disabledReason: writeDeniedReason,
 		},
 		{
 			label: 'Issue a Credit Note',
 			group: 'Actions',
 			disabled: !canWrite || data?.invoice_status !== 'FINALIZED' || data?.payment_status === 'REFUNDED',
+			disabledReason: writeDeniedReason,
 			onSelect: () => {
 				navigate(`${RouteNames.customers}/${data?.customer_id}/invoice/${data?.id}/credit-note`);
 			},
@@ -170,6 +176,7 @@ const InvoiceTableMenu: FC<Props> = ({ data }) => {
 				data?.invoice_type !== INVOICE_TYPE.SUBSCRIPTION ||
 				!!data?.recalculated_invoice_id ||
 				isRecalculating,
+			disabledReason: writeDeniedReason,
 			onSelect: () => {
 				recalculateInvoice(data.id);
 			},
