@@ -15,7 +15,20 @@ import formatChips from '@/utils/common/format_chips';
 import { useBreadcrumbsStore } from '@/store/useBreadcrumbsStore';
 
 // Components
-import { Button, Card, CardHeader, Chip, CopyIdButton, Divider, Loader, NoDataCard, Page, Sheet, Spacer } from '@/components/atoms';
+import {
+	Button,
+	Card,
+	CardHeader,
+	Chip,
+	CopyIdButton,
+	Divider,
+	Loader,
+	NoDataCard,
+	Page,
+	Sheet,
+	Spacer,
+	Tooltip,
+} from '@/components/atoms';
 import {
 	ApiDocsContent,
 	ColumnData,
@@ -52,6 +65,7 @@ import { generateExpandQueryParams } from '@/utils/common/api_helper';
 import { EXPAND } from '@/models/expand';
 import { GetPriceResponse } from '@/types/dto/Price';
 import { useTranslation } from 'react-i18next';
+import { useCurrentUserPermissions } from '@/hooks/useCurrentUserPermissions';
 
 export const formatAggregationType = (data: string): string => {
 	const aggregationTypeMap: Record<string, string> = {
@@ -105,6 +119,9 @@ const FeatureDetails = () => {
 	const { id: featureId } = useParams() as { id: string };
 	const { t } = useTranslation(['catalog', 'common']);
 	const { updateBreadcrumb } = useBreadcrumbsStore();
+	const { can } = useCurrentUserPermissions();
+	const canWriteFeature = can('feature', 'write');
+	const canWriteAlertSettings = can('alert_settings', 'write');
 	const [showAlertDialog, setShowAlertDialog] = useState(false);
 	const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 	const [configSheet, setConfigSheet] = useState<{ open: boolean; name: string; value: JsonObject | null }>({
@@ -195,14 +212,18 @@ const FeatureDetails = () => {
 				icon: <Pencil />,
 				label: 'Edit',
 				onSelect: () => setIsDrawerOpen(true),
+				disabled: !canWriteFeature,
+				disabledReason: canWriteFeature ? undefined : t('catalog:features.writeDeniedTooltip'),
 			},
 			{
 				icon: <Bell />,
 				label: 'Alert Settings',
 				onSelect: () => setShowAlertDialog(true),
+				disabled: !canWriteAlertSettings,
+				disabledReason: canWriteAlertSettings ? undefined : t('catalog:features.alertSettingsWriteDeniedTooltip'),
 			},
 		],
-		[],
+		[canWriteFeature, canWriteAlertSettings, t],
 	);
 
 	const columns: ColumnData<EntitlementResponse>[] = useMemo(
@@ -340,16 +361,27 @@ const FeatureDetails = () => {
 			<Page
 				headingCTA={
 					<div className='flex gap-1'>
-						<Button
-							isLoading={isArchiving}
-							disabled={isArchiving || data?.status !== ENTITY_STATUS.PUBLISHED}
-							variant={'outline'}
-							size={'lg'}
-							onClick={() => archiveFeature()}
-							className='flex gap-1 px-3'>
-							<EyeOff className='w-4 h-4' />
-							{isArchiving ? t('catalog:plans.archive.archiving') : t('common:actions.archive')}
-						</Button>
+						{canWriteFeature ? (
+							<Button
+								isLoading={isArchiving}
+								disabled={isArchiving || data?.status !== ENTITY_STATUS.PUBLISHED}
+								variant={'outline'}
+								size={'lg'}
+								onClick={() => archiveFeature()}
+								className='flex gap-1 px-3'>
+								<EyeOff className='w-4 h-4' />
+								{isArchiving ? t('catalog:plans.archive.archiving') : t('common:actions.archive')}
+							</Button>
+						) : (
+							<Tooltip content={t('catalog:features.writeDeniedTooltip')}>
+								<span tabIndex={0} className='inline-block'>
+									<Button disabled variant={'outline'} size={'lg'} className='flex gap-1 px-3'>
+										<EyeOff className='w-4 h-4' />
+										{t('common:actions.archive')}
+									</Button>
+								</span>
+							</Tooltip>
+						)}
 						<DropdownMenu
 							options={dropdownOptions}
 							trigger={<Button variant={'outline'} prefixIcon={<EllipsisVertical />} size={'icon'} className='h-10 w-10 p-0'></Button>}

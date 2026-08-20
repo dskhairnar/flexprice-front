@@ -1,5 +1,6 @@
-import { AddButton, Page, ActionButton, Chip } from '@/components/atoms';
+import { AddButton, Page, ActionButton, Chip, Tooltip } from '@/components/atoms';
 import { ApiDocsContent, FeatureDrawer, RedirectCell } from '@/components/molecules';
+import { useCurrentUserPermissions } from '@/hooks/useCurrentUserPermissions';
 import { ColumnData } from '@/components/molecules/Table';
 import { QueryableDataArea } from '@/components/organisms';
 import { RouteNames } from '@/core/routes/Routes';
@@ -50,6 +51,8 @@ const FeaturesPage = () => {
 	const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 	const [selectedFeature, setSelectedFeature] = useState<Feature | null>(null);
 	const navigate = useNavigate();
+	const { can } = useCurrentUserPermissions();
+	const canWriteFeature = can('feature', 'write');
 
 	const handleEdit = useCallback((feature: Feature) => {
 		setSelectedFeature(feature);
@@ -264,17 +267,21 @@ const FeaturesPage = () => {
 							entityName={row?.name}
 							archive={{
 								enabled: row?.status !== ENTITY_STATUS.ARCHIVED,
+								disabled: !canWriteFeature,
+								disabledReason: canWriteFeature ? undefined : t('features.writeDeniedTooltip'),
 							}}
 							edit={{
 								enabled: true,
 								onClick: () => handleEdit(row),
+								disabled: !canWriteFeature,
+								disabledReason: canWriteFeature ? undefined : t('features.writeDeniedTooltip'),
 							}}
 						/>
 					);
 				},
 			},
 		],
-		[t, getFeatureTypeChips, handleEdit],
+		[t, getFeatureTypeChips, handleEdit, canWriteFeature],
 	);
 
 	return (
@@ -282,9 +289,17 @@ const FeaturesPage = () => {
 			heading={t('features.listPage.title')}
 			headingCTA={
 				<div className='flex justify-between items-center gap-2'>
-					<Link to={RouteNames.createFeature}>
-						<AddButton />
-					</Link>
+					{canWriteFeature ? (
+						<Link to={RouteNames.createFeature}>
+							<AddButton />
+						</Link>
+					) : (
+						<Tooltip content={t('features.writeDeniedTooltip')}>
+							<span tabIndex={0} className='inline-block'>
+								<AddButton disabled />
+							</span>
+						</Tooltip>
+					)}
 				</div>
 			}>
 			<ApiDocsContent tags={API_DOCS_TAGS.Features} />
@@ -323,6 +338,8 @@ const FeaturesPage = () => {
 					description: t('features.listPage.emptyState.description'),
 					buttonLabel: t('features.listPage.emptyState.createButton'),
 					buttonAction: () => navigate(RouteNames.createFeature),
+					buttonDisabled: !canWriteFeature,
+					buttonDisabledReason: canWriteFeature ? undefined : t('features.writeDeniedTooltip'),
 					tags: API_DOCS_TAGS.Features,
 					tutorials: guides.features.tutorials,
 				}}

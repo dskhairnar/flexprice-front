@@ -278,14 +278,17 @@ export const MainRouter: any = createBrowserRouter([
 					{
 						path: RouteNames.features,
 						element: <FeaturesPage />,
+						handle: requirePermission('feature', 'read'),
 					},
 					{
 						path: RouteNames.createFeature,
 						element: <AddFeaturePage />,
+						handle: requirePermission('feature', 'write'),
 					},
 					{
 						path: `${RouteNames.featureDetails}/:id`,
 						element: <FeatureDetails />,
+						handle: requirePermission('feature', 'read'),
 					},
 					{
 						path: RouteNames.plan,
