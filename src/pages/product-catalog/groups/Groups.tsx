@@ -167,6 +167,8 @@ const GroupsPage = () => {
 						description: t('groups.listPage.emptyState.description'),
 						buttonLabel: t('groups.listPage.emptyState.createButton'),
 						buttonAction: handleOnAdd,
+						buttonDisabled: !canWriteGroup,
+						buttonDisabledReason: canWriteGroup ? undefined : t('groups.writeDeniedTooltip'),
 						tags: API_DOCS_TAGS.Groups,
 						tutorials: guides.groups.tutorials,
 					}}

@@ -262,6 +262,8 @@ const CouponsPage = () => {
 						description: t('coupons.listPage.emptyState.description'),
 						buttonLabel: t('coupons.listPage.emptyState.createButton'),
 						buttonAction: handleCreateCoupon,
+						buttonDisabled: !canWriteCoupon,
+						buttonDisabledReason: canWriteCoupon ? undefined : t('coupons.writeDeniedTooltip'),
 						tags: API_DOCS_TAGS.Coupons,
 						tutorials: guides.coupons.tutorials,
 					}}

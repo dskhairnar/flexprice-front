@@ -279,6 +279,8 @@ const PriceUnitsPage = () => {
 						description: t('priceUnits.listPage.emptyState.description'),
 						buttonLabel: t('priceUnits.listPage.emptyState.createButton'),
 						buttonAction: handleOnAdd,
+						buttonDisabled: !canWritePriceUnit,
+						buttonDisabledReason: canWritePriceUnit ? undefined : t('priceUnits.writeDeniedTooltip'),
 						tags: API_DOCS_TAGS.PriceUnits,
 					}}
 				/>

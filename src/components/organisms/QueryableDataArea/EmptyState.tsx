@@ -1,4 +1,4 @@
-import { Button } from '@/components/atoms';
+import { Button, Tooltip } from '@/components/atoms';
 import { ApiDocsContent } from '@/components/molecules';
 import type { EmptyStateConfig } from './QueryableDataArea';
 import TutorialCards from './TutorialCards';
@@ -31,11 +31,21 @@ const EmptyState = ({ config }: EmptyStateProps) => {
 						{config.description}
 					</div>
 				)}
-				{config.buttonAction && config.buttonLabel && (
-					<Button variant='outline' onClick={config.buttonAction} className='!p-5 !bg-surface-panel !border-line-muted'>
-						{config.buttonLabel}
-					</Button>
-				)}
+				{config.buttonAction &&
+					config.buttonLabel &&
+					(config.buttonDisabled ? (
+						<Tooltip content={config.buttonDisabledReason}>
+							<span tabIndex={0} className='inline-block'>
+								<Button disabled variant='outline' className='!p-5 !bg-surface-panel !border-line-muted'>
+									{config.buttonLabel}
+								</Button>
+							</span>
+						</Tooltip>
+					) : (
+						<Button variant='outline' onClick={config.buttonAction} className='!p-5 !bg-surface-panel !border-line-muted'>
+							{config.buttonLabel}
+						</Button>
+					))}
 			</div>
 			{config.tags && <ApiDocsContent tags={config.tags} />}
 			{config.tutorials && config.tutorials.length > 0 && <TutorialCards tutorials={config.tutorials} />}

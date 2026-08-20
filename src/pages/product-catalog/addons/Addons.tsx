@@ -1,5 +1,6 @@
-import { AddButton, Page, ActionButton, Chip } from '@/components/atoms';
+import { AddButton, Page, ActionButton, Chip, Tooltip } from '@/components/atoms';
 import { ApiDocsContent, AddonDrawer } from '@/components/molecules';
+import { useCurrentUserPermissions } from '@/hooks/useCurrentUserPermissions';
 import { ColumnData } from '@/components/molecules/Table';
 import { QueryableDataArea } from '@/components/organisms';
 import Addon from '@/models/Addon';
@@ -47,6 +48,8 @@ const AddonsPage = () => {
 	const [activeAddon, setActiveAddon] = useState<Addon | null>(null);
 	const [addonDrawerOpen, setAddonDrawerOpen] = useState(false);
 	const navigate = useNavigate();
+	const { can } = useCurrentUserPermissions();
+	const canWriteAddon = can('addon', 'write');
 
 	const handleOnAdd = useCallback(() => {
 		setActiveAddon(null);
@@ -170,17 +173,31 @@ const AddonsPage = () => {
 							}}
 							archive={{
 								enabled: row?.status !== ENTITY_STATUS.ARCHIVED,
+								disabled: !canWriteAddon,
+								disabledReason: canWriteAddon ? undefined : t('addons.writeDeniedTooltip'),
 							}}
 						/>
 					);
 				},
 			},
 		],
-		[t, handleEdit],
+		[t, handleEdit, canWriteAddon],
 	);
 
 	return (
-		<Page heading={t('addons.listPage.title')} headingCTA={<AddButton onClick={handleOnAdd} />}>
+		<Page
+			heading={t('addons.listPage.title')}
+			headingCTA={
+				canWriteAddon ? (
+					<AddButton onClick={handleOnAdd} />
+				) : (
+					<Tooltip content={t('addons.writeDeniedTooltip')}>
+						<span tabIndex={0} className='inline-block'>
+							<AddButton disabled onClick={handleOnAdd} />
+						</span>
+					</Tooltip>
+				)
+			}>
 			<AddonDrawer data={activeAddon} open={addonDrawerOpen} onOpenChange={setAddonDrawerOpen} refetchQueryKeys={['fetchAddons']} />
 			<ApiDocsContent tags={API_DOCS_TAGS.Addons} />
 			<div className='space-y-6'>
@@ -219,6 +236,8 @@ const AddonsPage = () => {
 						description: t('addons.listPage.emptyState.description'),
 						buttonLabel: t('addons.listPage.emptyState.createButton'),
 						buttonAction: handleOnAdd,
+						buttonDisabled: !canWriteAddon,
+						buttonDisabledReason: canWriteAddon ? undefined : t('addons.writeDeniedTooltip'),
 						tags: API_DOCS_TAGS.Addons,
 						tutorials: guides.addons.tutorials,
 					}}

@@ -117,6 +117,10 @@ export interface EmptyStateConfig {
 	buttonLabel?: string;
 	/** Callback when action button is clicked */
 	buttonAction?: () => void;
+	/** Disables the action button (e.g. missing RBAC write permission) without hiding it */
+	buttonDisabled?: boolean;
+	/** Tooltip shown on hover/focus when `buttonDisabled` is true */
+	buttonDisabledReason?: string;
 	/** API documentation tags to show */
 	tags?: string[];
 	/** Tutorial cards to display */

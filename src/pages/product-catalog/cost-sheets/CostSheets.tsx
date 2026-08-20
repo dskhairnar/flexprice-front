@@ -243,6 +243,8 @@ const CostSheetsPage = () => {
 						description: t('costSheets.listPage.emptyState.description'),
 						buttonLabel: t('costSheets.listPage.emptyState.createButton'),
 						buttonAction: handleOnAdd,
+						buttonDisabled: !canWriteCostSheet,
+						buttonDisabledReason: canWriteCostSheet ? undefined : t('costSheets.writeDeniedTooltip'),
 						tags: API_DOCS_TAGS.Costs,
 						tutorials: guides.features.tutorials,
 					}}
