@@ -1,4 +1,4 @@
-import { Button, Page, ShortPagination, SectionHeader } from '@/components/atoms';
+import { Button, Page, ShortPagination, SectionHeader, Tooltip } from '@/components/atoms';
 import { ColumnData, FlexpriceTable, SecretKeyDrawer, ApiDocsContent } from '@/components/molecules';
 import SecretKeysApi from '@/api/SecretKeysApi';
 import { useQuery } from '@tanstack/react-query';
@@ -14,6 +14,7 @@ import { API_DOCS_TAGS } from '@/constants/apiDocsTags';
 import ActionButton from '@/components/atoms/ActionButton/ActionButton';
 import { useTranslation } from 'react-i18next';
 import i18n from 'i18next';
+import { useCurrentUserPermissions } from '@/hooks/useCurrentUserPermissions';
 
 // Utility function to format permissions for display
 export const formatPermissionDisplay = (permissions: readonly string[]): string => {
@@ -79,6 +80,8 @@ const DeveloperPage = () => {
 	const guides = useMemo(() => buildGuides(tGuide), [tGuide]);
 	const { page, limit, offset } = usePagination();
 	const [isSecretKeyDrawerOpen, setIsSecretKeyDrawerOpen] = useState(false);
+	const { can } = useCurrentUserPermissions();
+	const canWriteSecret = can('secret', 'write');
 
 	const {
 		data: secretKeys,
@@ -198,6 +201,8 @@ const DeveloperPage = () => {
 								archive={{
 									text: t('common:actions.delete'),
 									icon: <TrashIcon />,
+									disabled: !canWriteSecret,
+									disabledReason: canWriteSecret ? undefined : t('apiKeys.writeDeniedTooltip'),
 								}}
 							/>
 						</div>
@@ -205,7 +210,7 @@ const DeveloperPage = () => {
 				},
 			},
 		],
-		[baseColumns, t],
+		[baseColumns, t, canWriteSecret],
 	);
 
 	if (isLoading) {
@@ -234,14 +239,26 @@ const DeveloperPage = () => {
 					}}
 					tutorials={guides.secrets.tutorials}
 					tags={API_DOCS_TAGS.Secrets}
+					addDisabled={!canWriteSecret}
+					addDisabledReason={canWriteSecret ? undefined : t('apiKeys.writeDeniedTooltip')}
 				/>
 			)}
 			{(secretKeys?.items.length || 0) > 0 && (
 				<Page>
 					<SectionHeader title={t('common:nav.apiKeys')} titleClassName='text-3xl font-medium'>
-						<Button prefixIcon={<Plus />} onClick={handleAddSecretKey}>
-							{t('common:actions.add')}
-						</Button>
+						{canWriteSecret ? (
+							<Button prefixIcon={<Plus />} onClick={handleAddSecretKey}>
+								{t('common:actions.add')}
+							</Button>
+						) : (
+							<Tooltip content={t('apiKeys.writeDeniedTooltip')}>
+								<span tabIndex={0} className='inline-block'>
+									<Button disabled prefixIcon={<Plus />}>
+										{t('common:actions.add')}
+									</Button>
+								</span>
+							</Tooltip>
+						)}
 					</SectionHeader>
 					<div className='pb-12 mt-2'>
 						<FlexpriceTable showEmptyRow columns={columns} data={secretKeys?.items || []} />

@@ -589,22 +589,27 @@ export const MainRouter: any = createBrowserRouter([
 								<WebhookDashboardLazy />
 							</Suspense>
 						),
+						handle: requirePermission('webhook', 'read'),
 					},
 					{
 						path: RouteNames.apiKeys,
 						element: <DeveloperPage />,
+						handle: requirePermission('secret', 'read'),
 					},
 					{
 						path: RouteNames.serviceAccounts,
 						element: <ServiceAccountsPage />,
+						handle: requirePermission('user', 'read'),
 					},
 					{
 						path: RouteNames.workflows,
 						element: <WorkflowsPage />,
+						handle: requirePermission('workflow', 'read'),
 					},
 					{
 						path: RouteNames.workflowDetails,
 						element: <WorkflowDetailsPage />,
+						handle: requirePermission('workflow', 'read'),
 					},
 				],
 			},
