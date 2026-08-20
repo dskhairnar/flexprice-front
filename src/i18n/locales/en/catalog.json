@@ -1061,6 +1061,8 @@
 		},
 		"originalPrice": "Original Price",
 		"billingModel": "Billing Model",
+		"bucketSize": "Bucket Size (Optional)",
+		"bucketSizePlaceholder": "No bucketing",
 		"selectBillingModel": "Select billing model",
 		"bucketSize": "Bucket Size (Optional)",
 		"bucketSizePlaceholder": "No bucketing",
