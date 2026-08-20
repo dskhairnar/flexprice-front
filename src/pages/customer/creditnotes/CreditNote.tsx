@@ -15,9 +15,10 @@ const CreditNote = () => {
 	const { id: customerId } = useParams();
 	const navigate = useNavigate();
 	const { can } = useCurrentUserPermissions();
-	// Creating a credit note happens via the invoice's own credit-note route (already gated on
-	// 'invoice' write), so this navigation-only button matches that permission rather than 'creditnote'.
-	const canCreateCreditNote = can('invoice', 'write');
+	// Navigates to the invoice tab, where the actual create action lives (an invoice row's
+	// "Issue a Credit Note" menu option) and submits via CreditNoteApi.createCreditNote — so this
+	// matches the destination route's creditnote:write, not invoice:write.
+	const canCreateCreditNote = can('creditnote', 'write');
 
 	const { data, isLoading } = useQuery({
 		queryKey: ['customerCreditNotes', customerId],
