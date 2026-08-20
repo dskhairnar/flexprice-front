@@ -176,6 +176,7 @@
 		}
 	},
 	"coupons": {
+		"writeDeniedTooltip": "ليس لديك صلاحية إدارة الكوبونات. اطلب الوصول من مسؤول المستأجر.",
 		"listPage": {
 			"title": "الكوبونات",
 			"paginationUnit": "الكوبونات",

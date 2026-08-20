@@ -176,6 +176,7 @@
 		}
 	},
 	"coupons": {
+		"writeDeniedTooltip": "You don't have permission to manage coupons. Ask a tenant admin for access.",
 		"listPage": {
 			"title": "Coupons",
 			"paginationUnit": "Coupons",
