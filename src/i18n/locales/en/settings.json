@@ -1632,7 +1632,8 @@
 			"copyEnvironment": "Copy Environment",
 			"renameAria": "Rename {{name}}",
 			"suspendedTitle": "Environment suspended",
-			"suspendedDescription": "This environment is temporarily closed. Contact us to continue."
+			"suspendedDescription": "This environment is temporarily closed. Contact us to continue.",
+			"writeDeniedTooltip": "You don't have permission to manage environments"
 		},
 		"restrictedBanner": {
 			"productionAccount": "production account",

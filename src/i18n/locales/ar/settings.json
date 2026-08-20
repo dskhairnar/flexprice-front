@@ -1594,7 +1594,8 @@
 			"copyEnvironment": "نسخ البيئة",
 			"renameAria": "إعادة تسمية البيئة {{name}}",
 			"suspendedTitle": "تم تعليق البيئة",
-			"suspendedDescription": "هذه البيئة معلقة حاليًا. يرجى التواصل مع الدعم."
+			"suspendedDescription": "هذه البيئة معلقة حاليًا. يرجى التواصل مع الدعم.",
+			"writeDeniedTooltip": "ليس لديك إذن لإدارة البيئات"
 		},
 		"restrictedBanner": {
 			"productionAccount": "حساب الإنتاج",
