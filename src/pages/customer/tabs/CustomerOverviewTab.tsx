@@ -1,5 +1,6 @@
 import { useNavigate, useParams, useOutletContext } from 'react-router';
-import { AddButton, Card, CardHeader, Loader, Spacer, ShortPagination } from '@/components/atoms';
+import { AddButton, Card, CardHeader, Loader, Spacer, ShortPagination, Tooltip } from '@/components/atoms';
+import { useCurrentUserPermissions } from '@/hooks/useCurrentUserPermissions';
 import CustomerApi from '@/api/CustomerApi';
 import { useQuery, useQueries } from '@tanstack/react-query';
 import { SubscriptionTable } from '@/components/organisms';
@@ -110,6 +111,8 @@ const CustomerOverviewTab = () => {
 	const navigate = useNavigate();
 	const { id: customerId } = useParams();
 	const { isArchived } = useOutletContext<ContextType>();
+	const { can } = useCurrentUserPermissions();
+	const canWriteSubscription = can('subscription', 'write');
 
 	const handleAddSubscription = () => {
 		navigate(`${RouteNames.customers}/${customerId}/add-subscription`);
@@ -276,7 +279,18 @@ const CustomerOverviewTab = () => {
 		<Card variant='notched'>
 			<CardHeader
 				title={t('tabPanels.overview.subscriptionsCardTitle')}
-				cta={!isArchived && <AddButton onClick={handleAddSubscription} />}
+				cta={
+					!isArchived &&
+					(canWriteSubscription ? (
+						<AddButton onClick={handleAddSubscription} />
+					) : (
+						<Tooltip content={t('organisms.subscriptionAction.writeDeniedTooltip')}>
+							<span tabIndex={0} className='inline-block'>
+								<AddButton disabled />
+							</span>
+						</Tooltip>
+					))
+				}
 			/>
 			<QueryBuilder
 				filterOptions={subscriptionFilterOptions}

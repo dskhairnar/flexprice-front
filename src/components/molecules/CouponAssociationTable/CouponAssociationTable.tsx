@@ -5,12 +5,13 @@ import { useTranslation } from 'react-i18next';
 import CouponApi from '@/api/CouponApi';
 import FlexpriceTable, { ColumnData } from '../Table';
 import { DropdownMenu, getCopyIdOption } from '@/components/molecules';
-import { Chip, Card, CardHeader, AddButton, NoDataCard } from '@/components/atoms';
+import { Chip, Card, CardHeader, AddButton, NoDataCard, Tooltip } from '@/components/atoms';
 import { formatDateShort, getCurrencySymbol } from '@/utils/common/helper_functions';
 import { RouteNames } from '@/core/routes/Routes';
 import { CouponAssociation } from '@/models/CouponAssociation';
 import { COUPON_TYPE } from '@/types/common/Coupon';
 import { TrashIcon } from 'lucide-react';
+import { useCurrentUserPermissions } from '@/hooks/useCurrentUserPermissions';
 
 interface Props {
 	subscriptionId: string;
@@ -32,6 +33,8 @@ interface RowActionsProps {
 
 const RowActions: FC<RowActionsProps> = ({ row, onRemove }) => {
 	const { t } = useTranslation('common');
+	const { can } = useCurrentUserPermissions();
+	const canWriteCoupon = can('coupon', 'write');
 	const [isOpen, setIsOpen] = useState(false);
 	const handleClick = (e: React.MouseEvent) => {
 		e.preventDefault();
@@ -53,6 +56,8 @@ const RowActions: FC<RowActionsProps> = ({ row, onRemove }) => {
 							setIsOpen(false);
 							onRemove(row);
 						},
+						disabled: !canWriteCoupon,
+						disabledReason: canWriteCoupon ? undefined : t('labels.couponWriteDeniedTooltip'),
 					},
 				]}
 			/>
@@ -62,6 +67,8 @@ const RowActions: FC<RowActionsProps> = ({ row, onRemove }) => {
 
 const CouponAssociationTable: FC<Props> = ({ subscriptionId, onAdd, onRemove }) => {
 	const { t } = useTranslation('common');
+	const { can } = useCurrentUserPermissions();
+	const canWriteCoupon = can('coupon', 'write');
 
 	const { data } = useQuery({
 		queryKey: ['couponAssociations', subscriptionId],
@@ -78,7 +85,15 @@ const CouponAssociationTable: FC<Props> = ({ subscriptionId, onAdd, onRemove }) 
 		return (data?.items ?? []).filter((a) => !a.end_date || new Date(a.end_date) > now);
 	}, [data?.items]);
 
-	const addButton = onAdd ? <AddButton onClick={onAdd} /> : undefined;
+	const addButton = !onAdd ? undefined : canWriteCoupon ? (
+		<AddButton onClick={onAdd} />
+	) : (
+		<Tooltip content={t('labels.couponWriteDeniedTooltip')}>
+			<span tabIndex={0} className='inline-block'>
+				<AddButton disabled />
+			</span>
+		</Tooltip>
+	);
 	const title = t('subscriptionEdit.couponAssociations', 'Coupon Associations');
 
 	const columns: ColumnData<CouponAssociation>[] = [
