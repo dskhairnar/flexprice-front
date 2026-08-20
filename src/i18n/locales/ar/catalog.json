@@ -436,6 +436,7 @@
 			"writeDeniedTooltip": "ليس لديك إذن لتعديل منح الرصيد"
 		},
 		"detailsPage": {
+			"writeDeniedTooltip": "ليس لديك صلاحية تعديل هذه الخطة. اطلب الوصول من مسؤول المستأجر.",
 			"syncWriteDeniedTooltip": "ليس لديك صلاحية مزامنة أسعار هذه الخطة. اطلب الوصول من مسؤول المستأجر."
 		},
 		"information": {

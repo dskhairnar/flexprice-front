@@ -436,6 +436,7 @@
 			"writeDeniedTooltip": "You don't have permission to modify credit grants"
 		},
 		"detailsPage": {
+			"writeDeniedTooltip": "You don't have permission to modify this plan. Ask a tenant admin for access.",
 			"syncWriteDeniedTooltip": "You don't have permission to sync this plan's prices. Ask a tenant admin for access."
 		},
 		"information": {
