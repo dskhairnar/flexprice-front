@@ -1,4 +1,5 @@
-import { ActionButton, Button, CardHeader, Chip, Loader, Page, Spacer, NoDataCard } from '@/components/atoms';
+import { ActionButton, Button, CardHeader, Chip, Loader, Page, Spacer, NoDataCard, Tooltip } from '@/components/atoms';
+import { useCurrentUserPermissions } from '@/hooks/useCurrentUserPermissions';
 import {
 	ApiDocsContent,
 	ColumnData,
@@ -131,6 +132,8 @@ const getEntitlementColumns = (
 	unlimited: string,
 	unitLabel: string,
 	unitsLabel: string,
+	canWriteEntitlement: boolean,
+	entitlementWriteDeniedTooltip: string,
 ): ColumnData<EntitlementResponse>[] => [
 	{
 		title: 'Feature Name',
@@ -169,6 +172,8 @@ const getEntitlementColumns = (
 						enabled: row?.status !== ENTITY_STATUS.ARCHIVED,
 						text: 'Delete',
 						icon: <Trash2 />,
+						disabled: !canWriteEntitlement,
+						disabledReason: canWriteEntitlement ? undefined : entitlementWriteDeniedTooltip,
 					}}
 				/>
 			);
@@ -182,6 +187,10 @@ const AddonDetails = () => {
 	const { id } = useParams<Params>();
 	const [addonDrawerOpen, setAddonDrawerOpen] = useState(false);
 	const [entitlementDrawerOpen, setEntitlementDrawerOpen] = useState(false);
+	const { can } = useCurrentUserPermissions();
+	const canWriteAddon = can('addon', 'write');
+	const canWriteEntitlement = can('entitlement', 'write');
+	const canWritePrice = can('price', 'write');
 
 	const {
 		data: addonData,
@@ -232,6 +241,34 @@ const AddonDetails = () => {
 		return null;
 	}
 
+	const addChargeCta = canWritePrice ? (
+		<Button prefixIcon={<Plus />} onClick={() => navigate(`${RouteNames.addonCharges.replace(':addonId', id!)}`)}>
+			{t('common:actions.add')}
+		</Button>
+	) : (
+		<Tooltip content={t('catalog:addons.details.chargesWriteDeniedTooltip')}>
+			<span tabIndex={0} className='inline-block'>
+				<Button disabled prefixIcon={<Plus />}>
+					{t('common:actions.add')}
+				</Button>
+			</span>
+		</Tooltip>
+	);
+
+	const addEntitlementCta = canWriteEntitlement ? (
+		<Button prefixIcon={<Plus />} onClick={() => setEntitlementDrawerOpen(true)}>
+			{t('common:actions.add')}
+		</Button>
+	) : (
+		<Tooltip content={t('catalog:plans.entitlementsTab.writeDeniedTooltip')}>
+			<span tabIndex={0} className='inline-block'>
+				<Button disabled prefixIcon={<Plus />}>
+					{t('common:actions.add')}
+				</Button>
+			</span>
+		</Tooltip>
+	);
+
 	const addonDetails = [
 		{ label: 'Addon Name', value: addonData?.name },
 		{ label: 'Lookup Key', value: addonData?.lookup_key },
@@ -250,19 +287,41 @@ const AddonDetails = () => {
 			heading={addonData?.name}
 			headingCTA={
 				<>
-					<Button onClick={() => setAddonDrawerOpen(true)} variant={'outline'} className='flex gap-2'>
-						<Pencil />
-						Edit
-					</Button>
+					{canWriteAddon ? (
+						<Button onClick={() => setAddonDrawerOpen(true)} variant={'outline'} className='flex gap-2'>
+							<Pencil />
+							Edit
+						</Button>
+					) : (
+						<Tooltip content={t('catalog:addons.writeDeniedTooltip')}>
+							<span tabIndex={0} className='inline-block'>
+								<Button disabled variant={'outline'} className='flex gap-2'>
+									<Pencil />
+									Edit
+								</Button>
+							</span>
+						</Tooltip>
+					)}
 
-					<Button
-						onClick={() => archiveAddon()}
-						disabled={addonData?.status !== ENTITY_STATUS.PUBLISHED}
-						variant={'outline'}
-						className='flex gap-2'>
-						<EyeOff />
-						Archive
-					</Button>
+					{canWriteAddon ? (
+						<Button
+							onClick={() => archiveAddon()}
+							disabled={addonData?.status !== ENTITY_STATUS.PUBLISHED}
+							variant={'outline'}
+							className='flex gap-2'>
+							<EyeOff />
+							Archive
+						</Button>
+					) : (
+						<Tooltip content={t('catalog:addons.writeDeniedTooltip')}>
+							<span tabIndex={0} className='inline-block'>
+								<Button disabled variant={'outline'} className='flex gap-2'>
+									<EyeOff />
+									Archive
+								</Button>
+							</span>
+						</Tooltip>
+					)}
 				</>
 			}>
 			<AddonDrawer data={addonData} open={addonDrawerOpen} onOpenChange={setAddonDrawerOpen} refetchQueryKeys={['fetchAddon']} />
@@ -282,39 +341,17 @@ const AddonDetails = () => {
 				{/* addon charges table */}
 				{(addonData?.prices?.length ?? 0) > 0 ? (
 					<Card variant='notched'>
-						<CardHeader
-							title={t('catalog:addons.details.charges')}
-							cta={
-								<Button prefixIcon={<Plus />} onClick={() => navigate(`${RouteNames.addonCharges.replace(':addonId', id!)}`)}>
-									Add
-								</Button>
-							}
-						/>
+						<CardHeader title={t('catalog:addons.details.charges')} cta={addChargeCta} />
 						<FlexpriceTable columns={chargeColumns} data={addonData?.prices ?? []} />
 					</Card>
 				) : (
-					<NoDataCard
-						title={t('catalog:addons.details.charges')}
-						subtitle='No charges added to the addon yet'
-						cta={
-							<Button prefixIcon={<Plus />} onClick={() => navigate(`${RouteNames.addonCharges.replace(':addonId', id!)}`)}>
-								Add
-							</Button>
-						}
-					/>
+					<NoDataCard title={t('catalog:addons.details.charges')} subtitle='No charges added to the addon yet' cta={addChargeCta} />
 				)}
 
 				{/* Entitlements Section */}
 				{(addonData?.entitlements?.length ?? 0) > 0 ? (
 					<Card variant='notched'>
-						<CardHeader
-							title={t('catalog:addons.details.entitlements')}
-							cta={
-								<Button prefixIcon={<Plus />} onClick={() => setEntitlementDrawerOpen(true)}>
-									Add
-								</Button>
-							}
-						/>
+						<CardHeader title={t('catalog:addons.details.entitlements')} cta={addEntitlementCta} />
 						<FlexpriceTable
 							showEmptyRow
 							data={addonData.entitlements || []}
@@ -323,6 +360,8 @@ const AddonDetails = () => {
 								t('common:labels.unlimited'),
 								t('catalog:features.form.unitDefault'),
 								t('catalog:features.form.unitsDefault'),
+								canWriteEntitlement,
+								t('catalog:plans.entitlementsTab.writeDeniedTooltip'),
 							)}
 						/>
 					</Card>
@@ -330,11 +369,7 @@ const AddonDetails = () => {
 					<NoDataCard
 						title={t('catalog:addons.details.entitlements')}
 						subtitle='No entitlements added to the addon yet'
-						cta={
-							<Button prefixIcon={<Plus />} onClick={() => setEntitlementDrawerOpen(true)}>
-								Add
-							</Button>
-						}
+						cta={addEntitlementCta}
 					/>
 				)}
 

@@ -1,6 +1,7 @@
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { useState, useEffect } from 'react';
-import { Button, Card, CardHeader, NoDataCard, Loader } from '@/components/atoms';
+import { Button, Card, CardHeader, NoDataCard, Loader, Tooltip } from '@/components/atoms';
+import { useCurrentUserPermissions } from '@/hooks/useCurrentUserPermissions';
 import { Plus } from 'lucide-react';
 import { uniqueId } from 'lodash';
 import CreditGrantApi from '@/api/CreditGrantApi';
@@ -27,8 +28,10 @@ interface Props {
  * Mirrors the plan credit-grants tab, but scoped to ADDON and rendered inline (addons have no tabs).
  */
 const AddonCreditGrantsSection = ({ addonId }: Props) => {
-	const { t } = useTranslation(['catalog']);
+	const { t } = useTranslation(['catalog', 'common']);
 	const [creditGrantModalOpen, setCreditGrantModalOpen] = useState(false);
+	const { can } = useCurrentUserPermissions();
+	const canWriteCreditGrant = can('creditgrant', 'write');
 
 	const {
 		data: creditGrantsData,
@@ -107,6 +110,20 @@ const AddonCreditGrantsSection = ({ addonId }: Props) => {
 
 	const creditGrants = creditGrantsData?.items || [];
 
+	const addButton = canWriteCreditGrant ? (
+		<Button prefixIcon={<Plus />} onClick={() => setCreditGrantModalOpen(true)} disabled={isCreatingCreditGrant}>
+			{isCreatingCreditGrant ? t('common:actions.adding') : t('common:actions.add')}
+		</Button>
+	) : (
+		<Tooltip content={t('catalog:plans.creditGrantsTab.writeDeniedTooltip')}>
+			<span tabIndex={0} className='inline-block'>
+				<Button disabled prefixIcon={<Plus />}>
+					{t('common:actions.add')}
+				</Button>
+			</span>
+		</Tooltip>
+	);
+
 	return (
 		<>
 			<CreditGrantModal
@@ -119,14 +136,7 @@ const AddonCreditGrantsSection = ({ addonId }: Props) => {
 			/>
 			{creditGrants.length > 0 ? (
 				<Card variant='notched'>
-					<CardHeader
-						title={t('catalog:addons.details.creditGrants')}
-						cta={
-							<Button prefixIcon={<Plus />} onClick={() => setCreditGrantModalOpen(true)} disabled={isCreatingCreditGrant}>
-								{isCreatingCreditGrant ? 'Adding...' : 'Add'}
-							</Button>
-						}
-					/>
+					<CardHeader title={t('catalog:addons.details.creditGrants')} cta={addButton} />
 					<CreditGrantsTable
 						data={creditGrants}
 						onDelete={() => {
@@ -136,15 +146,7 @@ const AddonCreditGrantsSection = ({ addonId }: Props) => {
 					/>
 				</Card>
 			) : (
-				<NoDataCard
-					title={t('catalog:addons.details.creditGrants')}
-					subtitle='No credit grants added to the addon yet'
-					cta={
-						<Button prefixIcon={<Plus />} onClick={() => setCreditGrantModalOpen(true)} disabled={isCreatingCreditGrant}>
-							{isCreatingCreditGrant ? 'Adding...' : 'Add'}
-						</Button>
-					}
-				/>
+				<NoDataCard title={t('catalog:addons.details.creditGrants')} subtitle='No credit grants added to the addon yet' cta={addButton} />
 			)}
 		</>
 	);
