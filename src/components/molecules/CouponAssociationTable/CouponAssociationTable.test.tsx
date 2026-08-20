@@ -50,7 +50,7 @@ vi.mock('@/api/CouponApi', () => ({
 	},
 }));
 vi.mock('@/core/services/supbase/config', () => ({ default: {} }));
-vi.mock('@/core/auth/AuthService', () => ({ default: {} }));
+vi.mock('@/core/auth/AuthService', () => ({ default: { peekStoredToken: () => null, getAcessToken: async () => null } }));
 vi.mock('react-router', async () => {
 	const actual = await vi.importActual('react-router');
 	return { ...actual, useNavigate: () => vi.fn() };
