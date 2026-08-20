@@ -508,10 +508,10 @@ export const MainRouter: any = createBrowserRouter([
 							{
 								path: 'invoice/:invoice_id/credit-note',
 								element: <AddCreditPage />,
-								// Route-sibling of /billing/invoices, not a descendant — does not
-								// inherit its `invoice` handle. Reachable by direct URL even though
-								// the only discoverable path to it (the menu item) is already gated.
-								handle: requirePermission('invoice', 'write'),
+								// Submits via CreditNoteApi.createCreditNote, so this needs creditnote:write,
+								// not invoice:write — a user who can write invoices but not credit notes
+								// (or vice versa) should be gated on the permission the mutation actually uses.
+								handle: requirePermission('creditnote', 'write'),
 							},
 							{
 								path: 'subscription/:subscription_id',
