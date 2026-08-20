@@ -407,6 +407,7 @@ export const MainRouter: any = createBrowserRouter([
 					{
 						path: RouteNames.customers,
 						element: <CustomerPage />,
+						handle: requirePermission('customer', 'read'),
 					},
 					{
 						path: RouteNames.subscriptions,
@@ -461,6 +462,7 @@ export const MainRouter: any = createBrowserRouter([
 					{
 						path: `${RouteNames.customers}/:id`,
 						element: <CustomerProfilePage />,
+						handle: requirePermission('customer', 'read'),
 						children: [
 							{
 								path: '',

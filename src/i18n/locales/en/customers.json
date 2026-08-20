@@ -1,5 +1,6 @@
 {
 	"list": {
+		"writeDeniedTooltip": "You don't have permission to manage customers. Ask a tenant admin for access.",
 		"title": "Customers",
 		"paginationUnit": "Customers",
 		"entityName": "Customer",

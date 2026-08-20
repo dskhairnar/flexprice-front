@@ -1,5 +1,6 @@
 {
 	"list": {
+		"writeDeniedTooltip": "ليس لديك صلاحية إدارة العملاء. اطلب الوصول من مسؤول المستأجر.",
 		"title": "العملاء",
 		"paginationUnit": "العملاء",
 		"entityName": "العميل",
