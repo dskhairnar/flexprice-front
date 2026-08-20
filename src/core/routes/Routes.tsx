@@ -326,42 +326,54 @@ export const MainRouter: any = createBrowserRouter([
 					{
 						path: RouteNames.coupons,
 						element: <CouponsPage />,
+						handle: requirePermission('coupon', 'read'),
 					},
 					{
 						path: `${RouteNames.couponDetails}/:id`,
 						element: <CouponDetails />,
+						handle: requirePermission('coupon', 'read'),
 					},
 					{
 						path: RouteNames.addons,
 						element: <AddonsPage />,
+						handle: requirePermission('addon', 'read'),
 					},
 					{
 						path: `${RouteNames.addonDetails}/:id`,
 						element: <AddonDetailsPage />,
+						handle: requirePermission('addon', 'read'),
 					},
 					{
 						path: RouteNames.addonCharges,
 						element: <AddonChargesPage />,
+						// Gated on `price`, not `addon` — POST/PUT/DELETE /prices is independently
+						// permissioned server-side, same as the plan add-charges route above.
+						handle: requirePermission('price', 'write'),
 					},
 					{
 						path: RouteNames.costSheets,
 						element: <CostSheetsPage />,
+						handle: requirePermission('costsheet', 'read'),
 					},
 					{
 						path: `${RouteNames.costSheetDetails}/:id`,
 						element: <CostSheetDetailsPage />,
+						handle: requirePermission('costsheet', 'read'),
 					},
 					{
 						path: RouteNames.costSheetCharges,
 						element: <CostSheetChargesPage />,
+						handle: requirePermission('price', 'write'),
 					},
 					{
 						path: RouteNames.groups,
 						element: <GroupsPage />,
+						handle: requirePermission('group', 'read'),
 					},
 					{
 						path: `${RouteNames.groups}/:id`,
 						element: <GroupProfilePage />,
+						handle: requirePermission('group', 'read'),
 						children: [
 							{
 								path: '',
@@ -381,6 +393,9 @@ export const MainRouter: any = createBrowserRouter([
 					{
 						path: RouteNames.priceUnits,
 						element: <PriceUnitsPage />,
+						// No dedicated RBAC entity for price units — gated on `price`, same
+						// reasoning as the UI-level checks in PriceUnits.tsx.
+						handle: requirePermission('price', 'read'),
 					},
 				],
 			},
