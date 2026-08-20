@@ -5,10 +5,12 @@ import { DocsProvider } from './context/DocsContext';
 import AppToaster from './components/atoms/AppToaster/AppToaster';
 import ReactQueryProvider from './core/services/tanstack/ReactQueryProvider';
 import useVersionCheck from '@/hooks/useVersionCheck';
+import { useSupabaseAuthSync } from '@/hooks/useSupabaseAuthSync';
 import { PaddleProvider } from '@/core/paddle';
 
 const App = () => {
 	useVersionCheck();
+	useSupabaseAuthSync();
 
 	return (
 		<ReactQueryProvider>
