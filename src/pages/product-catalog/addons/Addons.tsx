@@ -48,8 +48,11 @@ const AddonsPage = () => {
 	const [activeAddon, setActiveAddon] = useState<Addon | null>(null);
 	const [addonDrawerOpen, setAddonDrawerOpen] = useState(false);
 	const navigate = useNavigate();
-	const { can } = useCurrentUserPermissions();
-	const canWriteAddon = can('addon', 'write');
+	const { can, isLoading: permissionsLoading } = useCurrentUserPermissions();
+	// Optimistic during the loading window rather than gated behind a page-level Loader — the write
+	// controls would otherwise briefly evaluate against an empty role catalog and flash a false
+	// "denied" state for authorized users; can() settles to the real value once roles arrive.
+	const canWriteAddon = permissionsLoading || can('addon', 'write');
 
 	const handleOnAdd = useCallback(() => {
 		setActiveAddon(null);

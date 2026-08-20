@@ -59,8 +59,11 @@ const PriceUnitsPage = () => {
 	const { t } = useTranslation('catalog');
 	const [activePriceUnit, setActivePriceUnit] = useState<PriceUnit | null>(null);
 	const [priceUnitDrawerOpen, setPriceUnitDrawerOpen] = useState(false);
-	const { can } = useCurrentUserPermissions();
-	const canWritePriceUnit = can('price', 'write');
+	const { can, isLoading: permissionsLoading } = useCurrentUserPermissions();
+	// Optimistic during the loading window rather than gated behind a page-level Loader — the write
+	// controls would otherwise briefly evaluate against an empty role catalog and flash a false
+	// "denied" state for authorized users; can() settles to the real value once roles arrive.
+	const canWritePriceUnit = permissionsLoading || can('price', 'write');
 
 	const sortingOptions: SortOption[] = useMemo(
 		() => [

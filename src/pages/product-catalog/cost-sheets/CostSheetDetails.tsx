@@ -173,7 +173,7 @@ const CostSheetDetails = () => {
 	const navigate = useNavigate();
 	const { id } = useParams<Params>();
 	const [costSheetDrawerOpen, setCostSheetDrawerOpen] = useState(false);
-	const { can } = useCurrentUserPermissions();
+	const { can, isLoading: permissionsLoading } = useCurrentUserPermissions();
 	const canWriteCostSheet = can('costsheet', 'write');
 	const canWritePrice = can('price', 'write');
 
@@ -281,7 +281,7 @@ const CostSheetDetails = () => {
 		navigate(`${RouteNames.costSheetCharges.replace(':costSheetId', id!)}`);
 	}, [navigate, id]);
 
-	if (isLoading) {
+	if (isLoading || permissionsLoading) {
 		return <Loader />;
 	}
 

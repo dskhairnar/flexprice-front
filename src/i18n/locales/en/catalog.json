@@ -418,6 +418,7 @@
 			},
 			"createWithAi": "Create with AI",
 			"writeDeniedTooltip": "You don't have permission to create plans. Ask a tenant admin for access.",
+			"aiPricingWriteDeniedTooltip": "AI pricing setup creates both plans and features, so it needs write access to both. Ask a tenant admin for access.",
 			"emptyStateCustom": {
 				"heading": "Plans",
 				"description": "Create a plan to display pricing and start billing customers."

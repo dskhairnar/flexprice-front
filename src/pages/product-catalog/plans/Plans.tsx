@@ -272,7 +272,7 @@ const PlansPage = () => {
 						<span className='analyzing-prompt-shimmer text-sm font-medium'>{t('plans.listPage.createWithAi')}</span>
 					</Button>
 				) : (
-					<Tooltip content={t('plans.listPage.writeDeniedTooltip')}>
+					<Tooltip content={t('plans.listPage.aiPricingWriteDeniedTooltip')}>
 						<span tabIndex={0} className='inline-block cursor-not-allowed'>
 							<Button
 								disabled
@@ -304,7 +304,7 @@ const PlansPage = () => {
 								<span className='analyzing-prompt-shimmer font-medium'>{t('plans.listPage.createWithAi')}</span>
 							</Button>
 						) : (
-							<Tooltip content={t('plans.listPage.writeDeniedTooltip')}>
+							<Tooltip content={t('plans.listPage.aiPricingWriteDeniedTooltip')}>
 								<span tabIndex={0} className='inline-block cursor-not-allowed'>
 									<Button
 										disabled

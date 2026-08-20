@@ -48,8 +48,11 @@ const CostSheetsPage = () => {
 	const [activeCostSheet, setActiveCostSheet] = useState<CostSheet | null>(null);
 	const [costSheetDrawerOpen, setCostSheetDrawerOpen] = useState(false);
 	const navigate = useNavigate();
-	const { can } = useCurrentUserPermissions();
-	const canWriteCostSheet = can('costsheet', 'write');
+	const { can, isLoading: permissionsLoading } = useCurrentUserPermissions();
+	// Optimistic during the loading window rather than gated behind a page-level Loader — the write
+	// controls would otherwise briefly evaluate against an empty role catalog and flash a false
+	// "denied" state for authorized users; can() settles to the real value once roles arrive.
+	const canWriteCostSheet = permissionsLoading || can('costsheet', 'write');
 
 	const sortingOptions: SortOption[] = useMemo(
 		() => [

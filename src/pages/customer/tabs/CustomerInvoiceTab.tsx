@@ -18,7 +18,7 @@ const CustomerInvoiceTab = () => {
 	const { id: customerId } = useParams();
 	const navigate = useNavigate();
 	const { limit, offset, page } = usePagination();
-	const { can } = useCurrentUserPermissions();
+	const { can, isLoading: permissionsLoading } = useCurrentUserPermissions();
 	const canWriteInvoice = can('invoice', 'write');
 
 	const { data, isLoading } = useQuery({
@@ -84,7 +84,7 @@ const CustomerInvoiceTab = () => {
 		</Tooltip>
 	);
 
-	if (isLoading) {
+	if (isLoading || permissionsLoading) {
 		return <Loader />;
 	}
 
