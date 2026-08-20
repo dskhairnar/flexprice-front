@@ -13,6 +13,7 @@ import {
 import SettingsFormActions from '../SettingsFormActions';
 import CustomWorkflowCard from './CustomWorkflowCard';
 import OnboardingActionSetEditor from './OnboardingActionSetEditor';
+import { useCurrentUserPermissions } from '@/hooks/useCurrentUserPermissions';
 import {
 	buildConfigFromDraft,
 	buildDraftFromConfig,
@@ -29,6 +30,8 @@ const CustomerOnboardingTab = () => {
 	const { t } = useTranslation(['settings', 'common']);
 	const { configuration, isLoading, updateConfiguration, resetToDefaults } = useCustomerOnboardingConfig();
 	const { plans, isLoading: arePlansLoading } = usePublishedPlans();
+	const { can } = useCurrentUserPermissions();
+	const canWriteSetting = can('setting', 'write');
 	const [draft, setDraft] = useState<CustomerOnboardingDraft>(() => buildDraftFromConfig(configuration));
 	const [expandedCustomWorkflowId, setExpandedCustomWorkflowId] = useState<string | null>(null);
 
@@ -162,7 +165,7 @@ const CustomerOnboardingTab = () => {
 							onChange={updateDefaultActionSet}
 							planOptions={planOptions}
 							arePlansLoading={arePlansLoading}
-							disabled={isSaving}
+							disabled={isSaving || !canWriteSetting}
 						/>
 					</div>
 
@@ -184,7 +187,7 @@ const CustomerOnboardingTab = () => {
 										onRemove={() => removeCustomWorkflow(workflow.id)}
 										planOptions={planOptions}
 										arePlansLoading={arePlansLoading}
-										disabled={isSaving}
+										disabled={isSaving || !canWriteSetting}
 										defaultOpen={expandedCustomWorkflowId === workflow.id}
 									/>
 								))}
@@ -196,11 +199,11 @@ const CustomerOnboardingTab = () => {
 							label={t('customerOnboarding.workflow.customWorkflows.add')}
 							variant='outline'
 							onClick={addCustomWorkflow}
-							disabled={isSaving}
+							disabled={isSaving || !canWriteSetting}
 						/>
 					</div>
 
-					<SettingsFormActions onReset={handleReset} onSave={handleSave} isSaving={isSaving} disabled={isLoading} />
+					<SettingsFormActions onReset={handleReset} onSave={handleSave} isSaving={isSaving} disabled={isLoading || !canWriteSetting} />
 				</>
 			)}
 		</Card>

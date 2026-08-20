@@ -7,6 +7,7 @@
 		"ariaLabel": "مزيد من المعلومات حول {{field}}"
 	},
 	"members": {
+		"writeDeniedTooltip": "ليس لديك صلاحية دعوة أعضاء الفريق. اطلب الوصول من مسؤول المستأجر.",
 		"roleAdmin": "مسؤول",
 		"roleMember": "عضو",
 		"errors": {
@@ -120,6 +121,7 @@
 		"unitUsers_other": "مستخدمين"
 	},
 	"organization": {
+		"writeDeniedTooltip": "ليس لديك صلاحية تعديل المؤسسة. اطلب الوصول من مسؤول المستأجر.",
 		"title": "المنظمة",
 		"workspaceOwner": "مالك مساحة العمل",
 		"editOrganization": "تعديل المنظمة"

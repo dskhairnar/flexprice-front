@@ -7,12 +7,15 @@ import { getInvoiceConfigValidationErrorKey, normalizeInvoiceConfig, parseSequen
 import { useInvoiceConfiguration } from './useInvoiceConfiguration';
 import { buildInvoiceNumberPreview } from './invoicePreview';
 import SettingsFormActions from '../SettingsFormActions';
+import { useCurrentUserPermissions } from '@/hooks/useCurrentUserPermissions';
 
 const DATE_FORMAT_OPTIONS: InvoiceNumberFormat[] = ['YYYYMM', 'YYYY', 'YYYYMMDD', 'YYMMDD', 'YY'];
 
 const InvoiceConfigurationSection = () => {
 	const { t } = useTranslation(['settings', 'common']);
 	const { configuration, isLoading, updateConfiguration, resetToDefaults } = useInvoiceConfiguration();
+	const { can } = useCurrentUserPermissions();
+	const canWriteSetting = can('setting', 'write');
 	const [draft, setDraft] = useState<InvoiceConfig>(configuration);
 	const [suffixLengthInput, setSuffixLengthInput] = useState(String(configuration.suffix_length));
 
@@ -194,7 +197,7 @@ const InvoiceConfigurationSection = () => {
 						onReset={handleReset}
 						onSave={handleSave}
 						isSaving={updateConfiguration.isPending || resetToDefaults.isPending}
-						disabled={isLoading}
+						disabled={isLoading || !canWriteSetting}
 					/>
 				</>
 			)}
