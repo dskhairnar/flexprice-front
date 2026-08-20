@@ -326,6 +326,7 @@
 			"entitlementsCardTitle": "Entitlements"
 		},
 		"tax": {
+			"writeDeniedTooltip": "You don't have permission to manage tax associations. Ask a tenant admin for access.",
 			"emptyTitle": "Tax",
 			"emptySubtitle": "No tax rate assigned to this customer",
 			"associationsTitle": "Tax Associations",

@@ -325,6 +325,7 @@
 			"entitlementsCardTitle": "الاستحقاقات"
 		},
 		"tax": {
+			"writeDeniedTooltip": "ليس لديك صلاحية إدارة ارتباطات الضرائب. اطلب الوصول من مسؤول المستأجر.",
 			"emptyTitle": "الضريبة",
 			"emptySubtitle": "لا يوجد معدل ضريبي مُعيَّن لهذا العميل",
 			"associationsTitle": "ارتباطات الضرائب",

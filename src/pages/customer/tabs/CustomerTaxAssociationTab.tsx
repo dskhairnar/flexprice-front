@@ -1,6 +1,7 @@
 import { useParams, useOutletContext } from 'react-router';
 import { useQuery, useMutation } from '@tanstack/react-query';
-import { Card, CardHeader, AddButton, Loader, NoDataCard, ShortPagination } from '@/components/atoms';
+import { Card, CardHeader, AddButton, Loader, NoDataCard, ShortPagination, Tooltip } from '@/components/atoms';
+import { useCurrentUserPermissions } from '@/hooks/useCurrentUserPermissions';
 import { ApiDocsContent } from '@/components/molecules';
 import { API_DOCS_TAGS } from '@/constants/apiDocsTags';
 import TaxApi from '@/api/TaxApi';
@@ -23,6 +24,8 @@ const CustomerTaxAssociationTab = () => {
 	const { isArchived } = useOutletContext<ContextType>();
 	const { limit, offset, page } = usePagination();
 	const [dialogOpen, setDialogOpen] = useState(false);
+	const { can } = useCurrentUserPermissions();
+	const canWriteTax = can('tax', 'write');
 
 	const fetchTaxAssociations = async () => {
 		return await TaxApi.listTaxAssociations({
@@ -78,6 +81,18 @@ const CustomerTaxAssociationTab = () => {
 		toast.error('Error fetching tax associations');
 	}
 
+	const addTaxAssociationCta =
+		!isArchived &&
+		(canWriteTax ? (
+			<AddButton onClick={handleAddTaxAssociation} disabled={false} />
+		) : (
+			<Tooltip content={t('tabPanels.tax.writeDeniedTooltip')}>
+				<span tabIndex={0} className='inline-block'>
+					<AddButton disabled />
+				</span>
+			</Tooltip>
+		));
+
 	if (!taxAssociationsData?.items?.length) {
 		return (
 			<div>
@@ -90,11 +105,7 @@ const CustomerTaxAssociationTab = () => {
 					onSave={handleSaveTaxAssociation}
 					onCancel={handleCancelTaxAssociation}
 				/>
-				<NoDataCard
-					title={t('tabPanels.tax.emptyTitle')}
-					subtitle={t('tabPanels.tax.emptySubtitle')}
-					cta={!isArchived && <AddButton onClick={handleAddTaxAssociation} disabled={false} />}
-				/>
+				<NoDataCard title={t('tabPanels.tax.emptyTitle')} subtitle={t('tabPanels.tax.emptySubtitle')} cta={addTaxAssociationCta} />
 			</div>
 		);
 	}
@@ -103,10 +114,7 @@ const CustomerTaxAssociationTab = () => {
 		<div className='space-y-6'>
 			<ApiDocsContent tags={API_DOCS_TAGS.TaxAssociations} />
 			<Card variant='notched'>
-				<CardHeader
-					title={t('tabPanels.tax.associationsTitle')}
-					cta={!isArchived && <AddButton onClick={handleAddTaxAssociation} disabled={false} />}
-				/>
+				<CardHeader title={t('tabPanels.tax.associationsTitle')} cta={addTaxAssociationCta} />
 				<TaxAssociationTable data={taxAssociationsData.items} showDelete={!isArchived} />
 				<ShortPagination unit={t('tabPanels.tax.associationsPaginationUnit')} totalItems={taxAssociationsData.pagination.total ?? 0} />
 			</Card>
