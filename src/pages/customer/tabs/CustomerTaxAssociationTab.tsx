@@ -115,7 +115,7 @@ const CustomerTaxAssociationTab = () => {
 			<ApiDocsContent tags={API_DOCS_TAGS.TaxAssociations} />
 			<Card variant='notched'>
 				<CardHeader title={t('tabPanels.tax.associationsTitle')} cta={addTaxAssociationCta} />
-				<TaxAssociationTable data={taxAssociationsData.items} showDelete={!isArchived} />
+				<TaxAssociationTable data={taxAssociationsData.items} showDelete={!isArchived && canWriteTax} />
 				<ShortPagination unit={t('tabPanels.tax.associationsPaginationUnit')} totalItems={taxAssociationsData.pagination.total ?? 0} />
 			</Card>
 
