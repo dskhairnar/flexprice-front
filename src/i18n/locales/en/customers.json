@@ -339,6 +339,8 @@
 			"noEventsFound": "No events found"
 		},
 		"wallet": {
+			"writeDeniedTooltip": "You don't have permission to manage this wallet. Ask a tenant admin for access.",
+			"alertSettingsWriteDeniedTooltip": "You don't have permission to manage alert settings for this wallet. Ask a tenant admin for access.",
 			"emptyTitle": "Wallets",
 			"emptySubtitle": "No wallets linked to the customer",
 			"addWallet": "Add Wallet",

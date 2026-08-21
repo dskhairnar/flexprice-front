@@ -1,4 +1,5 @@
 import { FormHeader, Loader, Page, Button } from '@/components/atoms';
+import { useCurrentUserPermissions } from '@/hooks/useCurrentUserPermissions';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useParams, useNavigate } from 'react-router';
@@ -18,6 +19,8 @@ const ExportDetails = () => {
 	const { connectionId, exportId } = useParams<{ connectionId: string; exportId: string }>();
 	const navigate = useNavigate();
 	const [isForceRunDrawerOpen, setIsForceRunDrawerOpen] = useState(false);
+	const { can } = useCurrentUserPermissions();
+	const canWriteTask = can('task', 'write');
 	const [activeTab, setActiveTab] = useState('overview');
 
 	// Fetch export task details
@@ -125,14 +128,18 @@ const ExportDetails = () => {
 				</Button>
 
 				<div className='flex gap-2'>
-					<Button onClick={handleToggleTask} disabled={isTogglingTask} isLoading={isTogglingTask} className='flex items-center gap-2'>
+					<Button
+						onClick={handleToggleTask}
+						disabled={isTogglingTask || !canWriteTask}
+						isLoading={isTogglingTask}
+						className='flex items-center gap-2'>
 						{exportTask.enabled ? <Pause className='w-4 h-4' /> : <Play className='w-4 h-4' />}
 						{exportTask.enabled ? t('insightsTools.exports.pause') : t('insightsTools.exports.resume')}
 					</Button>
 					<Button
 						variant='outline'
 						onClick={() => setIsForceRunDrawerOpen(true)}
-						disabled={isForceRunning}
+						disabled={isForceRunning || !canWriteTask}
 						isLoading={isForceRunning}
 						className='flex items-center gap-2'>
 						<RefreshCw className='w-4 h-4' />
@@ -141,7 +148,7 @@ const ExportDetails = () => {
 					<Button
 						variant='outline'
 						onClick={handleDeleteTask}
-						disabled={isDeletingTask}
+						disabled={isDeletingTask || !canWriteTask}
 						isLoading={isDeletingTask}
 						className='flex items-center gap-2 text-danger hover:text-danger-strong'>
 						<Trash2 className='w-4 h-4' />

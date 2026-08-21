@@ -495,6 +495,7 @@
 		"chooseFile": "اختر ملفاً للرفع"
 	},
 	"bulkImports": {
+		"writeDeniedTooltip": "ليس لديك صلاحية إنشاء مهام الاستيراد. اطلب الوصول من مسؤول المستأجر.",
 		"title": "الاستيراد الجماعي",
 		"columns": {
 			"fileName": "اسم الملف",
@@ -1072,6 +1073,7 @@
 			"backToExportDetails": "العودة إلى تفاصيل التصدير"
 		},
 		"integrations": {
+			"writeDeniedTooltip": "ليس لديك صلاحية إدارة الاتصالات. اطلب الوصول من مسؤول المستأجر.",
 			"pageHeading": "التكاملات",
 			"availableSection": "متاح",
 			"premiumAddonsSection": "إضافات بريميوم",
@@ -1599,7 +1601,8 @@
 			"copyEnvironment": "نسخ البيئة",
 			"renameAria": "إعادة تسمية البيئة {{name}}",
 			"suspendedTitle": "تم تعليق البيئة",
-			"suspendedDescription": "هذه البيئة معلقة حاليًا. يرجى التواصل مع الدعم."
+			"suspendedDescription": "هذه البيئة معلقة حاليًا. يرجى التواصل مع الدعم.",
+			"writeDeniedTooltip": "ليس لديك إذن لإدارة البيئات"
 		},
 		"restrictedBanner": {
 			"productionAccount": "حساب الإنتاج",

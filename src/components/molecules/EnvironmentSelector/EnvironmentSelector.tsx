@@ -12,7 +12,8 @@ import { useNavigate } from 'react-router';
 import { RouteNames } from '@/core/routes/Routes';
 import { useEnvironment } from '@/hooks/useEnvironment';
 import { useRestrictedEnvs, EnvRestrictionState } from '@/hooks/useRestrictedEnvs';
-import { Button } from '@/components/atoms';
+import { Button, Tooltip } from '@/components/atoms';
+import { useCurrentUserPermissions } from '@/hooks/useCurrentUserPermissions';
 import EnvironmentCreator from '../EnvironmentCreator/EnvironmentCreator';
 import EnvironmentCopier from '../EnvironmentCopier/EnvironmentCopier';
 import EnvironmentEditor from '../EnvironmentEditor/EnvironmentEditor';
@@ -73,6 +74,8 @@ const EnvironmentSelector: React.FC<Props> = ({ disabled = false, className }) =
 
 	const { environments, activeEnvironment, changeActiveEnvironment, refetchEnvironments, isDevelopment, isProduction } = useEnvironment();
 	const { getRestriction } = useRestrictedEnvs();
+	const { can } = useCurrentUserPermissions();
+	const canWriteEnvironment = can('environment', 'write');
 
 	const [isOpen, setIsOpen] = useState(false);
 	const [isCreatorOpen, setIsCreatorOpen] = useState(false);
@@ -92,10 +95,21 @@ const EnvironmentSelector: React.FC<Props> = ({ disabled = false, className }) =
 		return (
 			<div className={cn('mt-1 w-full', className)}>
 				<p className='p-2 text-sm text-muted-foreground'>{t('environment.selector.noneAvailable')}</p>
-				<Button onClick={() => setIsCreatorOpen(true)} size='sm' className='w-full text-center rounded-[6px] justify-center items-center'>
-					<Plus className='h-4 w-4' />
-					{t('environment.selector.addEnvironment')}
-				</Button>
+				{canWriteEnvironment ? (
+					<Button onClick={() => setIsCreatorOpen(true)} size='sm' className='w-full text-center rounded-[6px] justify-center items-center'>
+						<Plus className='h-4 w-4' />
+						{t('environment.selector.addEnvironment')}
+					</Button>
+				) : (
+					<Tooltip content={t('environment.selector.writeDeniedTooltip')}>
+						<span tabIndex={0} className='inline-block w-full'>
+							<Button disabled size='sm' className='w-full text-center rounded-[6px] justify-center items-center'>
+								<Plus className='h-4 w-4' />
+								{t('environment.selector.addEnvironment')}
+							</Button>
+						</span>
+					</Tooltip>
+				)}
 
 				<EnvironmentCreator
 					isOpen={isCreatorOpen}
@@ -209,42 +223,86 @@ const EnvironmentSelector: React.FC<Props> = ({ disabled = false, className }) =
 										</span>
 									</div>
 								</SelectItem>
-								<button
-									type='button'
-									aria-label={t('environment.selector.renameAria', { name: option.label })}
-									onPointerDown={(e) => e.stopPropagation()}
-									onClick={(e) => handleEditClick(env, e)}
-									className='absolute right-1.5 top-1/2 -translate-y-1/2 p-1 rounded-[4px] text-muted-foreground hover:bg-accent hover:text-foreground opacity-0 group-hover:opacity-100 focus-visible:opacity-100 transition-opacity'>
-									<Pencil className='h-3.5 w-3.5' />
-								</button>
+								{canWriteEnvironment ? (
+									<button
+										type='button'
+										aria-label={t('environment.selector.renameAria', { name: option.label })}
+										onPointerDown={(e) => e.stopPropagation()}
+										onClick={(e) => handleEditClick(env, e)}
+										className='absolute right-1.5 top-1/2 -translate-y-1/2 p-1 rounded-[4px] text-muted-foreground hover:bg-accent hover:text-foreground opacity-0 group-hover:opacity-100 focus-visible:opacity-100 transition-opacity'>
+										<Pencil className='h-3.5 w-3.5' />
+									</button>
+								) : (
+									<Tooltip content={t('environment.selector.writeDeniedTooltip')}>
+										<span
+											tabIndex={0}
+											className='absolute right-1.5 top-1/2 -translate-y-1/2 inline-block opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity'>
+											<button
+												type='button'
+												disabled
+												aria-label={t('environment.selector.renameAria', { name: option.label })}
+												onPointerDown={(e) => e.stopPropagation()}
+												className='p-1 rounded-[4px] text-muted-foreground cursor-not-allowed'>
+												<Pencil className='h-3.5 w-3.5' />
+											</button>
+										</span>
+									</Tooltip>
+								)}
 							</div>
 						);
 					})}
 					<div className='flex flex-col gap-1.5 m-2 text-muted-foreground'>
-						<Button
-							onClick={() => {
-								setIsOpen(false);
-								setIsCreatorOpen(true);
-							}}
-							key='create'
-							value='create'
-							size='sm'
-							className='w-full text-center rounded-[6px] justify-center items-center'>
-							<Plus className='h-4 w-4' />
-							{t('environment.selector.addEnvironment')}
-						</Button>
-						<Button
-							onClick={() => {
-								setIsOpen(false);
-								setIsCopierOpen(true);
-							}}
-							key='copy'
-							size='sm'
-							variant='outline'
-							className='w-full text-center rounded-[6px] justify-center items-center'>
-							<Copy className='h-4 w-4' />
-							{t('environment.selector.copyEnvironment')}
-						</Button>
+						{canWriteEnvironment ? (
+							<Button
+								onClick={() => {
+									setIsOpen(false);
+									setIsCreatorOpen(true);
+								}}
+								key='create'
+								value='create'
+								size='sm'
+								className='w-full text-center rounded-[6px] justify-center items-center'>
+								<Plus className='h-4 w-4' />
+								{t('environment.selector.addEnvironment')}
+							</Button>
+						) : (
+							<Tooltip content={t('environment.selector.writeDeniedTooltip')}>
+								<span tabIndex={0} className='inline-block w-full'>
+									<Button disabled key='create' size='sm' className='w-full text-center rounded-[6px] justify-center items-center'>
+										<Plus className='h-4 w-4' />
+										{t('environment.selector.addEnvironment')}
+									</Button>
+								</span>
+							</Tooltip>
+						)}
+						{canWriteEnvironment ? (
+							<Button
+								onClick={() => {
+									setIsOpen(false);
+									setIsCopierOpen(true);
+								}}
+								key='copy'
+								size='sm'
+								variant='outline'
+								className='w-full text-center rounded-[6px] justify-center items-center'>
+								<Copy className='h-4 w-4' />
+								{t('environment.selector.copyEnvironment')}
+							</Button>
+						) : (
+							<Tooltip content={t('environment.selector.writeDeniedTooltip')}>
+								<span tabIndex={0} className='inline-block w-full'>
+									<Button
+										disabled
+										key='copy'
+										size='sm'
+										variant='outline'
+										className='w-full text-center rounded-[6px] justify-center items-center'>
+										<Copy className='h-4 w-4' />
+										{t('environment.selector.copyEnvironment')}
+									</Button>
+								</span>
+							</Tooltip>
+						)}
 					</div>
 				</SelectContent>
 			</Select>

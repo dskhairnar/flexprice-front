@@ -589,22 +589,27 @@ export const MainRouter: any = createBrowserRouter([
 								<WebhookDashboardLazy />
 							</Suspense>
 						),
+						handle: requirePermission('webhook', 'read'),
 					},
 					{
 						path: RouteNames.apiKeys,
 						element: <DeveloperPage />,
+						handle: requirePermission('secret', 'read'),
 					},
 					{
 						path: RouteNames.serviceAccounts,
 						element: <ServiceAccountsPage />,
+						handle: requirePermission('user', 'read'),
 					},
 					{
 						path: RouteNames.workflows,
 						element: <WorkflowsPage />,
+						handle: requirePermission('workflow', 'read'),
 					},
 					{
 						path: RouteNames.workflowDetails,
 						element: <WorkflowDetailsPage />,
+						handle: requirePermission('workflow', 'read'),
 					},
 				],
 			},
@@ -614,12 +619,15 @@ export const MainRouter: any = createBrowserRouter([
 					{
 						path: RouteNames.integrations,
 						element: <Integrations />,
+						handle: requirePermission('connection', 'read'),
 					},
 					{
 						path: `${RouteNames.integrationDetails}/:id`,
 						element: <IntegrationDetails />,
+						handle: requirePermission('connection', 'read'),
 					},
 					{
+						// OAuth redirect landing page — must stay reachable mid-flow regardless of RBAC.
 						path: RouteNames.oauthCallback,
 						element: <QuickBooksOAuthCallback />,
 					},
@@ -630,26 +638,32 @@ export const MainRouter: any = createBrowserRouter([
 					{
 						path: RouteNames.bulkImports,
 						element: <ImportExport />,
+						handle: requirePermission('task', 'read'),
 					},
 					{
 						path: RouteNames.exports,
 						element: <Exports />,
+						handle: requirePermission('task', 'read'),
 					},
 					{
 						path: RouteNames.s3Exports,
 						element: <S3Exports />,
+						handle: requirePermission('connection', 'read'),
 					},
 					{
 						path: RouteNames.s3ExportManagement,
 						element: <ExportManagement />,
+						handle: requirePermission('task', 'read'),
 					},
 					{
 						path: RouteNames.s3ExportDetails,
 						element: <ExportDetails />,
+						handle: requirePermission('task', 'read'),
 					},
 					{
 						path: RouteNames.s3TaskRuns,
 						element: <TaskRunsPage />,
+						handle: requirePermission('task', 'read'),
 					},
 				],
 			},

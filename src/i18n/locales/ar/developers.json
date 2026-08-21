@@ -54,6 +54,7 @@
 		}
 	},
 	"apiKeys": {
+		"writeDeniedTooltip": "ليس لديك صلاحية إدارة مفاتيح API. اطلب الوصول من مسؤول المستأجر.",
 		"toastFetchError": "خطأ في جلب المفاتيح السرية",
 		"paginationUnit": "مفاتيح سرية",
 		"emptyCard": {
@@ -77,6 +78,7 @@
 		}
 	},
 	"serviceAccounts": {
+		"writeDeniedTooltip": "ليس لديك صلاحية إدارة حسابات الخدمة. اطلب الوصول من مسؤول المستأجر.",
 		"toastFetchError": "خطأ في جلب حسابات الخدمة",
 		"paginationUnit": "حسابات الخدمة",
 		"noRoles": "لا أدوار",

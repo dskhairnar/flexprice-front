@@ -1,4 +1,5 @@
-import { Loader, Page, Dialog, Card, Button, Divider } from '@/components/atoms';
+import { Loader, Page, Dialog, Card, Button, Divider, Tooltip } from '@/components/atoms';
+import { useCurrentUserPermissions } from '@/hooks/useCurrentUserPermissions';
 import { Integration, INTEGRATION_TAG_DATA_PIPELINES } from './integrationsData';
 import { useIntegrationsCatalog } from './useIntegrationsCatalog';
 import { cn } from '@/lib/utils';
@@ -427,6 +428,8 @@ const IntegrationCard = ({ integration, connected, connection, isPreviewConnecti
 	const { t } = useTranslation('settings');
 	const { i18n } = useTranslation();
 	const [disconnectDialogOpen, setDisconnectDialogOpen] = useState(false);
+	const { can } = useCurrentUserPermissions();
+	const canWriteConnection = can('connection', 'write');
 
 	const providerKey = integration.id;
 
@@ -533,7 +536,7 @@ const IntegrationCard = ({ integration, connected, connection, isPreviewConnecti
 									size='icon'
 									className='h-8 w-8'
 									onClick={() => onOpenDrawer?.('edit')}
-									disabled={integration.premium || isPreviewConnection}>
+									disabled={integration.premium || isPreviewConnection || !canWriteConnection}>
 									<PencilIcon className='size-4' />
 								</Button>
 								<Button
@@ -542,18 +545,22 @@ const IntegrationCard = ({ integration, connected, connection, isPreviewConnecti
 									size='icon'
 									className='h-8 w-8'
 									onClick={() => setDisconnectDialogOpen(true)}
-									disabled={integration.premium}>
+									disabled={integration.premium || !canWriteConnection}>
 									<TrashIcon className='size-4' />
 								</Button>
 							</>
 						) : null}
 					</div>
-					<Switch
-						checked={connected}
-						onCheckedChange={handleToggle}
-						disabled={integration.premium}
-						className='data-[state=checked]:bg-accent-emerald data-[state=checked]:border-accent-emerald'
-					/>
+					<Tooltip content={!canWriteConnection ? t('insightsTools.integrations.writeDeniedTooltip') : undefined}>
+						<span tabIndex={canWriteConnection ? -1 : 0} className='inline-block'>
+							<Switch
+								checked={connected}
+								onCheckedChange={handleToggle}
+								disabled={integration.premium || !canWriteConnection}
+								className='data-[state=checked]:bg-accent-emerald data-[state=checked]:border-accent-emerald'
+							/>
+						</span>
+					</Tooltip>
 				</div>
 			</Card>
 
