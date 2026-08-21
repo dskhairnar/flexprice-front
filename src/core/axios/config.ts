@@ -25,6 +25,14 @@ const axiosClient: AxiosInstance = axios.create({
 	},
 });
 
+// Endpoints reachable before an active environment can possibly be known — the environments
+// list itself (fetching it is how an active one gets picked in the first place) and the
+// current-user lookup (fetched to even determine which tenant's environments to list).
+// Everything else needs to wait rather than fire with no X-Environment-ID: on a fresh login,
+// getActiveEnvironmentId() is a synchronous localStorage read that's empty until
+// useEnvironment()'s own fetch has resolved, and the backend 403s without the header.
+const ENV_GATE_EXEMPT_PATHS = ['/environments', '/users/me'];
+
 axiosClient.interceptors.request.use(
 	async (config: InternalAxiosRequestConfig) => {
 		// Customer portal mode: only X-Session-Token needed
@@ -36,7 +44,11 @@ axiosClient.interceptors.request.use(
 		// Normal app mode: use JWT token and environment ID
 		const token = await AuthService.getAcessToken();
 		// add active environment to the request
-		const activeEnvId = EnvironmentApi.getActiveEnvironmentId();
+		let activeEnvId = EnvironmentApi.getActiveEnvironmentId();
+		if (!activeEnvId && !ENV_GATE_EXEMPT_PATHS.some((path) => config.url?.includes(path))) {
+			await EnvironmentApi.waitForActiveEnvironment();
+			activeEnvId = EnvironmentApi.getActiveEnvironmentId();
+		}
 		if (activeEnvId) {
 			config.headers['X-Environment-ID'] = activeEnvId;
 		}

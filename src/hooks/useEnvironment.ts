@@ -31,9 +31,11 @@ export const useEnvironment = (pollingInterval: number = 1000): UseEnvironment =
 		staleTime: 5 * 60 * 1000, // 5 minutes
 	});
 
-	// Get/set active environment ID from localStorage
-	const getActiveEnvId = () => localStorage.getItem(ACTIVE_ENVIRONMENT_ID_KEY);
-	const setActiveEnvId = (id: string) => localStorage.setItem(ACTIVE_ENVIRONMENT_ID_KEY, id);
+	// Get/set active environment ID from localStorage. Routed through EnvironmentApi (rather
+	// than writing localStorage directly) so its request interceptor can be notified the
+	// moment an active environment becomes known — see EnvironmentApi's waitForActiveEnvironment.
+	const getActiveEnvId = () => EnvironmentApi.getActiveEnvironmentId();
+	const setActiveEnvId = (id: string) => EnvironmentApi.setActiveEnvironmentId(id);
 
 	// State for active environment ID
 	const [activeEnvId, setActiveEnvIdState] = useState<string | null>(getActiveEnvId());
