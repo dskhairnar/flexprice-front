@@ -6,6 +6,9 @@
 	"info": {
 		"ariaLabel": "More information about {{field}}"
 	},
+	"superAdmin": {
+		"writeDeniedTooltip": "Only a Super Admin can change this setting. Ask a tenant admin for access."
+	},
 	"members": {
 		"writeDeniedTooltip": "You don't have permission to invite team members. Ask a tenant admin for access.",
 		"roleAdmin": "Admin",

@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
 import { useTranslation } from 'react-i18next';
-import { Button, Card, Loader } from '@/components/atoms';
+import { Button, Card, Loader, Tooltip } from '@/components/atoms';
 import { SettingsCardHeader, WalletAlertThresholdCard } from '@/components/molecules';
 import type { WalletAlertThresholdCardLabels } from '@/components/molecules/WalletAlertThresholdCard';
 import { Switch } from '@/components/ui/switch';
@@ -21,8 +21,10 @@ const ALERT_LEVELS = [WalletAlertLevel.CRITICAL, WalletAlertLevel.WARNING, Walle
 const WalletAlertSettingsSection = () => {
 	const { t } = useTranslation(['settings', 'common']);
 	const { settings, isLoading, updateSettings } = useWalletAlertSettings();
-	const { can } = useCurrentUserPermissions();
-	const canWriteAlertSettings = can('alert_settings', 'write');
+	const { can, isSuperAdmin } = useCurrentUserPermissions();
+	// Backed by SettingsApi (a generic settings key), whose PUT the backend restricts to Super
+	// Admin regardless of alert_settings:write — see SamlSsoTab's own settings-gating note.
+	const canWriteAlertSettings = can('alert_settings', 'write') && isSuperAdmin;
 	const [draft, setDraft] = useState<WalletAlertSettings>(settings);
 
 	useEffect(() => {
@@ -100,9 +102,17 @@ const WalletAlertSettingsSection = () => {
 						))}
 					</div>
 					<div className='flex justify-end'>
-						<Button onClick={handleSave} isLoading={updateSettings.isPending} disabled={updateSettings.isPending || !canWriteAlertSettings}>
-							{t('alerts.walletAlerts.saveChanges')}
-						</Button>
+						{canWriteAlertSettings ? (
+							<Button onClick={handleSave} isLoading={updateSettings.isPending} disabled={updateSettings.isPending}>
+								{t('alerts.walletAlerts.saveChanges')}
+							</Button>
+						) : (
+							<Tooltip content={t('superAdmin.writeDeniedTooltip')}>
+								<span tabIndex={0} className='inline-block'>
+									<Button disabled>{t('alerts.walletAlerts.saveChanges')}</Button>
+								</span>
+							</Tooltip>
+						)}
 					</div>
 				</div>
 			)}

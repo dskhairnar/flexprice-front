@@ -14,8 +14,10 @@ const DATE_FORMAT_OPTIONS: InvoiceNumberFormat[] = ['YYYYMM', 'YYYY', 'YYYYMMDD'
 const InvoiceConfigurationSection = () => {
 	const { t } = useTranslation(['settings', 'common']);
 	const { configuration, isLoading, updateConfiguration, resetToDefaults } = useInvoiceConfiguration();
-	const { can } = useCurrentUserPermissions();
-	const canWriteSetting = can('setting', 'write');
+	const { can, isSuperAdmin } = useCurrentUserPermissions();
+	// Backed by SettingsApi (a generic settings key), whose PUT/DELETE the backend restricts
+	// to Super Admin regardless of setting:write — see SamlSsoTab's own settings-gating note.
+	const canWriteSetting = can('setting', 'write') && isSuperAdmin;
 	const [draft, setDraft] = useState<InvoiceConfig>(configuration);
 	const [suffixLengthInput, setSuffixLengthInput] = useState(String(configuration.suffix_length));
 
@@ -198,6 +200,7 @@ const InvoiceConfigurationSection = () => {
 						onSave={handleSave}
 						isSaving={updateConfiguration.isPending || resetToDefaults.isPending}
 						disabled={isLoading || !canWriteSetting}
+						disabledReason={canWriteSetting ? undefined : t('superAdmin.writeDeniedTooltip')}
 					/>
 				</>
 			)}

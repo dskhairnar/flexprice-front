@@ -12,8 +12,10 @@ import { useCurrentUserPermissions } from '@/hooks/useCurrentUserPermissions';
 const SubscriptionConfigurationSection = () => {
 	const { t } = useTranslation(['settings', 'common']);
 	const { configuration, savedConfiguration, isLoading, updateConfiguration } = useSubscriptionConfiguration();
-	const { can } = useCurrentUserPermissions();
-	const canWriteSetting = can('setting', 'write');
+	const { can, isSuperAdmin } = useCurrentUserPermissions();
+	// Backed by SettingsApi (a generic settings key), whose PUT/DELETE the backend restricts
+	// to Super Admin regardless of setting:write — see SamlSsoTab's own settings-gating note.
+	const canWriteSetting = can('setting', 'write') && isSuperAdmin;
 	const [draft, setDraft] = useState<SubscriptionConfig>(configuration);
 	const [gracePeriodInput, setGracePeriodInput] = useState(String(configuration.grace_period_days));
 
@@ -151,6 +153,7 @@ const SubscriptionConfigurationSection = () => {
 						onSave={handleSave}
 						isSaving={updateConfiguration.isPending}
 						disabled={isLoading || !canWriteSetting}
+						disabledReason={canWriteSetting ? undefined : t('superAdmin.writeDeniedTooltip')}
 					/>
 				</>
 			)}

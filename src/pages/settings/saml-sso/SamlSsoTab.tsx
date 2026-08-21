@@ -62,10 +62,11 @@ const SamlSsoTab = () => {
 	const { t } = useTranslation(['settings', 'common']);
 	const { user } = useUserContext();
 	const { config, isLoading, isForbidden, updateConfig, refetch } = useSamlConfig();
-	const { can } = useCurrentUserPermissions();
+	const { can, isSuperAdmin } = useCurrentUserPermissions();
 	// SAML config is stored and enforced backend-side as a generic setting (PUT
-	// /settings/saml_config requires setting:write, not a dedicated SSO/oauth entity).
-	const canWriteSetting = can('setting', 'write');
+	// /settings/saml_config requires setting:write AND Super Admin, not a dedicated SSO/oauth
+	// entity — every SettingsApi-backed page needs both).
+	const canWriteSetting = can('setting', 'write') && isSuperAdmin;
 	const [draft, setDraft] = useState<SamlConfig>(config);
 	const [errors, setErrors] = useState<FormErrors>({});
 
@@ -299,7 +300,13 @@ const SamlSsoTab = () => {
 						/>
 					</div>
 
-					<SettingsFormActions onReset={handleReset} onSave={handleSave} isSaving={isSaving} disabled={isLoading || !canWriteSetting} />
+					<SettingsFormActions
+						onReset={handleReset}
+						onSave={handleSave}
+						isSaving={isSaving}
+						disabled={isLoading || !canWriteSetting}
+						disabledReason={canWriteSetting ? undefined : t('superAdmin.writeDeniedTooltip')}
+					/>
 				</>
 			)}
 		</Card>

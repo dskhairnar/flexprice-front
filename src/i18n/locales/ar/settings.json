@@ -6,6 +6,9 @@
 	"info": {
 		"ariaLabel": "مزيد من المعلومات حول {{field}}"
 	},
+	"superAdmin": {
+		"writeDeniedTooltip": "يمكن فقط لمسؤول متميز (Super Admin) تغيير هذا الإعداد. اطلب الوصول من مسؤول المستأجر."
+	},
 	"members": {
 		"writeDeniedTooltip": "ليس لديك صلاحية دعوة أعضاء الفريق. اطلب الوصول من مسؤول المستأجر.",
 		"roleAdmin": "مسؤول",

@@ -12,8 +12,10 @@ import { useCurrentUserPermissions } from '@/hooks/useCurrentUserPermissions';
 const CustomerPortalTab = () => {
 	const { t } = useTranslation(['settings', 'common']);
 	const { config, isLoading, updateConfig } = useCustomerPortalConfig();
-	const { can } = useCurrentUserPermissions();
-	const canWritePortal = can('portal', 'write');
+	const { can, isSuperAdmin } = useCurrentUserPermissions();
+	// Backed by SettingsApi (a generic settings key), whose PUT/DELETE the backend restricts
+	// to Super Admin regardless of portal:write — see SamlSsoTab's own settings-gating note.
+	const canWritePortal = can('portal', 'write') && isSuperAdmin;
 	const [draftConfig, setDraftConfig] = useState<PortalConfig>(config);
 
 	useEffect(() => {
@@ -92,6 +94,7 @@ const CustomerPortalTab = () => {
 						onSave={handleSave}
 						isSaving={updateConfig.isPending}
 						disabled={isLoading || !canWritePortal}
+						disabledReason={canWritePortal ? undefined : t('superAdmin.writeDeniedTooltip')}
 					/>
 				</>
 			)}
