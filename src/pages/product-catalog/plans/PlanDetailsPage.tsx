@@ -139,6 +139,16 @@ const PlanDetailsPage = () => {
 		wasSyncRunning.current = isSyncRunning;
 	}, [isSyncRunning, isTerminalSyncStatus, latestRun?.run_id, planId, queryClient]);
 
+	// A running sync isn't reflected in planData until it finishes; refetch
+	// once it does so the button's disable state settles without a manual reload.
+	const wasSyncRunning = useRef(isSyncRunning);
+	useEffect(() => {
+		if (wasSyncRunning.current && !isSyncRunning) {
+			void queryClient.invalidateQueries({ queryKey: ['fetchPlan', planId] });
+		}
+		wasSyncRunning.current = isSyncRunning;
+	}, [isSyncRunning, planId, queryClient]);
+
 	const { mutate: archivePlan } = useMutation({
 		mutationFn: async () => {
 			return await PlanApi.deletePlan(planId!);
