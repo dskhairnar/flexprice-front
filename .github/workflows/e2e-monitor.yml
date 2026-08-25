@@ -18,10 +18,10 @@ name: E2E (monitor)
 
 on:
   schedule:
-    # Every 30 minutes. GitHub queues scheduled runs on shared capacity, so the
+    # Every 60 minutes. GitHub queues scheduled runs on shared capacity, so the
     # actual start time drifts by a few minutes — fine for monitoring, and the
     # reason this is not set to a tighter interval.
-    - cron: '*/30 * * * *'
+    - cron: '*/60 * * * *'
   workflow_dispatch:
 
 # Never let a slow run overlap the next tick.
@@ -44,8 +44,6 @@ jobs:
     env:
       CI: 'true'
       E2E_BASE_URL: ${{ secrets.E2E_STAGING_URL }}
-      # Enables environment isolation; without it the run writes to the account default.
-      E2E_API_URL: ${{ secrets.E2E_API_URL }}
       E2E_USER_EMAIL: ${{ secrets.E2E_USER_EMAIL }}
       E2E_USER_PASSWORD: ${{ secrets.E2E_USER_PASSWORD }}
       SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
