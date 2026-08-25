@@ -147,15 +147,31 @@ function contextBlock(text) {
 	return { type: 'context', elements: [{ type: 'mrkdwn', text }] };
 }
 
+/**
+ * Never fails the workflow over a notification — the test result is what matters.
+ *
+ * That has to cover a rejected request, not just an error response: a DNS failure,
+ * a connection reset or a malformed webhook URL makes fetch throw, and an uncaught
+ * throw here reaches the top-level await and exits non-zero. The step that reports
+ * a failure would then itself fail, turning a red suite into a red suite plus a
+ * confusing script error — and on the monitor, a Slack outage alone would keep the
+ * workflow red long after the app recovered.
+ */
 async function post(webhook, payload) {
-	const response = await fetch(webhook, {
-		method: 'POST',
-		headers: { 'Content-Type': 'application/json' },
-		body: JSON.stringify(payload),
-	});
+	let response;
+	try {
+		response = await fetch(webhook, {
+			method: 'POST',
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify(payload),
+		});
+	} catch (error) {
+		console.error(`Slack notification could not be sent: ${error instanceof Error ? error.message : String(error)}`);
+		return;
+	}
+
 	if (!response.ok) {
-		// Never fail the workflow over a notification — the test result is what matters.
-		console.error(`Slack notification failed: ${response.status} ${await response.text()}`);
+		console.error(`Slack notification failed: ${response.status} ${await response.text().catch(() => '')}`);
 		return;
 	}
 	console.log('Slack notification sent.');
