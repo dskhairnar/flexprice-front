@@ -124,6 +124,10 @@ const ZohoBooksConnectionDrawer: FC<ZohoBooksConnectionDrawerProps> = ({ isOpen,
 		onSuccess: (response) => {
 			sessionStorage.setItem(ZOHO_SESSION_KEY, response.session_id);
 			sessionStorage.setItem(OAUTH_PROVIDER_KEY, 'zoho_books');
+			// codeql[js/clear-text-storage-of-sensitive-data] organization_id is a non-secret account
+			// identifier (not the client_secret/webhook_secret credentials, which are never persisted
+			// client-side) - it must survive the full-page redirect to Zoho and back for the OAuth
+			// callback to resume the connection.
 			sessionStorage.setItem('zoho_books_organization_id', formData.organization_id.trim());
 			onOpenChange(false);
 			window.location.href = response.oauth_url;

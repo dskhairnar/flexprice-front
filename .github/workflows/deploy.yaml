@@ -29,6 +29,9 @@ on:
       - private
       - private-staging
 
+permissions:
+  contents: read
+
 # One deploy run per branch at a time; a newer push cancels any in-progress run.
 concurrency:
   group: deploy-${{ github.ref }}

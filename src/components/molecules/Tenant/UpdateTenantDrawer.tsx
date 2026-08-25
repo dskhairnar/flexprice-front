@@ -117,10 +117,15 @@ const useUpdateTenantForm = (tenantSchema: z.ZodTypeAny, initialData?: User) => 
 		}
 	}, [initialData]);
 
+	const UNSAFE_KEYS = new Set(['__proto__', 'constructor', 'prototype']);
+
 	const handleChange = (path: string, value: string) => {
 		setFormData((prev) => {
 			const newData = { ...prev };
 			const keys = path.split('.');
+			if (keys.some((key) => UNSAFE_KEYS.has(key))) {
+				return newData;
+			}
 			let current: any = newData;
 			for (let i = 0; i < keys.length - 1; i++) {
 				if (!current[keys[i]]) {
