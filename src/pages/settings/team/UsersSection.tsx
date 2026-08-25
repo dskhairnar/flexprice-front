@@ -314,30 +314,11 @@ function UsersSection() {
 				return <span className='text-sm text-content-zinc-tertiary'>{joinedDate ? formatDateShort(joinedDate) : '—'}</span>;
 			},
 		},
-		{
-			fieldVariant: 'interactive',
-			render: (row) => {
-				const isOnlyUser = totalMembers === 1;
-				return (
-					<ActionButton
-						id={row.id}
-						deleteMutationFn={() => UserApi.removeUserFromTenant(row.id)}
-						refetchQueryKey={settingsQueryKeys.teamMembersRoot()[0]}
-						entityName={row.email || row.id}
-						edit={{ enabled: false }}
-						archive={{
-							enabled: !isOnlyUser,
-							text: t('members.actions.remove'),
-							icon: <Trash2 className='h-4 w-4' />,
-						}}
-					/>
-				);
-			},
-		},
 	];
 
-	// Only super_admins can reach PUT /users/{id}/roles at all, so the whole
-	// action column is omitted rather than shown-but-disabled for anyone else.
+	// Editing roles and removing a member are both super_admin-only server-side, and
+	// neither may target the caller, so the whole action column is omitted rather than
+	// shown-but-disabled for anyone else.
 	if (isSuperAdmin) {
 		columns.push({
 			fieldVariant: 'interactive',
@@ -346,11 +327,15 @@ function UsersSection() {
 				return (
 					<ActionButton
 						id={row.id}
-						entityName={row.email}
-						deleteMutationFn={async () => {}}
-						refetchQueryKey='team-members'
-						archive={{ enabled: false }}
+						entityName={row.email || row.id}
+						deleteMutationFn={() => UserApi.removeUserFromTenant(row.id)}
+						refetchQueryKey={settingsQueryKeys.teamMembersRoot()[0]}
 						edit={{ enabled: true, text: t('members.actions.editRoles'), onClick: () => setEditingUser(row) }}
+						archive={{
+							enabled: totalMembers > 1,
+							text: t('members.actions.remove'),
+							icon: <Trash2 className='h-4 w-4' />,
+						}}
 					/>
 				);
 			},
