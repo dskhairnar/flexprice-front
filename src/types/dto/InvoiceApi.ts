@@ -51,6 +51,20 @@ export interface InvoiceFilter {
 	skip_line_items?: boolean;
 }
 
+/**
+ * Request body for PUT /invoices/:id (update invoice). Matches backend UpdateInvoiceRequest.
+ * All fields optional — send only what changed. Allowed for DRAFT and FINALIZED invoices.
+ */
+export interface UpdateInvoicePayload {
+	// Backend rejects a due_date in the past, so omit it unless the user changed it.
+	due_date?: string;
+	invoice_pdf_url?: string;
+	// Full replace of the invoice's metadata, not a merge.
+	metadata?: Metadata;
+	// Recalculates discount from existing coupon associations. DRAFT invoices only.
+	apply_discount?: boolean;
+}
+
 /** Request body for PUT /invoices/:id/payment (update payment status). */
 export interface UpdatePaymentStatusPayload {
 	payment_status: string;

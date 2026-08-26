@@ -21,6 +21,7 @@ import {
 	CustomerProfilePage,
 	InvoicePage,
 	InvoiceDetailsPage,
+	EditInvoicePage,
 	CustomerInvoiceTab as Invoice,
 	CustomerOverviewTab as Overview,
 	CustomerAnalyticsTab as AnalyticsTab,
@@ -448,6 +449,11 @@ export const MainRouter: any = createBrowserRouter([
 						path: `${RouteNames.invoices}/:invoiceId`,
 						element: <InvoiceDetailsPage />,
 						handle: requirePermission('invoice', 'read'),
+					},
+					{
+						path: `${RouteNames.invoices}/:invoiceId/edit`,
+						element: <EditInvoicePage />,
+						handle: requirePermission('invoice', 'write'),
 					},
 					{
 						path: RouteNames.creditNotes,

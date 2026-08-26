@@ -19,6 +19,38 @@
 			"voidSuccess": "Invoice voided successfully",
 			"downloadError": "Failed to download invoice"
 		},
+		"edit": {
+			"pageTitle": "Edit Invoice",
+			"detailsTitle": "Invoice Details",
+			"invoiceNumber": "Invoice Number",
+			"customer": "Customer",
+			"currency": "Currency",
+			"issueDate": "Date of Issue",
+			"status": "Status",
+			"paymentStatus": "Payment Status",
+			"editableTitle": "Edit Details",
+			"dueDate": "Due Date",
+			"dueDatePlaceholder": "Select due date",
+			"pdfUrl": "Invoice PDF URL",
+			"pdfUrlPlaceholder": "https://example.com/invoice.pdf",
+			"pdfUrlInvalid": "Please enter a valid URL for the invoice PDF",
+			"dueDatePast": "Due date cannot be in the past",
+			"metadata": "Metadata",
+			"applyDiscount": "Reapply coupon discounts on save",
+			"applyDiscountDescription": "Recalculates the discount from this invoice's current coupon associations. Available for draft invoices only.",
+			"lineItemsTitle": "Line Items",
+			"lineItemsNote": "Line items on an existing invoice cannot be edited.",
+			"notEditable": "This invoice cannot be edited. Only draft and finalized invoices can be updated.",
+			"saveChanges": "Save Changes",
+			"saving": "Saving...",
+			"menuLabel": "Edit Invoice",
+			"menuDisabledStatus": "Only draft and finalized invoices can be edited",
+			"toast": {
+				"updateSuccess": "Invoice updated successfully",
+				"updateFailed": "Failed to update invoice",
+				"loadError": "Error loading invoice"
+			}
+		},
 		"status": {
 			"void": "Void",
 			"finalized": "Finalized",
