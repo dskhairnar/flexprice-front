@@ -12,12 +12,26 @@ const RUN_ID = `${Date.now().toString(36)}${Math.random().toString(36).slice(2, 
 /** Marks a record as suite-generated so leftovers are identifiable and safe to purge. */
 export const E2E_PREFIX = 'e2e';
 
+/**
+ * Incremented per call so two records made in the same worker never share a name.
+ *
+ * RUN_ID alone is fixed for the module's lifetime, so `newCustomer()` called twice
+ * returned the same name and external id — a duplicate-record error the moment two
+ * existed at once, and a cleanup that could delete the wrong row.
+ */
+let sequence = 0;
+
+function suffix(): string {
+	sequence += 1;
+	return `${RUN_ID}${sequence.toString(36)}`;
+}
+
 export function uniqueName(entity: string): string {
-	return `${E2E_PREFIX}-${entity}-${RUN_ID}`;
+	return `${E2E_PREFIX}-${entity}-${suffix()}`;
 }
 
 export function uniqueExternalId(entity: string): string {
-	return `${E2E_PREFIX}_${entity}_${RUN_ID}`;
+	return `${E2E_PREFIX}_${entity}_${suffix()}`;
 }
 
 export function newCustomer(overrides: Partial<{ name: string; externalId: string; email: string }> = {}) {

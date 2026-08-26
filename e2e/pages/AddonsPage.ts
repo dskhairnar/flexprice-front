@@ -8,8 +8,9 @@ import { dialog, expectPageLoaded, rowContaining } from '../utils/selectors';
  * and the same reason for addressing fields by placeholder: AddonDrawer passes no
  * `id` to Input, so the visible label is not associated with the control.
  *
- * Unlike plans and customers, the lookup key here is *not* derived from the name;
- * both fields have to be filled before Create enables.
+ * The lookup key is derived from the name as `addon-<slugified name>`, the same way
+ * plans and customers derive theirs — so typing a name is what releases the Create
+ * gate, and the key field rarely needs touching.
  */
 export class AddonsPage {
 	constructor(private readonly page: Page) {}

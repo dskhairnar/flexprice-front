@@ -10,11 +10,15 @@ import { test, expect } from '../fixtures/test';
  * changed. A blank page under the right URL is precisely the failure worth catching.
  */
 test.describe('Critical journeys @smoke', () => {
-	test('the cached session still authenticates', async ({ page }) => {
+	test('the cached session still authenticates', async ({ app, page }) => {
 		await page.goto('/home');
 
-		// Being bounced to /login is how an expired or revoked test account presents.
-		await expect(page).not.toHaveURL(/\/login/);
+		// AuthProvider sends an unauthenticated visitor to /auth — not /login — and it
+		// does so after an async session check. A negative URL assertion alone passes
+		// while that check is still in flight, so wait for authenticated content and
+		// only then rule out both landing pages.
+		await expect(app.navLink('Home')).toBeVisible();
+		await expect(page).not.toHaveURL(/\/(auth|login)/);
 	});
 
 	test('customers list loads', async ({ customersPage, page }) => {

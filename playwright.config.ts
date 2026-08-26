@@ -10,19 +10,6 @@ import {
 } from './e2e/support/env';
 
 /**
- * Loads .env.e2e when present so a local run needs no exported shell variables.
- * CI passes real secrets through the environment instead, and never ships this file.
- *
- * process.loadEnvFile is built into Node 22 (this repo's engine floor), which keeps
- * the suite free of a dotenv dependency.
- */
-try {
-	process.loadEnvFile('.env.e2e');
-} catch {
-	// Absent or unreadable — the environment is expected to already carry the values.
-}
-
-/**
  * Layout:
  *   e2e/public/**      routes reachable signed out — no credentials required
  *   e2e/journeys/**    business workflows: create a customer, edit a subscription
@@ -85,14 +72,19 @@ export default defineConfig({
 			testDir: './e2e/public',
 			use: { ...devices['Desktop Chrome'], storageState: { cookies: [], origins: [] } },
 		},
-		{
-			// Opt-in: never part of a pull-request or deploy run. Snapshot baselines are
-			// platform-specific, so this only produces meaningful results where the
-			// baselines were generated — see e2e/README.md before enabling it in CI.
-			name: 'visual',
-			testDir: './e2e/visual',
-			use: { ...devices['Desktop Chrome'], storageState: { cookies: [], origins: [] } },
-		},
+		// Opt-in for real: present only when asked for. Listing it unconditionally made
+		// it part of a bare `playwright test`, so any machine that had never generated
+		// baselines failed on snapshots that were never meant to run there. Snapshot
+		// baselines are platform-specific — see e2e/README.md before enabling in CI.
+		...(process.env.E2E_VISUAL === '1'
+			? [
+					{
+						name: 'visual',
+						testDir: './e2e/visual',
+						use: { ...devices['Desktop Chrome'], storageState: { cookies: [], origins: [] } },
+					},
+				]
+			: []),
 		{
 			name: 'setup',
 			testMatch: /support\/auth\.setup\.ts/,

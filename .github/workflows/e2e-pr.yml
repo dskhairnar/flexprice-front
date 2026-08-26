@@ -112,12 +112,16 @@ jobs:
       - name: Decide which projects can run
         id: scope
         run: |
-          if [ -n "${E2E_USER_EMAIL}" ] && [ -n "${E2E_USER_PASSWORD}" ]; then
+          if [ -n "${E2E_USER_EMAIL}" ] && [ -n "${E2E_USER_PASSWORD}" ] && [ -n "${E2E_API_URL}" ]; then
             # `e2e` declares `public` and `setup` as dependencies, so selecting it
             # runs the login suite first and skips the rest if that fails.
             echo "projects=--project=e2e" >> "$GITHUB_OUTPUT"
           else
-            echo "::notice::E2E_USER_EMAIL / E2E_USER_PASSWORD are not set — running the public suite only."
+            # E2E_API_URL matters as much as the credentials: the build above feeds it
+            # to VITE_API_URL, and without it the preview falls back to localhost:8080
+            # and every authenticated test fails for a reason that has nothing to do
+            # with the change under review.
+            echo "::notice::E2E_API_URL / E2E_USER_EMAIL / E2E_USER_PASSWORD are not all set — running the public suite only."
             echo "projects=--project=public" >> "$GITHUB_OUTPUT"
           fi
 

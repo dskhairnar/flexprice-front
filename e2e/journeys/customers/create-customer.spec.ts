@@ -11,8 +11,19 @@ import { newCustomer } from '../../data/testData';
  * write actually landed.
  */
 test.describe('Create customer @critical', () => {
+	// Names of customers this file creates through the UI, which never expose their
+	// id. Cleared in afterEach so a failing assertion still cleans up rather than
+	// growing the customer list several other specs assert on.
+	const created: string[] = [];
+
 	test.beforeEach(async ({ customersPage }) => {
 		await customersPage.goto();
+	});
+
+	test.afterEach(async ({ api }) => {
+		while (created.length > 0) {
+			await api.deleteCustomerByName(created.pop()!);
+		}
 	});
 
 	test('creates a customer and shows it in the list after a reload', async ({ customersPage, app, page }) => {
@@ -20,6 +31,7 @@ test.describe('Create customer @critical', () => {
 
 		await customersPage.openCreateDrawer();
 		await customersPage.fillCustomer(customer);
+		created.push(customer.name);
 		await customersPage.saveButton.click();
 
 		await app.expectToast('Customer added successfully');

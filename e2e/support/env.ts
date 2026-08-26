@@ -13,6 +13,27 @@
  * that silently times out.
  */
 
+/**
+ * Loaded here, not in playwright.config.ts, because ES imports are evaluated before
+ * the importing module's body: a `loadEnvFile` call in the config ran *after* this
+ * module had already read `process.env`, so every value the config itself computes —
+ * baseURL, webServerCommand, whether the rbac project exists — silently used the
+ * defaults. Test-time lookups were unaffected, which is what made it easy to miss:
+ * the worker process re-evaluates this module after the config body has run.
+ *
+ * Doing it at the top of the module every importer already depends on means the file
+ * is loaded before the first `process.env` read, whoever imports first.
+ *
+ * process.loadEnvFile is built into Node 22 (this repo's engine floor), which keeps
+ * the suite free of a dotenv dependency. CI passes real secrets through the
+ * environment instead and ships no such file.
+ */
+try {
+	process.loadEnvFile('.env.e2e');
+} catch {
+	// Absent or unreadable — the environment is expected to already carry the values.
+}
+
 const DEFAULT_LOCAL_URL = 'http://localhost:3000';
 
 /**
