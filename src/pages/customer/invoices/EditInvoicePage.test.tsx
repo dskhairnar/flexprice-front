@@ -12,12 +12,14 @@ import commonEn from '@/i18n/locales/en/common.json';
 
 const mockGetInvoiceById = vi.hoisted(() => vi.fn());
 const mockUpdateInvoice = vi.hoisted(() => vi.fn());
+const mockUpdatePaymentStatus = vi.hoisted(() => vi.fn());
 const mockNavigate = vi.hoisted(() => vi.fn());
 
 vi.mock('@/api/InvoiceApi', () => ({
 	default: {
 		getInvoiceById: (...args: unknown[]) => mockGetInvoiceById(...args),
 		updateInvoice: (...args: unknown[]) => mockUpdateInvoice(...args),
+		updateInvoicePaymentStatus: (...args: unknown[]) => mockUpdatePaymentStatus(...args),
 	},
 }));
 
@@ -42,6 +44,7 @@ vi.mock('@/components/molecules', async (importOriginal) => {
 	return {
 		...actual,
 		InvoiceLineItemTable: () => <div data-testid='line-item-table' />,
+		InvoiceStatusModal: () => <div data-testid='invoice-status-modal' />,
 	};
 });
 
@@ -54,6 +57,31 @@ vi.mock('@/components/atoms', async (importOriginal) => {
 	return {
 		...actual,
 		DateTimePicker: ({ title }: { title?: string }) => <div>{title}</div>,
+		// Radix Select doesn't open in jsdom; a native select keeps the page wiring testable.
+		Select: ({
+			label,
+			value,
+			options,
+			onChange,
+			disabled,
+		}: {
+			label?: string;
+			value?: string;
+			options: { value: string; label: string }[];
+			onChange?: (value: string) => void;
+			disabled?: boolean;
+		}) => (
+			<label>
+				{label}
+				<select value={value} disabled={disabled} onChange={(e) => onChange?.(e.target.value)}>
+					{options.map((o) => (
+						<option key={o.value} value={o.value}>
+							{o.label}
+						</option>
+					))}
+				</select>
+			</label>
+		),
 	};
 });
 
@@ -127,6 +155,7 @@ describe('EditInvoicePage', () => {
 	beforeEach(() => {
 		mockGetInvoiceById.mockReset();
 		mockUpdateInvoice.mockReset();
+		mockUpdatePaymentStatus.mockReset();
 		mockNavigate.mockReset();
 	});
 
@@ -185,12 +214,42 @@ describe('EditInvoicePage', () => {
 		await waitFor(() => expect(mockUpdateInvoice).toHaveBeenCalledWith('inv_1', { metadata: { po_number: 'PO-43' } }));
 	});
 
+	it('updates payment status through the payment endpoint, not the invoice update', async () => {
+		mockGetInvoiceById.mockResolvedValue(makeInvoice());
+		mockUpdatePaymentStatus.mockResolvedValue(makeInvoice());
+		const user = userEvent.setup();
+		renderPage();
+
+		const select = await screen.findByRole('combobox');
+		await user.selectOptions(select, 'SUCCEEDED');
+		await user.click(screen.getByRole('button', { name: 'Save Changes' }));
+
+		await waitFor(() => expect(mockUpdatePaymentStatus).toHaveBeenCalledWith('inv_1', { payment_status: 'SUCCEEDED' }));
+		expect(mockUpdateInvoice).not.toHaveBeenCalled();
+		await waitFor(() => expect(mockNavigate).toHaveBeenCalledWith('/billing/invoices/inv_1'));
+	});
+
+	it('locks the payment status select once payment has succeeded', async () => {
+		mockGetInvoiceById.mockResolvedValue(makeInvoice({ payment_status: 'SUCCEEDED' }));
+		renderPage();
+
+		expect(await screen.findByRole('combobox')).toBeDisabled();
+	});
+
+	it('offers the invoice status modal for editable invoices', async () => {
+		mockGetInvoiceById.mockResolvedValue(makeInvoice());
+		renderPage();
+
+		expect(await screen.findByRole('button', { name: 'Update Invoice Status' })).toBeEnabled();
+	});
+
 	it('blocks editing for voided invoices', async () => {
 		mockGetInvoiceById.mockResolvedValue(makeInvoice({ invoice_status: 'VOIDED' }));
 		renderPage();
 
 		expect(await screen.findByText('This invoice cannot be edited. Only draft and finalized invoices can be updated.')).toBeInTheDocument();
 		expect(screen.queryByRole('button', { name: 'Save Changes' })).not.toBeInTheDocument();
+		expect(screen.queryByRole('button', { name: 'Update Invoice Status' })).not.toBeInTheDocument();
 		// apply_discount is draft-only
 		expect(screen.queryByRole('checkbox')).not.toBeInTheDocument();
 	});

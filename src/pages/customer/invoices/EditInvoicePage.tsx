@@ -4,13 +4,14 @@ import { useNavigate, useParams } from 'react-router';
 import { useTranslation } from 'react-i18next';
 import toast from 'react-hot-toast';
 import { Trash2 } from 'lucide-react';
-import { Button, Checkbox, DateTimePicker, Divider, FormHeader, Input, Loader, Page, Spacer, Textarea } from '@/components/atoms';
-import { InvoiceLineItemTable } from '@/components/molecules';
+import { Button, Checkbox, DateTimePicker, Divider, FormHeader, Input, Loader, Page, Select, Spacer, Textarea } from '@/components/atoms';
+import { InvoiceLineItemTable, InvoiceStatusModal } from '@/components/molecules';
 import { AddChargesButton } from '@/components/organisms/PlanForm/SetupChargesSection';
 import { getPaymentStatusChip, getStatusChip } from '@/components/molecules/InvoiceTable/InvoiceTable';
 import RedirectCell from '@/components/molecules/Table/RedirectCell';
 import InvoiceApi from '@/api/InvoiceApi';
 import { Invoice, INVOICE_STATUS, INVOICE_TYPE } from '@/models/Invoice';
+import { PAYMENT_STATUS } from '@/constants/payment';
 import { UpdateInvoicePayload } from '@/types/dto';
 import { RouteNames } from '@/core/routes/Routes';
 import { refetchQueries } from '@/core/services/tanstack/ReactQueryProvider';
@@ -59,6 +60,8 @@ const EditInvoicePage: FC = () => {
 	const [pdfUrl, setPdfUrl] = useState('');
 	const [metadataRows, setMetadataRows] = useState<MetadataRow[]>([]);
 	const [applyDiscount, setApplyDiscount] = useState(false);
+	const [paymentStatus, setPaymentStatus] = useState('');
+	const [isStatusModalOpen, setIsStatusModalOpen] = useState(false);
 
 	const {
 		data: invoice,
@@ -77,6 +80,7 @@ const EditInvoicePage: FC = () => {
 		setPdfUrl(invoice.invoice_pdf_url ?? '');
 		setMetadataRows(toMetadataRows(invoice));
 		setApplyDiscount(false);
+		setPaymentStatus(invoice.payment_status ?? '');
 	}, [invoice]);
 
 	useEffect(() => {
@@ -96,10 +100,19 @@ const EditInvoicePage: FC = () => {
 		return JSON.stringify(rowsToMetadata(metadataRows)) !== JSON.stringify(rowsToMetadata(toMetadataRows(invoice)));
 	}, [invoice, metadataRows]);
 
-	const hasChanges = dueDateChanged || pdfUrlChanged || metadataChanged || applyDiscount;
+	// The payment endpoint only accepts transitions away from PENDING/FAILED
+	// (SUCCEEDED can only move to OVERPAID, which happens via payments, not here).
+	const isPaymentStatusEditable =
+		isEditable && (invoice?.payment_status === PAYMENT_STATUS.PENDING || invoice?.payment_status === PAYMENT_STATUS.FAILED);
+	const paymentStatusChanged = !!invoice && isPaymentStatusEditable && !!paymentStatus && paymentStatus !== invoice.payment_status;
+
+	const hasChanges = dueDateChanged || pdfUrlChanged || metadataChanged || applyDiscount || paymentStatusChanged;
 
 	const { mutate: updateInvoice, isPending } = useMutation({
-		mutationFn: async (payload: UpdateInvoicePayload) => await InvoiceApi.updateInvoice(invoiceId!, payload),
+		mutationFn: async ({ payload, nextPaymentStatus }: { payload: UpdateInvoicePayload | null; nextPaymentStatus: string | null }) => {
+			if (payload) await InvoiceApi.updateInvoice(invoiceId!, payload);
+			if (nextPaymentStatus) await InvoiceApi.updateInvoicePaymentStatus(invoiceId!, { payment_status: nextPaymentStatus });
+		},
 		onSuccess: () => {
 			toast.success(t('invoices.edit.toast.updateSuccess'));
 			void refetchInvoiceQueries();
@@ -136,9 +149,12 @@ const EditInvoicePage: FC = () => {
 		if (applyDiscount && isDraft) {
 			payload.apply_discount = true;
 		}
-		if (Object.keys(payload).length === 0) return;
 
-		updateInvoice(payload);
+		const invoicePayload = Object.keys(payload).length > 0 ? payload : null;
+		const nextPaymentStatus = paymentStatusChanged ? paymentStatus : null;
+		if (!invoicePayload && !nextPaymentStatus) return;
+
+		updateInvoice({ payload: invoicePayload, nextPaymentStatus });
 	};
 
 	const handleCancel = () => {
@@ -167,10 +183,18 @@ const EditInvoicePage: FC = () => {
 	return (
 		<Page documentTitle={t('invoices.edit.pageTitle')} heading={t('invoices.edit.pageTitle')}>
 			<div className='space-y-6'>
+				<InvoiceStatusModal invoice={invoice} isOpen={isStatusModalOpen} onOpenChange={setIsStatusModalOpen} />
 				<div className='rounded-xl border border-line bg-transparent p-6'>
 					{/* read-only invoice context */}
 					<div className='p-4'>
-						<FormHeader title={t('invoices.edit.detailsTitle')} variant='sub-header' titleClassName='font-semibold' />
+						<div className='flex justify-between items-center'>
+							<FormHeader className='!mb-0' title={t('invoices.edit.detailsTitle')} variant='sub-header' titleClassName='font-semibold' />
+							{isEditable && (
+								<Button variant='outline' onClick={() => setIsStatusModalOpen(true)}>
+									{t('invoices.details.updateInvoiceStatus')}
+								</Button>
+							)}
+						</div>
 						<Spacer className='!my-6' />
 						<div className='w-full grid grid-cols-4 gap-4'>
 							<p className={readonlyLabelClass}>{t('invoices.edit.invoiceNumber')}</p>
@@ -222,6 +246,18 @@ const EditInvoicePage: FC = () => {
 								onChange={setPdfUrl}
 								placeholder={t('invoices.edit.pdfUrlPlaceholder')}
 								disabled={!isEditable}
+							/>
+							<Select
+								label={t('invoices.edit.paymentStatus')}
+								value={paymentStatus}
+								options={[
+									{ value: PAYMENT_STATUS.PENDING, label: t('invoices.details.paymentStatusModal.pendingLabel') },
+									{ value: PAYMENT_STATUS.SUCCEEDED, label: t('invoices.details.paymentStatusModal.succeededLabel') },
+									{ value: PAYMENT_STATUS.FAILED, label: t('invoices.details.paymentStatusModal.failedLabel') },
+								]}
+								onChange={setPaymentStatus}
+								disabled={!isPaymentStatusEditable}
+								description={!isPaymentStatusEditable && isEditable ? t('invoices.edit.paymentStatusLockedHint') : undefined}
 							/>
 						</div>
 						{isDraft && (
