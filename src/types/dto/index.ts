@@ -143,6 +143,7 @@ export type {
 	GetInvoicesListResponse,
 	InvoiceListItem,
 	InvoiceFilter,
+	UpdateInvoicePayload,
 	UpdatePaymentStatusPayload,
 	UpdateInvoiceStatusPayload,
 	GetInvoicePreviewPayload,

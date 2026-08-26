@@ -10,6 +10,7 @@ import {
 	GetInvoicesResponse,
 	GetInvoicesListResponse,
 	InvoiceFilter,
+	UpdateInvoicePayload,
 	UpdatePaymentStatusPayload,
 	UpdateInvoiceStatusPayload,
 	GetInvoicePreviewPayload,
@@ -85,7 +86,8 @@ class InvoiceApi {
 		return await AxiosClient.post<Invoice>(`${this.baseurl}`, payload);
 	}
 
-	public static async updateInvoice(invoiceId: string, payload: Partial<Invoice>): Promise<Invoice> {
+	/** Update an existing invoice (due date, PDF URL, metadata, apply_discount). DRAFT and FINALIZED only. */
+	public static async updateInvoice(invoiceId: string, payload: UpdateInvoicePayload): Promise<Invoice> {
 		return await AxiosClient.put<Invoice>(`${this.baseurl}/${invoiceId}`, payload);
 	}
 

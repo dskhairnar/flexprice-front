@@ -19,6 +19,38 @@
 			"voidSuccess": "تم إبطال الفاتورة بنجاح",
 			"downloadError": "فشل تنزيل الفاتورة"
 		},
+		"edit": {
+			"pageTitle": "تعديل الفاتورة",
+			"detailsTitle": "تفاصيل الفاتورة",
+			"invoiceNumber": "رقم الفاتورة",
+			"customer": "العميل",
+			"currency": "العملة",
+			"issueDate": "تاريخ الإصدار",
+			"status": "الحالة",
+			"paymentStatus": "حالة الدفع",
+			"editableTitle": "تعديل التفاصيل",
+			"dueDate": "تاريخ الاستحقاق",
+			"dueDatePlaceholder": "اختر تاريخ الاستحقاق",
+			"pdfUrl": "رابط PDF للفاتورة",
+			"pdfUrlPlaceholder": "https://example.com/invoice.pdf",
+			"pdfUrlInvalid": "يرجى إدخال رابط صحيح لملف PDF الخاص بالفاتورة",
+			"dueDatePast": "لا يمكن أن يكون تاريخ الاستحقاق في الماضي",
+			"metadata": "البيانات الوصفية",
+			"applyDiscount": "إعادة تطبيق خصومات الكوبونات عند الحفظ",
+			"applyDiscountDescription": "يعيد حساب الخصم من ارتباطات الكوبونات الحالية لهذه الفاتورة. متاح لمسودات الفواتير فقط.",
+			"lineItemsTitle": "بنود الفاتورة",
+			"lineItemsNote": "لا يمكن تعديل بنود فاتورة قائمة.",
+			"notEditable": "لا يمكن تعديل هذه الفاتورة. يمكن تحديث الفواتير في حالة المسودة أو النهائية فقط.",
+			"saveChanges": "حفظ التغييرات",
+			"saving": "جارٍ الحفظ...",
+			"menuLabel": "تعديل الفاتورة",
+			"menuDisabledStatus": "يمكن تعديل الفواتير في حالة المسودة أو النهائية فقط",
+			"toast": {
+				"updateSuccess": "تم تحديث الفاتورة بنجاح",
+				"updateFailed": "فشل تحديث الفاتورة",
+				"loadError": "خطأ في تحميل الفاتورة"
+			}
+		},
 		"status": {
 			"void": "مبطلة",
 			"finalized": "نهائية",
