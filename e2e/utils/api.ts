@@ -134,11 +134,6 @@ export class ApiClient {
 		await this.bestEffortDelete(`/customers/${id}`);
 	}
 
-	/** For a customer created through the UI, which never told the test its id. */
-	async deleteCustomerByName(name: string): Promise<void> {
-		await this.deleteFirstMatch('/customers', name, (id) => this.deleteCustomer(id));
-	}
-
 	private async bestEffortDelete(path: string): Promise<void> {
 		try {
 			const response = await this.context.delete(path.replace(/^\//, ''));

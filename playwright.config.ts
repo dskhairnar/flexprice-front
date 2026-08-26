@@ -10,6 +10,19 @@ import {
 } from './e2e/support/env';
 
 /**
+ * Loads .env.e2e when present so a local run needs no exported shell variables.
+ * CI passes real secrets through the environment instead, and never ships this file.
+ *
+ * process.loadEnvFile is built into Node 22 (this repo's engine floor), which keeps
+ * the suite free of a dotenv dependency.
+ */
+try {
+	process.loadEnvFile('.env.e2e');
+} catch {
+	// Absent or unreadable — the environment is expected to already carry the values.
+}
+
+/**
  * Layout:
  *   e2e/public/**      routes reachable signed out — no credentials required
  *   e2e/journeys/**    business workflows: create a customer, edit a subscription
