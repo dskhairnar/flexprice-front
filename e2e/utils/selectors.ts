@@ -61,9 +61,12 @@ export async function selectByLabel(page: Page, label: string, option: string): 
  * `<title> | <brand>` and which is unambiguous per screen.
  */
 export async function expectPageLoaded(page: Page, title: string): Promise<void> {
-	await expect(page).toHaveTitle(new RegExp(`^${escapeRegExp(title)}\\b`));
-}
-
-function escapeRegExp(value: string): string {
-	return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+	// Compares the leading segment as a plain string rather than building a RegExp
+	// from an argument. Same assertion, no dynamic pattern to escape — and `poll`
+	// keeps the retry behaviour that toHaveTitle would have given.
+	await expect
+		.poll(async () => (await page.title()).split('|')[0].trim(), {
+			message: `expected the ${title} screen`,
+		})
+		.toBe(title);
 }

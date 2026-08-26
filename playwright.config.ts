@@ -60,7 +60,10 @@ export default defineConfig({
 		screenshot: 'only-on-failure',
 		video: 'retain-on-failure',
 		actionTimeout: 15_000,
-		navigationTimeout: 30_000,
+		// A cold Vite dev server compiles the app on the first navigation, which on this
+		// codebase runs past 30s and produced goto timeouts that looked like app faults.
+		// CI serves a prebuilt bundle and never gets close to this.
+		navigationTimeout: 60_000,
 	},
 
 	projects: [
