@@ -31,8 +31,11 @@ test.describe.serial('Golden path: catalogue to subscription @critical', () => {
 	let planUrl = '';
 
 	// Reverse creation order: the backend refuses to delete an entity another still
-	// references, exactly as steps_cleanup.go sequences it.
+	// references, exactly as steps_cleanup.go sequences it. The customer goes first —
+	// it is the last thing the journey creates, and leaving it behind would grow the
+	// customer list every run, which is the one list several other specs assert on.
 	test.afterAll(async ({ api }) => {
+		await api.deleteCustomerByName(customer.name);
 		await api.deleteAddonByName(addon.name);
 		await api.deletePlanByName(plan.name);
 		await api.deleteFeatureByName(feature.name);
