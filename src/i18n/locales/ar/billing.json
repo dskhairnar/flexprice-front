@@ -28,6 +28,7 @@
 			"issueDate": "تاريخ الإصدار",
 			"status": "الحالة",
 			"paymentStatus": "حالة الدفع",
+			"paymentStatusLockedHint": "لا يمكن تغيير حالة الدفع إلا عندما تكون قيد الانتظار أو فاشلة.",
 			"editableTitle": "تعديل التفاصيل",
 			"dueDate": "تاريخ الاستحقاق",
 			"dueDatePlaceholder": "اختر تاريخ الاستحقاق",

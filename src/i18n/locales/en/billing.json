@@ -28,6 +28,7 @@
 			"issueDate": "Date of Issue",
 			"status": "Status",
 			"paymentStatus": "Payment Status",
+			"paymentStatusLockedHint": "Payment status can only be changed while it is pending or failed.",
 			"editableTitle": "Edit Details",
 			"dueDate": "Due Date",
 			"dueDatePlaceholder": "Select due date",

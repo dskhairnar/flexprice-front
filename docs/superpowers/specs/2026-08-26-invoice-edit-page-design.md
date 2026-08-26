@@ -93,6 +93,23 @@ New keys under `invoices.edit.*` in `src/i18n/locales/en/billing.json` and the A
 - Manual verification against the dev server (`.env` from the frontend-testing worktree) on a
   draft invoice.
 
+## Addendum (same day): consolidation pass
+
+Follow-up request: bring every invoice change into the edit page, frontend-only. Feasibility was
+re-verified against the canonical backend (`upstream/main` and `upstream/develop` of
+flexprice/flexprice, plus a live probe of api-dev):
+
+- **Payment status** — `PUT /invoices/{id}/payment` is routed. Added an inline Payment Status
+  select (Pending/Succeeded/Failed) to the Edit Details section; saved through the payment
+  endpoint alongside the invoice PUT in one Save. Editable only while the current status is
+  PENDING or FAILED (matching backend transition rules); locked with a hint otherwise.
+- **Finalize / Void** — routed. The existing `InvoiceStatusModal` is embedded behind an
+  "Update Invoice Status" button on the page. `'invoiceEdit'` was added to `INVOICE_QUERY_KEYS`
+  so the modal's `refetchInvoiceQueries()` refreshes the edit page in place.
+- **Line items (description/amount/quantity, add, remove)** — still **not feasible from the
+  frontend**: the service layer is implemented upstream but no HTTP routes exist on any deployed
+  branch (live probe returns gin's unrouted 404). Blocked on a backend routing PR.
+
 ## Out of scope
 
 - Line-item editing (blocked on backend routes for `AddBulkLineItem` / `UpdateLineItem` /
