@@ -141,6 +141,12 @@ const UsagePricingForm: FC<Props> = ({
 	});
 	const [startDate, setStartDate] = useState<Date | undefined>(price.start_date ? new Date(price.start_date) : undefined);
 	const [bucketSize, setBucketSize] = useState<PriceBucketSize | ''>((price.bucket_size as PriceBucketSize | undefined) ?? '');
+	// The API rejects a price-level bucket_size when the selected meter already defines one -
+	// disable the selector and drop any stale price-level choice instead of sending both.
+	const meterBucketSize = selectedFeature?.meter?.aggregation?.bucket_size;
+	useEffect(() => {
+		if (meterBucketSize) setBucketSize('');
+	}, [meterBucketSize]);
 
 	const [errors, setErrors] = useState<Partial<Record<keyof Price, any>>>({});
 	const [inputErrors, setInputErrors] = useState({
@@ -432,7 +438,7 @@ const UsagePricingForm: FC<Props> = ({
 			group_id: groupId,
 			start_date: startDate ? startDate.toISOString() : undefined,
 			display_name: displayName || selectedFeature?.name || '',
-			bucket_size: bucketSize || undefined,
+			bucket_size: meterBucketSize ? undefined : bucketSize || undefined,
 		};
 
 		let finalPrice: Partial<Price>;
@@ -589,7 +595,12 @@ const UsagePricingForm: FC<Props> = ({
 				onChange={(value) => setBucketSize(value as PriceBucketSize)}
 				label={t('catalog:plans.organisms.usageForm.bucketSize')}
 				placeholder={t('catalog:plans.organisms.usageForm.bucketSizePlaceholder')}
-				description={t('catalog:plans.organisms.usageForm.bucketSizeDescription')}
+				disabled={!!meterBucketSize}
+				description={
+					meterBucketSize
+						? t('catalog:priceDialogs.bucketSizeSetOnMeter', { bucketSize: meterBucketSize })
+						: t('catalog:plans.organisms.usageForm.bucketSizeDescription')
+				}
 			/>
 			<Spacer height='8px' />
 

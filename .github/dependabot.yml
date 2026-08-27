@@ -6,6 +6,9 @@ updates:
     directory: "/"
     schedule:
       interval: "weekly"
+    # Wait out newly published versions — fresh releases can be malicious or unstable.
+    cooldown:
+      default-days: 7
     open-pull-requests-limit: 5
     groups:
       npm:
@@ -15,6 +18,8 @@ updates:
     directory: "/"
     schedule:
       interval: "weekly"
+    cooldown:
+      default-days: 7
     open-pull-requests-limit: 5
     groups:
       actions:

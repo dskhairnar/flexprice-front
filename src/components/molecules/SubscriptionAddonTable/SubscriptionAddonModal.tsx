@@ -60,6 +60,7 @@ const backendOverridesToMap = (items?: OverrideLineItemRequest[]): Record<string
 			...(o.tier_mode && !isSlab ? { tier_mode: o.tier_mode } : {}),
 			...(o.tiers ? { tiers: o.tiers } : {}),
 			...(o.transform_quantity ? { transform_quantity: o.transform_quantity } : {}),
+			...(o.bucket_size ? { bucket_size: o.bucket_size } : {}),
 			...(o.price_unit_amount ? { price_unit_amount: o.price_unit_amount } : {}),
 			...(o.price_unit_tiers ? { price_unit_tiers: o.price_unit_tiers } : {}),
 		};

@@ -462,7 +462,8 @@
 		},
 		"configureAddonDialog": {
 			"title": "Configure Addon",
-			"empty": "No charges found for this addon."
+			"empty": "No charges found for this addon.",
+			"loadError": "Could not load this addon’s charges."
 		}
 	},
 	"payments": {

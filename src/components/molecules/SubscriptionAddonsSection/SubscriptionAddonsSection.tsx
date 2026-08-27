@@ -17,6 +17,7 @@ import { Price, PRICE_TYPE } from '@/models/Price';
 import { getCurrentPriceAmount } from '@/utils/common/price_override_helpers';
 import { getTotalPayableTextWithCoupons } from '@/utils/common/helper_functions';
 import toast from 'react-hot-toast';
+import { cn } from '@/lib/utils';
 import AddAddonDialog from './AddAddonDialog';
 import ConfigureAddonDialog from './ConfigureAddonDialog';
 import { formatDateTimeWithSecondsAndTimezone } from '@/utils/common/format_date';
@@ -340,7 +341,10 @@ const SubscriptionAddonsSection: FC<SubscriptionAddonsSectionProps> = ({
 											setDropdownOpen(null);
 											setAddonToConfigure(row);
 										}}
-										className={`flex gap-2 items-center cursor-pointer ${hasEndDate || !canWriteAddon ? 'opacity-50 cursor-not-allowed' : ''}`}>
+										className={cn(
+											'flex gap-2 items-center cursor-pointer',
+											(hasEndDate || !canWriteAddon) && 'opacity-50 cursor-not-allowed',
+										)}>
 										<Settings2 className='h-4 w-4' />
 										<span>{t('billing:subscriptions.configure')}</span>
 									</DropdownMenuItem>
@@ -360,7 +364,10 @@ const SubscriptionAddonsSection: FC<SubscriptionAddonsSectionProps> = ({
 											e.preventDefault();
 											handleCancel(row);
 										}}
-										className={`flex gap-2 items-center cursor-pointer text-danger ${hasEndDate || !canWriteAddon ? 'opacity-50 cursor-not-allowed' : ''}`}>
+										className={cn(
+											'flex gap-2 items-center cursor-pointer text-danger',
+											(hasEndDate || !canWriteAddon) && 'opacity-50 cursor-not-allowed',
+										)}>
 										<Trash2 className='h-4 w-4' />
 										<span>{t('actions.cancel')}</span>
 									</DropdownMenuItem>

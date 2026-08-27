@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import Dialog from '@/components/atoms/Dialog';
+import { Button } from '@/components/atoms';
 import SubscriptionApi from '@/api/SubscriptionApi';
 import { AddonAssociationResponse, UpdateSubscriptionLineItemRequest } from '@/types/dto/Subscription';
 import { LineItem, SUBSCRIPTION_LINE_ITEM_EDIT_MODE } from '@/models/Subscription';
@@ -52,7 +53,7 @@ const ConfigureAddonDialog: React.FC<Props> = ({
 	currentPeriodEnd,
 	readOnly = false,
 }) => {
-	const { t } = useTranslation(['billing', 'customers']);
+	const { t } = useTranslation(['billing', 'customers', 'common']);
 	const [editingLineItem, setEditingLineItem] = useState<EditingLineItemState>(null);
 	const [overriddenPrices, setOverriddenPrices] = useState<Record<string, ExtendedPriceOverride>>({});
 	// Guards the single-charge auto-open so closing the editor doesn't immediately reopen it.
@@ -61,6 +62,7 @@ const ConfigureAddonDialog: React.FC<Props> = ({
 	const {
 		data: lineItemsResponse,
 		isLoading,
+		isError,
 		refetch,
 	} = useQuery({
 		queryKey: ['addonAssociationLineItems', subscriptionId, association?.id],
@@ -122,7 +124,7 @@ const ConfigureAddonDialog: React.FC<Props> = ({
 	}, []);
 
 	// Single-charge addons skip the charges table and open the editor directly.
-	const singleLineItem = !readOnly && !isLoading && lineItems.length === 1 ? lineItems[0] : null;
+	const singleLineItem = !readOnly && !isLoading && !isError && lineItems.length === 1 ? lineItems[0] : null;
 
 	useEffect(() => {
 		if (!isOpen) {
@@ -175,15 +177,25 @@ const ConfigureAddonDialog: React.FC<Props> = ({
 				showCloseButton
 				className='sm:max-w-4xl'>
 				<div className='mt-3'>
-					<SubscriptionLineItemTable
-						data={lineItems}
-						isLoading={isLoading}
-						hideCardWrapper
-						readOnly={readOnly}
-						onEdit={readOnly ? undefined : handleEditLineItem}
-						onTerminate={readOnly ? undefined : handleTerminateLineItem}
-						noDataSubtitle={t('billing:subscriptions.configureAddonDialog.empty')}
-					/>
+					{isError ? (
+						// A failed fetch must not read as "no charges" — show the error and allow a retry.
+						<div className='flex flex-col items-center gap-3 py-8'>
+							<p className='text-sm text-content-muted'>{t('billing:subscriptions.configureAddonDialog.loadError')}</p>
+							<Button variant='outline' onClick={() => void refetch()}>
+								{t('common:actions.retry')}
+							</Button>
+						</div>
+					) : (
+						<SubscriptionLineItemTable
+							data={lineItems}
+							isLoading={isLoading}
+							hideCardWrapper
+							readOnly={readOnly}
+							onEdit={readOnly ? undefined : handleEditLineItem}
+							onTerminate={readOnly ? undefined : handleTerminateLineItem}
+							noDataSubtitle={t('billing:subscriptions.configureAddonDialog.empty')}
+						/>
+					)}
 				</div>
 			</Dialog>
 

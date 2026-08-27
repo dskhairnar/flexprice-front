@@ -97,6 +97,13 @@ const PriceOverrideDialog: FC<Props> = ({
 	// The API rejects a price defining its own bucket_size when the meter already carries one
 	// ("meter already defines a bucket size") - disable the override instead of surfacing that as a 400.
 	const meterBucketSize = price.meter?.aggregation?.bucket_size;
+	// An empty selector on a price that HAD a bucket size is an explicit clear (submitted as
+	// BUCKET_SIZE_NONE). Commitment validation/normalization must then see "no bucket" — falling
+	// back to the price's old effective bucket would normalize time buckets for a removed size.
+	const bucketExplicitlyCleared = overrideBucketSize === '' && Boolean(price.bucket_size);
+	const effectiveBucketSizeForCommitment = bucketExplicitlyCleared
+		? undefined
+		: overrideBucketSize || resolveBucketSize(price) || undefined;
 
 	// Detect price unit type
 	const isCustomPriceUnit = price.price_unit_type === PRICE_UNIT_TYPE.CUSTOM;
@@ -289,11 +296,7 @@ const PriceOverrideDialog: FC<Props> = ({
 			// and normalization match what actually gets sent. Falls back to the price's effective
 			// (price-then-meter) bucket size when the selector was never touched, so legacy
 			// meter-bucketed prices with no price-level bucket_size still validate correctly.
-			const commitmentResult = buildLineItemCommitmentUpdatePayload(
-				commitmentState,
-				lineItem,
-				overrideBucketSize || resolveBucketSize(price) || undefined,
-			);
+			const commitmentResult = buildLineItemCommitmentUpdatePayload(commitmentState, lineItem, effectiveBucketSizeForCommitment);
 			if (!commitmentResult.ok) {
 				toast.error(formatWindowCommitmentError(commitmentResult.error, tBilling));
 				return;
@@ -735,7 +738,7 @@ const PriceOverrideDialog: FC<Props> = ({
 						value={commitmentState}
 						onChange={setCommitmentState}
 						sourcePrice={lineItem.price}
-						sourceBucketSize={overrideBucketSize || resolveBucketSize(price) || undefined}
+						sourceBucketSize={effectiveBucketSizeForCommitment}
 						disabled={isSaving}
 					/>
 				)}

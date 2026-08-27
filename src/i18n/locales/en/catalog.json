@@ -1065,8 +1065,6 @@
 		"bucketSizePlaceholder": "No bucketing",
 		"bucketSizeSetOnMeter": "Already set on the meter ({{bucketSize}}) - a price can't define its own on top of that.",
 		"selectBillingModel": "Select billing model",
-		"bucketSize": "Bucket Size (Optional)",
-		"bucketSizePlaceholder": "No bucketing",
 		"overrideAmountLabel": "Override Amount ({{unit}})",
 		"enterNewAmountOptional": "Enter new amount (optional)",
 		"tiers": "Tiers",

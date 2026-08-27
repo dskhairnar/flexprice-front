@@ -438,6 +438,8 @@ type ApplyWindowCommitmentInput = {
 	invoice_cadence?: INVOICE_CADENCE;
 	display_name?: string;
 	bucket_size?: BUCKET_SIZE | string | null;
+	/** Meter carried alongside the price — its aggregation bucket size is the fallback for legacy prices with no price-level bucket_size. */
+	meter?: { aggregation?: { bucket_size?: BUCKET_SIZE | string | null } } | null;
 };
 
 export function formatWindowCommitmentError(
@@ -517,7 +519,10 @@ export function applyWindowCommitmentToLineItem(
 		return { error: 'commitmentConfig.addCharge.selectMeterForBuckets' };
 	}
 
-	const result = normalizeTimeBucketDraftsOrError(commitmentState.timeBuckets, commitmentState.commitmentType, partial.bucket_size, {
+	// Price-then-meter resolution: a legacy price may define no bucket_size while
+	// its meter does; normalizing against the hourly default would corrupt minute buckets.
+	const effectiveBucketSize = partial.bucket_size ?? partial.meter?.aggregation?.bucket_size;
+	const result = normalizeTimeBucketDraftsOrError(commitmentState.timeBuckets, commitmentState.commitmentType, effectiveBucketSize, {
 		requireCommitmentFields: true,
 		requireBucketPrice: true,
 		priceContext: {
@@ -544,6 +549,8 @@ export function applyWindowCommitmentToLineItem(
 export function sanitizeSubscriptionLineItemForApi(
 	item: CreateSubscriptionLineItemRequest,
 	currency: string,
+	/** Effective (price-then-meter) bucket size; falls back to the item's price-level value. */
+	effectiveBucketSize?: BUCKET_SIZE | string | null,
 ): CreateSubscriptionLineItemRequest {
 	if (!item.commitment_windowed || !item.commitment_time_buckets?.length) {
 		return item;
@@ -552,15 +559,17 @@ export function sanitizeSubscriptionLineItemForApi(
 	const priceContext = bucketPriceContextFromLineItem(item, currency);
 	if (!priceContext) return item;
 
-	const buckets = normalizeCommitmentTimeBuckets(item.commitment_time_buckets, item.price?.bucket_size).map((bucket) => {
-		const draft = bucket as CommitmentTimeBucketDraft;
-		const hasInlinePrice = bucket.price && (bucket.price.amount || bucket.price.tiers?.length || bucket.price.billing_model);
+	const buckets = normalizeCommitmentTimeBuckets(item.commitment_time_buckets, effectiveBucketSize ?? item.price?.bucket_size).map(
+		(bucket) => {
+			const draft = bucket as CommitmentTimeBucketDraft;
+			const hasInlinePrice = bucket.price && (bucket.price.amount || bucket.price.tiers?.length || bucket.price.billing_model);
 
-		return {
-			...bucket,
-			price: hasInlinePrice ? bucket.price : buildBucketPriceFromDraft(draft, priceContext),
-		};
-	});
+			return {
+				...bucket,
+				price: hasInlinePrice ? bucket.price : buildBucketPriceFromDraft(draft, priceContext),
+			};
+		},
+	);
 
 	return {
 		...item,

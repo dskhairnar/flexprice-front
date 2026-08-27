@@ -76,7 +76,9 @@ const UsageSyncs = () => {
 			filters: params.filters as never,
 			sort: params.sort as never,
 		});
-		const rawItems = validateResponseItems(usageRecordItemSchema, result, 'usageRecords') as unknown as UsageRecord[];
+		// The schema validates every dereferenced field (and each syncs entry), so
+		// its output is a fully-formed UsageRecord — no assertion needed.
+		const rawItems: UsageRecord[] = validateResponseItems(usageRecordItemSchema, result, 'usageRecords');
 		const customerIds = [...new Set(rawItems.map((item) => item.customer_id).filter(Boolean))];
 		const planIds = [...new Set(rawItems.map((item) => item.plan_id).filter(Boolean))];
 		const [customerNameById, planNameById] = await Promise.all([fetchCustomerNames(customerIds), fetchPlanNames(planIds)]);
