@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import Dialog from '@/components/atoms/Dialog';
@@ -38,6 +38,10 @@ type EditingLineItemState =
  * configuration operates on the addon's subscription line items: price
  * overrides go through PUT /subscriptions/lineitems/{id}; termination goes
  * through DELETE /subscriptions/lineitems/{id} with an effective date.
+ *
+ * When the addon has exactly one charge (the common case), the editor for
+ * that charge opens directly; the intermediate charges table only appears
+ * for multi-charge addons (or in read-only mode).
  */
 const ConfigureAddonDialog: React.FC<Props> = ({
 	isOpen,
@@ -51,6 +55,8 @@ const ConfigureAddonDialog: React.FC<Props> = ({
 	const { t } = useTranslation(['billing', 'customers']);
 	const [editingLineItem, setEditingLineItem] = useState<EditingLineItemState>(null);
 	const [overriddenPrices, setOverriddenPrices] = useState<Record<string, ExtendedPriceOverride>>({});
+	// Guards the single-charge auto-open so closing the editor doesn't immediately reopen it.
+	const autoOpenedRef = useRef(false);
 
 	const {
 		data: lineItemsResponse,
@@ -113,6 +119,27 @@ const ConfigureAddonDialog: React.FC<Props> = ({
 		}
 	}, []);
 
+	// Single-charge addons skip the charges table and open the editor directly.
+	const singleLineItem = !readOnly && !isLoading && lineItems.length === 1 ? lineItems[0] : null;
+
+	useEffect(() => {
+		if (!isOpen) {
+			autoOpenedRef.current = false;
+			setEditingLineItem(null);
+			return;
+		}
+		if (singleLineItem && !autoOpenedRef.current) {
+			autoOpenedRef.current = true;
+			handleEditLineItem(singleLineItem);
+		}
+	}, [isOpen, singleLineItem, handleEditLineItem]);
+
+	// In direct mode there is no table behind the editor, so closing it closes Configure entirely.
+	const closeEditor = useCallback(() => {
+		setEditingLineItem(null);
+		if (singleLineItem) onOpenChange(false);
+	}, [singleLineItem, onOpenChange]);
+
 	const handleTerminateLineItem = useCallback(
 		(lineItemId: string, endDate?: string) => {
 			terminateLineItem({ lineItemId, endDate });
@@ -123,9 +150,9 @@ const ConfigureAddonDialog: React.FC<Props> = ({
 	const handleUsageLineItemUpdate = useCallback(
 		(updateData: UpdateSubscriptionLineItemRequest) => {
 			if (!editingLineItem || editingLineItem.mode !== SUBSCRIPTION_LINE_ITEM_EDIT_MODE.USAGE_OVERRIDE) return;
-			updateLineItem({ lineItemId: editingLineItem.lineItem.id, updateData }, { onSuccess: () => setEditingLineItem(null) });
+			updateLineItem({ lineItemId: editingLineItem.lineItem.id, updateData }, { onSuccess: () => closeEditor() });
 		},
-		[editingLineItem, updateLineItem],
+		[editingLineItem, updateLineItem, closeEditor],
 	);
 
 	const handleResetOverride = useCallback((priceId: string) => {
@@ -137,29 +164,31 @@ const ConfigureAddonDialog: React.FC<Props> = ({
 	}, []);
 
 	return (
-		<Dialog
-			isOpen={isOpen}
-			onOpenChange={onOpenChange}
-			title={t('billing:subscriptions.configureAddonDialog.title')}
-			description={association?.addon?.name}
-			showCloseButton
-			className='sm:max-w-4xl'>
-			<div className='mt-3'>
-				<SubscriptionLineItemTable
-					data={lineItems}
-					isLoading={isLoading}
-					hideCardWrapper
-					readOnly={readOnly}
-					onEdit={readOnly ? undefined : handleEditLineItem}
-					onTerminate={readOnly ? undefined : handleTerminateLineItem}
-					noDataSubtitle={t('billing:subscriptions.configureAddonDialog.empty')}
-				/>
-			</div>
+		<>
+			<Dialog
+				isOpen={isOpen && !singleLineItem && !isLoading}
+				onOpenChange={onOpenChange}
+				title={t('billing:subscriptions.configureAddonDialog.title')}
+				description={association?.addon?.name}
+				showCloseButton
+				className='sm:max-w-4xl'>
+				<div className='mt-3'>
+					<SubscriptionLineItemTable
+						data={lineItems}
+						isLoading={isLoading}
+						hideCardWrapper
+						readOnly={readOnly}
+						onEdit={readOnly ? undefined : handleEditLineItem}
+						onTerminate={readOnly ? undefined : handleTerminateLineItem}
+						noDataSubtitle={t('billing:subscriptions.configureAddonDialog.empty')}
+					/>
+				</div>
+			</Dialog>
 
 			{editingLineItem?.mode === SUBSCRIPTION_LINE_ITEM_EDIT_MODE.USAGE_OVERRIDE && (
 				<PriceOverrideDialog
 					isOpen={true}
-					onOpenChange={(open: boolean) => !open && setEditingLineItem(null)}
+					onOpenChange={(open: boolean) => !open && closeEditor()}
 					price={lineItemToPrice(editingLineItem.lineItem)}
 					onPriceOverride={() => {}}
 					onResetOverride={handleResetOverride}
@@ -174,14 +203,14 @@ const ConfigureAddonDialog: React.FC<Props> = ({
 			{editingLineItem?.mode === SUBSCRIPTION_LINE_ITEM_EDIT_MODE.FIXED_QUANTITY && (
 				<SubscriptionLineItemQuantityModifyDialog
 					isOpen={true}
-					onOpenChange={(open: boolean) => !open && setEditingLineItem(null)}
+					onOpenChange={(open: boolean) => !open && closeEditor()}
 					subscriptionId={subscriptionId}
 					lineItem={editingLineItem.lineItem}
 					currentPeriodStart={currentPeriodStart ?? ''}
 					currentPeriodEnd={currentPeriodEnd ?? ''}
 				/>
 			)}
-		</Dialog>
+		</>
 	);
 };
 
