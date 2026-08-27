@@ -1,4 +1,5 @@
 import { Pagination, Addon, Metadata, Price, Entitlement } from '@/models';
+import type { OverrideLineItemRequest } from './Subscription';
 import { TypedBackendFilter, TypedBackendSort } from '../formatters/QueryBuilder';
 import { QueryFilter, TimeRangeFilter } from './base';
 import { FilterCondition } from '../common/QueryBuilder';
@@ -45,6 +46,8 @@ export interface AddAddonToSubscriptionRequest {
 	proration_behavior?: ADDON_PRORATION_BEHAVIOR;
 	metadata?: Metadata;
 	line_item_commitments?: LineItemCommitmentsMap;
+	// Per-price overrides for this addon's prices (price_id must belong to the addon).
+	override_line_items?: OverrideLineItemRequest[];
 }
 
 export interface GetAddonsPayload {

@@ -375,7 +375,8 @@
 			"columns": {
 				"charge": "الرسم",
 				"type": "النوع",
-				"commitment": "الالتزام"
+				"commitment": "الالتزام",
+				"price": "السعر"
 			},
 			"chargeFallback": "رسم",
 			"commitmentNotAvailable": "غير متاح",
@@ -458,6 +459,10 @@
 			"selectTaxRatePlaceholder": "اختر معدل ضريبة",
 			"effectiveDateOptional": "تاريخ السريان (اختياري)",
 			"pickDate": "اختر تاريخاً"
+		},
+		"configureAddonDialog": {
+			"title": "ضبط الإضافة",
+			"empty": "لا توجد رسوم لهذه الإضافة."
 		}
 	},
 	"payments": {

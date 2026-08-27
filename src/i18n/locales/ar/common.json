@@ -610,7 +610,10 @@
 		"commitmentUsageOnlyHint": "يمكن تهيئة الالتزامات فقط للرسوم المعتمدة على الاستخدام.",
 		"saveChanges": "حفظ التغييرات",
 		"submitAddAddon": "إضافة إضافة",
-		"chargeFallbackLabel": "رسوم"
+		"chargeFallbackLabel": "رسوم",
+		"columnPrice": "السعر",
+		"labelStartDate": "تاريخ البدء (اختياري)",
+		"placeholderStartDate": "اختر تاريخ البدء"
 	},
 	"priceTooltip": {
 		"volumeTierPricing": "تسعير الشرائح بالحجم",

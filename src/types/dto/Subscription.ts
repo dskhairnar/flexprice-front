@@ -560,6 +560,8 @@ export interface AddAddonRequest {
 	proration_behavior?: ADDON_PRORATION_BEHAVIOR;
 	metadata?: Metadata;
 	line_item_commitments?: LineItemCommitmentsMap;
+	// Per-price overrides for this addon's prices (price_id must belong to the addon).
+	override_line_items?: OverrideLineItemRequest[];
 }
 
 export interface RemoveAddonRequest {

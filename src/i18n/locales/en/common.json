@@ -615,7 +615,10 @@
 		"commitmentUsageOnlyHint": "Commitments can be configured only for usage-based charges.",
 		"saveChanges": "Save Changes",
 		"submitAddAddon": "Add Addon",
-		"chargeFallbackLabel": "Charge"
+		"chargeFallbackLabel": "Charge",
+		"columnPrice": "Price",
+		"labelStartDate": "Start Date (optional)",
+		"placeholderStartDate": "Select start date"
 	},
 	"priceTooltip": {
 		"volumeTierPricing": "Volume Tier Pricing",

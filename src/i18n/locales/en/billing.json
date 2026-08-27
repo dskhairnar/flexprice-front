@@ -375,7 +375,8 @@
 			"columns": {
 				"charge": "Charge",
 				"type": "Type",
-				"commitment": "Commitment"
+				"commitment": "Commitment",
+				"price": "Price"
 			},
 			"chargeFallback": "Charge",
 			"commitmentNotAvailable": "Not available",
@@ -458,6 +459,10 @@
 			"selectTaxRatePlaceholder": "Select a tax rate",
 			"effectiveDateOptional": "Effective Date (optional)",
 			"pickDate": "Pick a date"
+		},
+		"configureAddonDialog": {
+			"title": "Configure Addon",
+			"empty": "No charges found for this addon."
 		}
 	},
 	"payments": {
