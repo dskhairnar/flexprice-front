@@ -105,8 +105,10 @@ const PriceOverrideDialog: FC<Props> = ({
 	// BUCKET_SIZE_NONE). Commitment validation/normalization must then see "no bucket" — falling
 	// back to the price's old effective bucket would normalize time buckets for a removed size.
 	const bucketExplicitlyCleared = overrideBucketSize === '' && Boolean(price.bucket_size);
+	// null (not undefined): buildLineItemCommitmentUpdatePayload treats undefined as
+	// "resolve from the line item's price", which would validate against the removed bucket.
 	const effectiveBucketSizeForCommitment = bucketExplicitlyCleared
-		? undefined
+		? null
 		: overrideBucketSize || resolveBucketSize(price) || commitmentMeter?.aggregation?.bucket_size || undefined;
 
 	// Detect price unit type
