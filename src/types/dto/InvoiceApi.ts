@@ -65,6 +65,50 @@ export interface UpdateInvoicePayload {
 	apply_discount?: boolean;
 }
 
+export enum INVOICE_MODIFY_LINE_ITEM_ACTION {
+	ADD = 'add',
+	UPDATE = 'update',
+	REMOVE = 'remove',
+}
+
+/** A line item to add via the modify endpoint. Amount is the line total, not a unit price. */
+export interface InvoiceModifyAddLineItem {
+	display_name: string;
+	amount: string;
+	quantity: string;
+}
+
+/** Sparse update for one line item via the modify endpoint; at least one field required. */
+export interface InvoiceModifyUpdateLineItem {
+	display_name?: string;
+	amount?: string;
+	quantity?: string;
+}
+
+/**
+ * Request body for POST /invoices/:id/modify/execute. Matches backend
+ * ExecuteInvoiceModifyRequest. DRAFT invoices only; an edit marks the invoice
+ * as manually edited (compute is disabled afterwards), and updates are
+ * versioned so line item ids change after each edit.
+ */
+export interface ExecuteInvoiceModifyPayload {
+	type: 'line_item';
+	line_item_params: {
+		action: INVOICE_MODIFY_LINE_ITEM_ACTION;
+		// action 'add'
+		items?: InvoiceModifyAddLineItem[];
+		// action 'remove'
+		line_item_ids?: string[];
+		// action 'update' (one line item per call)
+		line_item_id?: string;
+		update?: InvoiceModifyUpdateLineItem;
+	};
+}
+
+export interface InvoiceModifyResponse {
+	invoice: Invoice;
+}
+
 /** Request body for PUT /invoices/:id/payment (update payment status). */
 export interface UpdatePaymentStatusPayload {
 	payment_status: string;

@@ -13,6 +13,7 @@ import commonEn from '@/i18n/locales/en/common.json';
 const mockGetInvoiceById = vi.hoisted(() => vi.fn());
 const mockUpdateInvoice = vi.hoisted(() => vi.fn());
 const mockUpdatePaymentStatus = vi.hoisted(() => vi.fn());
+const mockModifyInvoice = vi.hoisted(() => vi.fn());
 const mockNavigate = vi.hoisted(() => vi.fn());
 
 vi.mock('@/api/InvoiceApi', () => ({
@@ -20,6 +21,7 @@ vi.mock('@/api/InvoiceApi', () => ({
 		getInvoiceById: (...args: unknown[]) => mockGetInvoiceById(...args),
 		updateInvoice: (...args: unknown[]) => mockUpdateInvoice(...args),
 		updateInvoicePaymentStatus: (...args: unknown[]) => mockUpdatePaymentStatus(...args),
+		modifyInvoice: (...args: unknown[]) => mockModifyInvoice(...args),
 	},
 }));
 
@@ -156,6 +158,7 @@ describe('EditInvoicePage', () => {
 		mockGetInvoiceById.mockReset();
 		mockUpdateInvoice.mockReset();
 		mockUpdatePaymentStatus.mockReset();
+		mockModifyInvoice.mockReset();
 		mockNavigate.mockReset();
 	});
 
@@ -241,6 +244,62 @@ describe('EditInvoicePage', () => {
 		renderPage();
 
 		expect(await screen.findByRole('button', { name: 'Update Invoice Status' })).toBeEnabled();
+	});
+
+	it('edits a draft line item through the modify endpoint', async () => {
+		mockGetInvoiceById.mockResolvedValue(
+			makeInvoice({ line_items: [{ id: 'li_1', display_name: 'Consulting', quantity: '2', amount: 300 }] }),
+		);
+		mockModifyInvoice.mockResolvedValue({ invoice: makeInvoice() });
+		const user = userEvent.setup();
+		renderPage();
+
+		const nameInput = await screen.findByDisplayValue('Consulting');
+		await user.clear(nameInput);
+		await user.type(nameInput, 'Consulting hours');
+		await user.click(screen.getByRole('button', { name: 'Save Changes' }));
+
+		await waitFor(() =>
+			expect(mockModifyInvoice).toHaveBeenCalledWith('inv_1', {
+				type: 'line_item',
+				line_item_params: { action: 'update', line_item_id: 'li_1', update: { display_name: 'Consulting hours' } },
+			}),
+		);
+		expect(mockUpdateInvoice).not.toHaveBeenCalled();
+	});
+
+	it('adds and removes draft line items through the modify endpoint', async () => {
+		mockGetInvoiceById.mockResolvedValue(
+			makeInvoice({ line_items: [{ id: 'li_1', display_name: 'Consulting', quantity: '2', amount: 300 }] }),
+		);
+		mockModifyInvoice.mockResolvedValue({ invoice: makeInvoice() });
+		const user = userEvent.setup();
+		renderPage();
+
+		// remove the existing row
+		await screen.findByDisplayValue('Consulting');
+		const removeButtons = screen.getAllByRole('button').filter((b) => b.querySelector('svg.lucide-trash2'));
+		await user.click(removeButtons[removeButtons.length - 1]);
+
+		// add a new row
+		await user.click(screen.getByRole('button', { name: 'Add Line Item' }));
+		await user.type(screen.getByPlaceholderText('Enter item name'), 'Setup fee');
+		const amountInputs = screen.getAllByPlaceholderText('0.00');
+		await user.clear(amountInputs[amountInputs.length - 1]);
+		await user.type(amountInputs[amountInputs.length - 1], '50');
+
+		await user.click(screen.getByRole('button', { name: 'Save Changes' }));
+
+		await waitFor(() =>
+			expect(mockModifyInvoice).toHaveBeenCalledWith('inv_1', {
+				type: 'line_item',
+				line_item_params: { action: 'remove', line_item_ids: ['li_1'] },
+			}),
+		);
+		expect(mockModifyInvoice).toHaveBeenCalledWith('inv_1', {
+			type: 'line_item',
+			line_item_params: { action: 'add', items: [{ display_name: 'Setup fee', amount: '50', quantity: '1' }] },
+		});
 	});
 
 	it('blocks editing for voided invoices', async () => {

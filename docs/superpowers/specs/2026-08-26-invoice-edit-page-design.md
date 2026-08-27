@@ -117,3 +117,22 @@ flexprice/flexprice, plus a live probe of api-dev):
 - Coupon/tax association management on existing invoices (also unrouted:
   `ApplyCouponRequest` / `ApplyTaxRequest`).
 - Payment status & invoice status changes — already covered by existing modals in the actions menu.
+
+## Addendum (2026-08-27): line-item editing via the invoice modify API
+
+The backend now exposes `POST /invoices/{id}/modify/execute` (branch
+`feat/invoice-modify-api` in the flexprice repo), mirroring the subscription
+modification API and backed by the existing `ModifyInvoice` service. The
+envelope supports line_item `add` (bulk), `update` (one item per call,
+versioned — ids change on each edit), and `remove` (bulk, soft delete).
+DRAFT invoices only; any manual edit sets `is_manually_edited`, permanently
+disabling compute for that invoice.
+
+Frontend changes on `feat/invoice-edit`:
+- `InvoiceApi.modifyInvoice` + `ExecuteInvoiceModifyPayload` DTOs.
+- The edit page's line-items section is now editable for DRAFT invoices
+  (name/quantity/amount rows, add and remove), exclusively through the modify
+  endpoint; the previous read-only presentation (and its "cannot be edited"
+  note) remains only for non-draft invoices, reworded as draft-only.
+- Saving executes at most one remove call, one update call per changed row,
+  and one add call, after the invoice/payment updates.
