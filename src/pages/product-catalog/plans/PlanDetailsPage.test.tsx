@@ -123,34 +123,21 @@ describe('PlanDetailsPage sync usage badge', () => {
 		mockSearchWorkflows.mockResolvedValue({ items: [] });
 	});
 
-	it('shows the unsynced subscription count on the Sync Usage Charges button', async () => {
+	it('renders no count badge on the Sync Usage Charges button (count lives in the tooltip)', async () => {
 		mockGetPlansByFilter.mockResolvedValue({ items: [plan(7, false)] });
 		renderPage();
 
 		const button = await screen.findByRole('button', { name: /Sync Usage Charges/i });
-		await waitFor(() => {
-			expect(button.parentElement).toHaveTextContent('7');
-		});
-		expect(screen.getByLabelText('7 unsynced subscriptions')).toBeInTheDocument();
-	});
-
-	it('hides the count when every subscription is already in sync', async () => {
-		mockGetPlansByFilter.mockResolvedValue({ items: [plan(0, true)] });
-		renderPage();
-
-		const button = await screen.findByRole('button', { name: /Sync Usage Charges/i });
-		expect(button).toBeInTheDocument();
+		expect(button.parentElement).not.toHaveTextContent('7');
 		expect(screen.queryByLabelText(/unsynced subscription/i)).not.toBeInTheDocument();
 	});
 
 	it('refetches the plan when a started sync is already terminal on the first poll', async () => {
 		const user = userEvent.setup();
 		mockGetPlansByFilter.mockResolvedValue({ items: [plan(3, false)] });
-		mockSearchWorkflows
-			.mockResolvedValueOnce({ items: [] })
-			.mockResolvedValue({
-				items: [{ run_id: 'run_new', status: 'Completed', entity_id: 'plan_1', start_time: '2026-08-24T00:00:00Z' }],
-			});
+		mockSearchWorkflows.mockResolvedValueOnce({ items: [] }).mockResolvedValue({
+			items: [{ run_id: 'run_new', status: 'Completed', entity_id: 'plan_1', start_time: '2026-08-24T00:00:00Z' }],
+		});
 
 		renderPage();
 		const button = await screen.findByRole('button', { name: /Sync Usage Charges/i });

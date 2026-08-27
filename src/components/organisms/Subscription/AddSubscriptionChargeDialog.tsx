@@ -197,7 +197,7 @@ const AddSubscriptionChargeDialog: React.FC<AddSubscriptionChargeDialogProps> = 
 				// Keep dialog open so the user can fix and retry.
 			}
 		},
-		[commitmentState, defaultCurrency, onOpenChange, onSave, t],
+		[commitmentState, defaultCurrency, onOpenChange, onSave, selectedMeterBucketSize, t],
 	);
 
 	const handleAdd = useCallback((partial: Partial<InternalPrice>) => buildAndSave(partial, uniqueId('sub_')), [buildAndSave]);
