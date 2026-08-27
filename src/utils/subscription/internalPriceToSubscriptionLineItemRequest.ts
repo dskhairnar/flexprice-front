@@ -78,6 +78,16 @@ function applyFixedChargePricingFields(price: SubscriptionPriceCreateRequest, in
 /** Subscription line item in local form state (API request payload + client-side temp id). */
 export type AddedSubscriptionLineItem = CreateSubscriptionLineItemRequest & { tempId: string };
 
+/**
+ * Strip the display-only `price.meter` (stamped for pending-charge bucket display)
+ * before sending a line item request to the API.
+ */
+export function stripDisplayMeterFromLineItemRequest(request: CreateSubscriptionLineItemRequest): CreateSubscriptionLineItemRequest {
+	if (!request.price || !('meter' in request.price)) return request;
+	const { meter: _meter, ...price } = request.price as SubscriptionPriceCreateRequest & { meter?: unknown };
+	return { ...request, price };
+}
+
 export interface SubscriptionLineItemFormDefaults {
 	currency?: string;
 	billingPeriod?: string;

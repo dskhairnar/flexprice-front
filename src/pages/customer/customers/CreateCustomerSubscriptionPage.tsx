@@ -49,6 +49,7 @@ import { ExtendedPriceOverride, getLineItemOverrides } from '@/utils/common/pric
 import { extractLineItemCommitments } from '@/utils/common/commitment_helpers';
 import { sanitizeAddonLineItemCommitmentsForApi, filterAddonPricesForSubscription } from '@/utils/subscription/addon_commitment_helpers';
 import { extractSubscriptionBoundaries, extractFirstPhaseData } from '@/utils/subscription/phaseConversion';
+import { stripDisplayMeterFromLineItemRequest } from '@/utils/subscription/internalPriceToSubscriptionLineItemRequest';
 
 import { useBreadcrumbsStore } from '@/store/useBreadcrumbsStore';
 import { useEnvironment } from '@/hooks/useEnvironment';
@@ -789,7 +790,8 @@ const CreateCustomerSubscriptionPage: React.FC = () => {
 			line_items: (() => {
 				if (sanitized.sanitizedPhases) return undefined;
 				// Window commitment buckets are sanitized in AddSubscriptionChargeDialog (with meter context).
-				const addedItems = sanitized.addedSubscriptionLineItems?.map(({ tempId: _tempId, ...req }) => req) ?? [];
+				const addedItems =
+					sanitized.addedSubscriptionLineItems?.map(({ tempId: _tempId, ...req }) => stripDisplayMeterFromLineItemRequest(req)) ?? [];
 				return addedItems.length > 0 ? addedItems : undefined;
 			})(),
 			inheritance: Object.keys(inheritancePayload).length > 0 ? inheritancePayload : undefined,

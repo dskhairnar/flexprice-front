@@ -559,17 +559,22 @@ export function sanitizeSubscriptionLineItemForApi(
 	const priceContext = bucketPriceContextFromLineItem(item, currency);
 	if (!priceContext) return item;
 
-	const buckets = normalizeCommitmentTimeBuckets(item.commitment_time_buckets, effectiveBucketSize ?? item.price?.bucket_size).map(
-		(bucket) => {
-			const draft = bucket as CommitmentTimeBucketDraft;
-			const hasInlinePrice = bucket.price && (bucket.price.amount || bucket.price.tiers?.length || bucket.price.billing_model);
+	// Price-then-meter fallback: legacy prices define the bucket only on their meter.
+	const itemPrice = item.price as
+		| (NonNullable<CreateSubscriptionLineItemRequest['price']> & {
+				meter?: { aggregation?: { bucket_size?: BUCKET_SIZE | string | null } };
+		  })
+		| undefined;
+	const fallbackBucketSize = itemPrice?.bucket_size ?? itemPrice?.meter?.aggregation?.bucket_size;
+	const buckets = normalizeCommitmentTimeBuckets(item.commitment_time_buckets, effectiveBucketSize ?? fallbackBucketSize).map((bucket) => {
+		const draft = bucket as CommitmentTimeBucketDraft;
+		const hasInlinePrice = bucket.price && (bucket.price.amount || bucket.price.tiers?.length || bucket.price.billing_model);
 
-			return {
-				...bucket,
-				price: hasInlinePrice ? bucket.price : buildBucketPriceFromDraft(draft, priceContext),
-			};
-		},
-	);
+		return {
+			...bucket,
+			price: hasInlinePrice ? bucket.price : buildBucketPriceFromDraft(draft, priceContext),
+		};
+	});
 
 	return {
 		...item,

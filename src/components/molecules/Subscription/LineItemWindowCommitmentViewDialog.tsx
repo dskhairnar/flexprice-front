@@ -7,6 +7,8 @@ import {
 	lineItemWindowCommitmentStateFromBuckets,
 } from '@/utils/subscription/subscription_line_item_commitment_helpers';
 import { useCommitmentTimeBucketPrices } from '@/hooks/useCommitmentTimeBucketPrices';
+import { useMeterForCommitment } from '@/hooks/useMeterForCommitment';
+import { resolveBucketSize } from '@/utils/common/commitment_helpers';
 import { useTranslation } from 'react-i18next';
 
 interface Props {
@@ -20,6 +22,9 @@ const LineItemWindowCommitmentViewDialog: FC<Props> = ({ isOpen, onOpenChange, l
 	const { t } = useTranslation('billing');
 	const { bucketsWithPrices, isLoading, isError } = useCommitmentTimeBucketPrices(lineItem.commitment_time_buckets);
 	const meterId = lineItem.meter_id || lineItem.price?.meter_id;
+	// Legacy charges carry the bucket on the meter, and search-sourced prices may embed only meter_id.
+	const { meter } = useMeterForCommitment(meterId, lineItem.price?.meter ?? null);
+	const sourceBucketSize = (lineItem.price ? resolveBucketSize(lineItem.price) : null) ?? meter?.aggregation?.bucket_size ?? null;
 
 	const commitmentState = useMemo(() => {
 		if (isLoading) return DEFAULT_SUBSCRIPTION_CHARGE_COMMITMENT_STATE;
@@ -50,6 +55,7 @@ const LineItemWindowCommitmentViewDialog: FC<Props> = ({ isOpen, onOpenChange, l
 					value={commitmentState}
 					onChange={() => {}}
 					disabled
+					sourceBucketSize={sourceBucketSize}
 				/>
 			)}
 		</Dialog>

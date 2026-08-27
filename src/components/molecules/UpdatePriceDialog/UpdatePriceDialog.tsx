@@ -13,6 +13,7 @@ import { UpdatePriceRequest } from '@/types/dto';
 import { BUCKET_SIZE_NONE, priceBucketSizeOptions } from '@/constants/constants';
 import { formatDateTimeWithSecondsAndTimezone } from '@/utils/common/format_date';
 import { PremiumFeatureIcon } from '../PremiumFeature/PremiumFeature';
+import { useMeterForCommitment } from '@/hooks/useMeterForCommitment';
 import { useTranslation } from 'react-i18next';
 
 interface UpdatePriceDialogProps {
@@ -50,7 +51,9 @@ const UpdatePriceDialog: FC<UpdatePriceDialogProps> = ({ isOpen, onOpenChange, p
 	);
 	// The API rejects a price defining its own bucket_size when the meter already carries one
 	// ("meter already defines a bucket size") - disable the override instead of surfacing that as a 400.
-	const meterBucketSize = price.meter?.aggregation?.bucket_size;
+	// The price may embed only meter_id, so fetch the meter when aggregation data is missing.
+	const { meter: resolvedMeter } = useMeterForCommitment(price.meter_id, price.meter ?? null);
+	const meterBucketSize = price.meter?.aggregation?.bucket_size ?? resolvedMeter?.aggregation?.bucket_size;
 
 	// Detect price unit type
 	const isCustomPriceUnit = price.price_unit_type === PRICE_UNIT_TYPE.CUSTOM;

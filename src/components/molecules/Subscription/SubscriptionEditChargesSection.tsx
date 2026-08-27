@@ -87,7 +87,7 @@ const SubscriptionEditChargesSection: FC<SubscriptionEditChargesSectionProps> = 
 				active_filter: true,
 				limit,
 				offset,
-				expand: EXPAND.PRICES,
+				expand: `${EXPAND.PRICES}.${EXPAND.METERS}`,
 				filters: sanitizedFilters.length ? sanitizedFilters : undefined,
 				sort: sanitizedSorts.length ? sanitizedSorts : undefined,
 			}),

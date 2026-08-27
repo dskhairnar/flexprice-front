@@ -186,6 +186,15 @@ const AddSubscriptionChargeDialog: React.FC<AddSubscriptionChargeDialogProps> = 
 					(partial.currency ?? defaultCurrency ?? 'usd').toLowerCase(),
 					partial.bucket_size ?? meter?.aggregation?.bucket_size,
 				);
+				// Carry the meter bucket on the pending item so the added-charges table can
+				// display it (the API payload strips `price.meter` before sending).
+				const meterBucketSize = meter?.aggregation?.bucket_size;
+				if (finalRequest.price && !finalRequest.price.bucket_size && meterBucketSize) {
+					finalRequest = {
+						...finalRequest,
+						price: { ...finalRequest.price, meter: { aggregation: { bucket_size: meterBucketSize } } } as typeof finalRequest.price,
+					};
+				}
 			}
 
 			try {

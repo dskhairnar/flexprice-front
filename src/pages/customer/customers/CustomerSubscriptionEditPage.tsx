@@ -46,6 +46,7 @@ import { EXPAND } from '@/models';
 import { generateExpandQueryParams } from '@/utils/common/api_helper';
 import { ExtendedPriceOverride } from '@/utils/common/price_override_helpers';
 import { isInheritedSubscription } from '@/utils/subscription/isInheritedSubscription';
+import { stripDisplayMeterFromLineItemRequest } from '@/utils/subscription/internalPriceToSubscriptionLineItemRequest';
 import { getPriceTypeFromLineItem, lineItemToPrice } from '@/utils/subscription/lineItemToPrice';
 import { RouteNames } from '@/core/routes/Routes';
 import { refetchQueries } from '@/core/services/tanstack/ReactQueryProvider';
@@ -365,7 +366,7 @@ const CustomerSubscriptionEditPage: React.FC = () => {
 		async (item: AddedSubscriptionLineItem) => {
 			const { tempId, ...request } = item;
 			void tempId;
-			await createLineItem(request as CreateSubscriptionLineItemRequest);
+			await createLineItem(stripDisplayMeterFromLineItemRequest(request as CreateSubscriptionLineItemRequest));
 		},
 		[createLineItem],
 	);

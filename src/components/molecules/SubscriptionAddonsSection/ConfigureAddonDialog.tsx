@@ -73,7 +73,7 @@ const ConfigureAddonDialog: React.FC<Props> = ({
 				// Only active line items: ended charges must not reach the editors,
 				// especially via the single-charge direct-open path.
 				active_filter: true,
-				expand: EXPAND.PRICES,
+				expand: `${EXPAND.PRICES}.${EXPAND.METERS}`,
 				limit: 100,
 				offset: 0,
 			}),

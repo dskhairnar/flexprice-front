@@ -9,7 +9,7 @@ import {
 	UpdatePriceDetailsDrawer,
 	QueryBuilder,
 } from '@/components/molecules';
-import { Price, Plan, PRICE_STATUS, PRICE_ENTITY_TYPE, PRICE_TYPE, INVOICE_CADENCE } from '@/models';
+import { Price, Plan, PRICE_STATUS, PRICE_ENTITY_TYPE, PRICE_TYPE, INVOICE_CADENCE, EXPAND } from '@/models';
 import { PriceUnit } from '@/models/PriceUnit';
 import { Plus, Trash2, Pencil, FileText, Copy } from 'lucide-react';
 import { useMutation, useQuery } from '@tanstack/react-query';
@@ -407,6 +407,8 @@ const PlanPriceTable: FC<PlanChargesTableProps> = ({ plan, onPriceUpdate }) => {
 				filters: searchFilters.length > 0 ? searchFilters : undefined,
 				sorts: searchSorts.length > 0 ? searchSorts : undefined,
 				allow_expired_prices: showExpiredPrices,
+				// Legacy prices carry the bucket on the meter; expand it so bucket-size display and edit guards resolve.
+				expand: EXPAND.METERS,
 				limit,
 				offset,
 			}),
