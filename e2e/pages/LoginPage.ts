@@ -19,6 +19,19 @@ export class LoginPage {
 		return this.page.getByRole('button', { name: 'Forgot your password?' });
 	}
 
+	/** The auth page is a single route with tabs; these switch between them. */
+	get signupTab(): Locator {
+		return this.page.getByRole('button', { name: 'Sign up' });
+	}
+
+	get loginTab(): Locator {
+		return this.page.getByRole('button', { name: 'Log in' });
+	}
+
+	get backToLogin(): Locator {
+		return this.page.getByRole('button', { name: 'Back to login' });
+	}
+
 	async goto(): Promise<void> {
 		await this.page.goto('/login');
 		await expect(this.email).toBeVisible();
