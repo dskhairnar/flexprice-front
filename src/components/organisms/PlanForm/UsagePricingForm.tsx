@@ -21,6 +21,7 @@ import FeatureApi from '@/api/FeatureApi';
 import { ENTITY_STATUS } from '@/models/base';
 import { CurrencyPriceUnitSelector } from '@/components/molecules';
 import { CurrencyPriceUnitSelection, isPriceUnitOption } from '@/types/common';
+import { useMeterForCommitment } from '@/hooks/useMeterForCommitment';
 import { useTranslation } from 'react-i18next';
 
 /**
@@ -143,7 +144,9 @@ const UsagePricingForm: FC<Props> = ({
 	const [bucketSize, setBucketSize] = useState<PriceBucketSize | ''>((price.bucket_size as PriceBucketSize | undefined) ?? '');
 	// The API rejects a price-level bucket_size when the selected meter already defines one -
 	// disable the selector and drop any stale price-level choice instead of sending both.
-	const meterBucketSize = selectedFeature?.meter?.aggregation?.bucket_size;
+	// Features from SelectFeature often carry only meter_id, so fetch the meter when needed.
+	const { meter: resolvedMeter } = useMeterForCommitment(selectedFeature?.meter_id, selectedFeature?.meter ?? null);
+	const meterBucketSize = selectedFeature?.meter?.aggregation?.bucket_size ?? resolvedMeter?.aggregation?.bucket_size;
 	useEffect(() => {
 		if (meterBucketSize) setBucketSize('');
 	}, [meterBucketSize]);

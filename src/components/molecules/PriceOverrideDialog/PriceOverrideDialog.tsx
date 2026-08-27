@@ -24,6 +24,7 @@ import {
 } from '@/utils/subscription/subscription_line_item_commitment_helpers';
 import { resolveBucketSize } from '@/utils/common/commitment_helpers';
 import { useCommitmentTimeBucketPrices } from '@/hooks/useCommitmentTimeBucketPrices';
+import { useMeterForCommitment } from '@/hooks/useMeterForCommitment';
 import { convertPriceOverrideToLineItemUpdate } from '@/utils/subscription/priceOverrideToLineItemUpdate';
 
 interface Props {
@@ -54,7 +55,10 @@ const PriceOverrideDialog: FC<Props> = ({
 }) => {
 	const { t } = useTranslation('catalog');
 	const { t: tBilling } = useTranslation('billing');
-	const meterId = lineItem?.meter_id || lineItem?.price?.meter_id;
+	const meterId = lineItem?.meter_id || lineItem?.price?.meter_id || price.meter_id;
+	// The embedded price often carries only meter_id — fetch the meter so bucket-size
+	// resolution (and the window-commitment gate) can see meter-level bucketing.
+	const { meter: commitmentMeter } = useMeterForCommitment(meterId, price.meter ?? lineItem?.price?.meter ?? null);
 	const { bucketsWithPrices, isLoading: isLoadingBucketPrices } = useCommitmentTimeBucketPrices(
 		isOpen && lineItem ? lineItem.commitment_time_buckets : undefined,
 	);
@@ -96,14 +100,14 @@ const PriceOverrideDialog: FC<Props> = ({
 	);
 	// The API rejects a price defining its own bucket_size when the meter already carries one
 	// ("meter already defines a bucket size") - disable the override instead of surfacing that as a 400.
-	const meterBucketSize = price.meter?.aggregation?.bucket_size;
+	const meterBucketSize = price.meter?.aggregation?.bucket_size ?? commitmentMeter?.aggregation?.bucket_size;
 	// An empty selector on a price that HAD a bucket size is an explicit clear (submitted as
 	// BUCKET_SIZE_NONE). Commitment validation/normalization must then see "no bucket" — falling
 	// back to the price's old effective bucket would normalize time buckets for a removed size.
 	const bucketExplicitlyCleared = overrideBucketSize === '' && Boolean(price.bucket_size);
 	const effectiveBucketSizeForCommitment = bucketExplicitlyCleared
 		? undefined
-		: overrideBucketSize || resolveBucketSize(price) || undefined;
+		: overrideBucketSize || resolveBucketSize(price) || commitmentMeter?.aggregation?.bucket_size || undefined;
 
 	// Detect price unit type
 	const isCustomPriceUnit = price.price_unit_type === PRICE_UNIT_TYPE.CUSTOM;
