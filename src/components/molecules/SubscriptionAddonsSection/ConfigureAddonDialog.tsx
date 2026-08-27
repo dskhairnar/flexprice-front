@@ -68,7 +68,9 @@ const ConfigureAddonDialog: React.FC<Props> = ({
 			SubscriptionApi.searchSubscriptionLineItems({
 				subscription_ids: [subscriptionId],
 				addon_association_ids: [association!.id],
-				active_filter: false,
+				// Only active line items: ended charges must not reach the editors,
+				// especially via the single-charge direct-open path.
+				active_filter: true,
 				expand: EXPAND.PRICES,
 				limit: 100,
 				offset: 0,

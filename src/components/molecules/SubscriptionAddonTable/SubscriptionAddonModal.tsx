@@ -1,4 +1,4 @@
-import { AddAddonToSubscriptionRequest } from '@/types/dto/Addon';
+import { AddAddonToSubscriptionRequest, AddonResponse } from '@/types/dto/Addon';
 import { OverrideLineItemRequest } from '@/types/dto/Subscription';
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { Button, DatePicker } from '@/components/atoms';
@@ -80,7 +80,7 @@ const SubscriptionAddonModal: React.FC<Props> = ({
 	const { t } = useTranslation(['common', 'customers']);
 	const [formData, setFormData] = useState<Partial<AddAddonToSubscriptionRequest>>({});
 	const [errors, setErrors] = useState<FormErrors>({});
-	const [selectedAddonDetails, setSelectedAddonDetails] = useState<any>(null);
+	const [selectedAddonDetails, setSelectedAddonDetails] = useState<AddonResponse | null>(null);
 	const [selectedCommitmentPrice, setSelectedCommitmentPrice] = useState<Price | null>(null);
 	const [isCommitmentDialogOpen, setIsCommitmentDialogOpen] = useState(false);
 	const [overriddenPrices, setOverriddenPrices] = useState<Record<string, ExtendedPriceOverride>>({});
@@ -107,7 +107,7 @@ const SubscriptionAddonModal: React.FC<Props> = ({
 					line_item_commitments: data.line_item_commitments || {},
 				});
 				// Find addon details for editing
-				const addonDetails = addons.find((addon) => addon.id === data.addon_id);
+				const addonDetails = addons.find((addon) => addon.id === data.addon_id) ?? null;
 				setSelectedAddonDetails(addonDetails);
 				setOverriddenPrices(backendOverridesToMap(data.override_line_items));
 			} else {
@@ -180,7 +180,7 @@ const SubscriptionAddonModal: React.FC<Props> = ({
 
 	const handleAddonSelect = useCallback(
 		(addonId: string) => {
-			const addonDetails = addons.find((addon) => addon.id === addonId);
+			const addonDetails = addons.find((addon) => addon.id === addonId) ?? null;
 			setSelectedAddonDetails(addonDetails);
 			// Reset overrides when switching addons to avoid leaking price IDs across addons
 			setOverriddenPrices({});

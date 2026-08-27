@@ -333,14 +333,14 @@ const SubscriptionAddonsSection: FC<SubscriptionAddonsSectionProps> = ({
 								</DropdownMenuTrigger>
 								<DropdownMenuContent align='end'>
 									<DropdownMenuItem
-										disabled={!canWriteAddon}
+										disabled={hasEndDate || !canWriteAddon}
 										onSelect={(e) => {
-											if (!canWriteAddon) return;
+											if (hasEndDate || !canWriteAddon) return;
 											e.preventDefault();
 											setDropdownOpen(null);
 											setAddonToConfigure(row);
 										}}
-										className={`flex gap-2 items-center cursor-pointer ${!canWriteAddon ? 'opacity-50 cursor-not-allowed' : ''}`}>
+										className={`flex gap-2 items-center cursor-pointer ${hasEndDate || !canWriteAddon ? 'opacity-50 cursor-not-allowed' : ''}`}>
 										<Settings2 className='h-4 w-4' />
 										<span>{t('billing:subscriptions.configure')}</span>
 									</DropdownMenuItem>

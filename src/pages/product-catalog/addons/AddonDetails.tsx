@@ -24,7 +24,8 @@ import { Price } from '@/models/Price';
 import { useBreadcrumbsStore } from '@/store/useBreadcrumbsStore';
 import AddonApi from '@/api/AddonApi';
 import EntitlementApi from '@/api/EntitlementApi';
-import { getPriceTypeLabel } from '@/utils/common/helper_functions';
+import { copyToClipboard, getPriceTypeLabel } from '@/utils/common/helper_functions';
+import { ChargeActionHandlers } from '@/types/common';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { Copy, EyeOff, FileText, Plus, Pencil, Trash2 } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
@@ -77,13 +78,6 @@ type Params = {
 	id: string;
 };
 
-interface ChargeActionHandlers {
-	onEditPrice: (price: Price) => void;
-	onEditDetails: (price: Price) => void;
-	onTerminatePrice: (price: Price) => void;
-	canWritePrice: boolean;
-}
-
 const ChargeRowMenu = ({ row, onEditPrice, onEditDetails, onTerminatePrice, canWritePrice }: ChargeActionHandlers & { row: Price }) => {
 	const [isOpen, setIsOpen] = useState(false);
 	const actionsDisabled = !!row.end_date || !canWritePrice;
@@ -106,8 +100,7 @@ const ChargeRowMenu = ({ row, onEditPrice, onEditDetails, onTerminatePrice, canW
 						onSelect: (e: Event) => {
 							e.preventDefault();
 							setIsOpen(false);
-							navigator.clipboard.writeText(row.id);
-							toast.success('Price ID copied to clipboard');
+							void copyToClipboard(row.id, 'Price ID copied to clipboard').catch(() => undefined);
 						},
 					},
 					{
@@ -352,10 +345,14 @@ const AddonDetails = () => {
 	const handleTerminateConfirm = useCallback(
 		async (endDate: string | undefined) => {
 			if (!selectedPriceForTermination) return;
-			setShowTerminateModal(false);
-			await deletePrice({ priceId: selectedPriceForTermination.id, data: endDate ? { end_date: endDate } : undefined });
-			toast.success('Price terminated successfully');
-			setSelectedPriceForTermination(null);
+			try {
+				await deletePrice({ priceId: selectedPriceForTermination.id, data: endDate ? { end_date: endDate } : undefined });
+				toast.success('Price terminated successfully');
+				setShowTerminateModal(false);
+				setSelectedPriceForTermination(null);
+			} catch {
+				// onError already surfaced the failure; keep the modal open so the user can retry.
+			}
 		},
 		[selectedPriceForTermination, deletePrice],
 	);
