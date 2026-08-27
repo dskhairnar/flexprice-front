@@ -40,7 +40,6 @@
 			"applyDiscount": "Reapply coupon discounts on save",
 			"applyDiscountDescription": "Recalculates the discount from this invoice's current coupon associations. Available for draft invoices only.",
 			"lineItemsTitle": "Line Items",
-			"lineItemsNote": "Line items on an existing invoice cannot be edited.",
 			"notEditable": "This invoice cannot be edited. Only draft and finalized invoices can be updated.",
 			"saveChanges": "Save Changes",
 			"saving": "Saving...",
@@ -50,7 +49,10 @@
 				"updateSuccess": "Invoice updated successfully",
 				"updateFailed": "Failed to update invoice",
 				"loadError": "Error loading invoice"
-			}
+			},
+			"lineItemsDraftOnlyNote": "Line items can only be edited while the invoice is a draft.",
+			"manualEditHint": "Editing line items marks the invoice as manually edited; automatic recomputation is disabled afterwards.",
+			"lineItemInvalid": "Each line item needs a name and non-negative amount and quantity."
 		},
 		"status": {
 			"void": "Void",

@@ -12,7 +12,13 @@ import RedirectCell from '@/components/molecules/Table/RedirectCell';
 import InvoiceApi from '@/api/InvoiceApi';
 import { Invoice, INVOICE_STATUS, INVOICE_TYPE } from '@/models/Invoice';
 import { PAYMENT_STATUS } from '@/constants/payment';
-import { UpdateInvoicePayload } from '@/types/dto';
+import {
+	ExecuteInvoiceModifyPayload,
+	INVOICE_MODIFY_LINE_ITEM_ACTION,
+	InvoiceModifyAddLineItem,
+	InvoiceModifyUpdateLineItem,
+	UpdateInvoicePayload,
+} from '@/types/dto';
 import { RouteNames } from '@/core/routes/Routes';
 import { refetchQueries } from '@/core/services/tanstack/ReactQueryProvider';
 import { refetchInvoiceQueries } from '@/core/services/tanstack/queryKeys';
@@ -24,6 +30,29 @@ interface MetadataRow {
 	key: string;
 	value: string;
 }
+
+/** One editable line-item row. Rows without an id are new (to be added on save). */
+interface LineItemRow {
+	id?: string;
+	display_name: string;
+	quantity: string;
+	amount: string;
+}
+
+/** The line-item operations a save must execute through the modify endpoint. */
+interface LineItemOps {
+	removes: string[];
+	updates: { line_item_id: string; update: InvoiceModifyUpdateLineItem }[];
+	adds: InvoiceModifyAddLineItem[];
+}
+
+const toLineItemRows = (invoice: Invoice): LineItemRow[] =>
+	(invoice.line_items ?? []).map((li) => ({
+		id: li.id,
+		display_name: li.display_name ?? '',
+		quantity: String(li.quantity ?? '1'),
+		amount: String(li.amount ?? '0'),
+	}));
 
 // Backend only accepts updates for invoices in these statuses.
 const EDITABLE_STATUSES: string[] = [INVOICE_STATUS.DRAFT, INVOICE_STATUS.FINALIZED];
@@ -62,6 +91,8 @@ const EditInvoicePage: FC = () => {
 	const [applyDiscount, setApplyDiscount] = useState(false);
 	const [paymentStatus, setPaymentStatus] = useState('');
 	const [isStatusModalOpen, setIsStatusModalOpen] = useState(false);
+	const [lineItemRows, setLineItemRows] = useState<LineItemRow[]>([]);
+	const [removedLineItemIds, setRemovedLineItemIds] = useState<string[]>([]);
 
 	const {
 		data: invoice,
@@ -81,6 +112,8 @@ const EditInvoicePage: FC = () => {
 		setMetadataRows(toMetadataRows(invoice));
 		setApplyDiscount(false);
 		setPaymentStatus(invoice.payment_status ?? '');
+		setLineItemRows(toLineItemRows(invoice));
+		setRemovedLineItemIds([]);
 	}, [invoice]);
 
 	useEffect(() => {
@@ -106,12 +139,72 @@ const EditInvoicePage: FC = () => {
 		isEditable && (invoice?.payment_status === PAYMENT_STATUS.PENDING || invoice?.payment_status === PAYMENT_STATUS.FAILED);
 	const paymentStatusChanged = !!invoice && isPaymentStatusEditable && !!paymentStatus && paymentStatus !== invoice.payment_status;
 
-	const hasChanges = dueDateChanged || pdfUrlChanged || metadataChanged || applyDiscount || paymentStatusChanged;
+	// Line-item edits go exclusively through POST /invoices/:id/modify/execute (DRAFT only).
+	const lineItemOps = useMemo<LineItemOps>(() => {
+		if (!invoice || invoice.invoice_status !== INVOICE_STATUS.DRAFT) return { removes: [], updates: [], adds: [] };
+		const originalById = new Map((invoice.line_items ?? []).map((li) => [li.id, li]));
+		const removes = removedLineItemIds.filter((id) => originalById.has(id));
+		const updates: LineItemOps['updates'] = [];
+		const adds: InvoiceModifyAddLineItem[] = [];
+		lineItemRows.forEach((row) => {
+			if (!row.id) {
+				// A new row counts once the user typed anything meaningful into it.
+				if (row.display_name.trim() !== '' || parseFloat(row.amount || '0') !== 0) {
+					adds.push({ display_name: row.display_name.trim(), amount: row.amount || '0', quantity: row.quantity || '1' });
+				}
+				return;
+			}
+			const original = originalById.get(row.id);
+			if (!original) return;
+			const update: InvoiceModifyUpdateLineItem = {};
+			if (row.display_name !== (original.display_name ?? '')) update.display_name = row.display_name;
+			if (row.amount !== String(original.amount ?? '0')) update.amount = row.amount;
+			if (row.quantity !== String(original.quantity ?? '1')) update.quantity = row.quantity;
+			if (Object.keys(update).length > 0) updates.push({ line_item_id: row.id, update });
+		});
+		return { removes, updates, adds };
+	}, [invoice, lineItemRows, removedLineItemIds]);
+
+	const lineItemsChanged = lineItemOps.removes.length > 0 || lineItemOps.updates.length > 0 || lineItemOps.adds.length > 0;
+
+	const hasChanges = dueDateChanged || pdfUrlChanged || metadataChanged || applyDiscount || paymentStatusChanged || lineItemsChanged;
 
 	const { mutate: updateInvoice, isPending } = useMutation({
-		mutationFn: async ({ payload, nextPaymentStatus }: { payload: UpdateInvoicePayload | null; nextPaymentStatus: string | null }) => {
+		mutationFn: async ({
+			payload,
+			nextPaymentStatus,
+			ops,
+		}: {
+			payload: UpdateInvoicePayload | null;
+			nextPaymentStatus: string | null;
+			ops: LineItemOps | null;
+		}) => {
 			if (payload) await InvoiceApi.updateInvoice(invoiceId!, payload);
 			if (nextPaymentStatus) await InvoiceApi.updateInvoicePaymentStatus(invoiceId!, { payment_status: nextPaymentStatus });
+			if (ops) {
+				if (ops.removes.length > 0) {
+					const payload: ExecuteInvoiceModifyPayload = {
+						type: 'line_item',
+						line_item_params: { action: INVOICE_MODIFY_LINE_ITEM_ACTION.REMOVE, line_item_ids: ops.removes },
+					};
+					await InvoiceApi.modifyInvoice(invoiceId!, payload);
+				}
+				// One update per call: the backend versions each edit individually.
+				for (const { line_item_id, update } of ops.updates) {
+					const payload: ExecuteInvoiceModifyPayload = {
+						type: 'line_item',
+						line_item_params: { action: INVOICE_MODIFY_LINE_ITEM_ACTION.UPDATE, line_item_id, update },
+					};
+					await InvoiceApi.modifyInvoice(invoiceId!, payload);
+				}
+				if (ops.adds.length > 0) {
+					const payload: ExecuteInvoiceModifyPayload = {
+						type: 'line_item',
+						line_item_params: { action: INVOICE_MODIFY_LINE_ITEM_ACTION.ADD, items: ops.adds },
+					};
+					await InvoiceApi.modifyInvoice(invoiceId!, payload);
+				}
+			}
 		},
 		onSuccess: () => {
 			toast.success(t('invoices.edit.toast.updateSuccess'));
@@ -150,11 +243,27 @@ const EditInvoicePage: FC = () => {
 			payload.apply_discount = true;
 		}
 
+		if (lineItemsChanged) {
+			const invalidRow = lineItemRows.some((row) => {
+				const touched = !row.id || lineItemOps.updates.some((u) => u.line_item_id === row.id);
+				if (!touched) return false;
+				if (!row.id && row.display_name.trim() === '' && parseFloat(row.amount || '0') === 0) return false;
+				const amount = parseFloat(row.amount);
+				const quantity = parseFloat(row.quantity);
+				return row.display_name.trim() === '' || isNaN(amount) || amount < 0 || isNaN(quantity) || quantity < 0;
+			});
+			if (invalidRow) {
+				toast.error(t('invoices.edit.lineItemInvalid'));
+				return;
+			}
+		}
+
 		const invoicePayload = Object.keys(payload).length > 0 ? payload : null;
 		const nextPaymentStatus = paymentStatusChanged ? paymentStatus : null;
-		if (!invoicePayload && !nextPaymentStatus) return;
+		const ops = lineItemsChanged ? lineItemOps : null;
+		if (!invoicePayload && !nextPaymentStatus && !ops) return;
 
-		updateInvoice({ payload: invoicePayload, nextPaymentStatus });
+		updateInvoice({ payload: invoicePayload, nextPaymentStatus, ops });
 	};
 
 	const handleCancel = () => {
@@ -166,6 +275,22 @@ const EditInvoicePage: FC = () => {
 			const rows = [...prev];
 			rows[index] = { ...rows[index], [field]: value };
 			return rows;
+		});
+	};
+
+	const handleLineItemChange = (index: number, field: 'display_name' | 'quantity' | 'amount', value: string) => {
+		setLineItemRows((prev) => {
+			const rows = [...prev];
+			rows[index] = { ...rows[index], [field]: value };
+			return rows;
+		});
+	};
+
+	const handleRemoveLineItemRow = (index: number) => {
+		setLineItemRows((prev) => {
+			const row = prev[index];
+			if (row?.id) setRemovedLineItemIds((ids) => (ids.includes(row.id!) ? ids : [...ids, row.id!]));
+			return prev.filter((_, i) => i !== index);
 		});
 	};
 
@@ -322,25 +447,73 @@ const EditInvoicePage: FC = () => {
 
 					<Divider className='my-4' />
 
-					{/* read-only line items */}
-					<div className='px-4 pb-4'>
-						<p className='text-sm text-content-zinc-muted mb-2'>{t('invoices.edit.lineItemsNote')}</p>
-						<InvoiceLineItemTable
-							title={t('invoices.edit.lineItemsTitle')}
-							data={invoice.line_items ?? []}
-							subtotal={invoice.subtotal}
-							total={invoice.total}
-							total_prepaid_credits_applied={invoice.total_prepaid_credits_applied}
-							discount={invoice.total_discount}
-							total_tax={invoice.total_tax}
-							amount_paid={invoice.amount_paid}
-							overpaid_amount={invoice.overpaid_amount}
-							amount_remaining={Number(invoice.amount_remaining)}
-							amount_due={invoice.amount_due}
-							currency={invoice.currency}
-							invoiceType={invoice.invoice_type as INVOICE_TYPE}
-						/>
-					</div>
+					{/* line items — editable for drafts through the invoice modify API */}
+					{isDraft ? (
+						<div className='p-4'>
+							<FormHeader title={t('invoices.edit.lineItemsTitle')} variant='sub-header' titleClassName='font-semibold' />
+							<p className='text-sm text-content-zinc-muted mt-1 mb-4'>{t('invoices.edit.manualEditHint')}</p>
+							<div className='min-w-0'>
+								{lineItemRows.map((row, index) => (
+									<div key={row.id ?? `new-${index}`} className='mb-4 grid grid-cols-12 items-end gap-3 min-w-0'>
+										<div className='col-span-12 min-w-0 sm:col-span-5'>
+											<Input
+												label={index === 0 ? t('createInvoice.itemName') : ''}
+												value={row.display_name}
+												onChange={(value) => handleLineItemChange(index, 'display_name', value)}
+												placeholder={t('createInvoice.itemNamePlaceholder')}
+											/>
+										</div>
+										<div className='col-span-4 min-w-0 sm:col-span-3'>
+											<Input
+												label={index === 0 ? t('createInvoice.quantity') : ''}
+												value={row.quantity}
+												onChange={(value) => handleLineItemChange(index, 'quantity', value)}
+												variant='integer'
+												placeholder='1'
+											/>
+										</div>
+										<div className='col-span-4 min-w-0 sm:col-span-3'>
+											<Input
+												label={index === 0 ? t('createInvoice.amount') : ''}
+												value={row.amount}
+												onChange={(value) => handleLineItemChange(index, 'amount', value)}
+												variant='formatted-number'
+												placeholder={t('creditNotes.amountPlaceholder')}
+											/>
+										</div>
+										<div className='col-span-1 flex items-end justify-end'>
+											<Button variant='outline' className='size-[42px] shrink-0' onClick={() => handleRemoveLineItemRow(index)}>
+												<Trash2 className='w-4 h-4' />
+											</Button>
+										</div>
+									</div>
+								))}
+								<AddChargesButton
+									onClick={() => setLineItemRows((prev) => [...prev, { display_name: '', quantity: '1', amount: '0' }])}
+									label={t('createInvoice.addLineItem')}
+								/>
+							</div>
+						</div>
+					) : (
+						<div className='px-4 pb-4'>
+							<p className='text-sm text-content-zinc-muted mb-2'>{t('invoices.edit.lineItemsDraftOnlyNote')}</p>
+							<InvoiceLineItemTable
+								title={t('invoices.edit.lineItemsTitle')}
+								data={invoice.line_items ?? []}
+								subtotal={invoice.subtotal}
+								total={invoice.total}
+								total_prepaid_credits_applied={invoice.total_prepaid_credits_applied}
+								discount={invoice.total_discount}
+								total_tax={invoice.total_tax}
+								amount_paid={invoice.amount_paid}
+								overpaid_amount={invoice.overpaid_amount}
+								amount_remaining={Number(invoice.amount_remaining)}
+								amount_due={invoice.amount_due}
+								currency={invoice.currency}
+								invoiceType={invoice.invoice_type as INVOICE_TYPE}
+							/>
+						</div>
+					)}
 				</div>
 
 				<div className='flex justify-end p-4'>
