@@ -1,9 +1,12 @@
-# Scheduled synthetic monitoring.
+# Scheduled synthetic monitoring — CURRENTLY DISABLED.
 #
-# Runs the smoke suite against staging on a timer, independent of anyone pushing
-# code. This is the layer that catches breakage no pull request could have caught:
-# a backend contract change, an expired credential, a flipped feature flag, a third
-# party going down, a configuration drift.
+# The timer is commented out below; only manual runs remain. Re-enable by
+# uncommenting the `schedule:` block, which is the whole change needed.
+#
+# What it is for, when it is wanted back: running the smoke suite on a timer,
+# independent of anyone pushing code, is the only layer that catches breakage no
+# pull request could have caught — a backend contract change, an expired
+# credential, a flipped feature flag, a third party going down, config drift.
 #
 # Notifications are edge-triggered, not level-triggered — an alert on the first
 # failure and a recovery notice on the first pass afterwards. Repeating "still
@@ -17,11 +20,13 @@
 name: E2E (monitor)
 
 on:
-  schedule:
-    # Every 30 minutes. GitHub queues scheduled runs on shared capacity, so the
-    # actual start time drifts by a few minutes — fine for monitoring, and the
-    # reason this is not set to a tighter interval.
-    - cron: '*/30 * * * *'
+  # Disabled for now — the recurring run was not wanted. Uncomment to restore it.
+  # GitHub queues scheduled runs on shared capacity, so the actual start time
+  # drifts by a few minutes; that is fine for monitoring and the reason this was
+  # never set tighter than half-hourly.
+  #
+  # schedule:
+  #   - cron: '*/30 * * * *'
   workflow_dispatch:
 
 # Never let a slow run overlap the next tick.

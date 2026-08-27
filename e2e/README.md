@@ -393,7 +393,7 @@ workers on one.
 | ----------------- | ------------------------------ | ------------------- | -------------------------------- |
 | `e2e-pr.yml`      | pull requests touching the app | `public` then `e2e` | PR check status                  |
 | `e2e-staging.yml` | successful deployment          | `smoke`             | Slack on failure                 |
-| `e2e-monitor.yml` | every 30 minutes               | `smoke`             | Slack on failure and on recovery |
+| `e2e-monitor.yml` | manual only (timer disabled)   | `smoke`             | Slack on failure and on recovery |
 
 `e2e-pr.yml` runs in two stages: static checks (E2E typecheck, lint) fail in under a
 minute, and only then does the browser suite start. Unit tests are not duplicated
@@ -404,7 +404,7 @@ there — `test.yml` already runs vitest on every pull request as its own check.
 | Secret                | Used by           | What it is                                            |
 | --------------------- | ----------------- | ----------------------------------------------------- |
 | `E2E_API_URL`         | PR                | Backend the test tenant lives in, including `/v1`     |
-| `E2E_STAGING_URL`     | monitor           | Base URL to monitor                                   |
+| `E2E_STAGING_URL`     | monitor           | Base URL to monitor (manual runs only for now)        |
 | `E2E_USER_EMAIL`      | all authenticated | The dedicated admin test account                      |
 | `E2E_USER_PASSWORD`   | all authenticated | Its password                                          |
 | `E2E_VIEWER_EMAIL`    | RBAC              | Optional read-only account                            |
@@ -435,8 +435,11 @@ Each step should be stable before the next starts:
    week. Blocking merges on a suite that is not yet trusted is how teams learn to
    bypass the check.
 4. **Post-deploy** — wired; turn on once a staging test tenant exists.
-5. **Monitoring** — the scheduled job, which catches breakage no PR caused: backend
-   contract changes, expired credentials, flipped flags, third-party outages.
+5. **Monitoring** — the scheduled job, currently disabled: its `schedule:` block is
+   commented out and only `workflow_dispatch` remains. It is the one layer that
+   catches breakage no PR caused — backend contract changes, expired credentials,
+   flipped flags, third-party outages — so uncomment the cron once the suite has
+   earned enough trust for an alert from it to be believed.
 
 ### Coverage roadmap
 
