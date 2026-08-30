@@ -48,6 +48,9 @@ export type TabType =
 	| 'invoices'
 	| 'wallet_balance'
 	| 'wallet_transactions'
+	| 'wallet_topup' // top up via hosted checkout
+	| 'auto_topup' // auto top-up threshold + amount config
+	| 'payment_methods' // saved cards + add a new one
 	| 'metric_cards'; // custom + cost metrics in one grid (controlled by MetricCardsConfig)
 
 // ─── Widget-specific Config ───────────────────────────────────────────────────
@@ -118,7 +121,7 @@ export const DEFAULT_PORTAL_CONFIG: PortalConfig = {
 			id: 'usage',
 			label: 'Usage',
 			enabled: true,
-			order: 1,
+			order: 2,
 			tabs: [
 				{
 					id: '1',
@@ -147,7 +150,7 @@ export const DEFAULT_PORTAL_CONFIG: PortalConfig = {
 			id: 'invoices',
 			label: 'Invoices',
 			enabled: true,
-			order: 2,
+			order: 4,
 			tabs: [{ id: '5', type: 'invoices', enabled: true, order: 1 }],
 		},
 		{
@@ -157,14 +160,23 @@ export const DEFAULT_PORTAL_CONFIG: PortalConfig = {
 			order: 3,
 			tabs: [
 				{ id: '6', type: 'wallet_balance', enabled: true, order: 1 },
-				{ id: '7', type: 'wallet_transactions', enabled: true, order: 2 },
+				{ id: '11', type: 'wallet_topup', enabled: true, order: 2 },
+				{ id: '12', type: 'auto_topup', enabled: true, order: 3 },
+				{ id: '7', type: 'wallet_transactions', enabled: true, order: 4 },
 			],
+		},
+		{
+			id: 'payment_methods',
+			label: 'Payment Methods',
+			enabled: true,
+			order: 5,
+			tabs: [{ id: '13', type: 'payment_methods', enabled: true, order: 1 }],
 		},
 		{
 			id: 'overview',
 			label: 'Overview',
 			enabled: true,
-			order: 4,
+			order: 1,
 			tabs: [
 				{ id: '8', type: 'wallet_balance', enabled: true, order: 1 },
 				{ id: '9', type: 'subscriptions', enabled: true, order: 2 },

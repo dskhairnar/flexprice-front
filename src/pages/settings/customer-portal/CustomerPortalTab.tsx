@@ -88,6 +88,14 @@ const CustomerPortalTab = () => {
 							disabled={updateConfig.isPending}
 							onCheckedChange={(checked) => handleToggle('showSubscriptions', checked)}
 						/>
+						<SettingsToggleRow
+							label={t('customerPortal.portal.showPaymentMethods')}
+							description={t('customerPortal.portal.showPaymentMethodsDescription')}
+							infoAriaLabel={t('info.ariaLabel', { field: t('customerPortal.portal.showPaymentMethods') })}
+							checked={visibility.showPaymentMethods}
+							disabled={updateConfig.isPending}
+							onCheckedChange={(checked) => handleToggle('showPaymentMethods', checked)}
+						/>
 					</div>
 					<SettingsFormActions
 						onReset={handleReset}

@@ -380,3 +380,18 @@ export type {
 } from './Workflow';
 
 export type { RevenueDashboardRequest, RevenueDashboardResponse, RevenueDashboardSummary, RevenueDashboardItem } from './RevenueDashboard';
+export type {
+	PortalCheckoutParams,
+	PortalTopUpRequest,
+	PortalCheckoutSession,
+	PortalTopUpResponse,
+	PortalAutoTopupRequest,
+	PortalCardDetails,
+	PortalPaymentMethodDetails,
+	PortalPaymentMethod,
+	PortalPaymentMethodsResponse,
+	PortalListPaymentMethodsQuery,
+	PortalAddPaymentMethodRequest,
+	PortalSetupIntentResponse,
+	PortalSetDefaultPaymentMethodRequest,
+} from './CustomerPortalBilling';

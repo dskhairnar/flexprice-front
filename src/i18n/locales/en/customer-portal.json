@@ -25,7 +25,12 @@
 		"loadTransactions": "Failed to load transactions",
 		"loadAnalytics": "Failed to load analytics",
 		"loadCostAnalytics": "Failed to load cost analytics",
-		"loadUsageBreakdown": "Failed to load usage breakdown"
+		"loadUsageBreakdown": "Failed to load usage breakdown",
+		"topUp": "Failed to start top-up",
+		"saveAutoTopUp": "Failed to save auto top-up settings",
+		"loadPaymentMethods": "Failed to load payment methods",
+		"addPaymentMethod": "Failed to start adding a payment method",
+		"setDefaultPaymentMethod": "Failed to update default payment method"
 	},
 	"toast": {
 		"invoiceDownloaded": "Invoice downloaded",
@@ -151,5 +156,43 @@
 		"margin": "Margin",
 		"marginPercent": "Margin %",
 		"cpm": "CPM"
+	},
+	"topUp": {
+		"title": "Add credits",
+		"description": "Top up your balance. You will be taken to a secure checkout page to complete the payment.",
+		"creditsLabel": "Credits",
+		"creditsPlaceholder": "Enter an amount",
+		"chargeSummary": "You'll be charged {{amount}}",
+		"action": "Continue to checkout",
+		"successPending": "Top-up requested — your balance will update once payment completes"
+	},
+	"autoTopUp": {
+		"title": "Auto top-up",
+		"description": "Automatically add credits when your balance runs low.",
+		"on": "On",
+		"off": "Off",
+		"thresholdLabel": "Top up when balance falls below",
+		"thresholdHelp": "The balance that triggers an automatic top-up",
+		"amountLabel": "Top-up amount",
+		"amountHelp": "How much to add each time",
+		"save": "Save settings",
+		"saved": "Auto top-up settings saved",
+		"summary": "Automatically add {{amount}} when your balance falls below {{threshold}}.",
+		"offSummary": "Auto top-up is off.",
+		"manage": "Manage",
+		"enable": "Enable",
+		"cancel": "Cancel"
+	},
+	"paymentMethods": {
+		"title": "Payment methods",
+		"description": "Cards saved for invoices and automatic top-ups.",
+		"add": "Add card",
+		"cardLabel": "{{brand}} •••• {{last4}}",
+		"expires": "Expires {{expiry}}",
+		"default": "Default",
+		"emptyTitle": "No payment methods",
+		"emptyDescription": "Add a card to pay invoices and enable automatic top-ups",
+		"setDefault": "Set as default",
+		"defaultUpdated": "Default payment method updated"
 	}
 }

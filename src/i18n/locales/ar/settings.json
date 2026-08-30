@@ -226,7 +226,9 @@
 			"showSubscriptions": "إظهار الاشتراكات",
 			"showSubscriptionsDescription": "يمكن للعملاء عرض تفاصيل اشتراكهم النشط",
 			"saveSuccess": "تم حفظ إعدادات البوابة",
-			"saveError": "فشل حفظ إعدادات البوابة"
+			"saveError": "فشل حفظ إعدادات البوابة",
+			"showPaymentMethods": "إظهار طرق الدفع",
+			"showPaymentMethodsDescription": "السماح للعملاء بعرض البطاقات المحفوظة وإضافة بطاقة جديدة من البوابة"
 		}
 	},
 	"customerOnboarding": {
