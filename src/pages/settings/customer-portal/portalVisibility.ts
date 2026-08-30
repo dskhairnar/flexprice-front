@@ -5,6 +5,7 @@ export interface PortalVisibility {
 	showWalletBalance: boolean;
 	showUsage: boolean;
 	showSubscriptions: boolean;
+	showPaymentMethods: boolean;
 }
 
 export function getPortalVisibility(config: PortalConfig): PortalVisibility {
@@ -13,6 +14,7 @@ export function getPortalVisibility(config: PortalConfig): PortalVisibility {
 		showWalletBalance: config.sections.find((section) => section.id === 'credits')?.enabled ?? false,
 		showUsage: config.sections.find((section) => section.id === 'usage')?.enabled ?? false,
 		showSubscriptions: config.sections.some((section) => section.tabs.some((tab) => tab.type === 'subscriptions' && tab.enabled)),
+		showPaymentMethods: config.sections.find((section) => section.id === 'payment_methods')?.enabled ?? false,
 	};
 }
 
@@ -28,6 +30,9 @@ export function applyPortalVisibility(config: PortalConfig, visibility: PortalVi
 			}
 			if (section.id === 'usage') {
 				return { ...section, enabled: visibility.showUsage };
+			}
+			if (section.id === 'payment_methods') {
+				return { ...section, enabled: visibility.showPaymentMethods };
 			}
 			return {
 				...section,

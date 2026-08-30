@@ -14,6 +14,16 @@ import { GetUsageAnalyticsResponse } from '@/types/dto/Events';
 import { GetDetailedCostAnalyticsResponse } from '@/types/dto/Cost';
 import { generateQueryParams } from '@/utils/common/api_helper';
 import { PortalConfig, DEFAULT_PORTAL_CONFIG, deepMergePortalConfig } from '@/types/dto/PortalConfig';
+import {
+	PortalTopUpRequest,
+	PortalTopUpResponse,
+	PortalAutoTopupRequest,
+	PortalPaymentMethodsResponse,
+	PortalListPaymentMethodsQuery,
+	PortalAddPaymentMethodRequest,
+	PortalSetupIntentResponse,
+	PortalSetDefaultPaymentMethodRequest,
+} from '@/types/dto/CustomerPortalBilling';
 
 /**
  * CustomerPortalApi - Customer-facing dashboard APIs
@@ -129,6 +139,56 @@ class CustomerPortalApi {
 		const url = generateQueryParams(`${this.baseUrl}/wallets/${walletId}/transactions`, { limit, offset });
 		return await AxiosClient.get<WalletTransactionResponse>(url);
 	}
+
+	/**
+	 * Top up a wallet belonging to the authenticated customer.
+	 *
+	 * Pass `checkout` to charge the customer through a hosted checkout session —
+	 * credits are applied only after the payment succeeds, and the response carries
+	 * the session to redirect to. Omit it for the invoiced pay-later flow.
+	 */
+	public static async topUpWallet(walletId: string, payload: PortalTopUpRequest): Promise<PortalTopUpResponse> {
+		return await AxiosClient.post<PortalTopUpResponse>(`${this.baseUrl}/wallets/${walletId}/top-up`, payload);
+	}
+
+	/**
+	 * Configure auto top-up on a wallet belonging to the authenticated customer.
+	 */
+	public static async updateAutoTopup(walletId: string, payload: PortalAutoTopupRequest): Promise<WalletResponse> {
+		return await AxiosClient.put<WalletResponse>(`${this.baseUrl}/wallets/${walletId}/auto-topup`, payload);
+	}
+
+	/**
+	 * Attempt payment for an invoice belonging to the authenticated customer.
+	 */
+	public static async payInvoice(invoiceId: string): Promise<{ message: string }> {
+		return await AxiosClient.post<{ message: string }>(`${this.baseUrl}/invoices/${invoiceId}/payment/attempt`, {});
+	}
+
+	/**
+	 * List saved payment methods for the authenticated customer, grouped by provider.
+	 */
+	public static async getPaymentMethods(query?: PortalListPaymentMethodsQuery): Promise<PortalPaymentMethodsResponse> {
+		const url = generateQueryParams(`${this.baseUrl}/payment-methods`, query || {});
+		return await AxiosClient.get<PortalPaymentMethodsResponse>(url);
+	}
+
+	/**
+	 * Start a hosted card-capture session so the customer can add a payment method.
+	 * The caller redirects to `checkout_url`; the card is saved off-session so it can
+	 * back auto top-up later.
+	 */
+	public static async addPaymentMethod(payload: PortalAddPaymentMethodRequest = {}): Promise<PortalSetupIntentResponse> {
+		return await AxiosClient.post<PortalSetupIntentResponse>(`${this.baseUrl}/payment-methods/setup`, payload);
+	}
+
+	/**
+	 * Mark one of the customer's saved payment methods as the default for future charges.
+	 */
+	public static async setDefaultPaymentMethod(payload: PortalSetDefaultPaymentMethodRequest): Promise<{ message: string }> {
+		return await AxiosClient.post<{ message: string }>(`${this.baseUrl}/payment-methods/default`, payload);
+	}
+
 	/**
 	 * Get the portal configuration for this tenant.
 	 * Backend merges tenant-specific config with defaults and returns the resolved PortalConfig.

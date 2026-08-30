@@ -25,7 +25,12 @@
 		"loadTransactions": "تعذر تحميل المعاملات",
 		"loadAnalytics": "تعذر تحميل التحليلات",
 		"loadCostAnalytics": "تعذر تحميل تحليلات التكلفة",
-		"loadUsageBreakdown": "تعذر تحميل تفصيل الاستخدام"
+		"loadUsageBreakdown": "تعذر تحميل تفصيل الاستخدام",
+		"topUp": "تعذّر بدء عملية الشحن",
+		"saveAutoTopUp": "تعذّر حفظ إعدادات الشحن التلقائي",
+		"loadPaymentMethods": "تعذّر تحميل طرق الدفع",
+		"addPaymentMethod": "تعذّر بدء إضافة طريقة دفع",
+		"setDefaultPaymentMethod": "تعذّر تحديث طريقة الدفع الافتراضية"
 	},
 	"toast": {
 		"invoiceDownloaded": "تم تنزيل الفاتورة",
@@ -151,5 +156,43 @@
 		"margin": "الهامش",
 		"marginPercent": "الهامش %",
 		"cpm": "CPM"
+	},
+	"topUp": {
+		"title": "إضافة أرصدة",
+		"description": "اشحن رصيدك. سيتم نقلك إلى صفحة دفع آمنة لإتمام العملية.",
+		"creditsLabel": "الأرصدة",
+		"creditsPlaceholder": "أدخل المبلغ",
+		"chargeSummary": "سيتم خصم {{amount}}",
+		"action": "المتابعة إلى الدفع",
+		"successPending": "تم طلب الشحن — سيتم تحديث رصيدك بعد اكتمال الدفع"
+	},
+	"autoTopUp": {
+		"title": "الشحن التلقائي",
+		"description": "إضافة أرصدة تلقائياً عند انخفاض رصيدك.",
+		"on": "مفعّل",
+		"off": "متوقف",
+		"thresholdLabel": "الشحن عند انخفاض الرصيد عن",
+		"thresholdHelp": "الرصيد الذي يؤدي إلى شحن تلقائي",
+		"amountLabel": "مبلغ الشحن",
+		"amountHelp": "المبلغ المضاف في كل مرة",
+		"save": "حفظ الإعدادات",
+		"saved": "تم حفظ إعدادات الشحن التلقائي",
+		"summary": "إضافة {{amount}} تلقائياً عند انخفاض رصيدك عن {{threshold}}.",
+		"offSummary": "الشحن التلقائي متوقف.",
+		"manage": "إدارة",
+		"enable": "تفعيل",
+		"cancel": "إلغاء"
+	},
+	"paymentMethods": {
+		"title": "طرق الدفع",
+		"description": "البطاقات المحفوظة للفواتير والشحن التلقائي.",
+		"add": "إضافة بطاقة",
+		"cardLabel": "{{brand}} •••• {{last4}}",
+		"expires": "تنتهي في {{expiry}}",
+		"default": "افتراضية",
+		"emptyTitle": "لا توجد طرق دفع",
+		"emptyDescription": "أضف بطاقة لدفع الفواتير وتفعيل الشحن التلقائي",
+		"setDefault": "تعيين كافتراضية",
+		"defaultUpdated": "تم تحديث طريقة الدفع الافتراضية"
 	}
 }
