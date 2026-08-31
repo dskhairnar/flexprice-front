@@ -30,7 +30,9 @@ export interface PortalTopUpRequest {
 	credits_to_add: string;
 	amount?: string;
 	description?: string;
-	idempotency_key?: string;
+	/** Required: the backend's fallback key is timestamp-derived, so a retry without
+	 *  this would be treated as a fresh top-up and grant the credits twice. */
+	idempotency_key: string;
 	checkout?: PortalCheckoutParams;
 }
 

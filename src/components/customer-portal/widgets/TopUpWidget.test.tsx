@@ -108,4 +108,25 @@ describe('TopUpWidget', () => {
 		expect(payload.checkout?.payment_provider).toBe('razorpay');
 		expect(payload).not.toHaveProperty('transaction_reason');
 	});
+
+	// The backend requires this: its fallback key is timestamp-derived, so a retry
+	// without one would be treated as a fresh top-up and grant the credits twice.
+	it('sends an idempotency key, stable across retries of the same attempt', async () => {
+		vi.mocked(CustomerPortalApi.topUpWallet)
+			.mockRejectedValueOnce(new Error('network'))
+			.mockResolvedValue({} as never);
+
+		renderWidget();
+		await userEvent.click(await screen.findByRole('button', { name: /^10 credits$/i }));
+		const confirm = screen.getByRole('button', { name: /continue to checkout/i });
+
+		await userEvent.click(confirm);
+		await waitFor(() => expect(CustomerPortalApi.topUpWallet).toHaveBeenCalledTimes(1));
+		await userEvent.click(confirm);
+		await waitFor(() => expect(CustomerPortalApi.topUpWallet).toHaveBeenCalledTimes(2));
+
+		const calls = vi.mocked(CustomerPortalApi.topUpWallet).mock.calls;
+		expect(calls[0][1].idempotency_key).toBeTruthy();
+		expect(calls[1][1].idempotency_key).toBe(calls[0][1].idempotency_key);
+	});
 });

@@ -27,11 +27,15 @@ interface TopUpFormProps {
 const TopUpForm = ({ wallet, onDone }: TopUpFormProps) => {
 	const { t } = useTranslation('customer-portal');
 	const [credits, setCredits] = useState('');
+	// One key per mounted attempt, so a retry after a network failure dedups server
+	// side instead of granting the credits twice. Reset only after a success.
+	const [idempotencyKey, setIdempotencyKey] = useState(() => crypto.randomUUID());
 
 	const { mutate: topUp, isPending } = useMutation({
 		mutationFn: async (creditsToAdd: string) => {
 			const payload: PortalTopUpRequest = {
 				credits_to_add: creditsToAdd,
+				idempotency_key: idempotencyKey,
 				checkout: {
 					// Razorpay is the only value CheckoutPaymentProvider accepts today
 					// (internal/types/checkout.go) — anything else is rejected as a
@@ -58,6 +62,7 @@ const TopUpForm = ({ wallet, onDone }: TopUpFormProps) => {
 			// refresh the balance rather than leaving the customer on a stale figure.
 			toast.success(t('topUp.successPending'));
 			setCredits('');
+			setIdempotencyKey(crypto.randomUUID());
 			onDone?.();
 			await refetchQueries(['portal-wallets', 'portal-wallet-balance', 'portal-wallet-transactions']);
 		},
