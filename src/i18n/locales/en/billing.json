@@ -872,7 +872,10 @@
 			"typeFree": "Free",
 			"typeFreeDesc": "Grant credits without a charge.",
 			"typePurchased": "Purchased",
-			"typePurchasedDesc": "Add credits that require payment."
+			"typePurchasedDesc": "Add credits that require payment.",
+			"skipInvoice": "Skip invoice",
+			"generateInvoiceAction": "Generate invoice",
+			"checkoutLink": "Checkout link"
 		},
 		"debit": {
 			"title": "Manual Debit",

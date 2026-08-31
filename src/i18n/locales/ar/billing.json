@@ -744,7 +744,10 @@
 			"typeFree": "مجاني",
 			"typeFreeDesc": "منح أرصدة دون رسوم.",
 			"typePurchased": "مشتراة",
-			"typePurchasedDesc": "إضافة أرصدة تتطلب الدفع."
+			"typePurchasedDesc": "إضافة أرصدة تتطلب الدفع.",
+			"skipInvoice": "تخطي الفاتورة",
+			"generateInvoiceAction": "إنشاء فاتورة",
+			"checkoutLink": "رابط الدفع"
 		},
 		"debit": {
 			"title": "خصم يدوي",

@@ -214,6 +214,8 @@ export type { CreateUserRequest, UpdateTenantPayload } from './User';
 export type {
 	CreateWalletPayload,
 	TopupWalletPayload,
+	TopupCheckoutParams,
+	TopupWalletResponse,
 	DebitWalletPayload,
 	WalletTransactionResponse,
 	WalletTransactionPayload,
