@@ -44,7 +44,29 @@ export interface CreateWalletPayload {
 	price_unit?: string;
 }
 
+export interface TopupCheckoutParams {
+	payment_provider: string;
+	success_url?: string;
+	cancel_url?: string;
+	/** Omitted for one-off top-ups — no recurring-debit mandate is needed. */
+	max_mandate_limit?: string;
+}
+
+/** Mirrors dto.TopUpWalletResponse: the wallet plus, for checkout top-ups, the session. */
+export interface TopupWalletResponse {
+	wallet_transaction?: { id: string; amount: string; credits: string; transaction_status?: string };
+	invoice_id?: string;
+	wallet?: WalletResponse;
+	checkout_session?: {
+		id: string;
+		payment_url?: string;
+		payment_action?: { type?: string; redirect_url?: string };
+	};
+}
+
 export interface TopupWalletPayload {
+	/** Opts into pay-first hosted checkout; credits apply only after payment succeeds. */
+	checkout?: TopupCheckoutParams;
 	credits_to_add: number;
 	amount?: number; // amount in currency (alternative to credits_to_add)
 	walletId: string;
