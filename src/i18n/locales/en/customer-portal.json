@@ -171,7 +171,13 @@
 		"creditsPlaceholder": "Enter an amount",
 		"chargeSummary": "You'll be charged {{amount}}",
 		"action": "Continue to checkout",
-		"successPending": "Top-up requested — your balance will update once payment completes"
+		"successPending": "Top-up requested — your balance will update once payment completes",
+		"descriptionLabel": "Description (optional)",
+		"descriptionPlaceholder": "What is this top-up for?",
+		"saveCardLabel": "Save my payment method and charge it automatically next time",
+		"payNow": "Pay now",
+		"generateInvoice": "Generate invoice",
+		"invoiceCreated": "Invoice created. Credits are added once it is paid."
 	},
 	"autoTopUp": {
 		"title": "Auto top-up",
@@ -188,7 +194,20 @@
 		"offSummary": "Auto top-up is off.",
 		"manage": "Manage",
 		"enable": "Enable",
-		"cancel": "Cancel"
+		"cancel": "Cancel",
+		"enableLabel": "Enable auto top-up",
+		"cooloffLabel": "Cooloff (optional)",
+		"cooloffHelp": "Wait this long after a top-up before another can run",
+		"cooloffPlaceholder": "No cooloff",
+		"cooloffUnitLabel": "Unit",
+		"cooloffUnits": {
+			"second": "Seconds",
+			"minute": "Minutes",
+			"hour": "Hours",
+			"day": "Days"
+		},
+		"autoChargeLabel": "Automatically charge my saved payment method",
+		"noSavedCard": "No saved payment method found."
 	},
 	"paymentMethods": {
 		"title": "Payment methods",
@@ -224,5 +243,13 @@
 		"balance": "Balance",
 		"amountDue": "Amount due",
 		"nextBilling": "Next billing"
+	},
+	"checkoutLink": {
+		"title": "Complete your payment",
+		"description": "If the payment page didn't open, use the link below.",
+		"open": "Open payment page",
+		"copy": "Copy link",
+		"copied": "Link copied",
+		"copyFailed": "Could not copy the link"
 	}
 }

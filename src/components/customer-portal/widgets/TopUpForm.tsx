@@ -4,67 +4,90 @@ import { useTranslation } from 'react-i18next';
 import toast from 'react-hot-toast';
 import CustomerPortalApi from '@/api/CustomerPortalApi';
 import { Button, Input } from '@/components/atoms';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Label } from '@/components/ui';
 import { refetchQueries } from '@/core/services/tanstack/ReactQueryProvider';
 import { getCurrencySymbol } from '@/utils/common/helper_functions';
 import { formatMoney } from '@/utils/common/formatBalance';
 import { PortalTopUpRequest } from '@/types/dto/CustomerPortalBilling';
 import { WalletResponse } from '@/types/dto/Wallet';
 
-const PRESET_CREDITS = ['10', '25', '50', '100'];
-
 interface TopUpFormProps {
 	wallet: WalletResponse;
 	onDone?: () => void;
+	/** Surfaces the hosted-checkout URL when the browser will not follow the redirect. */
+	onCheckoutUrl?: (url: string) => void;
 }
 
 /**
- * Amount entry for a wallet top-up.
+ * Credit top-up for the customer portal.
  *
- * The request always opts into `checkout`, so the customer is charged before any
- * credit lands. The backend replies with the session to redirect to; credits are
- * applied by the payment webhook, not by this call.
+ * Mirrors the admin top-up form minus the parts a customer has no business
+ * setting: there is no free/purchased choice (the backend pins a purchased-credit
+ * reason), and no expiry, priority or reference id. An invoice is always raised.
+ *
+ * Two exits, matching how the money actually moves:
+ *   Pay now         — hosted checkout, credits land once payment succeeds
+ *   Generate invoice — invoice raised now, settled later
  */
-const TopUpForm = ({ wallet, onDone }: TopUpFormProps) => {
+const TopUpForm = ({ wallet, onDone, onCheckoutUrl }: TopUpFormProps) => {
 	const { t } = useTranslation('customer-portal');
 	const [credits, setCredits] = useState('');
+	const [description, setDescription] = useState('');
+	const [saveCard, setSaveCard] = useState(false);
 	// One key per mounted attempt, so a retry after a network failure dedups server
 	// side instead of granting the credits twice. Reset only after a success.
 	const [idempotencyKey, setIdempotencyKey] = useState(() => crypto.randomUUID());
 
-	const { mutate: topUp, isPending } = useMutation({
-		mutationFn: async (creditsToAdd: string) => {
+	const {
+		mutate: topUp,
+		isPending,
+		variables: pendingMode,
+	} = useMutation({
+		mutationFn: async (mode: 'checkout' | 'invoice') => {
 			const payload: PortalTopUpRequest = {
-				credits_to_add: creditsToAdd,
+				credits_to_add: credits,
 				idempotency_key: idempotencyKey,
-				checkout: {
-					// Razorpay is the only value CheckoutPaymentProvider accepts today
-					// (internal/types/checkout.go) — anything else is rejected as a
-					// validation error. This belongs server-side once the backend
-					// resolves the tenant's configured gateway itself, so the portal
-					// customer never learns which gateway is behind the checkout.
-					payment_provider: 'razorpay',
-					success_url: window.location.href,
-					cancel_url: window.location.href,
-				},
+				...(description ? { description } : {}),
+				...(mode === 'checkout'
+					? {
+							checkout: {
+								// Razorpay is the only value CheckoutPaymentProvider accepts today
+								// (internal/types/checkout.go). This belongs server-side once the
+								// backend resolves the tenant's configured gateway itself, so the
+								// customer never learns which gateway is behind the checkout.
+								payment_provider: 'razorpay',
+								payment_provider_config: {
+									// charge_automatically is what saves the card for future invoices.
+									// max_mandate_limit is deliberately omitted — a one-off top-up
+									// needs no recurring-debit mandate.
+									collection_method: saveCard ? 'charge_automatically' : 'send_invoice',
+								},
+								success_url: window.location.href,
+								cancel_url: window.location.href,
+							},
+						}
+					: {}),
 			};
 			return CustomerPortalApi.topUpWallet(wallet.id, payload);
 		},
-		onSuccess: async (response) => {
+		onSuccess: async (response, mode) => {
 			const redirectUrl = response.checkout_session?.payment_action?.redirect_url ?? response.checkout_session?.payment_url;
 
-			if (redirectUrl) {
-				// Hand off to the hosted checkout page; credits land once payment succeeds.
+			if (mode === 'checkout' && redirectUrl) {
+				// Surface the URL first, so a blocked redirect still leaves the customer
+				// something they can copy, then hand off to the hosted page.
+				onCheckoutUrl?.(redirectUrl);
 				window.location.href = redirectUrl;
 				return;
 			}
 
-			// No checkout session came back — the top-up was invoiced instead, so
-			// refresh the balance rather than leaving the customer on a stale figure.
-			toast.success(t('topUp.successPending'));
+			toast.success(mode === 'checkout' ? t('topUp.successPending') : t('topUp.invoiceCreated'));
 			setCredits('');
+			setDescription('');
 			setIdempotencyKey(crypto.randomUUID());
 			onDone?.();
-			await refetchQueries(['portal-wallets', 'portal-wallet-balance', 'portal-wallet-transactions']);
+			await refetchQueries(['portal-wallets', 'portal-wallet-balance', 'portal-wallet-transactions', 'portal-invoices-tab']);
 		},
 		onError: () => toast.error(t('errors.topUp')),
 	});
@@ -77,25 +100,7 @@ const TopUpForm = ({ wallet, onDone }: TopUpFormProps) => {
 	const chargeAmount = isValid ? formatMoney(parsedCredits * conversionRate) : null;
 
 	return (
-		<div>
-			<div className='flex flex-wrap gap-2 mb-4'>
-				{PRESET_CREDITS.map((preset) => (
-					<button
-						key={preset}
-						type='button'
-						onClick={() => setCredits(preset)}
-						disabled={isPending}
-						aria-pressed={credits === preset}
-						className='px-4 py-2 text-sm rounded-lg border transition-colors disabled:opacity-50'
-						style={{
-							borderColor: credits === preset ? 'var(--portal-primary, #2563eb)' : 'var(--portal-border, #E9E9E9)',
-							color: credits === preset ? 'var(--portal-primary, #2563eb)' : 'var(--portal-text-primary, #09090b)',
-						}}>
-						{preset} {t('wallet.credits')}
-					</button>
-				))}
-			</div>
-
+		<div className='space-y-4'>
 			<Input
 				label={t('topUp.creditsLabel')}
 				type='number'
@@ -103,19 +108,42 @@ const TopUpForm = ({ wallet, onDone }: TopUpFormProps) => {
 				onChange={setCredits}
 				disabled={isPending}
 				placeholder={t('topUp.creditsPlaceholder')}
-				className='mb-3'
+				suffix={t('wallet.credits')}
+				description={chargeAmount ? t('topUp.chargeSummary', { amount: `${currencySymbol}${chargeAmount}` }) : undefined}
 			/>
 
-			{/* States the charge before the customer commits — the confirm button charges immediately. */}
-			{chargeAmount && (
-				<p className='text-sm mb-4' style={{ color: 'var(--portal-text-secondary, #71717a)' }}>
-					{t('topUp.chargeSummary', { amount: `${currencySymbol}${chargeAmount}` })}
-				</p>
-			)}
+			<Input
+				label={t('topUp.descriptionLabel')}
+				value={description}
+				onChange={setDescription}
+				disabled={isPending}
+				placeholder={t('topUp.descriptionPlaceholder')}
+			/>
 
-			<Button onClick={() => topUp(credits)} disabled={!isValid || isPending} isLoading={isPending}>
-				{t('topUp.action')}
-			</Button>
+			<div className='flex items-start gap-2'>
+				<Checkbox
+					id='portal-topup-save-card'
+					checked={saveCard}
+					onCheckedChange={(checked) => setSaveCard(checked === true)}
+					disabled={isPending}
+				/>
+				<Label htmlFor='portal-topup-save-card' className='text-sm font-normal leading-snug'>
+					{t('topUp.saveCardLabel')}
+				</Label>
+			</div>
+
+			<div className='flex items-center gap-2 pt-1'>
+				<Button onClick={() => topUp('checkout')} disabled={!isValid || isPending} isLoading={isPending && pendingMode === 'checkout'}>
+					{t('topUp.payNow')}
+				</Button>
+				<Button
+					variant='outline'
+					onClick={() => topUp('invoice')}
+					disabled={!isValid || isPending}
+					isLoading={isPending && pendingMode === 'invoice'}>
+					{t('topUp.generateInvoice')}
+				</Button>
+			</div>
 		</div>
 	);
 };

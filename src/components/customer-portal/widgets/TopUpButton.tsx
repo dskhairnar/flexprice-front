@@ -4,6 +4,7 @@ import { Plus } from 'lucide-react';
 import { Button, Dialog } from '@/components/atoms';
 import usePortalWallet from '../usePortalWallet';
 import TopUpForm from './TopUpForm';
+import CheckoutLinkDialog from './CheckoutLinkDialog';
 
 interface TopUpButtonProps {
 	size?: 'default' | 'sm' | 'xs';
@@ -17,6 +18,7 @@ const TopUpButton = ({ size = 'sm' }: TopUpButtonProps) => {
 	const { t } = useTranslation('customer-portal');
 	const { wallet, isLoading } = usePortalWallet();
 	const [isOpen, setIsOpen] = useState(false);
+	const [checkoutUrl, setCheckoutUrl] = useState<string | null>(null);
 
 	if (isLoading || !wallet) return null;
 
@@ -26,8 +28,16 @@ const TopUpButton = ({ size = 'sm' }: TopUpButtonProps) => {
 				{t('topUp.title')}
 			</Button>
 			<Dialog isOpen={isOpen} onOpenChange={setIsOpen} title={t('topUp.title')} description={t('topUp.description')}>
-				<TopUpForm wallet={wallet} onDone={() => setIsOpen(false)} />
+				<TopUpForm
+					wallet={wallet}
+					onDone={() => setIsOpen(false)}
+					onCheckoutUrl={(url) => {
+						setIsOpen(false);
+						setCheckoutUrl(url);
+					}}
+				/>
 			</Dialog>
+			<CheckoutLinkDialog url={checkoutUrl} onOpenChange={(open) => !open && setCheckoutUrl(null)} />
 		</>
 	);
 };

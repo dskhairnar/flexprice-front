@@ -23,6 +23,8 @@ import {
 	PortalAddPaymentMethodRequest,
 	PortalSetupIntentResponse,
 	PortalSetDefaultPaymentMethodRequest,
+	PortalPayInvoiceRequest,
+	PortalPayInvoiceResponse,
 } from '@/types/dto/CustomerPortalBilling';
 
 /**
@@ -163,6 +165,15 @@ class CustomerPortalApi {
 	 */
 	public static async payInvoice(invoiceId: string): Promise<{ message: string }> {
 		return await AxiosClient.post<{ message: string }>(`${this.baseUrl}/invoices/${invoiceId}/payment/attempt`, {});
+	}
+
+	/**
+	 * Start a hosted payment for one of the customer's invoices. Returns the URL to
+	 * redirect to; the caller also surfaces it so a blocked redirect leaves the
+	 * customer a link they can open by hand.
+	 */
+	public static async payInvoiceWithCheckout(invoiceId: string, payload: PortalPayInvoiceRequest): Promise<PortalPayInvoiceResponse> {
+		return await AxiosClient.post<PortalPayInvoiceResponse>(`${this.baseUrl}/invoices/${invoiceId}/pay`, payload);
 	}
 
 	/**

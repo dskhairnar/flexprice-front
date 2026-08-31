@@ -17,6 +17,8 @@ interface InvoiceDetailDrawerProps {
 	onOpenChange: (open: boolean) => void;
 	onDownload: (invoice: Invoice) => void;
 	isDownloading?: boolean;
+	onPay: (invoice: Invoice) => void;
+	payPendingId: string | null;
 }
 
 const StatusChip = ({ invoice }: { invoice: Invoice }) => {
@@ -59,7 +61,15 @@ const TotalRow = ({ label, value, emphasis = false }: { label: string; value: st
  * Reads the full invoice (line items, taxes, totals) from the portal's existing
  * GET /invoices/:id, which returns the breakdown the list response omits.
  */
-const InvoiceDetailDrawer = ({ invoice, isOpen, onOpenChange, onDownload, isDownloading }: InvoiceDetailDrawerProps) => {
+const InvoiceDetailDrawer = ({
+	invoice,
+	isOpen,
+	onOpenChange,
+	onDownload,
+	isDownloading,
+	onPay,
+	payPendingId,
+}: InvoiceDetailDrawerProps) => {
 	const { t } = useTranslation('customer-portal');
 
 	const { data, isLoading } = useQuery({
@@ -153,9 +163,7 @@ const InvoiceDetailDrawer = ({ invoice, isOpen, onOpenChange, onDownload, isDown
 
 					<div className='flex items-center gap-2 pt-2'>
 						{isPayable(detail) && (
-							// Presentational only: no online payment path exists yet. When the
-							// backend returns a payment URL this becomes the redirect trigger.
-							<Button disabled title={t('invoiceDetail.payUnavailableHint')}>
+							<Button onClick={() => onPay(detail)} isLoading={payPendingId === detail.id} disabled={payPendingId !== null}>
 								{t('invoices.pay')}
 							</Button>
 						)}
@@ -166,11 +174,6 @@ const InvoiceDetailDrawer = ({ invoice, isOpen, onOpenChange, onDownload, isDown
 							</Button>
 						)}
 					</div>
-					{isPayable(detail) && (
-						<p className='text-xs' style={{ color: 'var(--portal-text-secondary, #71717a)' }}>
-							{t('invoiceDetail.payUnavailableHint')}
-						</p>
-					)}
 				</div>
 			)}
 		</Sheet>

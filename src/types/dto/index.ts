@@ -386,6 +386,7 @@ export type {
 export type { RevenueDashboardRequest, RevenueDashboardResponse, RevenueDashboardSummary, RevenueDashboardItem } from './RevenueDashboard';
 export type {
 	PortalCheckoutParams,
+	PortalCheckoutProviderConfig,
 	PortalTopUpRequest,
 	PortalCheckoutSession,
 	PortalTopUpResponse,
@@ -398,4 +399,6 @@ export type {
 	PortalAddPaymentMethodRequest,
 	PortalSetupIntentResponse,
 	PortalSetDefaultPaymentMethodRequest,
+	PortalPayInvoiceRequest,
+	PortalPayInvoiceResponse,
 } from './CustomerPortalBilling';

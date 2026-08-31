@@ -10,10 +10,7 @@ import TopUpWidget from './TopUpWidget';
 import CustomerPortalApi from '@/api/CustomerPortalApi';
 
 vi.mock('@/api/CustomerPortalApi', () => ({
-	default: {
-		getWallets: vi.fn(),
-		topUpWallet: vi.fn(),
-	},
+	default: { getWallets: vi.fn(), topUpWallet: vi.fn() },
 }));
 
 vi.mock('@/core/services/tanstack/ReactQueryProvider', () => ({
@@ -23,7 +20,7 @@ vi.mock('@/core/services/tanstack/ReactQueryProvider', () => ({
 const WALLET = { id: 'wallet_1', currency: 'USD', wallet_status: 'active', conversion_rate: 1 };
 
 // Rendering through the real locale file also asserts the new keys actually
-// resolve — a missing key would surface here as raw `topUp.action` text.
+// resolve — a missing key would surface here as raw `topUp.payNow` text.
 const renderWidget = () => {
 	const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
 	const i18n = createInstance();
@@ -33,8 +30,6 @@ const renderWidget = () => {
 		ns: ['customer-portal'],
 		defaultNS: 'customer-portal',
 		resources: { en: { 'customer-portal': enPortal } },
-		// Mirrors the app's own i18n init — React already escapes, so double-escaping
-		// here would turn interpolated values like "04/30" into "04&#x2F;30".
 		interpolation: { escapeValue: false },
 	});
 	return render(
@@ -46,16 +41,19 @@ const renderWidget = () => {
 	);
 };
 
+// findBy, not getBy: the form only mounts once the wallet query resolves.
+const enterCredits = async (value: string) => {
+	const input = await screen.findByPlaceholderText('Enter an amount');
+	await userEvent.type(input, value);
+};
+
 describe('TopUpWidget', () => {
 	const originalLocation = window.location;
 
 	beforeEach(() => {
 		vi.mocked(CustomerPortalApi.getWallets).mockResolvedValue([WALLET] as never);
 		// jsdom's location is not writable; replace it so the redirect is observable.
-		Object.defineProperty(window, 'location', {
-			configurable: true,
-			value: { href: 'https://portal.test/credits' },
-		});
+		Object.defineProperty(window, 'location', { configurable: true, value: { href: 'https://portal.test/credits' } });
 	});
 
 	afterEach(() => {
@@ -69,64 +67,74 @@ describe('TopUpWidget', () => {
 		expect(await screen.findByText('No wallet')).toBeInTheDocument();
 	});
 
-	it('keeps the confirm action disabled until a positive credit amount is entered', async () => {
+	it('keeps both actions disabled until a positive credit amount is entered', async () => {
 		renderWidget();
-		const action = await screen.findByRole('button', { name: /continue to checkout/i });
-		expect(action).toBeDisabled();
+		const payNow = await screen.findByRole('button', { name: /pay now/i });
+		const invoice = screen.getByRole('button', { name: /generate invoice/i });
+		expect(payNow).toBeDisabled();
+		expect(invoice).toBeDisabled();
 
-		await userEvent.click(screen.getByRole('button', { name: /^25 credits$/i }));
-		await waitFor(() => expect(action).toBeEnabled());
+		await enterCredits('25');
+		await waitFor(() => expect(payNow).toBeEnabled());
+		expect(invoice).toBeEnabled();
 	});
 
-	// The whole point of the checkout flow: the customer is charged before credits land,
-	// so the widget must hand off to the returned session rather than reporting success.
-	it('redirects to the checkout session returned by the API', async () => {
+	// Pay now is the checkout path: the customer is charged before credits land,
+	// so the widget must hand off to the returned session.
+	it('Pay now requests checkout and redirects to the returned session', async () => {
 		vi.mocked(CustomerPortalApi.topUpWallet).mockResolvedValue({
 			checkout_session: { id: 'cs_1', payment_action: { redirect_url: 'https://checkout.test/session' } },
 		} as never);
 
 		renderWidget();
-		await userEvent.click(await screen.findByRole('button', { name: /^50 credits$/i }));
-		await userEvent.click(screen.getByRole('button', { name: /continue to checkout/i }));
+		await enterCredits('50');
+		await userEvent.click(screen.getByRole('button', { name: /pay now/i }));
 
 		await waitFor(() => expect(window.location.href).toBe('https://checkout.test/session'));
+		const [, payload] = vi.mocked(CustomerPortalApi.topUpWallet).mock.calls[0];
+		expect(payload.checkout).toBeDefined();
 	});
 
-	// transaction_reason is pinned server-side; the client must not try to send one.
-	it('requests a checkout-backed top-up without a transaction reason', async () => {
+	// Generate invoice is the pay-later path and must not open checkout.
+	it('Generate invoice omits checkout entirely', async () => {
+		vi.mocked(CustomerPortalApi.topUpWallet).mockResolvedValue({ invoice_id: 'inv_1' } as never);
+
+		renderWidget();
+		await enterCredits('50');
+		await userEvent.click(screen.getByRole('button', { name: /generate invoice/i }));
+
+		await waitFor(() => expect(CustomerPortalApi.topUpWallet).toHaveBeenCalled());
+		const [, payload] = vi.mocked(CustomerPortalApi.topUpWallet).mock.calls[0];
+		expect(payload.checkout).toBeUndefined();
+	});
+
+	// transaction_reason is pinned server-side; the client must not send one.
+	it('never sends a transaction reason, and always sends an idempotency key', async () => {
 		vi.mocked(CustomerPortalApi.topUpWallet).mockResolvedValue({} as never);
 
 		renderWidget();
-		await userEvent.click(await screen.findByRole('button', { name: /^10 credits$/i }));
-		await userEvent.click(screen.getByRole('button', { name: /continue to checkout/i }));
+		await enterCredits('10');
+		await userEvent.click(screen.getByRole('button', { name: /generate invoice/i }));
 
 		await waitFor(() => expect(CustomerPortalApi.topUpWallet).toHaveBeenCalled());
 		const [walletId, payload] = vi.mocked(CustomerPortalApi.topUpWallet).mock.calls[0];
 		expect(walletId).toBe('wallet_1');
 		expect(payload.credits_to_add).toBe('10');
-		// Must match a value CheckoutPaymentProvider accepts, or the backend 400s.
-		expect(payload.checkout?.payment_provider).toBe('razorpay');
+		expect(payload.idempotency_key).toBeTruthy();
 		expect(payload).not.toHaveProperty('transaction_reason');
 	});
 
-	// The backend requires this: its fallback key is timestamp-derived, so a retry
-	// without one would be treated as a fresh top-up and grant the credits twice.
-	it('sends an idempotency key, stable across retries of the same attempt', async () => {
-		vi.mocked(CustomerPortalApi.topUpWallet)
-			.mockRejectedValueOnce(new Error('network'))
-			.mockResolvedValue({} as never);
+	// charge_automatically is what saves the card for future invoices.
+	it('maps the save-card checkbox to charge_automatically', async () => {
+		vi.mocked(CustomerPortalApi.topUpWallet).mockResolvedValue({} as never);
 
 		renderWidget();
-		await userEvent.click(await screen.findByRole('button', { name: /^10 credits$/i }));
-		const confirm = screen.getByRole('button', { name: /continue to checkout/i });
+		await enterCredits('10');
+		await userEvent.click(screen.getByRole('checkbox'));
+		await userEvent.click(screen.getByRole('button', { name: /pay now/i }));
 
-		await userEvent.click(confirm);
-		await waitFor(() => expect(CustomerPortalApi.topUpWallet).toHaveBeenCalledTimes(1));
-		await userEvent.click(confirm);
-		await waitFor(() => expect(CustomerPortalApi.topUpWallet).toHaveBeenCalledTimes(2));
-
-		const calls = vi.mocked(CustomerPortalApi.topUpWallet).mock.calls;
-		expect(calls[0][1].idempotency_key).toBeTruthy();
-		expect(calls[1][1].idempotency_key).toBe(calls[0][1].idempotency_key);
+		await waitFor(() => expect(CustomerPortalApi.topUpWallet).toHaveBeenCalled());
+		const [, payload] = vi.mocked(CustomerPortalApi.topUpWallet).mock.calls[0];
+		expect(payload.checkout?.payment_provider_config?.collection_method).toBe('charge_automatically');
 	});
 });

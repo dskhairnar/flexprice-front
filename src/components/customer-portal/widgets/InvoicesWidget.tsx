@@ -15,6 +15,8 @@ import EmptyState from '../EmptyState';
 import { usePortalConfig } from '@/context/PortalConfigContext';
 import { downloadInvoiceLineItemsCsv } from '@/utils/invoices/downloadInvoiceLineItemsCsv';
 import InvoiceDetailDrawer from './InvoiceDetailDrawer';
+import CheckoutLinkDialog from './CheckoutLinkDialog';
+import usePayInvoice from './usePayInvoice';
 import { isPayable } from '../invoiceStatus';
 
 interface InvoicesTableProps {
@@ -24,9 +26,20 @@ interface InvoicesTableProps {
 	downloadPendingId: string | null;
 	hasTheme: boolean;
 	onView: (invoice: Invoice) => void;
+	onPay: (invoice: Invoice) => void;
+	payPendingId: string | null;
 }
 
-const InvoicesTable = ({ invoices, currencySymbol, onOpenDownloadFormat, downloadPendingId, hasTheme, onView }: InvoicesTableProps) => {
+const InvoicesTable = ({
+	invoices,
+	currencySymbol,
+	onOpenDownloadFormat,
+	downloadPendingId,
+	hasTheme,
+	onView,
+	onPay,
+	payPendingId,
+}: InvoicesTableProps) => {
 	const { t } = useTranslation('customer-portal');
 
 	const getStatusChip = (invoice: Invoice) => {
@@ -100,7 +113,11 @@ const InvoicesTable = ({ invoices, currencySymbol, onOpenDownloadFormat, downloa
 									{/* Unpaid invoices lead with Pay; paid ones only offer View. Pay is
 									    presentational until a payment URL exists on the backend. */}
 									{isPayable(invoice) ? (
-										<Button size='xs' disabled title={t('invoiceDetail.payUnavailableHint')}>
+										<Button
+											size='xs'
+											onClick={() => onPay(invoice)}
+											isLoading={payPendingId === invoice.id}
+											disabled={payPendingId !== null}>
 											{t('invoices.payNow')}
 										</Button>
 									) : (
@@ -141,6 +158,7 @@ const InvoicesWidget = () => {
 	const [isCsvExportPending, setIsCsvExportPending] = useState(false);
 	const [detailInvoice, setDetailInvoice] = useState<Invoice | null>(null);
 	const { config } = usePortalConfig();
+	const { payInvoice, payingInvoiceId, checkoutUrl, clearCheckoutUrl } = usePayInvoice();
 	const hasTheme = !!config.theme;
 
 	const {
@@ -213,6 +231,7 @@ const InvoicesWidget = () => {
 
 	return (
 		<div className='space-y-6'>
+			<CheckoutLinkDialog url={checkoutUrl} onOpenChange={(open) => !open && clearCheckoutUrl()} />
 			<InvoiceDetailDrawer
 				invoice={detailInvoice}
 				isOpen={detailInvoice !== null}
@@ -221,6 +240,8 @@ const InvoicesWidget = () => {
 				}}
 				onDownload={openInvoiceDownload}
 				isDownloading={busyDownloadInvoiceId !== null}
+				onPay={(invoice) => payInvoice(invoice.id)}
+				payPendingId={payingInvoiceId}
 			/>
 			<InvoiceDownloadFormatDialog
 				open={isDownloadDialogOpen}
@@ -283,6 +304,8 @@ const InvoicesWidget = () => {
 					downloadPendingId={busyDownloadInvoiceId}
 					hasTheme={hasTheme}
 					onView={setDetailInvoice}
+					onPay={(invoice) => payInvoice(invoice.id)}
+					payPendingId={payingInvoiceId}
 				/>
 			</Card>
 		</div>

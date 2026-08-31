@@ -14,7 +14,7 @@ vi.mock('@/api/CustomerPortalApi', () => ({
 		getInvoices: vi.fn(),
 		getInvoice: vi.fn(),
 		downloadInvoicePdf: vi.fn(),
-		payInvoice: vi.fn(),
+		payInvoiceWithCheckout: vi.fn(),
 	},
 }));
 
@@ -71,12 +71,19 @@ const renderWidget = () => {
 };
 
 describe('InvoicesWidget', () => {
+	const originalLocation = window.location;
+
 	beforeEach(() => {
+		// jsdom's location is not writable; replace it so the redirect is observable.
+		Object.defineProperty(window, 'location', { configurable: true, value: { href: 'https://portal.test/invoices' } });
 		vi.mocked(CustomerPortalApi.getInvoices).mockResolvedValue({ items: [UNPAID, PAID] } as never);
 		vi.mocked(CustomerPortalApi.getInvoice).mockResolvedValue({ ...UNPAID, line_items: [] } as never);
 	});
 
-	afterEach(() => vi.clearAllMocks());
+	afterEach(() => {
+		Object.defineProperty(window, 'location', { configurable: true, value: originalLocation });
+		vi.clearAllMocks();
+	});
 
 	it('gives an unpaid invoice the primary Pay action and a paid one only View', async () => {
 		renderWidget();
@@ -89,18 +96,55 @@ describe('InvoicesWidget', () => {
 		expect(within(paidRow).getByRole('button', { name: /^view$/i })).toBeInTheDocument();
 	});
 
-	// Item 2: the customer must not be told an online payment exists when it doesn't.
-	it('renders Pay now as disabled, since no online payment path exists yet', async () => {
-		renderWidget();
-		const unpaidRow = (await screen.findByText('INV-000484')).closest('tr')!;
-		expect(within(unpaidRow).getByRole('button', { name: /pay now/i })).toBeDisabled();
-	});
+	// Pay starts a hosted payment and hands off to the returned URL.
+	it('Pay now starts a payment and redirects to the returned URL', async () => {
+		vi.mocked(CustomerPortalApi.payInvoiceWithCheckout).mockResolvedValue({
+			payment_id: 'pay_1',
+			payment_url: 'https://pay.test/link',
+			status: 'PENDING',
+		} as never);
 
-	it('never calls the pay endpoint from the list', async () => {
 		renderWidget();
 		const unpaidRow = (await screen.findByText('INV-000484')).closest('tr')!;
 		await userEvent.click(within(unpaidRow).getByRole('button', { name: /pay now/i }));
-		expect(CustomerPortalApi.payInvoice).not.toHaveBeenCalled();
+
+		await waitFor(() => expect(window.location.href).toBe('https://pay.test/link'));
+	});
+
+	// A retry must reuse the key, or the customer is charged twice for one invoice.
+	it('reuses the idempotency key when the same invoice is retried', async () => {
+		vi.mocked(CustomerPortalApi.payInvoiceWithCheckout)
+			.mockRejectedValueOnce(new Error('network'))
+			.mockResolvedValue({ payment_id: 'pay_1', status: 'PENDING' } as never);
+
+		renderWidget();
+		const unpaidRow = (await screen.findByText('INV-000484')).closest('tr')!;
+		const payButton = within(unpaidRow).getByRole('button', { name: /pay now/i });
+
+		await userEvent.click(payButton);
+		await waitFor(() => expect(CustomerPortalApi.payInvoiceWithCheckout).toHaveBeenCalledTimes(1));
+		await userEvent.click(payButton);
+		await waitFor(() => expect(CustomerPortalApi.payInvoiceWithCheckout).toHaveBeenCalledTimes(2));
+
+		const calls = vi.mocked(CustomerPortalApi.payInvoiceWithCheckout).mock.calls;
+		expect(calls[0][1].idempotency_key).toBeTruthy();
+		expect(calls[1][1].idempotency_key).toBe(calls[0][1].idempotency_key);
+	});
+
+	// The link is surfaced as well as followed, so a blocked redirect still leaves
+	// the customer something they can open by hand.
+	it('shows the payment link in a dialog alongside the redirect', async () => {
+		vi.mocked(CustomerPortalApi.payInvoiceWithCheckout).mockResolvedValue({
+			payment_id: 'pay_1',
+			payment_url: 'https://pay.test/link',
+			status: 'PENDING',
+		} as never);
+
+		renderWidget();
+		const unpaidRow = (await screen.findByText('INV-000484')).closest('tr')!;
+		await userEvent.click(within(unpaidRow).getByRole('button', { name: /pay now/i }));
+
+		expect(await screen.findByText('https://pay.test/link')).toBeInTheDocument();
 	});
 
 	it('opens the detail drawer from the invoice number and loads the full invoice', async () => {

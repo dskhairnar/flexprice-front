@@ -171,7 +171,13 @@
 		"creditsPlaceholder": "أدخل المبلغ",
 		"chargeSummary": "سيتم خصم {{amount}}",
 		"action": "المتابعة إلى الدفع",
-		"successPending": "تم طلب الشحن — سيتم تحديث رصيدك بعد اكتمال الدفع"
+		"successPending": "تم طلب الشحن — سيتم تحديث رصيدك بعد اكتمال الدفع",
+		"descriptionLabel": "الوصف (اختياري)",
+		"descriptionPlaceholder": "ما الغرض من هذا الشحن؟",
+		"saveCardLabel": "احفظ طريقة الدفع واخصم منها تلقائياً في المرة القادمة",
+		"payNow": "ادفع الآن",
+		"generateInvoice": "إنشاء فاتورة",
+		"invoiceCreated": "تم إنشاء الفاتورة. تُضاف الأرصدة بعد سدادها."
 	},
 	"autoTopUp": {
 		"title": "الشحن التلقائي",
@@ -188,7 +194,20 @@
 		"offSummary": "الشحن التلقائي متوقف.",
 		"manage": "إدارة",
 		"enable": "تفعيل",
-		"cancel": "إلغاء"
+		"cancel": "إلغاء",
+		"enableLabel": "تفعيل الشحن التلقائي",
+		"cooloffLabel": "فترة الانتظار (اختياري)",
+		"cooloffHelp": "الانتظار هذه المدة بعد الشحن قبل السماح بشحن آخر",
+		"cooloffPlaceholder": "بدون انتظار",
+		"cooloffUnitLabel": "الوحدة",
+		"cooloffUnits": {
+			"second": "ثوانٍ",
+			"minute": "دقائق",
+			"hour": "ساعات",
+			"day": "أيام"
+		},
+		"autoChargeLabel": "اخصم تلقائياً من طريقة الدفع المحفوظة",
+		"noSavedCard": "لا توجد طريقة دفع محفوظة."
 	},
 	"paymentMethods": {
 		"title": "طرق الدفع",
@@ -224,5 +243,13 @@
 		"balance": "الرصيد",
 		"amountDue": "المبلغ المستحق",
 		"nextBilling": "الفوترة القادمة"
+	},
+	"checkoutLink": {
+		"title": "أكمل عملية الدفع",
+		"description": "إذا لم تُفتح صفحة الدفع، استخدم الرابط أدناه.",
+		"open": "فتح صفحة الدفع",
+		"copy": "نسخ الرابط",
+		"copied": "تم نسخ الرابط",
+		"copyFailed": "تعذّر نسخ الرابط"
 	}
 }

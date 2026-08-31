@@ -10,10 +10,7 @@ import AutoTopUpWidget from './AutoTopUpWidget';
 import CustomerPortalApi from '@/api/CustomerPortalApi';
 
 vi.mock('@/api/CustomerPortalApi', () => ({
-	default: {
-		getWallets: vi.fn(),
-		updateAutoTopup: vi.fn(),
-	},
+	default: { getWallets: vi.fn(), updateAutoTopup: vi.fn(), getPaymentMethods: vi.fn() },
 }));
 
 vi.mock('@/core/services/tanstack/ReactQueryProvider', () => ({
@@ -29,8 +26,6 @@ const renderWidget = () => {
 		ns: ['customer-portal'],
 		defaultNS: 'customer-portal',
 		resources: { en: { 'customer-portal': enPortal } },
-		// Mirrors the app's own i18n init — React already escapes, so double-escaping
-		// here would turn interpolated values like "04/30" into "04&#x2F;30".
 		interpolation: { escapeValue: false },
 	});
 	return render(
@@ -42,9 +37,17 @@ const renderWidget = () => {
 	);
 };
 
+const CONFIGURED = {
+	id: 'wallet_1',
+	currency: 'USD',
+	wallet_status: 'active',
+	auto_topup: { enabled: true, threshold: '20', amount: '100', invoicing: true },
+};
+
 describe('AutoTopUpWidget', () => {
 	beforeEach(() => {
 		vi.mocked(CustomerPortalApi.updateAutoTopup).mockResolvedValue({} as never);
+		vi.mocked(CustomerPortalApi.getPaymentMethods).mockResolvedValue({ stripe: [] } as never);
 	});
 
 	afterEach(() => vi.clearAllMocks());
@@ -55,79 +58,65 @@ describe('AutoTopUpWidget', () => {
 		expect(await screen.findByText('No wallet')).toBeInTheDocument();
 	});
 
-	// A wallet with auto top-up already configured opens as a one-line summary rather
-	// than a wall of raw fields.
-	it('summarises a saved config in plain language instead of showing the fields', async () => {
-		vi.mocked(CustomerPortalApi.getWallets).mockResolvedValue([
-			{
-				id: 'wallet_1',
-				currency: 'USD',
-				wallet_status: 'active',
-				auto_topup: { enabled: true, threshold: '20', amount: '100', invoicing: true },
-			},
-		] as never);
-
+	// The form seeds from the wallet on mount rather than through a syncing effect.
+	it('seeds threshold and amount from the saved config', async () => {
+		vi.mocked(CustomerPortalApi.getWallets).mockResolvedValue([CONFIGURED] as never);
 		renderWidget();
-
-		expect(await screen.findByText('Automatically add $100.00 when your balance falls below $20.00.')).toBeInTheDocument();
-		expect(screen.queryByDisplayValue('20')).not.toBeInTheDocument();
-		expect(screen.getByRole('button', { name: /manage/i })).toBeInTheDocument();
+		expect(await screen.findByDisplayValue('20')).toBeInTheDocument();
+		expect(screen.getByDisplayValue('100')).toBeInTheDocument();
 	});
 
-	it('tells the customer when auto top-up is off and offers to enable it', async () => {
+	it('hides the configuration fields while auto top-up is off', async () => {
 		vi.mocked(CustomerPortalApi.getWallets).mockResolvedValue([{ id: 'wallet_1', currency: 'USD', wallet_status: 'active' }] as never);
-
 		renderWidget();
-
-		// Nothing configured yet, so the form opens directly rather than summarising.
-		expect(await screen.findByRole('button', { name: /save settings/i })).toBeInTheDocument();
-	});
-
-	it('seeds the fields from the saved auto top-up config once Manage is opened', async () => {
-		vi.mocked(CustomerPortalApi.getWallets).mockResolvedValue([
-			{
-				id: 'wallet_1',
-				currency: 'USD',
-				wallet_status: 'active',
-				auto_topup: { enabled: true, threshold: '15', amount: '75', invoicing: true },
-			},
-		] as never);
-
-		renderWidget();
-		await userEvent.click(await screen.findByRole('button', { name: /manage/i }));
-
-		expect(await screen.findByDisplayValue('15')).toBeInTheDocument();
-		expect(screen.getByDisplayValue('75')).toBeInTheDocument();
-	});
-
-	// Threshold and amount inputs only exist while enabled, so a wallet with auto
-	// top-up off must not show them.
-	it('hides the threshold and amount fields while auto top-up is off', async () => {
-		vi.mocked(CustomerPortalApi.getWallets).mockResolvedValue([{ id: 'wallet_1', currency: 'USD', wallet_status: 'active' }] as never);
-
-		renderWidget();
-
 		await screen.findByRole('button', { name: /save settings/i });
-		expect(screen.queryByLabelText(/top up when balance falls below/i)).not.toBeInTheDocument();
+		expect(screen.queryByDisplayValue('20')).not.toBeInTheDocument();
 	});
 
 	it('sends the configured threshold and amount on save', async () => {
-		vi.mocked(CustomerPortalApi.getWallets).mockResolvedValue([
-			{
-				id: 'wallet_1',
-				currency: 'USD',
-				wallet_status: 'active',
-				auto_topup: { enabled: true, threshold: '20', amount: '100', invoicing: true },
-			},
-		] as never);
-
+		vi.mocked(CustomerPortalApi.getWallets).mockResolvedValue([CONFIGURED] as never);
 		renderWidget();
-		await userEvent.click(await screen.findByRole('button', { name: /manage/i }));
 		await userEvent.click(await screen.findByRole('button', { name: /save settings/i }));
 
 		await waitFor(() => expect(CustomerPortalApi.updateAutoTopup).toHaveBeenCalled());
 		const [walletId, payload] = vi.mocked(CustomerPortalApi.updateAutoTopup).mock.calls[0];
 		expect(walletId).toBe('wallet_1');
 		expect(payload.auto_topup).toMatchObject({ enabled: true, threshold: '20', amount: '100' });
+	});
+
+	// Auto-charging a saved card is meaningless without one, so the customer is told
+	// rather than left with an option that silently cannot work.
+	it('flags that there is no saved payment method to auto-charge', async () => {
+		vi.mocked(CustomerPortalApi.getWallets).mockResolvedValue([CONFIGURED] as never);
+		renderWidget();
+		expect(await screen.findByText(/no saved payment method found/i)).toBeInTheDocument();
+	});
+
+	// invoicing is the inverse of auto-charge: charging the card means not billing later.
+	it('maps auto-charge to invoicing=false when a saved card exists', async () => {
+		vi.mocked(CustomerPortalApi.getWallets).mockResolvedValue([CONFIGURED] as never);
+		vi.mocked(CustomerPortalApi.getPaymentMethods).mockResolvedValue({
+			stripe: [{ id: 'seti_1', status: 'succeeded', customer_id: 'c1', is_default: true, created_at: 0, payment_method_id: 'pm_1' }],
+		} as never);
+
+		renderWidget();
+		const autoCharge = await screen.findByLabelText(/automatically charge my saved payment method/i);
+		await userEvent.click(autoCharge);
+		await userEvent.click(screen.getByRole('button', { name: /save settings/i }));
+
+		await waitFor(() => expect(CustomerPortalApi.updateAutoTopup).toHaveBeenCalled());
+		const [, payload] = vi.mocked(CustomerPortalApi.updateAutoTopup).mock.calls[0];
+		expect(payload.auto_topup.invoicing).toBe(false);
+	});
+
+	// Omitting cooldown leaves a stored one in place; value 0 is what clears it.
+	it('clears a cooloff by sending zero rather than omitting the field', async () => {
+		vi.mocked(CustomerPortalApi.getWallets).mockResolvedValue([CONFIGURED] as never);
+		renderWidget();
+		await userEvent.click(await screen.findByRole('button', { name: /save settings/i }));
+
+		await waitFor(() => expect(CustomerPortalApi.updateAutoTopup).toHaveBeenCalled());
+		const [, payload] = vi.mocked(CustomerPortalApi.updateAutoTopup).mock.calls[0];
+		expect(payload.auto_topup.cooldown).toEqual({ value: 0, unit: 'second' });
 	});
 });

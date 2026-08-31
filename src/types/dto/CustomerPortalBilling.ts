@@ -13,8 +13,17 @@ import { WalletResponse } from './Wallet';
  * Hosted-checkout opt-in for a top-up. When present the credits land only after
  * the payment succeeds; when omitted the top-up is invoiced pay-later.
  */
+export interface PortalCheckoutProviderConfig {
+	/** charge_automatically saves the card and charges it on future invoices. */
+	collection_method?: 'charge_automatically' | 'send_invoice';
+	payment_method?: string;
+	/** Omitted for portal checkout — a mandate is only needed for recurring debit setup. */
+	max_mandate_limit?: string;
+}
+
 export interface PortalCheckoutParams {
 	payment_provider: string;
+	payment_provider_config?: PortalCheckoutProviderConfig;
 	success_url?: string;
 	cancel_url?: string;
 	failure_url?: string;
@@ -33,6 +42,7 @@ export interface PortalTopUpRequest {
 	/** Required: the backend's fallback key is timestamp-derived, so a retry without
 	 *  this would be treated as a fresh top-up and grant the credits twice. */
 	idempotency_key: string;
+	/** Omit to raise an invoice the customer settles later; set to charge now. */
 	checkout?: PortalCheckoutParams;
 }
 
@@ -124,4 +134,18 @@ export interface PortalSetupIntentResponse {
 
 export interface PortalSetDefaultPaymentMethodRequest {
 	payment_method_id: string;
+}
+
+export interface PortalPayInvoiceRequest {
+	/** Required: a retried submission must not raise a second payment on the invoice. */
+	idempotency_key: string;
+	save_payment_method?: boolean;
+	success_url?: string;
+	cancel_url?: string;
+}
+
+export interface PortalPayInvoiceResponse {
+	payment_id: string;
+	payment_url?: string;
+	status: string;
 }
