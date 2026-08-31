@@ -89,9 +89,21 @@ interface CustomerUsageChartProps {
 	className?: string;
 	/** Portal primary color — defaults to indigo if not provided */
 	primaryColor?: string;
+	/**
+	 * Plot height in px. Defaults to the dashboard's 400. Customer-facing surfaces pass a
+	 * shorter value so a sparse series does not leave a wall of empty space.
+	 */
+	height?: number;
 }
 
-export const CustomerUsageChart: React.FC<CustomerUsageChartProps> = ({ data, title, description, className, primaryColor }) => {
+export const CustomerUsageChart: React.FC<CustomerUsageChartProps> = ({
+	data,
+	title,
+	description,
+	className,
+	primaryColor,
+	height = 400,
+}) => {
 	const t = useCustomerUsageChartT();
 	// Process the data for chart display
 	const { chartData, seriesConfig, seriesIds } = normalizeUsageData(data.items, (seriesIndex) =>
@@ -275,7 +287,7 @@ export const CustomerUsageChart: React.FC<CustomerUsageChartProps> = ({ data, ti
 							{t('customerCharts.resetZoom')}
 						</button>
 					</div>
-					<div className='relative' style={{ width: '100%', height: 400 }}>
+					<div className='relative' style={{ width: '100%', height }}>
 						{zoomState.refAreaLeft && zoomState.refAreaRight && (
 							<div className='absolute top-0 right-0 bg-accent-indigo-muted text-xs text-accent-indigo py-1 px-2 rounded-md z-10 border border-accent-indigo-line'>
 								{t('customerCharts.selectingArea')}
@@ -475,7 +487,14 @@ export const CustomerUsageChart: React.FC<CustomerUsageChartProps> = ({ data, ti
 										type='monotone'
 										stroke={getSeriesColor(index)}
 										strokeWidth={1.5}
-										dot={false}
+										// A line needs two points to draw anything. With a single point and
+										// dot={false} the plot area renders completely empty, so show the
+										// marker instead of an apparently broken chart.
+										dot={
+											chartData.length < 2
+												? { r: 3.5, stroke: 'rgb(var(--fp-surface))', strokeWidth: 1, fill: getSeriesColor(index) }
+												: false
+										}
 										activeDot={{
 											r: 3.5,
 											stroke: 'rgb(var(--fp-surface))',

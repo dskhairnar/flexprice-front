@@ -17,6 +17,8 @@ const MetricCardsContainer = lazy(() => import('@/usage/containers/MetricCardsCo
 const TopUpWidget = lazy(() => import('./widgets/TopUpWidget'));
 const AutoTopUpWidget = lazy(() => import('./widgets/AutoTopUpWidget'));
 const PaymentMethodsWidget = lazy(() => import('./widgets/PaymentMethodsWidget'));
+const TopUpButton = lazy(() => import('./widgets/TopUpButton'));
+const AccountSummaryWidget = lazy(() => import('./widgets/AccountSummaryWidget'));
 
 const FallbackLoader = () => (
 	<div className='py-12'>
@@ -63,7 +65,9 @@ const TabRenderer = ({ tab, subscriptions = [], usageData, analyticsParams }: Ta
 			)}
 			{tab.type === 'usage_breakdown' && <UsageBreakdownContainer analyticsParams={analyticsParams} label={tab.label} />}
 			{tab.type === 'invoices' && <InvoicesWidget />}
-			{tab.type === 'wallet_balance' && <CreditBalanceContainer />}
+			{tab.type === 'account_summary' && <AccountSummaryWidget label={tab.label} />}
+			{/* Top up rides in the balance header — it is the primary action on this page. */}
+			{tab.type === 'wallet_balance' && <CreditBalanceContainer actions={<TopUpButton />} />}
 			{tab.type === 'wallet_transactions' && <CreditHistoryContainer />}
 			{tab.type === 'wallet_topup' && <TopUpWidget label={tab.label} />}
 			{tab.type === 'auto_topup' && <AutoTopUpWidget label={tab.label} />}

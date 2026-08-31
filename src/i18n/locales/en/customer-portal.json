@@ -30,12 +30,14 @@
 		"saveAutoTopUp": "Failed to save auto top-up settings",
 		"loadPaymentMethods": "Failed to load payment methods",
 		"addPaymentMethod": "Failed to start adding a payment method",
+		"payInvoice": "Failed to pay invoice",
 		"setDefaultPaymentMethod": "Failed to update default payment method"
 	},
 	"toast": {
 		"invoiceDownloaded": "Invoice downloaded",
 		"invoiceCsvDownloaded": "Invoice CSV downloaded",
-		"noBillableLineItems": "No billable line items to export"
+		"noBillableLineItems": "No billable line items to export",
+		"invoicePaymentStarted": "Payment submitted"
 	},
 	"datePreset": {
 		"today": "Today",
@@ -115,7 +117,12 @@
 		"emptyDescription": "No invoices have been generated yet",
 		"noMatchTitle": "No invoices found",
 		"noMatchDescription": "No invoices match your search criteria",
-		"numberPrefix": "INV-{{id}}"
+		"numberPrefix": "INV-{{id}}",
+		"pay": "Pay",
+		"columnInvoice": "Invoice",
+		"columnAction": "Action",
+		"payNow": "Pay now",
+		"view": "View"
 	},
 	"wallet": {
 		"defaultName": "Wallet",
@@ -194,5 +201,28 @@
 		"emptyDescription": "Add a card to pay invoices and enable automatic top-ups",
 		"setDefault": "Set as default",
 		"defaultUpdated": "Default payment method updated"
+	},
+	"invoiceDetail": {
+		"title": "Invoice",
+		"amountDue": "Amount due",
+		"amountTotal": "Total",
+		"billingPeriod": "Billing period",
+		"issued": "Issued",
+		"dueDate": "Due date",
+		"lineItems": "Line items",
+		"quantity": "Qty {{quantity}}",
+		"noLineItems": "No line items on this invoice",
+		"subtotal": "Subtotal",
+		"discount": "Discount",
+		"tax": "Tax",
+		"total": "Total",
+		"amountPaid": "Amount paid",
+		"download": "Download",
+		"payUnavailableHint": "Online payment is not available yet. Please contact support to settle this invoice."
+	},
+	"accountSummary": {
+		"balance": "Balance",
+		"amountDue": "Amount due",
+		"nextBilling": "Next billing"
 	}
 }

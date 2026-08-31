@@ -547,7 +547,8 @@
 		"collapseAllAria": "طي الكل",
 		"unknownRow": "غير معروف",
 		"cellEmDash": "—",
-		"cellEmpty": "--"
+		"cellEmpty": "--",
+		"singlePointLabel": "الاستخدام في {{date}} · {{value}}"
 	},
 	"creditWidgets": {
 		"defaultName": "محفظة",
@@ -565,7 +566,8 @@
 		"transactionsUnit": "معاملات",
 		"noTransactionsTitle": "لا توجد معاملات",
 		"noTransactionsDescription": "سيظهر سجل معاملاتك هنا",
-		"fallbackWalletName": "محفظة {{id}}"
+		"fallbackWalletName": "محفظة {{id}}",
+		"overdrawnHint": "استخدامك الحالي يتجاوز الأرصدة المتاحة."
 	},
 	"taxAssociation": {
 		"dialogTitle": "ربط سعر ضريبي",
