@@ -721,8 +721,8 @@
 			"columnDate": "التاريخ",
 			"columnCreatedBy": "أنشأه",
 			"columnAmount": "المبلغ",
-			"columnTransactions": "المعاملات",
-			"columnPaymentDate": "تاريخ الدفع",
+			"columnTransactions": "المعاملة",
+			"columnPaymentDate": "التاريخ",
 			"columnExpiryDate": "تاريخ الانتهاء",
 			"columnPriority": "الأولوية"
 		},

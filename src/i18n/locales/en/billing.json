@@ -849,8 +849,8 @@
 			"columnDate": "Date",
 			"columnCreatedBy": "Created By",
 			"columnAmount": "Amount",
-			"columnTransactions": "Transactions",
-			"columnPaymentDate": "Payment Date",
+			"columnTransactions": "Transaction",
+			"columnPaymentDate": "Date",
 			"columnExpiryDate": "Expiry Date",
 			"columnPriority": "Priority"
 		},

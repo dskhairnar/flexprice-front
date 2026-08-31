@@ -29,8 +29,8 @@ const EN_WALLET_TRANSACTIONS_TABLE = {
 	wallet: {
 		table: {
 			emptyCell: '--',
-			columnTransactions: 'Transactions',
-			columnPaymentDate: 'Payment Date',
+			columnTransactions: 'Transaction',
+			columnPaymentDate: 'Date',
 			columnExpiryDate: 'Expiry Date',
 			columnPriority: 'Priority',
 			columnAmount: 'Amount',

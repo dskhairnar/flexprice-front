@@ -30,12 +30,14 @@
 		"saveAutoTopUp": "تعذّر حفظ إعدادات الشحن التلقائي",
 		"loadPaymentMethods": "تعذّر تحميل طرق الدفع",
 		"addPaymentMethod": "تعذّر بدء إضافة طريقة دفع",
+		"payInvoice": "تعذّر دفع الفاتورة",
 		"setDefaultPaymentMethod": "تعذّر تحديث طريقة الدفع الافتراضية"
 	},
 	"toast": {
 		"invoiceDownloaded": "تم تنزيل الفاتورة",
 		"invoiceCsvDownloaded": "تم تنزيل الفاتورة بصيغة CSV",
-		"noBillableLineItems": "لا توجد بنود قابلة للفوترة للتصدير"
+		"noBillableLineItems": "لا توجد بنود قابلة للفوترة للتصدير",
+		"invoicePaymentStarted": "تم إرسال الدفعة"
 	},
 	"datePreset": {
 		"today": "اليوم",
@@ -115,7 +117,12 @@
 		"emptyDescription": "لم يتم إنشاء أي فواتير بعد",
 		"noMatchTitle": "لم يتم العثور على فواتير",
 		"noMatchDescription": "لا توجد فواتير تطابق معايير البحث",
-		"numberPrefix": "INV-{{id}}"
+		"numberPrefix": "INV-{{id}}",
+		"pay": "ادفع",
+		"columnInvoice": "الفاتورة",
+		"columnAction": "الإجراء",
+		"payNow": "ادفع الآن",
+		"view": "عرض"
 	},
 	"wallet": {
 		"defaultName": "محفظة",
@@ -194,5 +201,28 @@
 		"emptyDescription": "أضف بطاقة لدفع الفواتير وتفعيل الشحن التلقائي",
 		"setDefault": "تعيين كافتراضية",
 		"defaultUpdated": "تم تحديث طريقة الدفع الافتراضية"
+	},
+	"invoiceDetail": {
+		"title": "الفاتورة",
+		"amountDue": "المبلغ المستحق",
+		"amountTotal": "الإجمالي",
+		"billingPeriod": "فترة الفوترة",
+		"issued": "تاريخ الإصدار",
+		"dueDate": "تاريخ الاستحقاق",
+		"lineItems": "بنود الفاتورة",
+		"quantity": "الكمية {{quantity}}",
+		"noLineItems": "لا توجد بنود في هذه الفاتورة",
+		"subtotal": "المجموع الفرعي",
+		"discount": "الخصم",
+		"tax": "الضريبة",
+		"total": "الإجمالي",
+		"amountPaid": "المبلغ المدفوع",
+		"download": "تنزيل",
+		"payUnavailableHint": "الدفع عبر الإنترنت غير متاح بعد. يرجى التواصل مع الدعم لتسوية هذه الفاتورة."
+	},
+	"accountSummary": {
+		"balance": "الرصيد",
+		"amountDue": "المبلغ المستحق",
+		"nextBilling": "الفوترة القادمة"
 	}
 }

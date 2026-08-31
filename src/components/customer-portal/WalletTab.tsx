@@ -7,7 +7,7 @@ import { Card, Chip, Loader, Select, ShortPagination } from '@/components/atoms'
 import EmptyState from './EmptyState';
 import { WalletTransactionsTable } from '@/components/molecules';
 import { WALLET_STATUS } from '@/models/Wallet';
-import { formatAmount } from '@/components/atoms/Input/Input';
+import { formatCredits, formatMoney } from '@/utils/common/formatBalance';
 import { getCurrencySymbol } from '@/utils/common/helper_functions';
 import { Wallet as WalletIcon } from 'lucide-react';
 import usePagination from '@/hooks/usePagination';
@@ -131,13 +131,13 @@ const WalletTab = () => {
 						<span className='text-sm text-zinc-500 block mb-2'>{t('wallet.balance')}</span>
 						<div className='flex items-baseline gap-2'>
 							<span className='text-4xl font-semibold text-zinc-950'>
-								{formatAmount(walletBalance?.real_time_credit_balance ?? activeWallet?.credit_balance?.toString() ?? '0')}
+								{formatCredits(walletBalance?.real_time_credit_balance ?? activeWallet?.credit_balance ?? 0)}
 							</span>
 							<span className='text-base font-normal text-zinc-500'>{t('wallet.credits')}</span>
 						</div>
 						<p className='text-sm text-zinc-500 mt-1'>
 							{currencySymbol}
-							{formatAmount(walletBalance?.real_time_balance ?? activeWallet?.balance?.toString() ?? '0')} {t('wallet.valueSuffix')}
+							{formatMoney(walletBalance?.real_time_balance ?? activeWallet?.balance ?? 0)} {t('wallet.valueSuffix')}
 						</p>
 					</div>
 				)}

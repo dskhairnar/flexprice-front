@@ -34,6 +34,7 @@ const EN_CREDIT_WIDGETS = {
 	noTransactionsTitle: 'No transactions',
 	noTransactionsDescription: 'Your transaction history will appear here',
 	fallbackWalletName: 'Wallet {{id}}',
+	overdrawnHint: 'Your current usage exceeds available credits.',
 };
 
 export const useCreditsT = createBundledT('common', { creditWidgets: EN_CREDIT_WIDGETS }).useBoundT;

@@ -7,7 +7,7 @@ import CustomerPortalApi from '@/api/CustomerPortalApi';
 import { SectionConfig, TabConfig, DatePreset, UsageGraphConfig } from '@/types/dto/PortalConfig';
 import { DashboardAnalyticsRequest } from '@/types';
 import { WindowSize } from '@/models';
-import { DatePicker } from '@/components/atoms';
+import { DateRangePicker } from '@/components/atoms';
 import { usePortalConfig } from '@/context/PortalConfigContext';
 import TabRenderer, { DEFAULT_USAGE_GRAPH_CONFIG } from './TabRenderer';
 import { cn } from '@/lib/utils';
@@ -82,7 +82,9 @@ const SectionDateFilter = ({
 	onCustomStartChange,
 	onCustomEndChange,
 }: SectionDateFilterProps) => (
-	<div className='flex items-center gap-2 flex-wrap mb-6'>
+	// Presets left, one range control right — the two separate pickers ate the full
+	// width and read as detached from the section they filter.
+	<div className='flex items-center justify-between gap-3 flex-wrap mb-5'>
 		{/* Preset Buttons */}
 		<div
 			className='flex items-center gap-1 rounded-lg p-1'
@@ -113,24 +115,18 @@ const SectionDateFilter = ({
 				);
 			})}
 		</div>
-		{/* Custom Date Range — two separate date pickers */}
 		{usageGraphConfig.allow_custom_date_range && (
-			<div className='flex items-center gap-2'>
-				<DatePicker
-					date={effectiveStart ? new Date(effectiveStart) : undefined}
-					setDate={(d) => onCustomStartChange(d ? startOfDay(d).toISOString() : '')}
-					placeholder={startPlaceholder}
-					className={`w-[130px] h-9 text-xs ${hasTheme ? '' : 'bg-white'}`}
-					popoverTriggerClassName={`[&_button]:h-9 [&_button]:text-xs [&_button]:rounded-md${hasTheme ? ' [&_button]:bg-[var(--portal-surface)] [&_button]:border-[var(--portal-border)] [&_button]:text-[var(--portal-text-primary)]' : ''}`}
-				/>
-				<DatePicker
-					date={effectiveEnd ? new Date(effectiveEnd) : undefined}
-					setDate={(d) => onCustomEndChange(d ? endOfDay(d).toISOString() : '')}
-					placeholder={endPlaceholder}
-					className={`w-[130px] h-9 text-xs ${hasTheme ? '' : 'bg-white'}`}
-					popoverTriggerClassName={`[&_button]:h-9 [&_button]:text-xs [&_button]:rounded-md${hasTheme ? ' [&_button]:bg-[var(--portal-surface)] [&_button]:border-[var(--portal-border)] [&_button]:text-[var(--portal-text-primary)]' : ''}`}
-				/>
-			</div>
+			<DateRangePicker
+				startDate={effectiveStart ? new Date(effectiveStart) : undefined}
+				endDate={effectiveEnd ? new Date(effectiveEnd) : undefined}
+				placeholder={`${startPlaceholder} – ${endPlaceholder}`}
+				onChange={({ startDate, endDate }) => {
+					onCustomStartChange(startDate ? startOfDay(startDate).toISOString() : '');
+					onCustomEndChange(endDate ? endOfDay(endDate).toISOString() : '');
+				}}
+				className='w-auto'
+				popoverTriggerClassName={`[&_button]:h-9 [&_button]:text-xs [&_button]:rounded-md${hasTheme ? ' [&_button]:bg-[var(--portal-surface)] [&_button]:border-[var(--portal-border)] [&_button]:text-[var(--portal-text-primary)]' : ''}`}
+			/>
 		)}
 	</div>
 );

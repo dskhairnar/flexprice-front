@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react';
 //
 // Public presentational types for the credits widgets (balance, history).
 //
@@ -21,6 +22,8 @@ export interface CreditBalanceProps {
 	wallet: CreditBalanceData | null;
 	isLoading?: boolean;
 	className?: string;
+	/** Optional header-right slot, so consumers can surface a primary action (e.g. Top up). */
+	actions?: ReactNode;
 }
 
 // ── CreditHistory ────────────────────────────────────────────────────────────

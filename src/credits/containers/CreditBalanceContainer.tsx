@@ -1,7 +1,7 @@
 // src/credits/containers/CreditBalanceContainer.tsx
 //
 // Dashboard-only data-fetching wrapper. NOT exported from the package — see `CreditBalance`.
-import { useEffect } from 'react';
+import { useEffect, type ReactNode } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import toast from 'react-hot-toast';
@@ -12,9 +12,11 @@ import CreditBalance from '../components/CreditBalance';
 
 interface CreditBalanceContainerProps {
 	className?: string;
+	/** Header-right slot, used by the portal to surface Top up beside the balance. */
+	actions?: ReactNode;
 }
 
-const CreditBalanceContainer = ({ className }: CreditBalanceContainerProps) => {
+const CreditBalanceContainer = ({ className, actions }: CreditBalanceContainerProps) => {
 	const { t } = useTranslation('customer-portal');
 
 	const {
@@ -43,7 +45,7 @@ const CreditBalanceContainer = ({ className }: CreditBalanceContainerProps) => {
 	const isLoading = walletsLoading || (!!wallet?.id && balanceLoading);
 	const data = wallet ? adaptCreditBalance(wallet, realtimeBalance) : null;
 
-	return <CreditBalance wallet={data} isLoading={isLoading} className={className} />;
+	return <CreditBalance wallet={data} isLoading={isLoading} className={className} actions={actions} />;
 };
 
 export default CreditBalanceContainer;
