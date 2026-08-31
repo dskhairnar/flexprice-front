@@ -1,0 +1,125 @@
+import { useQuery } from '@tanstack/react-query';
+import { useTranslation } from 'react-i18next';
+import CustomerPortalApi from '@/api/CustomerPortalApi';
+import { Card } from '@/components/atoms';
+import { INVOICE_STATUS } from '@/models/Invoice';
+import { PAYMENT_STATUS } from '@/constants/payment';
+import { SUBSCRIPTION_STATUS } from '@/models/Subscription';
+import { formatDateShort, getCurrencySymbol } from '@/utils/common/helper_functions';
+import { formatMoney } from '@/utils/common/formatBalance';
+import { portalInvoicesQueryKey } from '../queryKeys';
+import usePortalWallet from '../usePortalWallet';
+import TopUpButton from './TopUpButton';
+
+interface AccountSummaryWidgetProps {
+	label?: string;
+}
+
+interface StatProps {
+	label: string;
+	value: string;
+	tone?: 'default' | 'danger';
+}
+
+/** One figure in the summary strip — a label/value pair, not a nested card. */
+const Stat = ({ label, value, tone = 'default' }: StatProps) => (
+	<div className='min-w-0'>
+		<p className='text-xs mb-1' style={{ color: 'var(--portal-text-secondary, #71717a)' }}>
+			{label}
+		</p>
+		<p
+			className='text-xl font-semibold truncate'
+			style={{ color: tone === 'danger' ? 'rgb(var(--fp-danger))' : 'var(--portal-text-primary, #09090b)' }}>
+			{value}
+		</p>
+	</div>
+);
+
+/**
+ * Account summary strip for the portal home.
+ *
+ * Answers the customer's first questions in order — what is my balance, what do I
+ * owe, when am I billed next — and puts the primary action beside them, instead of
+ * making them read three separate cards to work it out.
+ */
+const AccountSummaryWidget = ({ label }: AccountSummaryWidgetProps) => {
+	const { t } = useTranslation('customer-portal');
+	const { wallet, isLoading: walletLoading } = usePortalWallet();
+
+	const { data: invoicesData, isLoading: invoicesLoading } = useQuery({
+		queryKey: portalInvoicesQueryKey,
+		queryFn: () => CustomerPortalApi.getInvoices({ limit: 100, offset: 0 }),
+	});
+
+	const { data: subscriptionsData, isLoading: subsLoading } = useQuery({
+		queryKey: ['portal-subscriptions'],
+		queryFn: () => CustomerPortalApi.getSubscriptions({ limit: 10, offset: 0 }),
+	});
+
+	const isLoading = walletLoading || invoicesLoading || subsLoading;
+
+	if (isLoading) {
+		return (
+			<Card
+				className='rounded-xl p-5'
+				style={{ backgroundColor: 'var(--portal-surface, white)', border: '1px solid var(--portal-border, #E9E9E9)' }}>
+				<div className='animate-pulse grid gap-6 sm:grid-cols-3'>
+					{[1, 2, 3].map((i) => (
+						<div key={i} className='space-y-2'>
+							<div className='h-3 bg-zinc-100 rounded w-16'></div>
+							<div className='h-6 bg-zinc-100 rounded w-24'></div>
+						</div>
+					))}
+				</div>
+			</Card>
+		);
+	}
+
+	const currency = wallet?.currency ?? invoicesData?.items?.[0]?.currency ?? 'USD';
+	const symbol = getCurrencySymbol(currency);
+
+	// Only finalized, unsettled invoices count as owed — drafts and voided ones do not.
+	const amountDue = (invoicesData?.items ?? [])
+		.filter((inv) => inv.invoice_status === INVOICE_STATUS.FINALIZED && inv.payment_status !== PAYMENT_STATUS.SUCCEEDED)
+		.reduce((sum, inv) => sum + (inv.amount_remaining ?? 0), 0);
+
+	const activeSubscription = (subscriptionsData?.items ?? []).find((s) => s.subscription_status === SUBSCRIPTION_STATUS.ACTIVE);
+
+	// WalletResponse carries balance as a string, so coerce once rather than comparing loosely.
+	const walletBalance = Number(wallet?.balance ?? 0);
+
+	return (
+		<Card
+			className='rounded-xl p-5'
+			style={{ backgroundColor: 'var(--portal-surface, white)', border: '1px solid var(--portal-border, #E9E9E9)' }}>
+			{label && (
+				<h3 className='text-sm font-medium mb-4' style={{ color: 'var(--portal-text-primary, #09090b)' }}>
+					{label}
+				</h3>
+			)}
+			<div className='flex flex-wrap items-end justify-between gap-6'>
+				<div className='grid gap-6 grid-cols-2 sm:grid-cols-3 flex-1 min-w-0'>
+					{wallet && (
+						<Stat
+							label={t('accountSummary.balance')}
+							value={`${walletBalance < 0 ? '-' : ''}${symbol}${formatMoney(Math.abs(walletBalance))}`}
+							tone={walletBalance < 0 ? 'danger' : 'default'}
+						/>
+					)}
+					<Stat
+						label={t('accountSummary.amountDue')}
+						value={`${symbol}${formatMoney(amountDue)}`}
+						tone={amountDue > 0 ? 'danger' : 'default'}
+					/>
+					<Stat
+						label={t('accountSummary.nextBilling')}
+						value={activeSubscription?.current_period_end ? formatDateShort(activeSubscription.current_period_end) : '—'}
+					/>
+				</div>
+				{wallet && <TopUpButton />}
+			</div>
+		</Card>
+	);
+};
+
+export default AccountSummaryWidget;

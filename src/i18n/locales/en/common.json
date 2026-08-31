@@ -556,7 +556,8 @@
 		"collapseAllAria": "Collapse all",
 		"unknownRow": "Unknown",
 		"cellEmDash": "—",
-		"cellEmpty": "--"
+		"cellEmpty": "--",
+		"singlePointLabel": "Usage for {{date}} · {{value}}"
 	},
 	"creditWidgets": {
 		"defaultName": "Wallet",
@@ -574,7 +575,8 @@
 		"transactionsUnit": "Transactions",
 		"noTransactionsTitle": "No transactions",
 		"noTransactionsDescription": "Your transaction history will appear here",
-		"fallbackWalletName": "Wallet {{id}}"
+		"fallbackWalletName": "Wallet {{id}}",
+		"overdrawnHint": "Your current usage exceeds available credits."
 	},
 	"taxAssociation": {
 		"dialogTitle": "Link Tax Rate",

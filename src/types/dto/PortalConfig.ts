@@ -46,6 +46,7 @@ export type TabType =
 	| 'usage_graph' // chart only
 	| 'usage_breakdown' // table only (shares API cache with usage_graph)
 	| 'invoices'
+	| 'account_summary' // compact balance / amount due / next billing strip
 	| 'wallet_balance'
 	| 'wallet_transactions'
 	| 'wallet_topup' // top up via hosted checkout
@@ -123,6 +124,7 @@ export const DEFAULT_PORTAL_CONFIG: PortalConfig = {
 			enabled: true,
 			order: 2,
 			tabs: [
+				{ id: '15', type: 'account_summary', enabled: true, order: 0 },
 				{
 					id: '1',
 					type: 'metric_cards',
@@ -160,9 +162,8 @@ export const DEFAULT_PORTAL_CONFIG: PortalConfig = {
 			order: 3,
 			tabs: [
 				{ id: '6', type: 'wallet_balance', enabled: true, order: 1 },
-				{ id: '11', type: 'wallet_topup', enabled: true, order: 2 },
-				{ id: '12', type: 'auto_topup', enabled: true, order: 3 },
-				{ id: '7', type: 'wallet_transactions', enabled: true, order: 4 },
+				{ id: '12', type: 'auto_topup', enabled: true, order: 2 },
+				{ id: '7', type: 'wallet_transactions', enabled: true, order: 3 },
 			],
 		},
 		{
@@ -178,7 +179,7 @@ export const DEFAULT_PORTAL_CONFIG: PortalConfig = {
 			enabled: true,
 			order: 1,
 			tabs: [
-				{ id: '8', type: 'wallet_balance', enabled: true, order: 1 },
+				{ id: '14', type: 'account_summary', enabled: true, order: 1 },
 				{ id: '9', type: 'subscriptions', enabled: true, order: 2 },
 				{ id: '10', type: 'current_usage', enabled: true, order: 3 },
 			],

@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import toast from 'react-hot-toast';
 import CustomerPortalApi from '@/api/CustomerPortalApi';
 import { portalInvoicesQueryKey } from '@/components/customer-portal/queryKeys';
-import { Card, Chip } from '@/components/atoms';
+import { Button, Card, Chip } from '@/components/atoms';
 import { InvoiceDownloadFormatDialog } from '@/components/molecules';
 import { Invoice, INVOICE_STATUS } from '@/models/Invoice';
 import { PAYMENT_STATUS } from '@/constants/payment';
@@ -14,6 +14,8 @@ import { Download, Loader2, Search } from 'lucide-react';
 import EmptyState from '../EmptyState';
 import { usePortalConfig } from '@/context/PortalConfigContext';
 import { downloadInvoiceLineItemsCsv } from '@/utils/invoices/downloadInvoiceLineItemsCsv';
+import InvoiceDetailDrawer from './InvoiceDetailDrawer';
+import { isPayable } from '../invoiceStatus';
 
 interface InvoicesTableProps {
 	invoices: Invoice[];
@@ -21,9 +23,10 @@ interface InvoicesTableProps {
 	onOpenDownloadFormat: (invoice: Invoice) => void;
 	downloadPendingId: string | null;
 	hasTheme: boolean;
+	onView: (invoice: Invoice) => void;
 }
 
-const InvoicesTable = ({ invoices, currencySymbol, onOpenDownloadFormat, downloadPendingId, hasTheme }: InvoicesTableProps) => {
+const InvoicesTable = ({ invoices, currencySymbol, onOpenDownloadFormat, downloadPendingId, hasTheme, onView }: InvoicesTableProps) => {
 	const { t } = useTranslation('customer-portal');
 
 	const getStatusChip = (invoice: Invoice) => {
@@ -53,7 +56,7 @@ const InvoicesTable = ({ invoices, currencySymbol, onOpenDownloadFormat, downloa
 						<th
 							className='px-4 py-3 text-xs font-medium uppercase tracking-wider text-start'
 							style={{ color: 'var(--portal-text-secondary, #71717a)' }}>
-							{t('invoices.columnInvoiceNumber')}
+							{t('invoices.columnInvoice')}
 						</th>
 						<th
 							className='px-4 py-3 text-xs font-medium uppercase tracking-wider text-start'
@@ -66,36 +69,56 @@ const InvoicesTable = ({ invoices, currencySymbol, onOpenDownloadFormat, downloa
 							{t('invoices.columnAmount')}
 						</th>
 						<th
-							className='px-4 py-3 text-xs font-medium uppercase tracking-wider text-center'
+							className='px-4 py-3 text-xs font-medium uppercase tracking-wider text-end'
 							style={{ color: 'var(--portal-text-secondary, #71717a)' }}>
-							{t('invoices.columnDownload')}
+							{t('invoices.columnAction')}
 						</th>
 					</tr>
 				</thead>
 				<tbody className='divide-y' style={{ borderColor: 'var(--portal-border, #E9E9E9)' }}>
 					{invoices.map((invoice) => (
 						<tr key={invoice.id} className='transition-colors' style={{ backgroundColor: 'var(--portal-surface, white)' }}>
-							<td className='px-4 py-3 text-sm' style={{ color: 'var(--portal-text-secondary, #71717a)' }}>
+							<td className='px-4 py-2.5 text-sm' style={{ color: 'var(--portal-text-secondary, #71717a)' }}>
 								{invoice.finalized_at ? formatDateShort(invoice.finalized_at) : formatDateShort(invoice.created_at)}
 							</td>
-							<td className='px-4 py-3 text-sm font-medium' style={{ color: 'var(--portal-text-primary, #09090b)' }}>
-								{invoice.invoice_number || t('invoices.numberPrefix', { id: invoice.id.slice(0, 8) })}
+							<td className='px-4 py-2.5 text-sm font-medium'>
+								<button
+									type='button'
+									onClick={() => onView(invoice)}
+									className='hover:underline text-start'
+									style={{ color: 'var(--portal-text-primary, #09090b)' }}>
+									{invoice.invoice_number || t('invoices.numberPrefix', { id: invoice.id.slice(0, 8) })}
+								</button>
 							</td>
-							<td className='px-4 py-3'>{getStatusChip(invoice)}</td>
-							<td className='px-4 py-3 text-sm text-end font-medium' style={{ color: 'var(--portal-text-primary, #09090b)' }}>
+							<td className='px-4 py-2.5'>{getStatusChip(invoice)}</td>
+							<td className='px-4 py-2.5 text-sm text-end font-medium' style={{ color: 'var(--portal-text-primary, #09090b)' }}>
 								{currencySymbol}
 								{formatAmount(String(invoice.total ?? 0))}
 							</td>
-							<td className='px-4 py-3 text-center'>
-								{invoice.invoice_status === INVOICE_STATUS.FINALIZED && (
-									<button
-										onClick={() => onOpenDownloadFormat(invoice)}
-										disabled={downloadPendingId !== null}
-										className='p-2 rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed'
-										style={hasTheme ? { backgroundColor: 'var(--portal-primary)', color: 'white' } : { color: '#71717a' }}>
-										{downloadPendingId === invoice.id ? <Loader2 className='h-4 w-4 animate-spin' /> : <Download className='h-4 w-4' />}
-									</button>
-								)}
+							<td className='px-4 py-2.5'>
+								<div className='flex items-center justify-end gap-2'>
+									{/* Unpaid invoices lead with Pay; paid ones only offer View. Pay is
+									    presentational until a payment URL exists on the backend. */}
+									{isPayable(invoice) ? (
+										<Button size='xs' disabled title={t('invoiceDetail.payUnavailableHint')}>
+											{t('invoices.payNow')}
+										</Button>
+									) : (
+										<Button size='xs' variant='outline' onClick={() => onView(invoice)}>
+											{t('invoices.view')}
+										</Button>
+									)}
+									{invoice.invoice_status === INVOICE_STATUS.FINALIZED && (
+										<button
+											onClick={() => onOpenDownloadFormat(invoice)}
+											disabled={downloadPendingId !== null}
+											aria-label={t('invoices.columnDownload')}
+											className='p-1.5 rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed'
+											style={hasTheme ? { backgroundColor: 'var(--portal-primary)', color: 'white' } : { color: '#71717a' }}>
+											{downloadPendingId === invoice.id ? <Loader2 className='h-4 w-4 animate-spin' /> : <Download className='h-4 w-4' />}
+										</button>
+									)}
+								</div>
 							</td>
 						</tr>
 					))}
@@ -116,6 +139,7 @@ const InvoicesWidget = () => {
 	const [downloadTarget, setDownloadTarget] = useState<Invoice | null>(null);
 	const [isDownloadDialogOpen, setIsDownloadDialogOpen] = useState(false);
 	const [isCsvExportPending, setIsCsvExportPending] = useState(false);
+	const [detailInvoice, setDetailInvoice] = useState<Invoice | null>(null);
 	const { config } = usePortalConfig();
 	const hasTheme = !!config.theme;
 
@@ -189,6 +213,15 @@ const InvoicesWidget = () => {
 
 	return (
 		<div className='space-y-6'>
+			<InvoiceDetailDrawer
+				invoice={detailInvoice}
+				isOpen={detailInvoice !== null}
+				onOpenChange={(open) => {
+					if (!open) setDetailInvoice(null);
+				}}
+				onDownload={openInvoiceDownload}
+				isDownloading={busyDownloadInvoiceId !== null}
+			/>
 			<InvoiceDownloadFormatDialog
 				open={isDownloadDialogOpen}
 				onOpenChange={(open) => {
@@ -249,6 +282,7 @@ const InvoicesWidget = () => {
 					onOpenDownloadFormat={openInvoiceDownload}
 					downloadPendingId={busyDownloadInvoiceId}
 					hasTheme={hasTheme}
+					onView={setDetailInvoice}
 				/>
 			</Card>
 		</div>

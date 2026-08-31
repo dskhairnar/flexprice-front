@@ -10,3 +10,5 @@ export const portalWalletsQueryKey = ['portal-wallets'] as const;
 export const portalPaymentMethodsQueryKey = ['portal-payment-methods'] as const;
 
 export const portalWalletBalanceQueryKey = (walletId?: string) => ['portal-wallet-balance', walletId] as const;
+
+export const portalInvoiceQueryKey = (invoiceId?: string) => ['portal-invoice', invoiceId] as const;

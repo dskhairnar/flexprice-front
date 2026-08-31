@@ -17,6 +17,7 @@ const EN_USAGE_WIDGETS = {
 	marginPercent: 'Margin %',
 	cpm: 'CPM',
 	trendTitle: 'Usage Trend',
+	singlePointLabel: 'Usage for {{date}} · {{value}}',
 	breakdownTitle: 'Usage Breakdown',
 	feature: 'Feature',
 	totalUsage: 'Total Usage',

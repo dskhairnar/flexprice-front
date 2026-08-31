@@ -3,6 +3,7 @@ import { cn } from '@/lib/utils';
 import { WALLET_TRANSACTION_REASON } from '@/models/Wallet';
 import { WalletTransaction } from '@/models/WalletTransaction';
 import { formatDateShort, getCurrencySymbol } from '@/utils/common/helper_functions';
+import { formatCredits, formatMoney } from '@/utils/common/formatBalance';
 import { FC, useMemo } from 'react';
 import { useWalletTransactionsTableT } from './WalletTransactionsTable.i18n';
 
@@ -32,12 +33,15 @@ const WalletTransactionsTable: FC<Props> = ({ data }) => {
 		}) => {
 			const isPending = status?.toLowerCase() === 'pending';
 			const colorClass = isPending ? 'text-accent-yellow-brand' : type === 'credit' ? 'text-accent-teal-brand' : 'text-content-zinc-bold';
+			const sign = type === 'credit' ? '+' : '-';
 
+			// Raw amounts carry full float precision and must be rounded before display.
+			// Money leads with its symbol (+$100.00); credits are suffixed (+100 credits).
 			return (
 				<span className={cn(colorClass, className)}>
-					{type === 'credit' ? '+' : '-'}
-					{amount}
-					{currency ? ` ${getCurrencySymbol(currency)}` : ` ${t('payments.transactions.creditsSuffix')}`}
+					{currency
+						? `${sign}${getCurrencySymbol(currency)}${formatMoney(Math.abs(amount))}`
+						: `${sign}${formatCredits(Math.abs(amount))} ${t('payments.transactions.creditsSuffix')}`}
 				</span>
 			);
 		};
@@ -78,12 +82,6 @@ const WalletTransactionsTable: FC<Props> = ({ data }) => {
 						return <span>{formatDateShort(rowData.expiry_date)}</span>;
 					}
 					return <span>{emptyCell}</span>;
-				},
-			},
-			{
-				title: t('wallet.table.columnPriority'),
-				render: (rowData) => {
-					return <span>{rowData.priority || emptyCell}</span>;
 				},
 			},
 			{
