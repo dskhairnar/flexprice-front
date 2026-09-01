@@ -58,7 +58,7 @@ const AutoTopUpForm = ({ wallet, hasChargeableMethod, onAddPaymentMethod, onDone
 			onDone?.();
 			await refetchQueries(['portal-wallets', 'portal-wallet-balance']);
 		},
-		onError: () => toast.error(t('errors.saveAutoTopUp')),
+		onError: (error: Error) => toast.error(error.message || t('errors.saveAutoTopUp')),
 	});
 
 	// Both are required by the API whenever auto top-up is on.

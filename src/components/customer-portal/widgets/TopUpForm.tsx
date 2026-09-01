@@ -13,6 +13,7 @@ import { formatMoney } from '@/utils/common/formatBalance';
 import type { PortalTopUpRequest, SavedPaymentMethod } from '@/types/dto/CustomerPortalBilling';
 import { WalletResponse } from '@/types/dto/Wallet';
 import { portalPaymentMethodsQueryKey } from '../queryKeys';
+import { rememberPendingCheckout } from '../useCheckoutReturn';
 import usePortalIntegrations from '../usePortalIntegrations';
 
 interface TopUpFormProps {
@@ -90,6 +91,9 @@ const TopUpForm = ({ wallet, onDone, onActionUrl }: TopUpFormProps) => {
 			// use_saved_method can settle outright, and some providers vault
 			// server-to-server — so an absent action means done, not broken.
 			if (mode === 'checkout' && action?.url) {
+				// Recorded before the hand-off so the outcome can be resolved on return —
+				// providers redirect back without saying whether payment succeeded.
+				if (response.checkout_session?.id) rememberPendingCheckout(response.checkout_session.id);
 				onActionUrl?.(action.url);
 				return;
 			}
@@ -101,7 +105,7 @@ const TopUpForm = ({ wallet, onDone, onActionUrl }: TopUpFormProps) => {
 			onDone?.();
 			await refetchQueries(['portal-wallets', 'portal-wallet-balance', 'portal-wallet-transactions', 'portal-invoices-tab']);
 		},
-		onError: () => toast.error(t('errors.topUp')),
+		onError: (error: Error) => toast.error(error.message || t('errors.topUp')),
 	});
 
 	const parsedCredits = Number(credits);

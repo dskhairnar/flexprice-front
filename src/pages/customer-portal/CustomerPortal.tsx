@@ -10,6 +10,7 @@ import { Loader } from '@/components/atoms';
 import { PortalHeader } from '@/components/customer-portal';
 import { PortalConfigProvider, usePortalConfig } from '@/context/PortalConfigContext';
 import SectionContent from '@/components/customer-portal/SectionContent';
+import useCheckoutReturn from '@/components/customer-portal/useCheckoutReturn';
 import { portalInvoicesQueryKey } from '@/components/customer-portal/queryKeys';
 import { SectionConfig } from '@/types/dto/PortalConfig';
 import { cn } from '@/lib/utils';
@@ -32,6 +33,8 @@ interface CustomerPortalProps {
 const CustomerPortalInner = () => {
 	const { t } = useTranslation('customer-portal');
 	const { config } = usePortalConfig();
+	// Resolves a checkout the customer has just been redirected back from.
+	useCheckoutReturn();
 	const hasTheme = !!config.theme;
 
 	const {

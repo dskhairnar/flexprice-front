@@ -168,7 +168,7 @@ export const DEFAULT_PORTAL_CONFIG: PortalConfig = {
 		},
 		{
 			id: 'payment_methods',
-			label: 'Payment Methods',
+			label: 'Payments',
 			enabled: true,
 			order: 5,
 			tabs: [{ id: '13', type: 'payment_methods', enabled: true, order: 1 }],

@@ -43,7 +43,7 @@ const usePayInvoice = () => {
 			toast.success(t('toast.invoicePaymentStarted'));
 			await refetchQueries(['portal-invoices-tab', 'portal-invoice', 'portal-wallets']);
 		},
-		onError: () => toast.error(t('errors.payInvoice')),
+		onError: (error: Error) => toast.error(error.message || t('errors.payInvoice')),
 	});
 
 	return {

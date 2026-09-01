@@ -262,5 +262,10 @@
 		"copy": "Copy link",
 		"copied": "Link copied",
 		"copyFailed": "Could not copy the link"
+	},
+	"checkoutReturn": {
+		"completed": "Payment complete — your balance has been updated.",
+		"failed": "Payment was not completed.",
+		"expired": "That payment session expired. Please try again."
 	}
 }

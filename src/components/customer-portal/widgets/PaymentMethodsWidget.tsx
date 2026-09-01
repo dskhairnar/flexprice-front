@@ -144,7 +144,7 @@ const PaymentMethodsWidget = ({ label }: PaymentMethodsWidgetProps) => {
 			toast.success(t('paymentMethods.added'));
 			await refetchQueries(['portal-payment-methods']);
 		},
-		onError: () => toast.error(t('errors.addPaymentMethod')),
+		onError: (error: Error) => toast.error(error.message || t('errors.addPaymentMethod')),
 	});
 
 	const { mutate: setDefault, isPending: isSettingDefault } = useMutation({
@@ -154,7 +154,7 @@ const PaymentMethodsWidget = ({ label }: PaymentMethodsWidgetProps) => {
 			toast.success(t('paymentMethods.defaultUpdated'));
 			await refetchQueries(['portal-payment-methods']);
 		},
-		onError: () => toast.error(t('errors.setDefaultPaymentMethod')),
+		onError: (error: Error) => toast.error(error.message || t('errors.setDefaultPaymentMethod')),
 	});
 
 	const { mutate: deleteMethod, isPending: isDeleting } = useMutation({
@@ -165,7 +165,7 @@ const PaymentMethodsWidget = ({ label }: PaymentMethodsWidgetProps) => {
 			setPendingDelete(null);
 			await refetchQueries(['portal-payment-methods']);
 		},
-		onError: () => toast.error(t('errors.deletePaymentMethod')),
+		onError: (error: Error) => toast.error(error.message || t('errors.deletePaymentMethod')),
 	});
 
 	const groups = data?.providers ?? [];
