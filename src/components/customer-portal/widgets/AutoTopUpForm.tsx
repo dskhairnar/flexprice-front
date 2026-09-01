@@ -83,26 +83,6 @@ const AutoTopUpForm = ({ wallet, hasChargeableMethod, onAddPaymentMethod, onDone
 				disabled={isPending}
 			/>
 
-			{enabled && !hasChargeableMethod && (
-				<div
-					className='flex items-start gap-2 rounded-lg border p-3'
-					style={{ borderColor: 'var(--portal-border, #E9E9E9)', backgroundColor: 'var(--portal-bg, #fafafa)' }}>
-					<AlertCircle className='h-4 w-4 mt-0.5 shrink-0' style={{ color: 'rgb(var(--fp-danger))' }} />
-					<div className='text-sm'>
-						<p style={{ color: 'var(--portal-text-primary, #09090b)' }}>{t('autoTopUp.noSavedCard')}</p>
-						{onAddPaymentMethod && (
-							<button
-								type='button'
-								onClick={onAddPaymentMethod}
-								className='underline mt-0.5'
-								style={{ color: 'var(--portal-primary, #2563eb)' }}>
-								{t('paymentMethods.add')}
-							</button>
-						)}
-					</div>
-				</div>
-			)}
-
 			{enabled && (
 				<div className='space-y-4'>
 					<Input
@@ -164,14 +144,34 @@ const AutoTopUpForm = ({ wallet, hasChargeableMethod, onAddPaymentMethod, onDone
 			)}
 
 			<div style={{ borderTop: '1px solid var(--portal-border, #E9E9E9)', paddingTop: '1rem' }}>
+				{/* Sits directly above the button it explains. At the top of the form it
+				    was separated from the greyed-out Save by the whole configuration, and
+				    a second line under the button repeated it. */}
+				{enabled && !hasChargeableMethod && (
+					<div
+						className='flex items-start gap-2 rounded-lg border p-3 mb-3'
+						style={{ borderColor: 'var(--portal-border, #E9E9E9)', backgroundColor: 'var(--portal-bg, #fafafa)' }}>
+						<AlertCircle className='h-4 w-4 mt-0.5 shrink-0' style={{ color: 'rgb(var(--fp-danger))' }} />
+						<div className='text-sm'>
+							<p style={{ color: 'var(--portal-text-primary, #09090b)' }}>{t('autoTopUp.noSavedCard')}</p>
+							<p className='text-xs mt-0.5' style={{ color: 'var(--portal-text-secondary, #a1a1aa)' }}>
+								{t('autoTopUp.needsCardHint')}
+							</p>
+							{onAddPaymentMethod && (
+								<button
+									type='button'
+									onClick={onAddPaymentMethod}
+									className='underline mt-1'
+									style={{ color: 'var(--portal-primary, #2563eb)' }}>
+									{t('paymentMethods.add')}
+								</button>
+							)}
+						</div>
+					</div>
+				)}
 				<Button onClick={() => save()} disabled={!isValid || isPending} isLoading={isPending}>
 					{t('autoTopUp.save')}
 				</Button>
-				{enabled && !hasChargeableMethod && (
-					<p className='text-xs mt-2' style={{ color: 'var(--portal-text-secondary, #a1a1aa)' }}>
-						{t('autoTopUp.needsCardHint')}
-					</p>
-				)}
 			</div>
 		</div>
 	);

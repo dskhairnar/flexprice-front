@@ -126,6 +126,19 @@ describe('AutoTopUpWidget', () => {
 		expect(await screen.findByText(/no saved payment method found/i)).toBeInTheDocument();
 	});
 
+	// It explains why Save is greyed out, so it belongs beside the button rather
+	// than at the top of the form with the whole configuration in between.
+	it('puts the warning immediately before the save button, and only once', async () => {
+		vi.mocked(CustomerPortalApi.getWallets).mockResolvedValue([CONFIGURED] as never);
+		renderWidget();
+
+		const warning = await screen.findByText(/no saved payment method found/i);
+		const save = screen.getByRole('button', { name: /save settings/i });
+
+		expect(warning.compareDocumentPosition(save) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+		expect(screen.getAllByText(/add a payment method to enable automatic top-ups/i)).toHaveLength(1);
+	});
+
 	// Enabling auto top-up is itself the consent to be charged unattended, so no
 	// invoicing flag and no auto-charge switch may be sent.
 	it("sends no invoicing flag — that is the tenant's call, not the customer's", async () => {
