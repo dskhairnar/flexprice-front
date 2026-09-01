@@ -98,10 +98,18 @@ export function useSheetOutsideDismissGuards(enabled = true) {
 		};
 	}, [enabled]);
 
+	/**
+	 * Radix fires `onPointerDownOutside` and then `onInteractOutside` for the same
+	 * gesture, so this runs twice. Suppression is deliberately NOT cleared here:
+	 * the dropdown closes between the two calls, so clearing on the first left the
+	 * second with a false ref and no overlay left in the DOM to detect — it fell
+	 * through and dismissed the dialog. That is the "click anywhere with a select
+	 * open and the modal closes" report. The pointerup/pointercancel listener
+	 * above clears it at the end of this same gesture, before any later click.
+	 */
 	const preventOutsideDismiss = useCallback((event: Event) => {
 		if (isPortaledOverlayTarget(event.target) || suppressDismissRef.current || hasOpenPortaledOverlay()) {
 			event.preventDefault();
-			suppressDismissRef.current = false;
 		}
 	}, []);
 

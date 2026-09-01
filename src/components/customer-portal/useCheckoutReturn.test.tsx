@@ -1,4 +1,4 @@
-import { renderHook, waitFor } from '@testing-library/react';
+import { renderHook, waitFor, act } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
@@ -34,6 +34,27 @@ describe('useCheckoutReturn', () => {
 		const { result } = renderHook(() => useCheckoutReturn(), { wrapper });
 		expect(result.current.isResolving).toBe(false);
 		expect(CustomerPortalApi.getCheckoutSession).not.toHaveBeenCalled();
+	});
+
+	// The tab that opens the checkout has already mounted this hook, and writing
+	// to sessionStorage fires no event in the tab that wrote it — so without an
+	// explicit hand-off the tab the customer started from never resolves the
+	// payment it started, and its balances stay stale.
+	it('picks up a checkout started after mount', async () => {
+		vi.mocked(CustomerPortalApi.getCheckoutSession).mockResolvedValue({
+			id: 'cs_late',
+			checkout_status: 'completed',
+			payment_provider: 'razorpay',
+			expires_at: '2026-01-01T00:00:00Z',
+		} as never);
+
+		const { result } = renderHook(() => useCheckoutReturn(), { wrapper });
+		expect(result.current.isResolving).toBe(false);
+
+		act(() => rememberPendingCheckout('cs_late'));
+
+		await waitFor(() => expect(CustomerPortalApi.getCheckoutSession).toHaveBeenCalledWith('cs_late'));
+		await waitFor(() => expect(toast.success).toHaveBeenCalledWith('checkoutReturn.completed'));
 	});
 
 	// The provider redirects back without saying whether payment succeeded, so the

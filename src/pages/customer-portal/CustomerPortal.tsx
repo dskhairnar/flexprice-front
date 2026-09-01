@@ -1,4 +1,5 @@
-import { useEffect, useMemo, useState, useCallback } from 'react';
+import { useEffect, useMemo, useCallback } from 'react';
+import { useSearchParams } from 'react-router';
 import { useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import toast from 'react-hot-toast';
@@ -27,6 +28,9 @@ import { cn } from '@/lib/utils';
 interface CustomerPortalProps {
 	token: string;
 }
+
+/** Query parameter remembering which section tab is open. */
+const SECTION_PARAM = 'section';
 
 // ─── Inner component — consumes PortalConfigContext ───────────────────────────
 
@@ -94,19 +98,29 @@ const CustomerPortalInner = () => {
 		[config.sections, isSectionVisible],
 	);
 
-	const [activeSectionId, setActiveSectionId] = useState<string>('');
+	// Held in the URL, not component state: a reload — which customers do after
+	// paying — dropped them back on the first section regardless of where they
+	// were. Deriving it also removes the need to reset when the chosen section
+	// stops being visible (e.g. its data comes back empty); an id that no longer
+	// matches simply falls through to the first visible one.
+	const [searchParams, setSearchParams] = useSearchParams();
+	const requestedSectionId = searchParams.get(SECTION_PARAM);
 
-	// If the active section gets hidden (e.g. invoices data empty), fall back to first visible
-	useEffect(() => {
-		if (activeSectionId && !visibleSections.find((s) => s.id === activeSectionId)) {
-			setActiveSectionId('');
-		}
-	}, [activeSectionId, visibleSections]);
+	const activeSection = useMemo(
+		() => visibleSections.find((s) => s.id === requestedSectionId) ?? visibleSections[0],
+		[requestedSectionId, visibleSections],
+	);
 
-	const activeSection = useMemo(() => {
-		if (activeSectionId) return visibleSections.find((s) => s.id === activeSectionId);
-		return visibleSections[0];
-	}, [activeSectionId, visibleSections]);
+	const selectSection = useCallback(
+		(id: string) => {
+			const next = new URLSearchParams(searchParams);
+			next.set(SECTION_PARAM, id);
+			// Replace: switching tabs should not stack up history the back button
+			// then has to walk through.
+			setSearchParams(next, { replace: true });
+		},
+		[searchParams, setSearchParams],
+	);
 
 	if (customerLoading) {
 		return (
@@ -143,7 +157,7 @@ const CustomerPortalInner = () => {
 							return (
 								<button
 									key={section.id}
-									onClick={() => setActiveSectionId(section.id)}
+									onClick={() => selectSection(section.id)}
 									className={cn(
 										'px-4 py-2 text-sm font-medium rounded-[6px] transition-colors',
 										!hasTheme && (isActive ? 'bg-zinc-100 text-zinc-900' : 'text-zinc-500 hover:text-zinc-700 hover:bg-zinc-50'),

@@ -7,6 +7,7 @@ import { portalReturnUrl } from '../portalReturnUrl';
 import { openPaymentUrl } from '@/utils/common/openPaymentUrl';
 import { Button, Input, Select, Toggle } from '@/components/atoms';
 import { refetchPortalQueries } from '../refetchPortalQueries';
+import { PORTAL_BALANCE_QUERY_ROOTS } from '../queryKeys';
 import { getCurrencySymbol } from '@/utils/common/helper_functions';
 import { formatMoney } from '@/utils/common/formatBalance';
 import type { PaymentGatewayType, PortalTopUpRequest, SavedPaymentMethod } from '@/types/dto/CustomerPortalBilling';
@@ -150,7 +151,7 @@ const TopUpForm = ({ wallet, onDone, onActionUrl }: TopUpFormProps) => {
 			onDone?.();
 			// One call per root: a single array argument is read as one prefix key and
 			// would match none of these.
-			await refetchPortalQueries(['portal-wallets', 'portal-wallet-balance', 'portal-wallet-transactions', 'portal-invoices-tab']);
+			await refetchPortalQueries([...PORTAL_BALANCE_QUERY_ROOTS]);
 		},
 		onError: (error: Error) => toast.error(error.message || t('errors.topUp')),
 	});

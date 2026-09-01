@@ -1,3 +1,5 @@
+import { CHECKOUT_RETURN_PARAM } from './checkoutHandoff';
+
 /** Query parameter carrying the portal session token. */
 const TOKEN_PARAM = 'token';
 
@@ -51,13 +53,18 @@ export const recallSessionToken = (): string | null => {
  * holding the URL could act as that customer until it expires.
  *
  * The token is stripped and restored from session storage on return.
+ *
+ * A marker is added in its place so the returning tab knows it is a redirect
+ * landing and can hand the result back to the tab the customer started from —
+ * see checkoutHandoff.
  */
 export const portalReturnUrl = (): string => {
 	try {
 		const url = new URL(window.location.href);
 		url.searchParams.delete(TOKEN_PARAM);
+		url.searchParams.set(CHECKOUT_RETURN_PARAM, '1');
 		return url.toString();
 	} catch {
-		return window.location.origin;
+		return `${window.location.origin}?${CHECKOUT_RETURN_PARAM}=1`;
 	}
 };
