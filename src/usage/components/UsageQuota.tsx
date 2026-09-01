@@ -6,8 +6,9 @@ import Card from '@/components/atoms/Card/Card';
 import Progress from '@/components/atoms/Progress/Progress';
 import { formatAmount } from '@/components/atoms/Input/Input';
 import { cn } from '@/lib/utils';
+import { Gauge } from 'lucide-react';
+import EmptyState from '@/components/atoms/EmptyState/EmptyState';
 import { useUsageT } from '../i18n';
-import WidgetEmptyBody from './WidgetEmptyBody';
 import { normalizeUsageQuotaItems } from '../schema';
 import type { UsageQuotaProps } from '../types';
 
@@ -15,7 +16,7 @@ import type { UsageQuotaProps } from '../types';
  * Prop-only usage-quota list — no fetching, no auth, no PortalConfigContext. Renders a progress
  * bar per metered entitlement. Consumers supply already-adapted `items` (see `adaptUsageQuotaItems`).
  */
-const UsageQuota = ({ items: rawItems, label, className }: UsageQuotaProps) => {
+const UsageQuota = ({ items: rawItems, label, className, emptyAction }: UsageQuotaProps) => {
 	const items = useMemo(() => normalizeUsageQuotaItems(rawItems), [rawItems]);
 	const t = useUsageT();
 
@@ -25,7 +26,12 @@ const UsageQuota = ({ items: rawItems, label, className }: UsageQuotaProps) => {
 		return (
 			<Card noPadding className={cn('flexprice-ui', 'rounded-xl overflow-hidden bg-surface', className)}>
 				<div className='p-6 border-b border-line'>{heading}</div>
-				<WidgetEmptyBody title={t('usageWidgets.quotaEmptyTitle')} description={t('usageWidgets.quotaEmptyDescription')} />
+				<EmptyState
+					icon={<Gauge />}
+					title={t('usageWidgets.quotaEmptyTitle')}
+					description={t('usageWidgets.quotaEmptyDescription')}
+					action={emptyAction}
+				/>
 			</Card>
 		);
 	}

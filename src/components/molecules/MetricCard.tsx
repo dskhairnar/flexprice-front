@@ -4,7 +4,8 @@ import { TrendingUp, TrendingDown } from 'lucide-react';
 
 interface MetricCardProps {
 	title: string;
-	value: number;
+	/** null/undefined means the value is unknown; 0 means it is known to be zero. */
+	value: number | null | undefined;
 	currency?: string;
 	isPercent?: boolean;
 	showChangeIndicator?: boolean;
@@ -21,14 +22,22 @@ const MetricCard: React.FC<MetricCardProps> = ({
 }) => {
 	const arrowColor = isNegative ? 'text-danger' : 'text-success';
 
+	// formatNumber returns '-' for any falsy input, so a metric that is genuinely
+	// zero rendered as '$ -' — which reads as a formatting or API failure rather
+	// than a real amount. A known zero is a number and formats like one; only an
+	// absent value gets a dash, and an em dash so the two cannot be confused.
+	// (Same distinction formatCurrencyAmount already makes.)
+	const formatKnown = (amount: number) => (amount === 0 ? (0).toFixed(2) : formatNumber(amount, 2));
+
 	const renderValue = () => {
+		if (value === null || value === undefined || Number.isNaN(value)) return '—';
 		if (isPercent) {
-			return `${formatNumber(value, 2)}%`;
+			return `${formatKnown(value)}%`;
 		}
 		if (currency) {
-			return `${getCurrencySymbol(currency)} ${formatNumber(value, 2)}`;
+			return `${getCurrencySymbol(currency)} ${formatKnown(value)}`;
 		}
-		return formatNumber(value, 2);
+		return formatKnown(value);
 	};
 
 	return (

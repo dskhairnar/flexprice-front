@@ -4,6 +4,7 @@ import { DashboardAnalyticsRequest } from '@/types';
 import { SubscriptionResponse } from '@/types/dto/Subscription';
 import { CustomerUsage } from '@/models';
 import { Loader } from '@/components/atoms';
+import type { EmptyStateAction } from '@/components/atoms/EmptyState/EmptyState';
 
 // Lazy-load widgets — unused widgets don't bloat the bundle.
 const SubscriptionsWidget = lazy(() => import('./widgets/SubscriptionsWidget'));
@@ -45,22 +46,40 @@ interface TabRendererProps {
 	 * so they hit the same React Query cache entry — zero duplicate API calls.
 	 */
 	analyticsParams: DashboardAnalyticsRequest;
+	/**
+	 * Where an empty usage quota should send the reader. Resolved by SectionContent,
+	 * which owns the portal config — this component stays presentational and can be
+	 * rendered without a config provider or a router.
+	 */
+	planLink?: EmptyStateAction;
 }
 
 /**
  * Maps tab.type to the correct lazily-loaded widget.
  * analyticsParams is always passed from SectionContent (which owns the date filter state).
  */
-const TabRenderer = ({ tab, subscriptions = [], usageData, analyticsParams }: TabRendererProps) => {
+/** "Aug 26 – Sep 1" for the window the analytics widgets are showing. */
+const formatPeriod = (start?: string, end?: string): string | undefined => {
+	if (!start || !end) return undefined;
+	// Not formatDateShort: it pins 'en-US', which would print English dates inside
+	// the Arabic portal. undefined defers to the runtime locale.
+	const short = (value: string) => new Date(value).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+	return `${short(start)} – ${short(end)}`;
+};
+
+const TabRenderer = ({ tab, subscriptions = [], usageData, analyticsParams, planLink }: TabRendererProps) => {
+	const period = formatPeriod(analyticsParams?.start_time, analyticsParams?.end_time);
+
 	return (
 		<Suspense fallback={<FallbackLoader />}>
 			{tab.type === 'subscriptions' && <SubscriptionsWidget subscriptions={subscriptions} label={tab.label} />}
-			{tab.type === 'current_usage' && <UsageQuotaContainer usageData={usageData} label={tab.label} />}
+			{tab.type === 'current_usage' && <UsageQuotaContainer usageData={usageData} label={tab.label} emptyAction={planLink} />}
 			{tab.type === 'usage_graph' && (
 				<UsageTrendChartContainer
 					config={tab.usage_graph ?? DEFAULT_USAGE_GRAPH_CONFIG}
 					analyticsParams={analyticsParams}
 					label={tab.label}
+					periodLabel={period}
 				/>
 			)}
 			{tab.type === 'usage_breakdown' && <UsageBreakdownContainer analyticsParams={analyticsParams} label={tab.label} />}

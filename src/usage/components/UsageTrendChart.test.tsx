@@ -1,5 +1,5 @@
 import { render, screen } from '@testing-library/react';
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import '@testing-library/jest-dom';
 import UsageTrendChart from './UsageTrendChart';
 
@@ -22,12 +22,31 @@ describe('UsageTrendChart', () => {
 	});
 
 	// Returning null left a customer with no usage yet looking at blank space where
-	// a chart should be. The empty series is passed through so the chart's own
-	// no-data path keeps the titled card at its full height.
+	// a chart should be.
 	it('keeps the titled chart card when not loading and series is empty', () => {
-		render(<UsageTrendChart series={[]} />);
+		render(<UsageTrendChart series={[]} periodLabel='Aug 26 – Sep 1' />);
 		expect(screen.getByText('Usage Trend')).toBeInTheDocument();
-		expect(screen.getByText('No data to display')).toBeInTheDocument();
+		expect(screen.getByText('No usage data yet')).toBeInTheDocument();
+		// The period is named, so the customer can trust what "this period" means.
+		expect(screen.getByText('Aug 26 – Sep 1')).toBeInTheDocument();
+	});
+
+	// CustomerUsageChart's own no-data path stacks "No usage data available" above
+	// "No data to display" in a 250px void — two ways of saying nothing is here.
+	it('states the empty case once, not twice', () => {
+		render(<UsageTrendChart series={[]} />);
+		expect(screen.queryByText('No data to display')).not.toBeInTheDocument();
+		expect(screen.queryByText('No usage data available')).not.toBeInTheDocument();
+	});
+
+	it('offers the action it is given, and nothing when there is none', () => {
+		const onClick = vi.fn();
+		const { rerender } = render(<UsageTrendChart series={[]} emptyAction={{ label: 'View plan', onClick }} />);
+		screen.getByRole('button', { name: /view plan/i }).click();
+		expect(onClick).toHaveBeenCalled();
+
+		rerender(<UsageTrendChart series={[]} />);
+		expect(screen.queryByRole('button')).not.toBeInTheDocument();
 	});
 
 	it('renders a loading skeleton when isLoading', () => {
