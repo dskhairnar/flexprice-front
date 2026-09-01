@@ -232,6 +232,35 @@ function mergeSections(defaults: SectionConfig[], tenant?: SectionConfig[]): Sec
 	return [...reordered, ...unseen].sort((a, b) => a.order - b.order);
 }
 
+/** Analytics widgets: they belong to Usage, and each one also brings the date filter. */
+const ANALYTICS_TAB_TYPES: TabType[] = ['usage_graph', 'usage_breakdown', 'metric_cards'];
+
+const OVERVIEW_SECTION_ID = 'overview';
+
+/**
+ * Overview summarises account state — balance, subscriptions, quota. Usage is the
+ * analytics page.
+ *
+ * Tenants whose stored config predates that split still carry a usage trend in
+ * Overview, and any analytics tab there also renders the section's date filter,
+ * so the summary page opened on a chart and a timeline picker that duplicate the
+ * Usage tab. Removing them from the defaults is not enough: a stored config
+ * replaces the defaults wholesale, so the rule is applied after the merge.
+ *
+ * A tenant whose Overview holds nothing but analytics keeps the default tabs
+ * rather than being left with an empty section.
+ */
+function withoutAnalyticsInOverview(sections: SectionConfig[], defaults: SectionConfig[]): SectionConfig[] {
+	const defaultOverviewTabs = defaults.find((section) => section.id === OVERVIEW_SECTION_ID)?.tabs ?? [];
+
+	return sections.map((section) => {
+		if (section.id !== OVERVIEW_SECTION_ID) return section;
+
+		const tabs = section.tabs.filter((tab) => !ANALYTICS_TAB_TYPES.includes(tab.type));
+		return { ...section, tabs: tabs.some((tab) => tab.enabled) ? tabs : defaultOverviewTabs };
+	});
+}
+
 export function deepMergePortalConfig(defaults: PortalConfig, tenant: Partial<PortalConfig>): PortalConfig {
 	const mergedTheme = { ...(defaults.theme ?? {}), ...(tenant.theme ?? {}) } as PortalTheme;
 	return {
@@ -247,6 +276,6 @@ export function deepMergePortalConfig(defaults: PortalConfig, tenant: Partial<Po
 		// The trade-off: a tenant who deliberately removed a section would see it
 		// return. Section removal is expressed by `enabled: false`, not by deletion,
 		// so that is the narrower reading of intent.
-		sections: mergeSections(defaults.sections, tenant.sections),
+		sections: withoutAnalyticsInOverview(mergeSections(defaults.sections, tenant.sections), defaults.sections),
 	};
 }
