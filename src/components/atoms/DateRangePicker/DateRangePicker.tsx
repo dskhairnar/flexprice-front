@@ -110,29 +110,38 @@ const DateRangePicker = ({
 
 	return (
 		<Popover open={open} onOpenChange={setOpen}>
-			<PopoverTrigger className={popoverTriggerClassName} disabled={disabled}>
+			{/* The trigger is the Button itself. PopoverTrigger renders its own <button>,
+			    so wrapping this one put a button inside a button — invalid HTML, two tab
+			    stops, and the popup semantics on the outer element rather than the one
+			    that takes focus. The wrapper below keeps popoverTriggerClassName on the
+			    outermost box, so `w-full` and `[&_button]:…` selectors from callers land
+			    exactly where they did; inline-block preserves the shrink-to-fit sizing
+			    the <button> had. */}
+			<div className={cn('inline-block', popoverTriggerClassName)}>
 				<div className='flex flex-col '>
 					{title && <div className={cn('text-sm font-medium mb-1 w-full text-start', labelClassName)}>{title}</div>}
 					<div className='relative'>
-						<Button
-							variant='outline'
-							className={cn(
-								' justify-start text-start font-normal !h-10',
-								!selectedRange?.from || !selectedRange?.to
-									? 'text-muted-foreground opacity-70 hover:text-muted-foreground'
-									: 'text-content-black',
-								!className && (selectedRange?.from && selectedRange?.to ? 'w-[260px]' : 'w-[240px]'),
-								// The clear affordance is absolutely positioned over this button, so
-								// the label must reserve room for it. Without this a caller that sizes
-								// to content — the portal passes w-auto — renders the X on top of the
-								// last characters of the range.
-								selectedRange?.from && selectedRange?.to && 'pe-8',
-								'transition-all duration-300 ease-in-out',
-								className,
-							)}>
-							<CalendarIcon className='mr-0 h-4 w-4' />
-							<span>{displayLabel}</span>
-						</Button>
+						<PopoverTrigger asChild disabled={disabled}>
+							<Button
+								variant='outline'
+								className={cn(
+									' justify-start text-start font-normal !h-10',
+									!selectedRange?.from || !selectedRange?.to
+										? 'text-muted-foreground opacity-70 hover:text-muted-foreground'
+										: 'text-content-black',
+									!className && (selectedRange?.from && selectedRange?.to ? 'w-[260px]' : 'w-[240px]'),
+									// The clear affordance is absolutely positioned over this button, so
+									// the label must reserve room for it. Without this a caller that sizes
+									// to content — the portal passes w-auto — renders the X on top of the
+									// last characters of the range.
+									selectedRange?.from && selectedRange?.to && 'pe-8',
+									'transition-all duration-300 ease-in-out',
+									className,
+								)}>
+								<CalendarIcon className='mr-0 h-4 w-4' />
+								<span>{displayLabel}</span>
+							</Button>
+						</PopoverTrigger>
 						{selectedRange?.from && selectedRange?.to && (
 							<X
 								className='h-4 w-4 absolute end-2 top-[12px] cursor-pointer'
@@ -145,7 +154,7 @@ const DateRangePicker = ({
 						)}
 					</div>
 				</div>
-			</PopoverTrigger>
+			</div>
 
 			<PopoverContent className={cn('w-auto flex gap-4 p-2', popoverClassName, popoverContentClassName)} align='start'>
 				<Calendar

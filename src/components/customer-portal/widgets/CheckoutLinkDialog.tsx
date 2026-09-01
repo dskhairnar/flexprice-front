@@ -1,8 +1,10 @@
+import { useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Copy, ExternalLink } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { Button, Dialog } from '@/components/atoms';
 import { openPaymentUrl } from '@/utils/common/openPaymentUrl';
+import { subscribeToCheckoutSettled } from '../useCheckoutReturn';
 
 interface CheckoutLinkDialogProps {
 	url: string | null;
@@ -23,6 +25,23 @@ interface CheckoutLinkDialogProps {
  */
 const CheckoutLinkDialog = ({ url, onOpenChange, purpose = 'payment' }: CheckoutLinkDialogProps) => {
 	const { t } = useTranslation('customer-portal');
+
+	// Held in a ref so an inline callback from the caller does not resubscribe on
+	// every render.
+	const onOpenChangeRef = useRef(onOpenChange);
+	onOpenChangeRef.current = onOpenChange;
+
+	// The customer pays in another tab and comes back to a refreshed balance with
+	// "Complete your payment" still sitting over it. Only on success: a failed or
+	// expired checkout leaves the link up, because retrying it is the obvious next
+	// move.
+	useEffect(
+		() =>
+			subscribeToCheckoutSettled((status) => {
+				if (status === 'completed') onOpenChangeRef.current(false);
+			}),
+		[],
+	);
 
 	const copy = async () => {
 		if (!url) return;
