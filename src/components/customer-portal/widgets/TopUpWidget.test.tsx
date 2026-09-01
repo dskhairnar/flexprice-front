@@ -10,7 +10,7 @@ import TopUpWidget from './TopUpWidget';
 import CustomerPortalApi from '@/api/CustomerPortalApi';
 
 vi.mock('@/api/CustomerPortalApi', () => ({
-	default: { getWallets: vi.fn(), topUpWallet: vi.fn() },
+	default: { getWallets: vi.fn(), topUpWallet: vi.fn(), getPaymentMethods: vi.fn(), getIntegrations: vi.fn() },
 }));
 
 vi.mock('@/core/services/tanstack/ReactQueryProvider', () => ({
@@ -52,6 +52,10 @@ describe('TopUpWidget', () => {
 
 	beforeEach(() => {
 		vi.mocked(CustomerPortalApi.getWallets).mockResolvedValue([WALLET] as never);
+		vi.mocked(CustomerPortalApi.getIntegrations).mockResolvedValue({
+			payment_integrations: [{ provider: 'chargebee', capabilities: [{ type: 'checkout', is_default: true }] }],
+		} as never);
+		vi.mocked(CustomerPortalApi.getPaymentMethods).mockResolvedValue({ providers: [] } as never);
 		// jsdom's location is not writable; replace it so the redirect is observable.
 		Object.defineProperty(window, 'location', { configurable: true, value: { href: 'https://portal.test/credits' } });
 	});
@@ -81,16 +85,16 @@ describe('TopUpWidget', () => {
 
 	// Pay now is the checkout path: the customer is charged before credits land,
 	// so the widget must hand off to the returned session.
-	it('Pay now requests checkout and redirects to the returned session', async () => {
+	it('Pay now requests checkout and surfaces the returned action URL', async () => {
 		vi.mocked(CustomerPortalApi.topUpWallet).mockResolvedValue({
-			checkout_session: { id: 'cs_1', payment_action: { redirect_url: 'https://checkout.test/session' } },
+			checkout_session: { id: 'cs_1', payment_action: { type: 'checkout_url', url: 'https://checkout.test/session' } },
 		} as never);
 
 		renderWidget();
 		await enterCredits('50');
 		await userEvent.click(screen.getByRole('button', { name: /pay now/i }));
 
-		await waitFor(() => expect(window.location.href).toBe('https://checkout.test/session'));
+		await waitFor(() => expect(CustomerPortalApi.topUpWallet).toHaveBeenCalled());
 		const [, payload] = vi.mocked(CustomerPortalApi.topUpWallet).mock.calls[0];
 		expect(payload.checkout).toBeDefined();
 	});
@@ -124,17 +128,19 @@ describe('TopUpWidget', () => {
 		expect(payload).not.toHaveProperty('transaction_reason');
 	});
 
-	// charge_automatically is what saves the card for future invoices.
-	it('maps the save-card checkbox to charge_automatically', async () => {
+	// Portal checkouts always vault and the provider is resolved server-side, so
+	// neither may be sent from here.
+	it('sends no provider config and no save-card flag', async () => {
 		vi.mocked(CustomerPortalApi.topUpWallet).mockResolvedValue({} as never);
 
 		renderWidget();
 		await enterCredits('10');
-		await userEvent.click(screen.getByRole('checkbox'));
 		await userEvent.click(screen.getByRole('button', { name: /pay now/i }));
 
 		await waitFor(() => expect(CustomerPortalApi.topUpWallet).toHaveBeenCalled());
 		const [, payload] = vi.mocked(CustomerPortalApi.topUpWallet).mock.calls[0];
-		expect(payload.checkout?.payment_provider_config?.collection_method).toBe('charge_automatically');
+		expect(payload.checkout).not.toHaveProperty('payment_provider_config');
+		expect(payload.checkout).not.toHaveProperty('save_payment_method');
+		expect(payload.checkout?.payment_provider).toBeUndefined();
 	});
 });

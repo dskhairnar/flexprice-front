@@ -1,7 +1,8 @@
 import { useState } from 'react';
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import toast from 'react-hot-toast';
+import { CreditCard } from 'lucide-react';
 import CustomerPortalApi from '@/api/CustomerPortalApi';
 import { Button, Input } from '@/components/atoms';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -9,35 +10,54 @@ import { Label } from '@/components/ui';
 import { refetchQueries } from '@/core/services/tanstack/ReactQueryProvider';
 import { getCurrencySymbol } from '@/utils/common/helper_functions';
 import { formatMoney } from '@/utils/common/formatBalance';
-import { PortalTopUpRequest } from '@/types/dto/CustomerPortalBilling';
+import type { PortalTopUpRequest, SavedPaymentMethod } from '@/types/dto/CustomerPortalBilling';
 import { WalletResponse } from '@/types/dto/Wallet';
+import { portalPaymentMethodsQueryKey } from '../queryKeys';
+import usePortalIntegrations from '../usePortalIntegrations';
 
 interface TopUpFormProps {
 	wallet: WalletResponse;
 	onDone?: () => void;
-	/** Surfaces the hosted-checkout URL when the browser will not follow the redirect. */
-	onCheckoutUrl?: (url: string) => void;
+	/** Surfaces the action URL so a blocked redirect stays recoverable. */
+	onActionUrl?: (url: string) => void;
 }
+
+const describeCard = (method: SavedPaymentMethod) =>
+	method.card?.last4 ? `${method.card.brand ?? 'card'} •••• ${method.card.last4}` : method.id;
 
 /**
  * Credit top-up for the customer portal.
  *
- * Mirrors the admin top-up form minus the parts a customer has no business
- * setting: there is no free/purchased choice (the backend pins a purchased-credit
- * reason), and no expiry, priority or reference id. An invoice is always raised.
+ * Narrower than the admin form by design: transaction reason, expiry and priority
+ * are pinned server-side, so there is no free/purchased choice and no scheduling
+ * fields. There is also no save-card option — portal checkouts always vault.
  *
- * Two exits, matching how the money actually moves:
- *   Pay now         — hosted checkout, credits land once payment succeeds
+ * Two exits, matching how the money moves:
+ *   Pay now          — checkout; credits land once payment succeeds
  *   Generate invoice — invoice raised now, settled later
  */
-const TopUpForm = ({ wallet, onDone, onCheckoutUrl }: TopUpFormProps) => {
+const TopUpForm = ({ wallet, onDone, onActionUrl }: TopUpFormProps) => {
 	const { t } = useTranslation('customer-portal');
+	const { supports } = usePortalIntegrations();
 	const [credits, setCredits] = useState('');
 	const [description, setDescription] = useState('');
-	const [saveCard, setSaveCard] = useState(false);
+	const [useSavedMethod, setUseSavedMethod] = useState(false);
 	// One key per mounted attempt, so a retry after a network failure dedups server
-	// side instead of granting the credits twice. Reset only after a success.
+	// side instead of granting the credits twice. Rotated only after a success.
 	const [idempotencyKey, setIdempotencyKey] = useState(() => crypto.randomUUID());
+
+	const canCheckout = supports('checkout');
+
+	const { data: methods } = useQuery({
+		queryKey: portalPaymentMethodsQueryKey,
+		queryFn: () => CustomerPortalApi.getPaymentMethods(),
+		enabled: canCheckout,
+	});
+
+	// Only a method that can be charged unattended is worth offering here.
+	const chargeableMethod = (methods?.providers ?? [])
+		.flatMap((group) => group.items)
+		.find((method) => method.can_auto_charge && method.status === 'ACTIVE' && method.is_default);
 
 	const {
 		mutate: topUp,
@@ -52,17 +72,10 @@ const TopUpForm = ({ wallet, onDone, onCheckoutUrl }: TopUpFormProps) => {
 				...(mode === 'checkout'
 					? {
 							checkout: {
-								// Razorpay is the only value CheckoutPaymentProvider accepts today
-								// (internal/types/checkout.go). This belongs server-side once the
-								// backend resolves the tenant's configured gateway itself, so the
-								// customer never learns which gateway is behind the checkout.
-								payment_provider: 'razorpay',
-								payment_provider_config: {
-									// charge_automatically is what saves the card for future invoices.
-									// max_mandate_limit is deliberately omitted — a one-off top-up
-									// needs no recurring-debit mandate.
-									collection_method: saveCard ? 'charge_automatically' : 'send_invoice',
-								},
+								// payment_provider omitted: the backend resolves the tenant's
+								// configured provider, so the customer never learns which
+								// gateway is behind the checkout.
+								use_saved_method: useSavedMethod && !!chargeableMethod,
 								success_url: window.location.href,
 								cancel_url: window.location.href,
 							},
@@ -72,13 +85,12 @@ const TopUpForm = ({ wallet, onDone, onCheckoutUrl }: TopUpFormProps) => {
 			return CustomerPortalApi.topUpWallet(wallet.id, payload);
 		},
 		onSuccess: async (response, mode) => {
-			const redirectUrl = response.checkout_session?.payment_action?.redirect_url ?? response.checkout_session?.payment_url;
+			const action = response.checkout_session?.payment_action;
 
-			if (mode === 'checkout' && redirectUrl) {
-				// Surface the URL first, so a blocked redirect still leaves the customer
-				// something they can copy, then hand off to the hosted page.
-				onCheckoutUrl?.(redirectUrl);
-				window.location.href = redirectUrl;
+			// use_saved_method can settle outright, and some providers vault
+			// server-to-server — so an absent action means done, not broken.
+			if (mode === 'checkout' && action?.url) {
+				onActionUrl?.(action.url);
 				return;
 			}
 
@@ -120,24 +132,29 @@ const TopUpForm = ({ wallet, onDone, onCheckoutUrl }: TopUpFormProps) => {
 				placeholder={t('topUp.descriptionPlaceholder')}
 			/>
 
-			<div className='flex items-start gap-2'>
-				<Checkbox
-					id='portal-topup-save-card'
-					checked={saveCard}
-					onCheckedChange={(checked) => setSaveCard(checked === true)}
-					disabled={isPending}
-				/>
-				<Label htmlFor='portal-topup-save-card' className='text-sm font-normal leading-snug'>
-					{t('topUp.saveCardLabel')}
-				</Label>
-			</div>
+			{chargeableMethod && (
+				<div className='flex items-start gap-2 rounded-lg border p-3' style={{ borderColor: 'var(--portal-border, #E9E9E9)' }}>
+					<Checkbox
+						id='portal-topup-saved-method'
+						checked={useSavedMethod}
+						onCheckedChange={(checked) => setUseSavedMethod(checked === true)}
+						disabled={isPending}
+					/>
+					<Label htmlFor='portal-topup-saved-method' className='text-sm font-normal leading-snug flex items-center gap-1.5'>
+						<CreditCard className='h-3.5 w-3.5 shrink-0' />
+						{t('topUp.useSavedMethod', { method: describeCard(chargeableMethod) })}
+					</Label>
+				</div>
+			)}
 
 			<div className='flex items-center gap-2 pt-1'>
-				<Button onClick={() => topUp('checkout')} disabled={!isValid || isPending} isLoading={isPending && pendingMode === 'checkout'}>
-					{t('topUp.payNow')}
-				</Button>
+				{canCheckout && (
+					<Button onClick={() => topUp('checkout')} disabled={!isValid || isPending} isLoading={isPending && pendingMode === 'checkout'}>
+						{t('topUp.payNow')}
+					</Button>
+				)}
 				<Button
-					variant='outline'
+					variant={canCheckout ? 'outline' : 'default'}
 					onClick={() => topUp('invoice')}
 					disabled={!isValid || isPending}
 					isLoading={isPending && pendingMode === 'invoice'}>

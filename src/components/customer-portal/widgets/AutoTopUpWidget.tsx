@@ -3,12 +3,14 @@ import { Card } from '@/components/atoms';
 import usePortalWallet from '../usePortalWallet';
 import EmptyState from '../EmptyState';
 import AutoTopUpForm from './AutoTopUpForm';
+import useChargeableMethod from '../useChargeableMethod';
 
 interface AutoTopUpWidgetProps {
 	label?: string;
 }
 
 const AutoTopUpWidget = ({ label }: AutoTopUpWidgetProps) => {
+	const { hasChargeableMethod } = useChargeableMethod();
 	const { t } = useTranslation('customer-portal');
 	const { wallet, isLoading } = usePortalWallet();
 
@@ -48,7 +50,7 @@ const AutoTopUpWidget = ({ label }: AutoTopUpWidgetProps) => {
 			<p className='text-sm mb-4' style={{ color: 'var(--portal-text-secondary, #71717a)' }}>
 				{t('autoTopUp.description')}
 			</p>
-			<AutoTopUpForm key={formKey} wallet={wallet} />
+			<AutoTopUpForm key={formKey} wallet={wallet} hasChargeableMethod={hasChargeableMethod} />
 		</Card>
 	);
 };

@@ -10,7 +10,7 @@ import AutoTopUpWidget from './AutoTopUpWidget';
 import CustomerPortalApi from '@/api/CustomerPortalApi';
 
 vi.mock('@/api/CustomerPortalApi', () => ({
-	default: { getWallets: vi.fn(), updateAutoTopup: vi.fn(), getPaymentMethods: vi.fn() },
+	default: { getWallets: vi.fn(), updateAutoTopup: vi.fn(), getPaymentMethods: vi.fn(), getIntegrations: vi.fn() },
 }));
 
 vi.mock('@/core/services/tanstack/ReactQueryProvider', () => ({
@@ -47,7 +47,10 @@ const CONFIGURED = {
 describe('AutoTopUpWidget', () => {
 	beforeEach(() => {
 		vi.mocked(CustomerPortalApi.updateAutoTopup).mockResolvedValue({} as never);
-		vi.mocked(CustomerPortalApi.getPaymentMethods).mockResolvedValue({ stripe: [] } as never);
+		vi.mocked(CustomerPortalApi.getPaymentMethods).mockResolvedValue({ providers: [] } as never);
+		vi.mocked(CustomerPortalApi.getIntegrations).mockResolvedValue({
+			payment_integrations: [{ provider: 'chargebee', capabilities: [{ type: 'payment_method_management', is_default: true }] }],
+		} as never);
 	});
 
 	afterEach(() => vi.clearAllMocks());
@@ -81,7 +84,7 @@ describe('AutoTopUpWidget', () => {
 		await waitFor(() => expect(CustomerPortalApi.updateAutoTopup).toHaveBeenCalled());
 		const [walletId, payload] = vi.mocked(CustomerPortalApi.updateAutoTopup).mock.calls[0];
 		expect(walletId).toBe('wallet_1');
-		expect(payload.auto_topup).toMatchObject({ enabled: true, threshold: '20', amount: '100' });
+		expect(payload).toMatchObject({ enabled: true, threshold: '20', amount: '100' });
 	});
 
 	// Auto-charging a saved card is meaningless without one, so the customer is told
@@ -92,21 +95,26 @@ describe('AutoTopUpWidget', () => {
 		expect(await screen.findByText(/no saved payment method found/i)).toBeInTheDocument();
 	});
 
-	// invoicing is the inverse of auto-charge: charging the card means not billing later.
-	it('maps auto-charge to invoicing=false when a saved card exists', async () => {
+	// Enabling auto top-up is itself the consent to be charged unattended, so no
+	// invoicing flag and no auto-charge switch may be sent.
+	it("sends no invoicing flag — that is the tenant's call, not the customer's", async () => {
 		vi.mocked(CustomerPortalApi.getWallets).mockResolvedValue([CONFIGURED] as never);
 		vi.mocked(CustomerPortalApi.getPaymentMethods).mockResolvedValue({
-			stripe: [{ id: 'seti_1', status: 'succeeded', customer_id: 'c1', is_default: true, created_at: 0, payment_method_id: 'pm_1' }],
+			providers: [
+				{
+					provider: 'chargebee',
+					items: [{ id: 'pm_1', provider: 'chargebee', type: 'CARD', status: 'ACTIVE', is_default: true, can_auto_charge: true }],
+				},
+			],
 		} as never);
 
 		renderWidget();
-		const autoCharge = await screen.findByLabelText(/automatically charge my saved payment method/i);
-		await userEvent.click(autoCharge);
-		await userEvent.click(screen.getByRole('button', { name: /save settings/i }));
+		await userEvent.click(await screen.findByRole('button', { name: /save settings/i }));
 
 		await waitFor(() => expect(CustomerPortalApi.updateAutoTopup).toHaveBeenCalled());
 		const [, payload] = vi.mocked(CustomerPortalApi.updateAutoTopup).mock.calls[0];
-		expect(payload.auto_topup.invoicing).toBe(false);
+		expect(payload).not.toHaveProperty('invoicing');
+		expect(payload).not.toHaveProperty('auto_topup');
 	});
 
 	// Omitting cooldown leaves a stored one in place; value 0 is what clears it.
@@ -117,6 +125,7 @@ describe('AutoTopUpWidget', () => {
 
 		await waitFor(() => expect(CustomerPortalApi.updateAutoTopup).toHaveBeenCalled());
 		const [, payload] = vi.mocked(CustomerPortalApi.updateAutoTopup).mock.calls[0];
-		expect(payload.auto_topup.cooldown).toEqual({ value: 0, unit: 'second' });
+		// null clears a stored cooloff; omitting the field would leave it in place.
+		expect(payload.cooldown).toBeNull();
 	});
 });

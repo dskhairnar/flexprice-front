@@ -31,7 +31,8 @@
 		"loadPaymentMethods": "Failed to load payment methods",
 		"addPaymentMethod": "Failed to start adding a payment method",
 		"payInvoice": "Failed to pay invoice",
-		"setDefaultPaymentMethod": "Failed to update default payment method"
+		"setDefaultPaymentMethod": "Failed to update default payment method",
+		"deletePaymentMethod": "Failed to remove payment method"
 	},
 	"toast": {
 		"invoiceDownloaded": "Invoice downloaded",
@@ -174,10 +175,10 @@
 		"successPending": "Top-up requested — your balance will update once payment completes",
 		"descriptionLabel": "Description (optional)",
 		"descriptionPlaceholder": "What is this top-up for?",
-		"saveCardLabel": "Save my payment method and charge it automatically next time",
 		"payNow": "Pay now",
 		"generateInvoice": "Generate invoice",
-		"invoiceCreated": "Invoice created. Credits are added once it is paid."
+		"invoiceCreated": "Invoice created. Credits are added once it is paid.",
+		"useSavedMethod": "Pay with my saved card ({{method}})"
 	},
 	"autoTopUp": {
 		"title": "Auto top-up",
@@ -206,7 +207,6 @@
 			"hour": "Hours",
 			"day": "Days"
 		},
-		"autoChargeLabel": "Automatically charge my saved payment method",
 		"noSavedCard": "No saved payment method found."
 	},
 	"paymentMethods": {
@@ -219,7 +219,18 @@
 		"emptyTitle": "No payment methods",
 		"emptyDescription": "Add a card to pay invoices and enable automatic top-ups",
 		"setDefault": "Set as default",
-		"defaultUpdated": "Default payment method updated"
+		"defaultUpdated": "Default payment method updated",
+		"expired": "Expired",
+		"remove": "Remove",
+		"removeTitle": "Remove payment method",
+		"removeConfirm": "This card will no longer be available for payments or automatic top-ups.",
+		"cancel": "Cancel",
+		"removed": "Payment method removed",
+		"added": "Payment method added",
+		"providerUnavailable": "We couldn't load your saved cards right now.",
+		"retryHint": "Please refresh the page to try again.",
+		"unsupportedTitle": "Payment methods are not available",
+		"unsupportedDescription": "This account has no payment provider that supports saved cards."
 	},
 	"invoiceDetail": {
 		"title": "Invoice",

@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import '@testing-library/jest-dom';
@@ -9,17 +9,42 @@ import enPortal from '@/i18n/locales/en/customer-portal.json';
 import PaymentMethodsWidget from './PaymentMethodsWidget';
 import CustomerPortalApi from '@/api/CustomerPortalApi';
 
+vi.mock('@/api/CustomerPortalApi', () => ({
+	default: {
+		getIntegrations: vi.fn(),
+		getPaymentMethods: vi.fn(),
+		addPaymentMethod: vi.fn(),
+		deletePaymentMethod: vi.fn(),
+		setDefaultPaymentMethod: vi.fn(),
+	},
+}));
+
 vi.mock('@/core/services/tanstack/ReactQueryProvider', () => ({
 	refetchQueries: vi.fn().mockResolvedValue(undefined),
 }));
 
-vi.mock('@/api/CustomerPortalApi', () => ({
-	default: {
-		getPaymentMethods: vi.fn(),
-		addPaymentMethod: vi.fn(),
-		setDefaultPaymentMethod: vi.fn(),
-	},
-}));
+const FULL_CAPABILITIES = {
+	payment_integrations: [
+		{
+			provider: 'chargebee',
+			capabilities: [
+				{ type: 'payment_method_management', is_default: true },
+				{ type: 'set_default_method', is_default: true },
+			],
+		},
+	],
+};
+
+const card = (over: Record<string, unknown> = {}) => ({
+	id: 'pm_1',
+	provider: 'chargebee',
+	type: 'CARD',
+	status: 'ACTIVE',
+	card: { brand: 'visa', last4: '4242', exp_month: 4, exp_year: 2030 },
+	is_default: true,
+	can_auto_charge: true,
+	...over,
+});
 
 const renderWidget = () => {
 	const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
@@ -30,8 +55,6 @@ const renderWidget = () => {
 		ns: ['customer-portal'],
 		defaultNS: 'customer-portal',
 		resources: { en: { 'customer-portal': enPortal } },
-		// Mirrors the app's own i18n init — React already escapes, so double-escaping
-		// here would turn interpolated values like "04/30" into "04&#x2F;30".
 		interpolation: { escapeValue: false },
 	});
 	return render(
@@ -47,10 +70,8 @@ describe('PaymentMethodsWidget', () => {
 	const originalLocation = window.location;
 
 	beforeEach(() => {
-		Object.defineProperty(window, 'location', {
-			configurable: true,
-			value: { href: 'https://portal.test/payment-methods' },
-		});
+		vi.mocked(CustomerPortalApi.getIntegrations).mockResolvedValue(FULL_CAPABILITIES as never);
+		Object.defineProperty(window, 'location', { configurable: true, value: { href: 'https://portal.test/methods' } });
 	});
 
 	afterEach(() => {
@@ -59,23 +80,14 @@ describe('PaymentMethodsWidget', () => {
 	});
 
 	it('renders the empty state when no cards are saved', async () => {
-		vi.mocked(CustomerPortalApi.getPaymentMethods).mockResolvedValue({ stripe: [] } as never);
+		vi.mocked(CustomerPortalApi.getPaymentMethods).mockResolvedValue({ providers: [] } as never);
 		renderWidget();
 		expect(await screen.findByText('No payment methods')).toBeInTheDocument();
 	});
 
-	it('renders saved cards with brand, last4, expiry, and the default badge', async () => {
+	it('renders a saved card with brand, last4, expiry and the default badge', async () => {
 		vi.mocked(CustomerPortalApi.getPaymentMethods).mockResolvedValue({
-			stripe: [
-				{
-					id: 'seti_1',
-					status: 'succeeded',
-					customer_id: 'cus_1',
-					is_default: true,
-					created_at: 0,
-					payment_method_details: { id: 'pm_1', type: 'card', card: { brand: 'visa', last4: '4242', exp_month: 4, exp_year: 2030 } },
-				},
-			],
+			providers: [{ provider: 'chargebee', items: [card()] }],
 		} as never);
 
 		renderWidget();
@@ -85,52 +97,101 @@ describe('PaymentMethodsWidget', () => {
 		expect(screen.getByText('Default')).toBeInTheDocument();
 	});
 
-	it('offers Set as default only on non-default methods, and promotes the chosen one', async () => {
+	// A provider that could not be read is not the same as one with no cards —
+	// an empty list cannot express "we could not ask", and the two need different UI.
+	it('distinguishes a provider that could not be read from one with no cards', async () => {
 		vi.mocked(CustomerPortalApi.getPaymentMethods).mockResolvedValue({
-			stripe: [
-				{
-					id: 'seti_1',
-					status: 'succeeded',
-					customer_id: 'cus_1',
-					is_default: true,
-					created_at: 0,
-					payment_method_id: 'pm_default',
-					payment_method_details: { id: 'pm_default', type: 'card', card: { brand: 'visa', last4: '4242', exp_month: 4, exp_year: 2030 } },
-				},
-				{
-					id: 'seti_2',
-					status: 'succeeded',
-					customer_id: 'cus_1',
-					is_default: false,
-					created_at: 0,
-					payment_method_id: 'pm_other',
-					payment_method_details: { id: 'pm_other', type: 'card', card: { brand: 'amex', last4: '0005', exp_month: 1, exp_year: 2031 } },
-				},
-			],
+			providers: [{ provider: 'chargebee', items: [], error: { message: 'gateway timeout' } }],
 		} as never);
-		vi.mocked(CustomerPortalApi.setDefaultPaymentMethod).mockResolvedValue({ message: 'ok' } as never);
 
 		renderWidget();
 
-		// Exactly one row is promotable — the one that is not already default.
+		expect(await screen.findByText(/couldn't load/i)).toBeInTheDocument();
+		expect(screen.getByText('gateway timeout')).toBeInTheDocument();
+		expect(screen.queryByText('No payment methods')).not.toBeInTheDocument();
+	});
+
+	// Defaults are scoped per provider, so both fields must be sent.
+	it('sends provider and method id when promoting a card to default', async () => {
+		vi.mocked(CustomerPortalApi.getPaymentMethods).mockResolvedValue({
+			providers: [{ provider: 'chargebee', items: [card(), card({ id: 'pm_2', is_default: false })] }],
+		} as never);
+		vi.mocked(CustomerPortalApi.setDefaultPaymentMethod).mockResolvedValue({} as never);
+
+		renderWidget();
 		const buttons = await screen.findAllByRole('button', { name: /set as default/i });
 		expect(buttons).toHaveLength(1);
 
 		await userEvent.click(buttons[0]);
-		await waitFor(() => expect(CustomerPortalApi.setDefaultPaymentMethod).toHaveBeenCalledWith({ payment_method_id: 'pm_other' }));
+		await waitFor(() =>
+			expect(CustomerPortalApi.setDefaultPaymentMethod).toHaveBeenCalledWith({
+				payment_provider: 'chargebee',
+				payment_method_id: 'pm_2',
+			}),
+		);
 	});
 
-	// Cards are captured on the provider's hosted page, so the widget must redirect
-	// rather than collect card details itself.
-	it('redirects to the hosted checkout URL when adding a card', async () => {
-		vi.mocked(CustomerPortalApi.getPaymentMethods).mockResolvedValue({ stripe: [] } as never);
+	// Removing a card is destructive and irreversible, so it is confirmed first.
+	it('confirms before removing a card, then sends provider and method id', async () => {
+		vi.mocked(CustomerPortalApi.getPaymentMethods).mockResolvedValue({
+			providers: [{ provider: 'chargebee', items: [card()] }],
+		} as never);
+		vi.mocked(CustomerPortalApi.deletePaymentMethod).mockResolvedValue({} as never);
+
+		renderWidget();
+		await userEvent.click(await screen.findByRole('button', { name: /remove/i }));
+		expect(CustomerPortalApi.deletePaymentMethod).not.toHaveBeenCalled();
+
+		// The row action and the dialog's confirm share a label, so scope to the dialog.
+		const dialog = await screen.findByRole('dialog');
+		await userEvent.click(within(dialog).getByRole('button', { name: /^remove$/i }));
+
+		await waitFor(() =>
+			expect(CustomerPortalApi.deletePaymentMethod).toHaveBeenCalledWith({
+				payment_provider: 'chargebee',
+				payment_method_id: 'pm_1',
+			}),
+		);
+	});
+
+	// Adding returns an action, not a method — follow it only when it is a redirect.
+	it('follows a redirect action when adding a card', async () => {
+		vi.mocked(CustomerPortalApi.getPaymentMethods).mockResolvedValue({ providers: [] } as never);
 		vi.mocked(CustomerPortalApi.addPaymentMethod).mockResolvedValue({
-			checkout_url: 'https://checkout.test/setup',
+			provider: 'chargebee',
+			action: { type: 'redirect', url: 'https://vault.test/setup' },
 		} as never);
 
 		renderWidget();
 		await userEvent.click(await screen.findByRole('button', { name: /add card/i }));
 
-		await waitFor(() => expect(window.location.href).toBe('https://checkout.test/setup'));
+		await waitFor(() => expect(window.location.href).toBe('https://vault.test/setup'));
+	});
+
+	// type 'none' means the provider vaulted server-to-server; there is nothing to
+	// redirect to and waiting for a return trip would hang the flow.
+	it('does not redirect when the setup action is none', async () => {
+		vi.mocked(CustomerPortalApi.getPaymentMethods).mockResolvedValue({ providers: [] } as never);
+		vi.mocked(CustomerPortalApi.addPaymentMethod).mockResolvedValue({
+			provider: 'chargebee',
+			action: { type: 'none' },
+		} as never);
+
+		renderWidget();
+		await userEvent.click(await screen.findByRole('button', { name: /add card/i }));
+
+		await waitFor(() => expect(CustomerPortalApi.addPaymentMethod).toHaveBeenCalled());
+		expect(window.location.href).toBe('https://portal.test/methods');
+	});
+
+	// No connected provider can manage methods, so the actions would be dead.
+	it('says so when no provider supports managing payment methods', async () => {
+		vi.mocked(CustomerPortalApi.getIntegrations).mockResolvedValue({ payment_integrations: [] } as never);
+		vi.mocked(CustomerPortalApi.getPaymentMethods).mockResolvedValue({ providers: [] } as never);
+
+		renderWidget();
+
+		expect(await screen.findByText(/not available/i)).toBeInTheDocument();
+		expect(screen.queryByRole('button', { name: /add card/i })).not.toBeInTheDocument();
 	});
 });

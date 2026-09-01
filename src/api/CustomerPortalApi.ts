@@ -18,13 +18,16 @@ import {
 	PortalTopUpRequest,
 	PortalTopUpResponse,
 	PortalAutoTopupRequest,
-	PortalPaymentMethodsResponse,
 	PortalListPaymentMethodsQuery,
+	SavedPaymentMethodsResponse,
 	PortalAddPaymentMethodRequest,
-	PortalSetupIntentResponse,
+	AddPaymentMethodResponse,
+	PortalDeletePaymentMethodRequest,
 	PortalSetDefaultPaymentMethodRequest,
 	PortalPayInvoiceRequest,
 	PortalPayInvoiceResponse,
+	PortalIntegrationsResponse,
+	PortalCheckoutSession,
 } from '@/types/dto/CustomerPortalBilling';
 
 /**
@@ -143,61 +146,71 @@ class CustomerPortalApi {
 	}
 
 	/**
-	 * Top up a wallet belonging to the authenticated customer.
-	 *
-	 * Pass `checkout` to charge the customer through a hosted checkout session —
-	 * credits are applied only after the payment succeeds, and the response carries
-	 * the session to redirect to. Omit it for the invoiced pay-later flow.
+	 * Top up a wallet. Pass `checkout` to charge now; omit it to raise an invoice
+	 * the customer settles later.
 	 */
 	public static async topUpWallet(walletId: string, payload: PortalTopUpRequest): Promise<PortalTopUpResponse> {
 		return await AxiosClient.post<PortalTopUpResponse>(`${this.baseUrl}/wallets/${walletId}/top-up`, payload);
 	}
 
 	/**
-	 * Configure auto top-up on a wallet belonging to the authenticated customer.
+	 * Configure auto top-up. The payload is flat: invoicing is the tenant's call,
+	 * and enabling auto top-up is itself the consent to be charged unattended.
 	 */
-	public static async updateAutoTopup(walletId: string, payload: PortalAutoTopupRequest): Promise<WalletResponse> {
-		return await AxiosClient.put<WalletResponse>(`${this.baseUrl}/wallets/${walletId}/auto-topup`, payload);
+	public static async updateAutoTopup(walletId: string, payload: PortalAutoTopupRequest): Promise<unknown> {
+		return await AxiosClient.put<unknown>(`${this.baseUrl}/wallets/${walletId}/auto-topup`, payload);
 	}
 
 	/**
-	 * Attempt payment for an invoice belonging to the authenticated customer.
+	 * Start payment for an invoice. The amount comes from the invoice — a customer
+	 * cannot part-pay. Read `payment_action` for what to do next.
 	 */
-	public static async payInvoice(invoiceId: string): Promise<{ message: string }> {
-		return await AxiosClient.post<{ message: string }>(`${this.baseUrl}/invoices/${invoiceId}/payment/attempt`, {});
-	}
-
-	/**
-	 * Start a hosted payment for one of the customer's invoices. Returns the URL to
-	 * redirect to; the caller also surfaces it so a blocked redirect leaves the
-	 * customer a link they can open by hand.
-	 */
-	public static async payInvoiceWithCheckout(invoiceId: string, payload: PortalPayInvoiceRequest): Promise<PortalPayInvoiceResponse> {
+	public static async payInvoice(invoiceId: string, payload: PortalPayInvoiceRequest = {}): Promise<PortalPayInvoiceResponse> {
 		return await AxiosClient.post<PortalPayInvoiceResponse>(`${this.baseUrl}/invoices/${invoiceId}/pay`, payload);
 	}
 
 	/**
-	 * List saved payment methods for the authenticated customer, grouped by provider.
+	 * Saved payment methods, grouped by provider. A group may carry an `error`
+	 * instead of items — that is "we could not ask", not "none saved".
 	 */
-	public static async getPaymentMethods(query?: PortalListPaymentMethodsQuery): Promise<PortalPaymentMethodsResponse> {
+	public static async getPaymentMethods(query?: PortalListPaymentMethodsQuery): Promise<SavedPaymentMethodsResponse> {
 		const url = generateQueryParams(`${this.baseUrl}/payment-methods`, query || {});
-		return await AxiosClient.get<PortalPaymentMethodsResponse>(url);
+		return await AxiosClient.get<SavedPaymentMethodsResponse>(url);
 	}
 
 	/**
-	 * Start a hosted card-capture session so the customer can add a payment method.
-	 * The caller redirects to `checkout_url`; the card is saved off-session so it can
-	 * back auto top-up later.
+	 * Begin adding a payment method. Returns an action, not a method — nothing is
+	 * vaulted yet. Follow `action.url` when `action.type` is 'redirect'.
 	 */
-	public static async addPaymentMethod(payload: PortalAddPaymentMethodRequest = {}): Promise<PortalSetupIntentResponse> {
-		return await AxiosClient.post<PortalSetupIntentResponse>(`${this.baseUrl}/payment-methods/setup`, payload);
+	public static async addPaymentMethod(payload: PortalAddPaymentMethodRequest): Promise<AddPaymentMethodResponse> {
+		return await AxiosClient.post<AddPaymentMethodResponse>(`${this.baseUrl}/payment-methods`, payload);
+	}
+
+	/** Remove a saved payment method at a given provider. */
+	public static async deletePaymentMethod(payload: PortalDeletePaymentMethodRequest): Promise<unknown> {
+		return await AxiosClient.post<unknown>(`${this.baseUrl}/payment-methods/delete`, payload);
+	}
+
+	/** Defaults are scoped per provider, so the provider is required. */
+	public static async setDefaultPaymentMethod(payload: PortalSetDefaultPaymentMethodRequest): Promise<unknown> {
+		return await AxiosClient.post<unknown>(`${this.baseUrl}/payment-methods/default`, payload);
 	}
 
 	/**
-	 * Mark one of the customer's saved payment methods as the default for future charges.
+	 * Which providers are connected and what each can do. Drives whether the portal
+	 * offers checkout, saved-card management or a default-method control at all.
 	 */
-	public static async setDefaultPaymentMethod(payload: PortalSetDefaultPaymentMethodRequest): Promise<{ message: string }> {
-		return await AxiosClient.post<{ message: string }>(`${this.baseUrl}/payment-methods/default`, payload);
+	public static async getIntegrations(): Promise<PortalIntegrationsResponse> {
+		return await AxiosClient.get<PortalIntegrationsResponse>(`${this.baseUrl}/integrations`);
+	}
+
+	/** Poll a checkout session to see whether the customer completed payment. */
+	public static async getCheckoutSession(sessionId: string): Promise<PortalCheckoutSession> {
+		return await AxiosClient.get<PortalCheckoutSession>(`${this.baseUrl}/checkout-sessions/${sessionId}`);
+	}
+
+	public static async cancelCheckoutSession(sessionId: string): Promise<PortalCheckoutSession> {
+		return await AxiosClient.post<PortalCheckoutSession>(`${this.baseUrl}/checkout-sessions/${sessionId}/cancel`, {});
 	}
 
 	/**

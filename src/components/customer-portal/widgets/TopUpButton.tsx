@@ -31,7 +31,7 @@ const TopUpButton = ({ size = 'sm' }: TopUpButtonProps) => {
 				<TopUpForm
 					wallet={wallet}
 					onDone={() => setIsOpen(false)}
-					onCheckoutUrl={(url) => {
+					onActionUrl={(url) => {
 						setIsOpen(false);
 						setCheckoutUrl(url);
 					}}

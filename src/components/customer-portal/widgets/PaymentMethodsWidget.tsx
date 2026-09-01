@@ -1,13 +1,14 @@
-import { useEffect } from 'react';
+import { useState } from 'react';
 import { useMutation, useQuery } from '@tanstack/react-query';
-import { refetchQueries } from '@/core/services/tanstack/ReactQueryProvider';
 import { useTranslation } from 'react-i18next';
 import toast from 'react-hot-toast';
-import { CreditCard, Plus } from 'lucide-react';
+import { AlertTriangle, CreditCard, Plus, Trash2 } from 'lucide-react';
 import CustomerPortalApi from '@/api/CustomerPortalApi';
-import { Button, Card, Chip } from '@/components/atoms';
-import { PortalPaymentMethod } from '@/types/dto/CustomerPortalBilling';
+import { Button, Card, Chip, Dialog } from '@/components/atoms';
+import { refetchQueries } from '@/core/services/tanstack/ReactQueryProvider';
+import type { PaymentGatewayType, ProviderSavedPaymentMethods, SavedPaymentMethod } from '@/types/dto/CustomerPortalBilling';
 import { portalPaymentMethodsQueryKey } from '../queryKeys';
+import usePortalIntegrations from '../usePortalIntegrations';
 import EmptyState from '../EmptyState';
 
 interface PaymentMethodsWidgetProps {
@@ -19,21 +20,21 @@ const formatExpiry = (month?: number, year?: number) => {
 	return `${String(month).padStart(2, '0')}/${String(year).slice(-2)}`;
 };
 
-interface PaymentMethodRowProps {
-	method: PortalPaymentMethod;
-	onSetDefault: (paymentMethodId: string) => void;
-	isSettingDefault: boolean;
+interface MethodRowProps {
+	method: SavedPaymentMethod;
+	canSetDefault: boolean;
+	onSetDefault: (method: SavedPaymentMethod) => void;
+	onDelete: (method: SavedPaymentMethod) => void;
+	isBusy: boolean;
 }
 
-const PaymentMethodRow = ({ method, onSetDefault, isSettingDefault }: PaymentMethodRowProps) => {
+const MethodRow = ({ method, canSetDefault, onSetDefault, onDelete, isBusy }: MethodRowProps) => {
 	const { t } = useTranslation('customer-portal');
-	const card = method.payment_method_details?.card;
-	const expiry = formatExpiry(card?.exp_month, card?.exp_year);
+	const expiry = formatExpiry(method.card?.exp_month, method.card?.exp_year);
+	const isExpired = method.status === 'EXPIRED';
 
 	return (
-		<div
-			className='flex items-center justify-between gap-4 py-4 first:pt-0 last:pb-0'
-			style={{ borderBottom: '1px solid var(--portal-border, #E9E9E9)' }}>
+		<div className='flex items-center justify-between gap-4 py-3.5'>
 			<div className='flex items-center gap-3 min-w-0'>
 				<div
 					className='h-9 w-9 rounded-full flex items-center justify-center shrink-0'
@@ -42,64 +43,113 @@ const PaymentMethodRow = ({ method, onSetDefault, isSettingDefault }: PaymentMet
 				</div>
 				<div className='min-w-0'>
 					<p className='text-sm font-medium truncate' style={{ color: 'var(--portal-text-primary, #09090b)' }}>
-						{card ? t('paymentMethods.cardLabel', { brand: card.brand, last4: card.last4 }) : method.payment_method_id || method.id}
+						{method.card?.last4
+							? t('paymentMethods.cardLabel', { brand: method.card.brand ?? 'card', last4: method.card.last4 })
+							: method.id}
 					</p>
-					{expiry && (
-						<p className='text-xs' style={{ color: 'var(--portal-text-secondary, #71717a)' }}>
-							{t('paymentMethods.expires', { expiry })}
-						</p>
-					)}
+					<div className='flex items-center gap-2 mt-0.5'>
+						{expiry && (
+							<span className='text-xs' style={{ color: 'var(--portal-text-secondary, #71717a)' }}>
+								{t('paymentMethods.expires', { expiry })}
+							</span>
+						)}
+						{isExpired && <Chip label={t('paymentMethods.expired')} variant='failed' />}
+					</div>
 				</div>
 			</div>
+
 			<div className='flex items-center gap-2 shrink-0'>
 				{method.is_default ? (
 					<Chip label={t('paymentMethods.default')} variant='success' />
 				) : (
-					method.payment_method_id && (
-						<Button variant='ghost' size='xs' onClick={() => onSetDefault(method.payment_method_id!)} disabled={isSettingDefault}>
+					canSetDefault &&
+					!isExpired && (
+						<Button variant='ghost' size='xs' onClick={() => onSetDefault(method)} disabled={isBusy}>
 							{t('paymentMethods.setDefault')}
 						</Button>
 					)
 				)}
+				<Button
+					variant='ghost'
+					size='xs'
+					onClick={() => onDelete(method)}
+					disabled={isBusy}
+					aria-label={t('paymentMethods.remove')}
+					title={t('paymentMethods.remove')}>
+					<Trash2 className='h-4 w-4' />
+				</Button>
 			</div>
 		</div>
 	);
 };
 
+/** A provider that could not be read is not the same as one with no cards. */
+const ProviderGroup = ({ group, children }: { group: ProviderSavedPaymentMethods; children: React.ReactNode }) => {
+	const { t } = useTranslation('customer-portal');
+
+	if (group.error) {
+		return (
+			<div className='py-3.5 flex items-start gap-2'>
+				<AlertTriangle className='h-4 w-4 mt-0.5 shrink-0' style={{ color: 'rgb(var(--fp-danger))' }} />
+				<div>
+					<p className='text-sm' style={{ color: 'var(--portal-text-primary, #09090b)' }}>
+						{t('paymentMethods.providerUnavailable')}
+					</p>
+					<p className='text-xs mt-0.5' style={{ color: 'var(--portal-text-secondary, #71717a)' }}>
+						{group.error.message}
+					</p>
+				</div>
+			</div>
+		);
+	}
+
+	return <>{children}</>;
+};
+
 /**
- * Lists the customer's saved cards and starts a hosted card-capture session.
+ * Saved payment methods, grouped by provider.
  *
- * Only Stripe is exposed on the portal today, so the list reads the `stripe`
- * group of the multi-provider response.
+ * Gateway names are never shown — the portal reads as Flexprice handling payments
+ * regardless of what is behind it — but methods stay grouped because defaults and
+ * deletes are scoped per provider, so both operations need to carry one.
  */
 const PaymentMethodsWidget = ({ label }: PaymentMethodsWidgetProps) => {
 	const { t } = useTranslation('customer-portal');
+	const { supports, defaultProviderFor, isLoading: integrationsLoading } = usePortalIntegrations();
+	const [pendingDelete, setPendingDelete] = useState<SavedPaymentMethod | null>(null);
+
+	const canManage = supports('payment_method_management');
+	const canSetDefault = supports('set_default_method');
 
 	const { data, isLoading, isError } = useQuery({
 		queryKey: portalPaymentMethodsQueryKey,
-		queryFn: () => CustomerPortalApi.getPaymentMethods({ provider: 'stripe' }),
+		queryFn: () => CustomerPortalApi.getPaymentMethods(),
+		enabled: canManage,
 	});
 
-	const { mutate: addPaymentMethod, isPending } = useMutation({
-		mutationFn: () =>
+	const { mutate: addMethod, isPending: isAdding } = useMutation({
+		mutationFn: (provider: PaymentGatewayType) =>
 			CustomerPortalApi.addPaymentMethod({
-				provider: 'stripe',
+				payment_provider: provider,
 				success_url: window.location.href,
 				cancel_url: window.location.href,
 			}),
-		onSuccess: (response) => {
-			if (!response.checkout_url) {
-				toast.error(t('errors.addPaymentMethod'));
+		onSuccess: async (response) => {
+			// A provider that vaults server-to-server returns type 'none' — there is
+			// nothing to redirect to, so refresh instead of waiting for a return trip.
+			if (response.action.type === 'redirect' && response.action.url) {
+				window.location.href = response.action.url;
 				return;
 			}
-			// The card is captured on the provider's hosted page, not in the portal.
-			window.location.href = response.checkout_url;
+			toast.success(t('paymentMethods.added'));
+			await refetchQueries(['portal-payment-methods']);
 		},
 		onError: () => toast.error(t('errors.addPaymentMethod')),
 	});
 
 	const { mutate: setDefault, isPending: isSettingDefault } = useMutation({
-		mutationFn: (paymentMethodId: string) => CustomerPortalApi.setDefaultPaymentMethod({ payment_method_id: paymentMethodId }),
+		mutationFn: (method: SavedPaymentMethod) =>
+			CustomerPortalApi.setDefaultPaymentMethod({ payment_provider: method.provider, payment_method_id: method.id }),
 		onSuccess: async () => {
 			toast.success(t('paymentMethods.defaultUpdated'));
 			await refetchQueries(['portal-payment-methods']);
@@ -107,40 +157,88 @@ const PaymentMethodsWidget = ({ label }: PaymentMethodsWidgetProps) => {
 		onError: () => toast.error(t('errors.setDefaultPaymentMethod')),
 	});
 
-	useEffect(() => {
-		if (isError) toast.error(t('errors.loadPaymentMethods'));
-	}, [isError, t]);
+	const { mutate: deleteMethod, isPending: isDeleting } = useMutation({
+		mutationFn: (method: SavedPaymentMethod) =>
+			CustomerPortalApi.deletePaymentMethod({ payment_provider: method.provider, payment_method_id: method.id }),
+		onSuccess: async () => {
+			toast.success(t('paymentMethods.removed'));
+			setPendingDelete(null);
+			await refetchQueries(['portal-payment-methods']);
+		},
+		onError: () => toast.error(t('errors.deletePaymentMethod')),
+	});
 
-	const methods = data?.stripe ?? [];
+	const groups = data?.providers ?? [];
+	const hasAnyMethod = groups.some((group) => group.items.length > 0);
+	const isBusy = isSettingDefault || isDeleting;
+	const addProvider = defaultProviderFor('payment_method_management');
+
+	const cardStyle = { backgroundColor: 'var(--portal-surface, white)', border: '1px solid var(--portal-border, #E9E9E9)' };
+
+	if (!integrationsLoading && !canManage) {
+		return (
+			<Card className='rounded-xl p-6' style={cardStyle}>
+				<EmptyState title={t('paymentMethods.unsupportedTitle')} description={t('paymentMethods.unsupportedDescription')} />
+			</Card>
+		);
+	}
 
 	return (
-		<Card
-			className='rounded-xl p-6'
-			style={{ backgroundColor: 'var(--portal-surface, white)', border: '1px solid var(--portal-border, #E9E9E9)' }}>
-			<div className='flex items-center justify-between gap-4 mb-5'>
+		<Card className='rounded-xl p-5' style={cardStyle}>
+			<Dialog
+				isOpen={pendingDelete !== null}
+				onOpenChange={(open) => !open && setPendingDelete(null)}
+				title={t('paymentMethods.removeTitle')}
+				description={t('paymentMethods.removeConfirm')}>
+				<div className='flex justify-end gap-2'>
+					<Button variant='outline' onClick={() => setPendingDelete(null)} disabled={isDeleting}>
+						{t('paymentMethods.cancel')}
+					</Button>
+					<Button variant='destructive' onClick={() => pendingDelete && deleteMethod(pendingDelete)} isLoading={isDeleting}>
+						{t('paymentMethods.remove')}
+					</Button>
+				</div>
+			</Dialog>
+
+			<div className='flex items-start justify-between gap-4 mb-4'>
 				<div>
-					<h3 className='text-base font-medium mb-1' style={{ color: 'var(--portal-text-primary, #09090b)' }}>
+					<h3 className='text-sm font-medium mb-0.5' style={{ color: 'var(--portal-text-primary, #09090b)' }}>
 						{label ?? t('paymentMethods.title')}
 					</h3>
 					<p className='text-sm' style={{ color: 'var(--portal-text-secondary, #71717a)' }}>
 						{t('paymentMethods.description')}
 					</p>
 				</div>
-				<Button onClick={() => addPaymentMethod()} isLoading={isPending} prefixIcon={<Plus />} className='shrink-0'>
-					{t('paymentMethods.add')}
-				</Button>
+				{addProvider && (
+					<Button size='sm' onClick={() => addMethod(addProvider)} isLoading={isAdding} prefixIcon={<Plus />} className='shrink-0'>
+						{t('paymentMethods.add')}
+					</Button>
+				)}
 			</div>
 
-			{isLoading ? (
+			{isLoading || integrationsLoading ? (
 				<div className='animate-pulse space-y-3'>
 					{[1, 2].map((i) => (
 						<div key={i} className='h-12 bg-zinc-100 rounded'></div>
 					))}
 				</div>
-			) : methods.length > 0 ? (
+			) : isError ? (
+				<EmptyState title={t('errors.loadPaymentMethods')} description={t('paymentMethods.retryHint')} />
+			) : hasAnyMethod || groups.some((g) => g.error) ? (
 				<div className='divide-y' style={{ borderColor: 'var(--portal-border, #E9E9E9)' }}>
-					{methods.map((method) => (
-						<PaymentMethodRow key={method.id} method={method} onSetDefault={setDefault} isSettingDefault={isSettingDefault} />
+					{groups.map((group) => (
+						<ProviderGroup key={group.provider} group={group}>
+							{group.items.map((method) => (
+								<MethodRow
+									key={`${group.provider}:${method.id}`}
+									method={method}
+									canSetDefault={canSetDefault}
+									onSetDefault={setDefault}
+									onDelete={setPendingDelete}
+									isBusy={isBusy}
+								/>
+							))}
+						</ProviderGroup>
 					))}
 				</div>
 			) : (

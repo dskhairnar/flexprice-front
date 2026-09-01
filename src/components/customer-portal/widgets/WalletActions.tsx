@@ -6,6 +6,7 @@ import { DropdownMenu } from '@/components/molecules';
 import { WalletResponse } from '@/types/dto/Wallet';
 import TopUpButton from './TopUpButton';
 import AutoTopUpForm from './AutoTopUpForm';
+import useChargeableMethod from '../useChargeableMethod';
 
 interface WalletActionsProps {
 	wallet: WalletResponse;
@@ -19,6 +20,7 @@ interface WalletActionsProps {
  * auto top-up configuration only.
  */
 const WalletActions = ({ wallet }: WalletActionsProps) => {
+	const { hasChargeableMethod } = useChargeableMethod();
 	const { t } = useTranslation('customer-portal');
 	const [isAutoTopUpOpen, setIsAutoTopUpOpen] = useState(false);
 
@@ -39,7 +41,7 @@ const WalletActions = ({ wallet }: WalletActionsProps) => {
 				onOpenChange={setIsAutoTopUpOpen}
 				title={t('autoTopUp.title')}
 				description={t('autoTopUp.description')}>
-				<AutoTopUpForm wallet={wallet} onDone={() => setIsAutoTopUpOpen(false)} />
+				<AutoTopUpForm wallet={wallet} hasChargeableMethod={hasChargeableMethod} onDone={() => setIsAutoTopUpOpen(false)} />
 			</Dialog>
 		</div>
 	);

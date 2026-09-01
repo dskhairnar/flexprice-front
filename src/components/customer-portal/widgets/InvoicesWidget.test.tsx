@@ -14,7 +14,7 @@ vi.mock('@/api/CustomerPortalApi', () => ({
 		getInvoices: vi.fn(),
 		getInvoice: vi.fn(),
 		downloadInvoicePdf: vi.fn(),
-		payInvoiceWithCheckout: vi.fn(),
+		payInvoice: vi.fn(),
 	},
 }));
 
@@ -72,8 +72,11 @@ const renderWidget = () => {
 
 describe('InvoicesWidget', () => {
 	const originalLocation = window.location;
+	let openSpy: ReturnType<typeof vi.fn>;
 
 	beforeEach(() => {
+		openSpy = vi.fn().mockReturnValue({} as Window);
+		vi.stubGlobal('open', openSpy);
 		// jsdom's location is not writable; replace it so the redirect is observable.
 		Object.defineProperty(window, 'location', { configurable: true, value: { href: 'https://portal.test/invoices' } });
 		vi.mocked(CustomerPortalApi.getInvoices).mockResolvedValue({ items: [UNPAID, PAID] } as never);
@@ -82,6 +85,7 @@ describe('InvoicesWidget', () => {
 
 	afterEach(() => {
 		Object.defineProperty(window, 'location', { configurable: true, value: originalLocation });
+		vi.unstubAllGlobals();
 		vi.clearAllMocks();
 	});
 
@@ -96,48 +100,54 @@ describe('InvoicesWidget', () => {
 		expect(within(paidRow).getByRole('button', { name: /^view$/i })).toBeInTheDocument();
 	});
 
-	// Pay starts a hosted payment and hands off to the returned URL.
-	it('Pay now starts a payment and redirects to the returned URL', async () => {
-		vi.mocked(CustomerPortalApi.payInvoiceWithCheckout).mockResolvedValue({
+	// Pay starts a hosted payment and hands off to the returned action URL.
+	it('Pay now starts a payment and opens the returned action URL', async () => {
+		vi.mocked(CustomerPortalApi.payInvoice).mockResolvedValue({
 			payment_id: 'pay_1',
-			payment_url: 'https://pay.test/link',
+			invoice_id: 'inv_unpaid',
 			status: 'PENDING',
+			amount: '120',
+			currency: 'USD',
+			payment_action: { type: 'payment_link', url: 'https://pay.test/link' },
 		} as never);
 
 		renderWidget();
 		const unpaidRow = (await screen.findByText('INV-000484')).closest('tr')!;
 		await userEvent.click(within(unpaidRow).getByRole('button', { name: /pay now/i }));
 
-		await waitFor(() => expect(window.location.href).toBe('https://pay.test/link'));
+		await waitFor(() => expect(openSpy).toHaveBeenCalledWith('https://pay.test/link', '_blank', expect.any(String)));
 	});
 
 	// A retry must reuse the key, or the customer is charged twice for one invoice.
 	it('reuses the idempotency key when the same invoice is retried', async () => {
-		vi.mocked(CustomerPortalApi.payInvoiceWithCheckout)
+		vi.mocked(CustomerPortalApi.payInvoice)
 			.mockRejectedValueOnce(new Error('network'))
-			.mockResolvedValue({ payment_id: 'pay_1', status: 'PENDING' } as never);
+			.mockResolvedValue({ payment_id: 'pay_1', invoice_id: 'inv_unpaid', status: 'PENDING', amount: '120', currency: 'USD' } as never);
 
 		renderWidget();
 		const unpaidRow = (await screen.findByText('INV-000484')).closest('tr')!;
 		const payButton = within(unpaidRow).getByRole('button', { name: /pay now/i });
 
 		await userEvent.click(payButton);
-		await waitFor(() => expect(CustomerPortalApi.payInvoiceWithCheckout).toHaveBeenCalledTimes(1));
+		await waitFor(() => expect(CustomerPortalApi.payInvoice).toHaveBeenCalledTimes(1));
 		await userEvent.click(payButton);
-		await waitFor(() => expect(CustomerPortalApi.payInvoiceWithCheckout).toHaveBeenCalledTimes(2));
+		await waitFor(() => expect(CustomerPortalApi.payInvoice).toHaveBeenCalledTimes(2));
 
-		const calls = vi.mocked(CustomerPortalApi.payInvoiceWithCheckout).mock.calls;
-		expect(calls[0][1].idempotency_key).toBeTruthy();
-		expect(calls[1][1].idempotency_key).toBe(calls[0][1].idempotency_key);
+		const calls = vi.mocked(CustomerPortalApi.payInvoice).mock.calls;
+		expect(calls[0][1]?.idempotency_key).toBeTruthy();
+		expect(calls[1][1]?.idempotency_key).toBe(calls[0][1]?.idempotency_key);
 	});
 
 	// The link is surfaced as well as followed, so a blocked redirect still leaves
 	// the customer something they can open by hand.
 	it('shows the payment link in a dialog alongside the redirect', async () => {
-		vi.mocked(CustomerPortalApi.payInvoiceWithCheckout).mockResolvedValue({
+		vi.mocked(CustomerPortalApi.payInvoice).mockResolvedValue({
 			payment_id: 'pay_1',
-			payment_url: 'https://pay.test/link',
+			invoice_id: 'inv_unpaid',
 			status: 'PENDING',
+			amount: '120',
+			currency: 'USD',
+			payment_action: { type: 'payment_link', url: 'https://pay.test/link' },
 		} as never);
 
 		renderWidget();

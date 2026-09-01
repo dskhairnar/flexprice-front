@@ -31,7 +31,8 @@
 		"loadPaymentMethods": "تعذّر تحميل طرق الدفع",
 		"addPaymentMethod": "تعذّر بدء إضافة طريقة دفع",
 		"payInvoice": "تعذّر دفع الفاتورة",
-		"setDefaultPaymentMethod": "تعذّر تحديث طريقة الدفع الافتراضية"
+		"setDefaultPaymentMethod": "تعذّر تحديث طريقة الدفع الافتراضية",
+		"deletePaymentMethod": "تعذّر إزالة طريقة الدفع"
 	},
 	"toast": {
 		"invoiceDownloaded": "تم تنزيل الفاتورة",
@@ -174,10 +175,10 @@
 		"successPending": "تم طلب الشحن — سيتم تحديث رصيدك بعد اكتمال الدفع",
 		"descriptionLabel": "الوصف (اختياري)",
 		"descriptionPlaceholder": "ما الغرض من هذا الشحن؟",
-		"saveCardLabel": "احفظ طريقة الدفع واخصم منها تلقائياً في المرة القادمة",
 		"payNow": "ادفع الآن",
 		"generateInvoice": "إنشاء فاتورة",
-		"invoiceCreated": "تم إنشاء الفاتورة. تُضاف الأرصدة بعد سدادها."
+		"invoiceCreated": "تم إنشاء الفاتورة. تُضاف الأرصدة بعد سدادها.",
+		"useSavedMethod": "الدفع ببطاقتي المحفوظة ({{method}})"
 	},
 	"autoTopUp": {
 		"title": "الشحن التلقائي",
@@ -206,7 +207,6 @@
 			"hour": "ساعات",
 			"day": "أيام"
 		},
-		"autoChargeLabel": "اخصم تلقائياً من طريقة الدفع المحفوظة",
 		"noSavedCard": "لا توجد طريقة دفع محفوظة."
 	},
 	"paymentMethods": {
@@ -219,7 +219,18 @@
 		"emptyTitle": "لا توجد طرق دفع",
 		"emptyDescription": "أضف بطاقة لدفع الفواتير وتفعيل الشحن التلقائي",
 		"setDefault": "تعيين كافتراضية",
-		"defaultUpdated": "تم تحديث طريقة الدفع الافتراضية"
+		"defaultUpdated": "تم تحديث طريقة الدفع الافتراضية",
+		"expired": "منتهية",
+		"remove": "إزالة",
+		"removeTitle": "إزالة طريقة الدفع",
+		"removeConfirm": "لن تكون هذه البطاقة متاحة للمدفوعات أو الشحن التلقائي.",
+		"cancel": "إلغاء",
+		"removed": "تمت إزالة طريقة الدفع",
+		"added": "تمت إضافة طريقة الدفع",
+		"providerUnavailable": "تعذّر تحميل بطاقاتك المحفوظة الآن.",
+		"retryHint": "يرجى تحديث الصفحة للمحاولة مرة أخرى.",
+		"unsupportedTitle": "طرق الدفع غير متاحة",
+		"unsupportedDescription": "لا يوجد مزوّد دفع في هذا الحساب يدعم البطاقات المحفوظة."
 	},
 	"invoiceDetail": {
 		"title": "الفاتورة",

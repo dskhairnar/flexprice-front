@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useMutation, useQuery } from '@tanstack/react-query';
+import { useMutation } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import toast from 'react-hot-toast';
 import { AlertCircle } from 'lucide-react';
@@ -10,26 +10,31 @@ import { Label } from '@/components/ui';
 import { refetchQueries } from '@/core/services/tanstack/ReactQueryProvider';
 import { getCurrencySymbol } from '@/utils/common/helper_functions';
 import type { DurationUnit } from '@/models/Wallet';
+import type { PortalAutoTopupRequest } from '@/types/dto/CustomerPortalBilling';
 import { WalletResponse } from '@/types/dto/Wallet';
-import { portalPaymentMethodsQueryKey } from '../queryKeys';
 
 interface AutoTopUpFormProps {
 	wallet: WalletResponse;
+	/** True when a saved method can be charged unattended. */
+	hasChargeableMethod: boolean;
+	onAddPaymentMethod?: () => void;
 	onDone?: () => void;
 }
-
-/** Sending value 0 clears a stored cooloff; omitting the field would leave it in place. */
-const CLEARED_COOLDOWN = { value: 0, unit: 'second' as const };
 
 const DURATION_UNITS: DurationUnit[] = ['second', 'minute', 'hour', 'day'];
 
 /**
- * Auto top-up configuration for the customer portal.
+ * Auto top-up configuration.
  *
- * Auto-charging a saved card is only meaningful when one exists, so the option is
- * disabled with a route to add one when the customer has none.
+ * The payload is flat and narrower than the admin one. There is no invoicing
+ * toggle — that selects the transaction reason and is the tenant's call — and no
+ * auto-charge switch: enabling auto top-up *is* the consent to be charged
+ * unattended, so a second checkbox would only imply a choice that is not offered.
+ *
+ * Because of that, auto top-up needs a chargeable saved method to be meaningful,
+ * and says so rather than saving a config that can never fire.
  */
-const AutoTopUpForm = ({ wallet, onDone }: AutoTopUpFormProps) => {
+const AutoTopUpForm = ({ wallet, hasChargeableMethod, onAddPaymentMethod, onDone }: AutoTopUpFormProps) => {
 	const { t } = useTranslation('customer-portal');
 
 	const [enabled, setEnabled] = useState(wallet.auto_topup?.enabled ?? false);
@@ -37,26 +42,17 @@ const AutoTopUpForm = ({ wallet, onDone }: AutoTopUpFormProps) => {
 	const [amount, setAmount] = useState(wallet.auto_topup?.amount ?? '');
 	const [cooldownValue, setCooldownValue] = useState(wallet.auto_topup?.cooldown?.value ? String(wallet.auto_topup.cooldown.value) : '');
 	const [cooldownUnit, setCooldownUnit] = useState<DurationUnit>(wallet.auto_topup?.cooldown?.unit ?? 'hour');
-	// invoicing=false means the auto top-up is charged rather than billed later.
-	const [autoCharge, setAutoCharge] = useState(wallet.auto_topup?.invoicing === false);
-
-	const { data: paymentMethods } = useQuery({
-		queryKey: portalPaymentMethodsQueryKey,
-		queryFn: () => CustomerPortalApi.getPaymentMethods({ provider: 'stripe' }),
-	});
-	const hasSavedCard = (paymentMethods?.stripe ?? []).length > 0;
 
 	const { mutate: save, isPending } = useMutation({
-		mutationFn: () =>
-			CustomerPortalApi.updateAutoTopup(wallet.id, {
-				auto_topup: {
-					enabled,
-					threshold,
-					amount,
-					invoicing: !autoCharge,
-					cooldown: cooldownValue && Number(cooldownValue) > 0 ? { value: Number(cooldownValue), unit: cooldownUnit } : CLEARED_COOLDOWN,
-				},
-			}),
+		mutationFn: () => {
+			const payload: PortalAutoTopupRequest = {
+				enabled,
+				...(enabled ? { threshold, amount } : {}),
+				// null clears a stored cooloff; omitting the field would leave it in place.
+				cooldown: cooldownValue && Number(cooldownValue) > 0 ? { value: Number(cooldownValue), unit: cooldownUnit } : null,
+			};
+			return CustomerPortalApi.updateAutoTopup(wallet.id, payload);
+		},
 		onSuccess: async () => {
 			toast.success(t('autoTopUp.saved'));
 			onDone?.();
@@ -65,22 +61,9 @@ const AutoTopUpForm = ({ wallet, onDone }: AutoTopUpFormProps) => {
 		onError: () => toast.error(t('errors.saveAutoTopUp')),
 	});
 
-	const { mutate: addPaymentMethod, isPending: isAddingCard } = useMutation({
-		mutationFn: () =>
-			CustomerPortalApi.addPaymentMethod({ provider: 'stripe', success_url: window.location.href, cancel_url: window.location.href }),
-		onSuccess: (response) => {
-			if (!response.checkout_url) {
-				toast.error(t('errors.addPaymentMethod'));
-				return;
-			}
-			window.location.href = response.checkout_url;
-		},
-		onError: () => toast.error(t('errors.addPaymentMethod')),
-	});
-
-	const currencySymbol = getCurrencySymbol(wallet.currency ?? 'USD');
-	// Both values are required by the API whenever auto top-up is on.
+	// Both are required by the API whenever auto top-up is on.
 	const isValid = !enabled || (Number(threshold) > 0 && Number(amount) > 0);
+	const currencySymbol = getCurrencySymbol(wallet.currency ?? 'USD');
 
 	return (
 		<div className='space-y-4'>
@@ -95,6 +78,26 @@ const AutoTopUpForm = ({ wallet, onDone }: AutoTopUpFormProps) => {
 					{t('autoTopUp.enableLabel')}
 				</Label>
 			</div>
+
+			{enabled && !hasChargeableMethod && (
+				<div
+					className='flex items-start gap-2 rounded-lg border p-3'
+					style={{ borderColor: 'var(--portal-border, #E9E9E9)', backgroundColor: 'var(--portal-bg, #fafafa)' }}>
+					<AlertCircle className='h-4 w-4 mt-0.5 shrink-0' style={{ color: 'rgb(var(--fp-danger))' }} />
+					<div className='text-sm'>
+						<p style={{ color: 'var(--portal-text-primary, #09090b)' }}>{t('autoTopUp.noSavedCard')}</p>
+						{onAddPaymentMethod && (
+							<button
+								type='button'
+								onClick={onAddPaymentMethod}
+								className='underline mt-0.5'
+								style={{ color: 'var(--portal-primary, #2563eb)' }}>
+								{t('paymentMethods.add')}
+							</button>
+						)}
+					</div>
+				</div>
+			)}
 
 			{enabled && (
 				<>
@@ -134,33 +137,8 @@ const AutoTopUpForm = ({ wallet, onDone }: AutoTopUpFormProps) => {
 							value={cooldownUnit}
 							onChange={(value) => setCooldownUnit(value as DurationUnit)}
 							options={DURATION_UNITS.map((unit) => ({ value: unit, label: t(`autoTopUp.cooloffUnits.${unit}`) }))}
-							disabled={isPending}
+							disabled={isPending || !cooldownValue}
 						/>
-					</div>
-
-					<div>
-						<div className='flex items-start gap-2'>
-							<Checkbox
-								id='portal-auto-topup-charge'
-								checked={autoCharge}
-								onCheckedChange={(checked) => setAutoCharge(checked === true)}
-								disabled={isPending || !hasSavedCard}
-							/>
-							<Label htmlFor='portal-auto-topup-charge' className='text-sm font-normal leading-snug'>
-								{t('autoTopUp.autoChargeLabel')}
-							</Label>
-						</div>
-						{!hasSavedCard && (
-							<div className='flex items-center gap-2 mt-2 ps-6'>
-								<AlertCircle className='h-3.5 w-3.5 shrink-0' style={{ color: 'var(--portal-text-secondary, #71717a)' }} />
-								<span className='text-xs' style={{ color: 'var(--portal-text-secondary, #71717a)' }}>
-									{t('autoTopUp.noSavedCard')}
-								</span>
-								<Button variant='link' size='xs' onClick={() => addPaymentMethod()} isLoading={isAddingCard}>
-									{t('paymentMethods.add')}
-								</Button>
-							</div>
-						)}
 					</div>
 				</>
 			)}
