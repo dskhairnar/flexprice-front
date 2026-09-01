@@ -3,6 +3,7 @@ import { useTranslation, Trans } from 'react-i18next';
 import type { LineItem } from '@/models/Subscription';
 import { useSubscriptionQuantityModify } from '@/hooks/useSubscriptionQuantityModify';
 import { buildQuantityChangeModifyRequest } from '@/utils/subscription/buildQuantityChangeModifyRequest';
+import { isValidNonNegativeQuantityString } from '@/utils/subscription/quantityValidation';
 import type { ExecuteSubscriptionModifyRequest } from '@/types/dto/Subscription';
 import type { FC } from 'react';
 import { useCallback, useEffect, useState } from 'react';
@@ -25,13 +26,6 @@ export interface SubscriptionLineItemQuantityModifyDialogProps {
 	/** Subscription billing period bounds (ISO 8601); used to default effective date by invoice cadence. */
 	currentPeriodStart: string;
 	currentPeriodEnd: string;
-}
-
-function isValidPositiveQuantityString(q: string): boolean {
-	const t = q.trim().replace(/,/g, '');
-	if (!t) return false;
-	const n = Number(t);
-	return Number.isFinite(n) && n > 0;
 }
 
 type Step = 'form' | 'preview';
@@ -87,8 +81,8 @@ const SubscriptionLineItemQuantityModifyDialog: FC<SubscriptionLineItemQuantityM
 	};
 
 	const buildPayloadFromForm = useCallback((): ExecuteSubscriptionModifyRequest | null => {
-		if (!isValidPositiveQuantityString(quantityInput)) {
-			setFormError('Enter a valid quantity greater than zero.');
+		if (!isValidNonNegativeQuantityString(quantityInput)) {
+			setFormError('Enter a valid quantity — zero or greater.');
 			return null;
 		}
 		if (effectiveDate && !isEffectiveDateWithinLineItemWindow(lineItem, effectiveDate)) {
@@ -148,12 +142,12 @@ const SubscriptionLineItemQuantityModifyDialog: FC<SubscriptionLineItemQuantityM
 			title={step === 'form' ? t('subscriptions.changeQuantity') : t('subscriptions.reviewChanges')}
 			description={
 				step === 'form' ? (
-					<span className='text-sm text-gray-600'>
+					<span className='text-sm text-content-tertiary'>
 						<Trans
 							ns='billing'
 							i18nKey='subscriptions.quantityModify.updatingDescription'
 							values={{ name: lineItem.display_name }}
-							components={{ highlight: <span className='font-medium text-gray-900' /> }}
+							components={{ highlight: <span className='font-medium text-content' /> }}
 						/>
 					</span>
 				) : undefined
@@ -173,7 +167,7 @@ const SubscriptionLineItemQuantityModifyDialog: FC<SubscriptionLineItemQuantityM
 									placeholder={t('subscriptions.quantityPlaceholder')}
 									disabled={busy}
 								/>
-								{formError && <p className='text-sm text-red-600'>{formError}</p>}
+								{formError && <p className='text-sm text-danger'>{formError}</p>}
 							</div>
 							<div className='w-full space-y-3'>
 								<DatePicker
@@ -184,9 +178,9 @@ const SubscriptionLineItemQuantityModifyDialog: FC<SubscriptionLineItemQuantityM
 									popoverTriggerClassName='w-full'
 									disabled={busy}
 								/>
-								<div className='flex w-full gap-3 rounded-lg border border-blue-200 bg-blue-50 px-4 py-3.5'>
-									<Info className='mt-0.5 h-5 w-5 shrink-0 text-blue-600' aria-hidden />
-									<p className='min-w-0 flex-1 text-sm leading-relaxed text-blue-900'>
+								<div className='flex w-full gap-3 rounded-lg border border-info-line bg-info-muted px-4 py-3.5'>
+									<Info className='mt-0.5 h-5 w-5 shrink-0 text-info' aria-hidden />
+									<p className='min-w-0 flex-1 text-sm leading-relaxed text-info-deepest'>
 										{t('subscriptions.quantityModify.effectiveDateHint')}
 									</p>
 								</div>
@@ -214,7 +208,7 @@ const SubscriptionLineItemQuantityModifyDialog: FC<SubscriptionLineItemQuantityM
 								currency: lineItem.currency || 'USD',
 							}}
 						/>
-						<div className='flex justify-end gap-3 border-t border-gray-100 pt-4'>
+						<div className='flex justify-end gap-3 border-t border-line-subtle pt-4'>
 							<Button variant='outline' onClick={handleBack} disabled={busy}>
 								{t('common:actions.back')}
 							</Button>

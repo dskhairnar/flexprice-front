@@ -1,5 +1,6 @@
 {
 	"list": {
+		"writeDeniedTooltip": "ليس لديك صلاحية إدارة العملاء. اطلب الوصول من مسؤول المستأجر.",
 		"title": "العملاء",
 		"paginationUnit": "العملاء",
 		"entityName": "العميل",
@@ -27,6 +28,11 @@
 			"email": "البريد الإلكتروني",
 			"createdAt": "تاريخ الإنشاء",
 			"updatedAt": "تاريخ التحديث"
+		},
+		"orgTypeFilter": {
+			"ariaLabel": "تصفية حسب نوع المؤسسة",
+			"parent": "أصل",
+			"child": "فرعي"
 		}
 	},
 	"detail": {
@@ -62,6 +68,7 @@
 			"state": "المحافظة",
 			"city": "المدينة",
 			"postalCode": "الرمز البريدي",
+			"timezone": "المنطقة الزمنية",
 			"subscriptionAmount": "مبلغ الاشتراك",
 			"subscriptionStartDate": "تاريخ بدء الاشتراك"
 		},
@@ -192,12 +199,16 @@
 			"static": "ثابت",
 			"metered": "مقياسي",
 			"boolean": "نعم/لا",
+			"config": "إعداد",
 			"dash": "—",
 			"usageProgressUnlimited": "{{usage}} / غير محدود"
 		},
 		"fallback": "--"
 	},
 	"subscriptionCreate": {
+		"selectCustomerLabel": "العميل",
+		"selectCustomerPlaceholder": "ابحث عن عميل...",
+		"selectCustomerHint": "اختر عميلاً للمتابعة مع إنشاء اشتراك",
 		"toast": {
 			"draftSaved": "تم حفظ مسودة الاشتراك بنجاح",
 			"created": "تم إنشاء الاشتراك بنجاح",
@@ -227,6 +238,7 @@
 		"billingCycle": "دورة الفوترة",
 		"commitmentPeriod": "فترة الالتزام",
 		"paymentTerms": "شروط الدفع",
+		"timezone": "المنطقة الزمنية",
 		"invoicingCustomer": "عميل الفوترة",
 		"parentCustomer": "العميل الأصل",
 		"commitmentLabel": "الالتزام",
@@ -236,6 +248,7 @@
 		"renewalDate": "تاريخ التجديد",
 		"subscriptionsInheritance": "وراثة الاشتراكات",
 		"taxAssociations": "ارتباطات الضرائب",
+		"couponAssociations": "ارتباطات القسيمة",
 		"subscriptionPhases": "مراحل الاشتراك",
 		"phaseHeading": "مرحلة {{index}}",
 		"phaseStart": "البداية",
@@ -291,10 +304,12 @@
 			"expandAll": "توسيع الكل",
 			"totalUsage": "إجمالي الاستخدام",
 			"totalCost": "إجمالي التكلفة",
+			"cogs": "تكلفة البضاعة المباعة",
 			"tableEmpty": "--"
 		},
 		"information": {
 			"saveCardOnStripe": "حفظ البطاقة على Stripe",
+			"setupAutopayMoyasar": "إعداد الدفع التلقائي (Moyasar)",
 			"sharePortalLinkTitle": "مشاركة رابط بوابة العميل",
 			"childCustomersTitle": "العملاء الفرعيون"
 		},
@@ -302,6 +317,7 @@
 			"title": "الفواتير",
 			"emptySubtitle": "لا توجد فواتير",
 			"addInvoice": "إضافة فاتورة",
+			"writeDeniedTooltip": "ليس لديك صلاحية إنشاء الفواتير. اطلب الوصول من مسؤول المستأجر.",
 			"paginationUnit": "الفواتير"
 		},
 		"overview": {
@@ -310,6 +326,7 @@
 			"entitlementsCardTitle": "الاستحقاقات"
 		},
 		"tax": {
+			"writeDeniedTooltip": "ليس لديك صلاحية إدارة ارتباطات الضرائب. اطلب الوصول من مسؤول المستأجر.",
 			"emptyTitle": "الضريبة",
 			"emptySubtitle": "لا يوجد معدل ضريبي مُعيَّن لهذا العميل",
 			"associationsTitle": "ارتباطات الضرائب",
@@ -321,6 +338,8 @@
 			"noEventsFound": "لا توجد أحداث"
 		},
 		"wallet": {
+			"writeDeniedTooltip": "ليس لديك صلاحية إدارة هذه المحفظة. اطلب الوصول من مسؤول المستأجر.",
+			"alertSettingsWriteDeniedTooltip": "ليس لديك صلاحية إدارة إعدادات التنبيهات لهذه المحفظة. اطلب الوصول من مسؤول المستأجر.",
 			"emptyTitle": "المحافظ",
 			"emptySubtitle": "لا توجد محافظ مرتبطة بالعميل",
 			"addWallet": "إضافة محفظة",
@@ -343,6 +362,10 @@
 	"subscriptionEdit": {
 		"pageTitle": "تعديل الاشتراك",
 		"pageHeading": "تعديل الاشتراك",
+		"couponAssociations": "ارتباطات الكوبون",
+		"addCoupon": "إضافة كوبون",
+		"taxAssociations": "ارتباطات الضريبة",
+		"addTax": "إضافة ضريبة",
 		"toast": {
 			"lineItemUpdated": "تم تحديث بند الخط بنجاح",
 			"lineItemUpdateFailed": "فشل في تحديث بند الخط",
@@ -358,6 +381,34 @@
 			"creditGrantDeleteFailed": "فشل في حذف منحة الائتمان",
 			"loadError": "خطأ في تحميل بيانات الاشتراك"
 		}
+	},
+	"moyasarAutopay": {
+		"title": "إعداد الدفع التلقائي مع Moyasar",
+		"intro": "أدخل تفاصيل البطاقة لتفعيل الدفع التلقائي. يتم ترميز البطاقة بأمان بواسطة Moyasar — نحن لا نخزّن رقم البطاقة الأصلي.",
+		"setupCard": "إعداد البطاقة",
+		"loadingForm": "جارٍ تحميل نموذج البطاقة الآمن…",
+		"savingCard": "جارٍ حفظ البطاقة…",
+		"successTitle": "تم تفعيل الدفع التلقائي. سيتم تحصيل الفواتير المستقبلية لهذا العميل تلقائيًا.",
+		"alreadyConfiguredTitle": "تم إعداد الدفع التلقائي مسبقاً",
+		"alreadyConfiguredDesc": "هذا العميل لديه طريقة دفع محفوظة بالفعل. قم بإزالتها أولاً لتسجيل بطاقة جديدة.",
+		"done": "تم",
+		"toastEnabled": "تم تفعيل الدفع التلقائي. سيتم تحصيل الفواتير المستقبلية تلقائيًا.",
+		"toastInitFailed": "فشل في تهيئة الدفع التلقائي لـ Moyasar",
+		"toastSaveFailed": "فشل في حفظ البطاقة",
+		"toastScriptFailed": "فشل تحميل Moyasar.js. يرجى تحديث الصفحة والمحاولة مرة أخرى.",
+		"toastNoToken": "لم يتم إرجاع رمز البطاقة من Moyasar",
+		"toastParseTokenFailed": "فشل في تحليل رمز الدفع",
+		"loadingSetup": "جارٍ إكمال إعداد البطاقة…",
+		"formTitle": "حفظ البطاقة للدفع التلقائي",
+		"formDesc": "سنخصم 1 ريال للتحقق من بطاقتك، ثم نستردها تلقائيًا.",
+		"formLoadFailed": "فشل تحميل نموذج الدفع. يرجى تحديث الصفحة.",
+		"cardSavedTitle": "تم حفظ البطاقة بنجاح",
+		"cardSavedDescription": "تم حفظ بطاقتك وتم تفعيل الدفع التلقائي. سيتم خصم الفواتير المستقبلية تلقائيًا.",
+		"cardSetupInProgressTitle": "إعداد البطاقة قيد التنفيذ",
+		"cardSetupInProgressDescription": "جارٍ التحقق من بطاقتك. يكتمل ذلك عادةً خلال دقائق قليلة. يمكنك إغلاق هذه الصفحة بأمان.",
+		"cardSetupFailedTitle": "فشل إعداد البطاقة",
+		"cardSetupFailedDefaultDescription": "حدث خطأ ما. يرجى المحاولة مرة أخرى.",
+		"tryAgain": "حاول مرة أخرى"
 	},
 	"organisms": {
 		"phaseForm": {
@@ -385,6 +436,8 @@
 			"chargeFallback": "رسم"
 		},
 		"subscriptionAction": {
+			"writeDeniedTooltip": "ليس لديك صلاحية إدارة الاشتراكات. اطلب الوصول من مسؤول المستأجر.",
+			"alertSettingsWriteDeniedTooltip": "ليس لديك صلاحية إدارة إعدادات التنبيهات لهذا الاشتراك. اطلب الوصول من مسؤول المستأجر.",
 			"cancelTitle": "إلغاء الاشتراك",
 			"cancelSubtitle": "لا يمكن التراجع عن هذا الإجراء. اختر سلوك الإلغاء والفاتورة قبل المتابعة.",
 			"cancellationType": "نوع الإلغاء",
@@ -432,6 +485,7 @@
 			"commitmentAmount": "مبلغ الالتزام",
 			"commitmentAmountPlaceholder": "مثال: ‎$100.00",
 			"commitmentPeriod": "فترة الالتزام",
+			"commitmentDaily": "يومي",
 			"commitmentMonthly": "شهري",
 			"commitmentQuarterly": "ربع سنوي",
 			"commitmentHalfYearly": "نصف سنوي",
@@ -460,7 +514,9 @@
 			"aboutAutoInvoiceAria": "عن حد الفاتورة التلقائية",
 			"autoInvoiceHelp": "مبلغ الاستخدام الذي قد يستدعي فاتورة قبل نهاية الفترة. متاح عند الرسوم بالاستخدام؛ الرسوم الثابتة تعطّله.",
 			"autoInvoicePlaceholder": "100.00",
-			"autoInvoiceAmountAria": "مبلغ حد الفاتورة التلقائية"
+			"autoInvoiceAmountAria": "مبلغ حد الفاتورة التلقائية",
+			"planNoCharges": "لا توجد رسوم مضافة إلى هذه الخطة",
+			"addedChargesLostOnPhaseConversion": "الرسوم المضافة غير مدعومة في الاشتراكات المرحلية وتمت إزالتها. أضفها مرة أخرى ضمن مرحلة، أو بعد إنشاء الاشتراك."
 		},
 		"subscriptionPriceTable": {
 			"overridePrice": "تجاوز السعر",
@@ -478,8 +534,24 @@
 			"colBillingPeriod": "فترة الفوترة",
 			"colQuantity": "الكمية",
 			"colPrice": "السعر",
+			"colBucketSize": "حجم الدفعة",
 			"editAdded": "تعديل",
 			"deleteAdded": "حذف"
+		},
+		"additionalPlanPrices": {
+			"title": "متوفر أيضاً في هذه الخطة",
+			"explainer": "تُحتسب هذه الدورات بمعدل أكثر تكراراً من دورة اشتراكك. فعّل دورة لإضافة كل أسعارها إلى الرسوم.",
+			"colCadence": "الدورة",
+			"colCount": "الرسوم",
+			"colBillingImpact": "الأثر على الفواتير",
+			"chargeCount_zero": "لا توجد رسوم",
+			"chargeCount_one": "رسم واحد",
+			"chargeCount_two": "رسمان",
+			"chargeCount_few": "{{count}} رسوم",
+			"chargeCount_many": "{{count}} رسمًا",
+			"chargeCount_other": "{{count}} رسم",
+			"fanoutHint": "يُحتسب كلٌّ منها كـ {{count}} بنود لكل فاتورة اشتراك",
+			"noFanout": "بنفس دورة الاشتراك"
 		},
 		"subscriptionTable": {
 			"planModifiedAria": "تم تعديل الخطة",

@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next';
 import { FC, useMemo } from 'react';
-import { Card, AddButton, NoDataCard, ShortPagination, Spacer } from '@/components/atoms';
+import { Card, CardHeader, AddButton, NoDataCard, ShortPagination, Spacer } from '@/components/atoms';
 import SubscriptionLineItemTable from '@/components/molecules/SubscriptionLineItemTable/SubscriptionLineItemTable';
 import { QueryBuilder } from '@/components/molecules/QueryBuilder';
 import type { LineItem, SubscriptionCommitmentInfo, SubscriptionPhase } from '@/models/Subscription';
@@ -35,6 +35,10 @@ export interface SubscriptionEditChargesSectionProps {
 	isAddChargeDisabled?: boolean;
 	readOnly?: boolean;
 	commitmentInfo?: SubscriptionCommitmentInfo;
+	onApplyCouponToLineItem?: (lineItem: LineItem) => void;
+	onRemoveCouponFromLineItem?: (lineItem: LineItem) => void;
+	/** Set of line item IDs that currently have an active coupon — controls Remove coupon visibility */
+	lineItemIdsWithCoupon?: Set<string>;
 }
 
 const SubscriptionEditChargesSection: FC<SubscriptionEditChargesSectionProps> = ({
@@ -49,6 +53,9 @@ const SubscriptionEditChargesSection: FC<SubscriptionEditChargesSectionProps> = 
 	isAddChargeDisabled = false,
 	readOnly = false,
 	commitmentInfo,
+	onApplyCouponToLineItem,
+	onRemoveCouponFromLineItem,
+	lineItemIdsWithCoupon,
 }) => {
 	const { t } = useTranslation('common');
 	const { filters, sorts, setFilters, setSorts, sanitizedFilters, sanitizedSorts } = useFilterSorting({
@@ -80,7 +87,7 @@ const SubscriptionEditChargesSection: FC<SubscriptionEditChargesSectionProps> = 
 				active_filter: true,
 				limit,
 				offset,
-				expand: EXPAND.PRICES,
+				expand: `${EXPAND.PRICES}.${EXPAND.METERS}`,
 				filters: sanitizedFilters.length ? sanitizedFilters : undefined,
 				sort: sanitizedSorts.length ? sanitizedSorts : undefined,
 			}),
@@ -120,16 +127,23 @@ const SubscriptionEditChargesSection: FC<SubscriptionEditChargesSectionProps> = 
 
 	return (
 		<Card variant='notched'>
-			<QueryBuilder
-				filterOptions={SUBSCRIPTION_EDIT_LINE_ITEM_FILTER_OPTIONS}
-				filters={filters}
-				onFilterChange={setFilters}
-				sortOptions={SUBSCRIPTION_EDIT_LINE_ITEM_SORT_OPTIONS}
-				selectedSorts={sorts}
-				onSortChange={setSorts}
-				debounceTime={300}>
-				{onAddCharge ? <AddButton onClick={onAddCharge} disabled={addDisabled} /> : null}
-			</QueryBuilder>
+			{/* CardHeader keeps the heading typography and spacing identical to sibling sections. */}
+			<CardHeader
+				title={t('labels.charges')}
+				cta={
+					<QueryBuilder
+						filterOptions={SUBSCRIPTION_EDIT_LINE_ITEM_FILTER_OPTIONS}
+						filters={filters}
+						onFilterChange={setFilters}
+						sortOptions={SUBSCRIPTION_EDIT_LINE_ITEM_SORT_OPTIONS}
+						selectedSorts={sorts}
+						onSortChange={setSorts}
+						debounceTime={300}
+						className='!mb-0'>
+						{onAddCharge ? <AddButton onClick={onAddCharge} disabled={addDisabled} /> : null}
+					</QueryBuilder>
+				}
+			/>
 			<SubscriptionLineItemTable
 				data={lineItems}
 				isLoading={isLoading}
@@ -140,7 +154,9 @@ const SubscriptionEditChargesSection: FC<SubscriptionEditChargesSectionProps> = 
 				readOnly={readOnly}
 				phaseLabelsById={phaseLabelsById}
 				showNoDataCard={false}
-				showCommitmentColumn
+				onApplyCoupon={onApplyCouponToLineItem}
+				onRemoveCoupon={onRemoveCouponFromLineItem}
+				lineItemIdsWithCoupon={lineItemIdsWithCoupon}
 			/>
 			<Spacer className='!h-2' />
 			<ShortPagination totalItems={totalLineItems} pageSize={limit} unit='charges' prefix={LINE_ITEMS_PAGINATION_PREFIX} />

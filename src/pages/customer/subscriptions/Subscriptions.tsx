@@ -1,4 +1,4 @@
-import { Page, ActionButton, Chip, Tooltip } from '@/components/atoms';
+import { Page, ActionButton, Chip, Tooltip, AddButton } from '@/components/atoms';
 import { ApiDocsContent, RedirectCell } from '@/components/molecules';
 import { ColumnData } from '@/components/molecules/Table';
 import { QueryableDataArea } from '@/components/organisms';
@@ -30,6 +30,8 @@ import SubscriptionCancelDialog from '@/components/molecules/SubscriptionCancelD
 import { useTranslation } from 'react-i18next';
 import { TFunction } from 'i18next';
 import { isInheritedSubscription } from '@/utils/subscription/isInheritedSubscription';
+import { ENTITY_STATUS } from '@/models';
+import { useCurrentUserPermissions } from '@/hooks/useCurrentUserPermissions';
 
 const BILLING_CADENCE_I18N_KEYS: Record<BILLING_CADENCE, 'recurring' | 'onetime'> = {
 	[BILLING_CADENCE.RECURRING]: 'recurring',
@@ -80,6 +82,8 @@ const SubscriptionsPage = () => {
 	const { t: tGuide } = useTranslation('guides');
 	const guides = useMemo(() => buildGuides(tGuide), [tGuide]);
 	const [cancelSubscription, setCancelSubscription] = useState<{ id: string; currentPeriodStart: string } | null>(null);
+	const { can } = useCurrentUserPermissions();
+	const canWriteSubscription = can('subscription', 'write');
 
 	const sortingOptions: SortOption[] = useMemo(
 		() => [
@@ -180,9 +184,11 @@ const SubscriptionsPage = () => {
 		[t],
 	);
 
-	const handleEmptyCreate = useCallback(() => {
-		navigate(RouteNames.customers);
+	const handleAddSubscription = useCallback(() => {
+		navigate(RouteNames.createSubscription, { state: { returnTo: RouteNames.subscriptions } });
 	}, [navigate]);
+
+	const handleEmptyCreate = handleAddSubscription;
 
 	const columns: ColumnData<SubscriptionResponse>[] = useMemo(
 		() => [
@@ -223,12 +229,15 @@ const SubscriptionsPage = () => {
 					return (
 						<ActionButton
 							id={row.id}
+							copyId={{ entityType: 'Subscription' }}
 							deleteMutationFn={async () => Promise.resolve()}
 							refetchQueryKey='fetchSubscriptions'
 							isArchiveDisabled={true}
 							entityName={t('subscriptions.listPage.entityNameForActions')}
 							edit={{
 								path: `${RouteNames.subscriptions}/${row.id}/edit`,
+								disabled: !canWriteSubscription,
+								disabledReason: canWriteSubscription ? undefined : t('subscriptions.listPage.writeDeniedTooltip'),
 							}}
 							archive={{
 								enabled: false,
@@ -239,6 +248,8 @@ const SubscriptionsPage = () => {
 									icon: <Trash2 />,
 									enabled: row.subscription_status !== SUBSCRIPTION_STATUS.CANCELLED,
 									onClick: () => setCancelSubscription({ id: row.id, currentPeriodStart: row.current_period_start }),
+									disabled: !canWriteSubscription,
+									disabledReason: canWriteSubscription ? undefined : t('subscriptions.listPage.writeDeniedTooltip'),
 								},
 							]}
 						/>
@@ -246,12 +257,24 @@ const SubscriptionsPage = () => {
 				},
 			},
 		],
-		[t],
+		[t, canWriteSubscription],
 	);
 
 	return (
 		<>
-			<Page heading={t('subscriptions.title')}>
+			<Page
+				heading={t('subscriptions.title')}
+				headingCTA={
+					canWriteSubscription ? (
+						<AddButton onClick={handleAddSubscription} />
+					) : (
+						<Tooltip content={t('subscriptions.listPage.writeDeniedTooltip')}>
+							<span tabIndex={0} className='inline-block'>
+								<AddButton disabled />
+							</span>
+						</Tooltip>
+					)
+				}>
 				<ApiDocsContent tags={API_DOCS_TAGS.Subscriptions} />
 				<QueryableDataArea<SubscriptionResponse>
 					queryConfig={{
@@ -267,6 +290,7 @@ const SubscriptionsPage = () => {
 							SubscriptionApi.searchSubscriptions({
 								...params,
 								expand: generateExpandQueryParams([EXPAND.CUSTOMER]),
+								status: ENTITY_STATUS.PUBLISHED,
 							}),
 						probeFetchFn: async (params) =>
 							SubscriptionApi.searchSubscriptions({
@@ -275,6 +299,7 @@ const SubscriptionsPage = () => {
 								offset: 0,
 								filters: [],
 								sort: [],
+								status: ENTITY_STATUS.PUBLISHED,
 							}),
 					}}
 					tableConfig={{
@@ -292,6 +317,8 @@ const SubscriptionsPage = () => {
 						description: t('subscriptions.listPage.emptyState.description'),
 						buttonLabel: t('subscriptions.listPage.emptyState.createButton'),
 						buttonAction: handleEmptyCreate,
+						buttonDisabled: !canWriteSubscription,
+						buttonDisabledReason: canWriteSubscription ? undefined : t('subscriptions.listPage.writeDeniedTooltip'),
 						tags: API_DOCS_TAGS.Subscriptions,
 						tutorials: guides.customers.tutorials,
 					}}

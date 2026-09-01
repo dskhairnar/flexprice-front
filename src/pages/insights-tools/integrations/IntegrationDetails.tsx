@@ -1,7 +1,8 @@
 import { useParams } from 'react-router';
 import { useIntegrationsCatalog } from './useIntegrationsCatalog';
 import { cn } from '@/lib/utils';
-import { Button, FormHeader, Page, Dialog } from '@/components/atoms';
+import { Button, FormHeader, Page, Dialog, Tooltip } from '@/components/atoms';
+import { useCurrentUserPermissions } from '@/hooks/useCurrentUserPermissions';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import IntegrationDrawer from '@/components/molecules/IntegrationDrawer/IntegrationDrawer';
@@ -15,6 +16,7 @@ import NomodConnectionDrawer from '@/components/molecules/NomodConnectionDrawer'
 import MoyasarConnectionDrawer from '@/components/molecules/MoyasarConnectionDrawer';
 import PaddleConnectionDrawer from '@/components/molecules/PaddleConnectionDrawer';
 import WhopConnectionDrawer from '@/components/molecules/WhopConnectionDrawer';
+import TabsConnectionDrawer from '@/components/molecules/TabsConnectionDrawer';
 import { PencilIcon, TrashIcon } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { ApiDocsContent } from '@/components/molecules';
@@ -27,6 +29,8 @@ import { CONNECTION_PROVIDER_TYPE } from '@/models/Connection';
 const IntegrationDetails = () => {
 	const { t } = useTranslation('settings');
 	const { i18n } = useTranslation();
+	const { can } = useCurrentUserPermissions();
+	const canWriteConnection = can('connection', 'write');
 	const integrations = useIntegrationsCatalog();
 	const { id: name } = useParams() as { id: string };
 	const integration = integrations.find((i) => i.id === name.toLowerCase());
@@ -107,22 +111,31 @@ const IntegrationDetails = () => {
 		<Page>
 			<ApiDocsContent tags={API_DOCS_TAGS.Integrations} />
 			<div className={cn('border rounded-[6px] p-4 flex items-center shadow-sm', !integration.premium && 'cursor-pointer')}>
-				<div className='size-20 flex items-center justify-center bg-gray-100 rounded-[6px]'>
-					<img src={integration.logo} alt={integration.name} className='size-10 object-contain' />
+				<div className='size-20 flex items-center justify-center bg-surface-shell rounded-[6px]'>
+					{/* Brands whose mark is a deep navy ship a dark variant; the rest read fine on either
+					    surface and reuse the one logo. `hidden` means only the shown image is fetched. */}
+					<img
+						src={integration.logo}
+						alt={integration.name}
+						className={cn('size-10 object-contain', integration.logoDark && 'dark:hidden')}
+					/>
+					{integration.logoDark && (
+						<img src={integration.logoDark} alt={integration.name} className='size-10 hidden object-contain dark:block' />
+					)}
 				</div>
 				<div className='ml-4 flex-1'>
 					<div className='flex items-center justify-between w-full'>
 						<h3 className='font-semibold text-lg'>{integration.name}</h3>
 						{integration.premium && (
-							<div className='absolute top-2 right-2 bg-[#FEF08A] text-[#D97706] text-xs !font-semibold px-2 py-1 rounded-[6px] !opacity-55'>
+							<div className='absolute top-2 right-2 bg-accent-yellow-muted text-warning text-xs !font-semibold px-2 py-1 rounded-[6px] !opacity-55'>
 								{t('insightsTools.integrations.comingSoon')}
 							</div>
 						)}
 					</div>
-					<p className='text-gray-500 text-sm'>{integration.description}</p>
+					<p className='text-content-muted text-sm'>{integration.description}</p>
 					<div className='mt-2 flex items-center gap-2'>
 						{integration.tags.map((tag, idx) => (
-							<span key={idx} className='text-xs bg-gray-200 px-2 py-1 rounded-[6px]'>
+							<span key={idx} className='text-xs bg-surface-strong px-2 py-1 rounded-[6px]'>
 								{tag}
 							</span>
 						))}
@@ -133,10 +146,18 @@ const IntegrationDetails = () => {
 						<Button disabled variant='outline' className='flex gap-2 items-center'>
 							{t('insightsTools.integrations.comingSoon')}
 						</Button>
-					) : hasActiveConnection ? null : (
+					) : hasActiveConnection ? null : canWriteConnection ? (
 						<Button onClick={handleAdd} className='flex gap-2 items-center'>
 							{t('insightsTools.integrations.addConnection')}
 						</Button>
+					) : (
+						<Tooltip content={t('insightsTools.integrations.writeDeniedTooltip')}>
+							<span tabIndex={0} className='inline-block'>
+								<Button disabled className='flex gap-2 items-center'>
+									{t('insightsTools.integrations.addConnection')}
+								</Button>
+							</span>
+						</Tooltip>
 					)}
 				</div>
 			</div>
@@ -242,6 +263,16 @@ const IntegrationDetails = () => {
 					connection={editingConnection}
 					onSave={handleSaveConnection}
 				/>
+			) : name.toLowerCase() === CONNECTION_PROVIDER_TYPE.TABS ? (
+				<TabsConnectionDrawer
+					isOpen={isDrawerOpen}
+					onOpenChange={(open) => {
+						setIsDrawerOpen(open);
+						if (!open) setEditingConnection(null);
+					}}
+					connection={editingConnection}
+					onSave={handleSaveConnection}
+				/>
 			) : (
 				<IntegrationDrawer
 					isOpen={isDrawerOpen}
@@ -265,20 +296,20 @@ const IntegrationDetails = () => {
 							return (
 								<div key={idx} className='flex items-center justify-between text-sm p-3 border-b last:border-b-0'>
 									<div>
-										<p className='text-gray-900 font-medium'>{item.name}</p>
-										<p className='text-xs text-gray-500 capitalize'>
+										<p className='text-content font-medium'>{item.name}</p>
+										<p className='text-xs text-content-muted capitalize'>
 											{item.connection_status} • {item.provider_type}
 										</p>
 									</div>
 									<div className='flex items-center gap-2'>
-										<Button variant='outline' size='icon' onClick={() => handleEdit(item)}>
+										<Button variant='outline' size='icon' onClick={() => handleEdit(item)} disabled={!canWriteConnection}>
 											<PencilIcon className='size-4' />
 										</Button>
 										<Button
 											variant='outline'
 											size='icon'
 											onClick={() => handleDeleteConnection(item.id, item.name)}
-											disabled={isDeletingConnection}
+											disabled={isDeletingConnection || !canWriteConnection}
 											isLoading={isDeletingConnection}>
 											<TrashIcon className='size-4' />
 										</Button>
@@ -296,7 +327,7 @@ const IntegrationDetails = () => {
 					<div key={idx} className='mt-4'>
 						<FormHeader variant='form-component-title' title={infoItem.title}></FormHeader>
 						{infoItem.description.map((desc, descIdx) => (
-							<p key={descIdx} className='text-gray-500 text-sm mt-1'>
+							<p key={descIdx} className='text-content-muted text-sm mt-1'>
 								{desc}
 							</p>
 						))}
@@ -308,7 +339,7 @@ const IntegrationDetails = () => {
 			<Dialog
 				title={t('insightsTools.integrations.deleteConnectionConfirmTitle', { name: connectionToDelete?.name ?? '' })}
 				description={t('insightsTools.integrations.deleteConnectionIrreversible')}
-				titleClassName='text-lg font-normal text-gray-800'
+				titleClassName='text-lg font-normal text-content-heading'
 				isOpen={isDeleteDialogOpen}
 				onOpenChange={setIsDeleteDialogOpen}
 				showCloseButton={false}>

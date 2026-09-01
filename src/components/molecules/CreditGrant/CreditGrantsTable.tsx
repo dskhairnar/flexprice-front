@@ -6,8 +6,9 @@ import { formatExpirationPeriod } from '@/utils/common/credit_grant_helpers';
 import { formatBillingPeriodForPrice } from '@/utils/common/helper_functions';
 import { formatAmount } from '@/components/atoms/Input/Input';
 import CreditGrantApi from '@/api/CreditGrantApi';
-import { EllipsisVertical, Trash2 } from 'lucide-react';
+import { Trash2 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import { useCurrentUserPermissions } from '@/hooks/useCurrentUserPermissions';
 
 interface CreditGrantsTableProps {
 	data: CreditGrant[];
@@ -16,7 +17,9 @@ interface CreditGrantsTableProps {
 }
 
 const CreditGrantsTable: React.FC<CreditGrantsTableProps> = ({ data, onDelete, showEmptyRow = false }) => {
-	const { t } = useTranslation('common');
+	const { t } = useTranslation(['common', 'catalog']);
+	const { can } = useCurrentUserPermissions();
+	const canWriteCreditGrant = can('creditgrant', 'write');
 
 	const handleDelete = async (grant: CreditGrant) => {
 		await CreditGrantApi.delete(grant.id);
@@ -70,10 +73,10 @@ const CreditGrantsTable: React.FC<CreditGrantsTableProps> = ({ data, onDelete, s
 				return (
 					<ActionButton
 						id={row.id}
+						copyId={{ entityType: 'Credit Grant' }}
 						deleteMutationFn={async () => {
 							await handleDelete(row);
 						}}
-						triggerIcon={<EllipsisVertical className='text-foreground size-4' />}
 						refetchQueryKey='creditGrants'
 						entityName={row.name}
 						edit={{
@@ -81,8 +84,10 @@ const CreditGrantsTable: React.FC<CreditGrantsTableProps> = ({ data, onDelete, s
 						}}
 						archive={{
 							enabled: true,
-							text: t('actions.delete'),
+							text: t('common:actions.delete'),
 							icon: <Trash2 />,
+							disabled: !canWriteCreditGrant,
+							disabledReason: !canWriteCreditGrant ? t('catalog:plans.creditGrantsTab.writeDeniedTooltip') : undefined,
 						}}
 					/>
 				);

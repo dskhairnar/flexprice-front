@@ -7,7 +7,8 @@ import SelectGroup from './SelectGroup';
 import { Group } from '@/models/Group';
 import Feature, { FEATURE_TYPE } from '@/models/Feature';
 import { formatBillingPeriodForPrice, getCurrencySymbol } from '@/utils/common/helper_functions';
-import { billlingPeriodOptions, currencyOptions } from '@/constants/constants';
+import { billlingPeriodOptions, currencyOptions, priceBucketSizeOptions } from '@/constants/constants';
+import { PriceBucketSize } from '@/models/Meter';
 import VolumeTieredPricingForm from './VolumeTieredPricingForm';
 import { InternalPrice } from './SetupChargesSection';
 import UsageChargePreview from './UsageChargePreview';
@@ -20,6 +21,7 @@ import FeatureApi from '@/api/FeatureApi';
 import { ENTITY_STATUS } from '@/models/base';
 import { CurrencyPriceUnitSelector } from '@/components/molecules';
 import { CurrencyPriceUnitSelection, isPriceUnitOption } from '@/types/common';
+import { useMeterForCommitment } from '@/hooks/useMeterForCommitment';
 import { useTranslation } from 'react-i18next';
 
 /**
@@ -41,6 +43,7 @@ interface Props {
 	onMeterChange?: (feature: Feature | null) => void;
 	/** Rendered after form fields and before the action buttons */
 	formFooter?: ReactNode;
+	isSaving?: boolean;
 }
 
 export interface PriceTier {
@@ -57,8 +60,29 @@ interface TieredPrice {
 	flat_amount: string;
 }
 
+/**
+ * Only a non-last tier's up_to should ever be null - VolumeTieredPricingForm renders that as ∞,
+ * which is only meaningful for the true last tier. Backend data should already guarantee this,
+ * but normalize defensively on load anyway: a stray null on a non-last tier (e.g. from an older
+ * client/API path) would otherwise render as unbounded on a row that isn't actually last. The
+ * last tier's own up_to is left as-is (it may legitimately be a finite boundary, not just null).
+ */
+const normalizeTiers = (tiers: TieredPrice[]): PriceTier[] =>
+	tiers.map((tier, index) => {
+		const isLast = index === tiers.length - 1;
+		if (isLast) {
+			return { from: tier.from, up_to: tier.up_to, unit_amount: tier.unit_amount, flat_amount: tier.flat_amount };
+		}
+		return {
+			from: tier.from,
+			up_to: tier.up_to === null ? (tiers[index + 1]?.from ?? tier.from) : tier.up_to,
+			unit_amount: tier.unit_amount,
+			flat_amount: tier.flat_amount,
+		};
+	});
+
 // TODO: Remove disabled once the feature is released
-const billingModels: SelectOption[] = [
+export const billingModels: SelectOption[] = [
 	{
 		value: BILLING_MODEL.FLAT_FEE,
 		label: 'Flat Fee',
@@ -81,6 +105,11 @@ const billingModels: SelectOption[] = [
 	}, // Maps to TIERED with SLAB tier_mode
 ];
 
+// ONETIME isn't offered for usage charges (they're inherently metered/recurring), but older prices
+// may still have it saved — fall back to MONTHLY rather than leaving the Select without a matching option.
+const normalizeUsageBillingPeriod = (billingPeriod?: BILLING_PERIOD): BILLING_PERIOD =>
+	billingPeriod && billingPeriod !== BILLING_PERIOD.ONETIME ? billingPeriod : BILLING_PERIOD.MONTHLY;
+
 const UsagePricingForm: FC<Props> = ({
 	onAdd,
 	onUpdate,
@@ -91,6 +120,7 @@ const UsagePricingForm: FC<Props> = ({
 	entityId,
 	onMeterChange,
 	formFooter,
+	isSaving = false,
 }) => {
 	const { t } = useTranslation(['catalog', 'common']);
 	const [currency, setCurrency] = useState(price.currency || currencyOptions[0].value);
@@ -104,13 +134,22 @@ const UsagePricingForm: FC<Props> = ({
 		{ from: 0, up_to: 1, unit_amount: '', flat_amount: '0' },
 		{ from: 1, up_to: null, unit_amount: '', flat_amount: '0' },
 	]);
-	const [billingPeriod, setBillingPeriod] = useState(price.billing_period || BILLING_PERIOD.MONTHLY);
+	const [billingPeriod, setBillingPeriod] = useState(normalizeUsageBillingPeriod(price.billing_period));
 	const [flatFee, setFlatFee] = useState<string>(price.amount || '');
 	const [packagedFee, setPackagedFee] = useState<{ unit: string; price: string }>({
 		unit: '',
 		price: '',
 	});
 	const [startDate, setStartDate] = useState<Date | undefined>(price.start_date ? new Date(price.start_date) : undefined);
+	const [bucketSize, setBucketSize] = useState<PriceBucketSize | ''>((price.bucket_size as PriceBucketSize | undefined) ?? '');
+	// The API rejects a price-level bucket_size when the selected meter already defines one -
+	// disable the selector and drop any stale price-level choice instead of sending both.
+	// Features from SelectFeature often carry only meter_id, so fetch the meter when needed.
+	const { meter: resolvedMeter } = useMeterForCommitment(selectedFeature?.meter_id, selectedFeature?.meter ?? null);
+	const meterBucketSize = selectedFeature?.meter?.aggregation?.bucket_size ?? resolvedMeter?.aggregation?.bucket_size;
+	useEffect(() => {
+		if (meterBucketSize) setBucketSize('');
+	}, [meterBucketSize]);
 
 	const [errors, setErrors] = useState<Partial<Record<keyof Price, any>>>({});
 	const [inputErrors, setInputErrors] = useState({
@@ -175,8 +214,9 @@ const UsagePricingForm: FC<Props> = ({
 			setBillingModel(price.billing_model || billingModels[0].value);
 			// Set display_name from price or feature name (will be set when feature is loaded)
 			setDisplayName(price.display_name || '');
-			setBillingPeriod(price.billing_period || BILLING_PERIOD.MONTHLY);
+			setBillingPeriod(normalizeUsageBillingPeriod(price.billing_period));
 			setStartDate(price.start_date ? new Date(price.start_date) : undefined);
+			setBucketSize((price.bucket_size as PriceBucketSize | undefined) ?? '');
 
 			if (price.billing_model === BILLING_MODEL.FLAT_FEE) {
 				setFlatFee(price.amount || '');
@@ -186,14 +226,7 @@ const UsagePricingForm: FC<Props> = ({
 					unit: price.transform_quantity?.divide_by?.toString() || '',
 				});
 			} else if (price.billing_model === BILLING_MODEL.TIERED && Array.isArray(price.tiers)) {
-				setTieredPrices(
-					(price.tiers as unknown as TieredPrice[]).map((tier) => ({
-						from: tier.from,
-						up_to: tier.up_to,
-						unit_amount: tier.unit_amount,
-						flat_amount: tier.flat_amount,
-					})),
-				);
+				setTieredPrices(normalizeTiers(price.tiers as unknown as TieredPrice[]));
 
 				// Set the appropriate billing model based on tier_mode
 				if (price.tier_mode === TIER_MODE.SLAB) {
@@ -287,8 +320,21 @@ const UsagePricingForm: FC<Props> = ({
 					}
 				}
 
+				// Every non-last tier must have a real numeric boundary - VolumeTieredPricingForm allows
+				// the field to sit empty transiently while the user is retyping it (backspace, then
+				// digits), so an empty string can still be here if they navigate away before finishing.
+				const isLastTier = i === tieredPrices.length - 1;
+				if (!isLastTier && typeof tier.up_to !== 'number') {
+					setInputErrors((prev) => ({
+						...prev,
+						tieredModelError: `Up to value is required for tier ${i + 1}`,
+					}));
+					toast.error(`Up to value is required for tier ${i + 1}`);
+					return false;
+				}
+
 				// Validate tier ranges
-				if (tier.up_to !== null) {
+				if (typeof tier.up_to === 'number') {
 					if (tier.from > tier.up_to) {
 						setInputErrors((prev) => ({
 							...prev,
@@ -395,6 +441,7 @@ const UsagePricingForm: FC<Props> = ({
 			group_id: groupId,
 			start_date: startDate ? startDate.toISOString() : undefined,
 			display_name: displayName || selectedFeature?.name || '',
+			bucket_size: meterBucketSize ? undefined : bucketSize || undefined,
 		};
 
 		let finalPrice: Partial<Price>;
@@ -525,7 +572,7 @@ const UsagePricingForm: FC<Props> = ({
 			<Spacer height='8px' />
 			<Select
 				value={billingPeriod}
-				options={billlingPeriodOptions}
+				options={billlingPeriodOptions.filter((option) => option.value !== BILLING_PERIOD.ONETIME)}
 				onChange={(value) => {
 					setBillingPeriod(value as BILLING_PERIOD);
 				}}
@@ -545,6 +592,21 @@ const UsagePricingForm: FC<Props> = ({
 			/>
 			<Spacer height='8px' />
 
+			<Select
+				value={bucketSize}
+				options={priceBucketSizeOptions}
+				onChange={(value) => setBucketSize(value as PriceBucketSize)}
+				label={t('catalog:plans.organisms.usageForm.bucketSize')}
+				placeholder={t('catalog:plans.organisms.usageForm.bucketSizePlaceholder')}
+				disabled={!!meterBucketSize}
+				description={
+					meterBucketSize
+						? t('catalog:priceDialogs.bucketSizeSetOnMeter', { bucketSize: meterBucketSize })
+						: t('catalog:plans.organisms.usageForm.bucketSizeDescription')
+				}
+			/>
+			<Spacer height='8px' />
+
 			{billingModel === billingModels[0].value && (
 				<div className='space-y-2'>
 					<Input
@@ -561,7 +623,7 @@ const UsagePricingForm: FC<Props> = ({
 								setFlatFee(e);
 							}
 						}}
-						suffix={<span className='text-[#64748B]'>{`/ unit / ${formatBillingPeriodForPrice(billingPeriod)}`}</span>}
+						suffix={<span className='text-content-slate-muted'>{`/ unit / ${formatBillingPeriodForPrice(billingPeriod)}`}</span>}
 					/>
 				</div>
 			)}
@@ -584,7 +646,7 @@ const UsagePricingForm: FC<Props> = ({
 							}}
 						/>
 						<div className='h-[50px] items-center flex gap-2'>
-							<p className='text-[#18181B] font-medium'>{t('catalog:plans.organisms.usageForm.per')}</p>
+							<p className='text-content-zinc-bold font-medium'>{t('catalog:plans.organisms.usageForm.per')}</p>
 						</div>
 						<Input
 							value={packagedFee.unit}
@@ -603,7 +665,7 @@ const UsagePricingForm: FC<Props> = ({
 							suffix={`/ units / ${formatBillingPeriodForPrice(billingPeriod)}`}
 						/>
 					</div>
-					{inputErrors.packagedModelError && <p className='text-red-500 text-sm'>{inputErrors.packagedModelError}</p>}
+					{inputErrors.packagedModelError && <p className='text-danger-bright text-sm'>{inputErrors.packagedModelError}</p>}
 				</div>
 			)}
 
@@ -616,7 +678,7 @@ const UsagePricingForm: FC<Props> = ({
 						currency={priceUnitType === PRICE_UNIT_TYPE.CUSTOM ? priceUnitConfig?.price_unit || currency : currency}
 						tierMode={billingModel === billingModels[2].value ? TIER_MODE.VOLUME : TIER_MODE.SLAB}
 					/>
-					{inputErrors.tieredModelError && <p className='text-red-500 text-sm'>{inputErrors.tieredModelError}</p>}
+					{inputErrors.tieredModelError && <p className='text-danger-bright text-sm'>{inputErrors.tieredModelError}</p>}
 				</div>
 			)}
 			<Spacer height='8px' />
@@ -668,10 +730,10 @@ const UsagePricingForm: FC<Props> = ({
 
 			<Spacer height={'16px'} />
 			<div className='flex justify-end'>
-				<Button onClick={handleCancel} variant='secondary' className='me-4 text-zinc-900'>
+				<Button onClick={handleCancel} variant='secondary' className='me-4 text-content-zinc-bold' disabled={isSaving}>
 					{price.internal_state === PriceInternalState.EDIT ? t('common:actions.delete') : t('common:actions.cancel')}
 				</Button>
-				<Button onClick={handleSubmit} variant='default' className='me-4 font-normal'>
+				<Button onClick={handleSubmit} variant='default' className='me-4 font-normal' isLoading={isSaving} disabled={isSaving}>
 					{price.internal_state === PriceInternalState.EDIT ? t('common:actions.update') : t('common:actions.add')}
 				</Button>
 			</div>

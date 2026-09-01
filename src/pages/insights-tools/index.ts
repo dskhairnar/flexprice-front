@@ -12,5 +12,8 @@ export { default as ExportManagement } from './exports/ExportManagement';
 export { default as ExportDetails } from './exports/ExportDetails';
 export { default as TaskRunsPage } from './exports/TaskRunsPage';
 
+// Usage Syncs
+export { default as UsageSyncs } from './usage-syncs/UsageSyncs';
+
 // Revenue
 export { default as Revenue } from './revenue/Revenue';

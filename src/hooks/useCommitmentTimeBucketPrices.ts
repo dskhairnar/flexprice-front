@@ -11,9 +11,9 @@ import {
 async function fetchPricesByIds(priceIds: string[]): Promise<Record<string, Price>> {
 	if (priceIds.length === 0) return {};
 
-	const response = await PriceApi.ListPrices({ price_ids: priceIds });
+	const prices = await Promise.all(priceIds.map((id) => PriceApi.GetPriceById(id)));
 	const pricesById: Record<string, Price> = {};
-	for (const price of response.items ?? []) {
+	for (const price of prices) {
 		pricesById[price.id] = price;
 	}
 	return pricesById;
@@ -21,7 +21,10 @@ async function fetchPricesByIds(priceIds: string[]): Promise<Record<string, Pric
 
 /** Resolve commitment bucket `price_id` references to full price records for read-only display. */
 export function useCommitmentTimeBucketPrices(buckets: CommitmentTimeBucket[] | undefined) {
-	const priceIds = useMemo(() => collectCommitmentBucketPriceIds(buckets ?? []), [buckets]);
+	const priceIds = useMemo(() => {
+		const ids = collectCommitmentBucketPriceIds(buckets ?? []);
+		return [...ids].sort();
+	}, [buckets]);
 
 	const {
 		data: pricesById,

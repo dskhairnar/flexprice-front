@@ -7,11 +7,13 @@ import toast from 'react-hot-toast';
 import { useNavigate } from 'react-router';
 import { useTranslation } from 'react-i18next';
 import { buildSignupMetadata, getPersistedSignupMetadata } from '@/utils/auth/signupMetadata';
+import { config } from '@/config/config';
 
 const SignupConfirmation = () => {
 	const userContext = useUser();
 	const navigate = useNavigate();
 	const { t } = useTranslation('auth');
+	const signupEnabled = config.platform.signup.enabled;
 
 	const { mutate, isPending } = useMutation({
 		mutationFn: async () => {
@@ -27,8 +29,16 @@ const SignupConfirmation = () => {
 			const user = await supabase.auth.getUser();
 			userContext.setUser(user.data.user);
 
+			// Existing Google users land here after OAuth — always allow login through.
 			if (user.data.user?.app_metadata.tenant_id) {
 				navigate('/');
+				return;
+			}
+
+			if (!signupEnabled) {
+				await supabase.auth.signOut();
+				toast.error(t('signupDisabled'));
+				navigate('/auth');
 				return;
 			}
 
@@ -70,15 +80,15 @@ const SignupConfirmation = () => {
 			<div className='flex flex-col items-center justify-center min-h-screen p-4'>
 				{isPending && (
 					<div className='text-center'>
-						<div className='animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900 mx-auto mb-4'></div>
+						<div className='animate-spin rounded-full h-12 w-12 border-b-2 border-content mx-auto mb-4'></div>
 						<h2 className='text-xl font-semibold'>{t('signupConfirmation.completingHeading')}</h2>
-						<p className='text-gray-600 mt-2'>{t('signupConfirmation.completingDescription')}</p>
+						<p className='text-content-tertiary mt-2'>{t('signupConfirmation.completingDescription')}</p>
 					</div>
 				)}
 				{!isPending && (
 					<div className='text-center'>
 						<h2 className='text-xl font-semibold'>{t('signupConfirmation.processingHeading')}</h2>
-						<p className='text-gray-600 mt-2'>{t('signupConfirmation.processingDescription')}</p>
+						<p className='text-content-tertiary mt-2'>{t('signupConfirmation.processingDescription')}</p>
 					</div>
 				)}
 			</div>

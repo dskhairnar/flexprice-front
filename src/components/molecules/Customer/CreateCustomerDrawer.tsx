@@ -1,5 +1,5 @@
 import { Button, Input, Select, SelectOption, Sheet, Spacer } from '@/components/atoms';
-import { FC, useEffect, useMemo, useState } from 'react';
+import { cloneElement, FC, isValidElement, MouseEvent, ReactElement, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useMutation } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
@@ -73,13 +73,31 @@ const CreateCustomerDrawer: FC<Props> = ({ data, onOpenChange, open, trigger }) 
 	}, [data]);
 
 	const currentOpen = isControlled ? open : uiState.internalOpen;
-	const toggleOpen = (open?: boolean) => {
+	// Radix passes the intended next-open value here (e.g. from onOpenChange/dismiss handlers).
+	// It must be used as-is rather than blindly toggled — a blind toggle drops out of sync with
+	// Radix's own state the moment it's called for any reason other than a simple trigger click.
+	const toggleOpen = (nextOpen?: boolean) => {
+		const value = nextOpen ?? !currentOpen;
 		if (isControlled) {
-			onOpenChange?.(open ?? false);
+			onOpenChange?.(value);
 		} else {
-			updateUIState({ internalOpen: !uiState.internalOpen });
+			updateUIState({ internalOpen: value });
 		}
 	};
+
+	// Render the trigger ourselves and open the drawer with a plain onClick, instead of handing it
+	// to Sheet's `trigger` prop (Radix SheetTrigger/asChild). Radix's trigger adds its own toggle
+	// and focus bookkeeping on top of our own controlled/uncontrolled state, which is unnecessary
+	// here and matches every other Sheet consumer in the app that's driven purely by isOpen/onOpenChange.
+	const triggerElement =
+		trigger && isValidElement(trigger)
+			? cloneElement(trigger as ReactElement<{ onClick?: (event: MouseEvent) => void }>, {
+					onClick: (event: MouseEvent) => {
+						(trigger as ReactElement<{ onClick?: (event: MouseEvent) => void }>).props.onClick?.(event);
+						toggleOpen(true);
+					},
+				})
+			: trigger;
 
 	const countriesOptions: SelectOption[] = Country.getAllCountries().map(({ name, isoCode }) => ({ label: name, value: isoCode }));
 	const statesOptions: SelectOption[] = formData.address_country
@@ -213,16 +231,16 @@ const CreateCustomerDrawer: FC<Props> = ({ data, onOpenChange, open, trigger }) 
 
 	return (
 		<div>
+			{triggerElement}
 			<Sheet
 				isOpen={currentOpen}
 				size='lg'
 				onOpenChange={toggleOpen}
 				title={data ? t('form.drawer.editCustomer') : t('form.drawer.addCustomer')}
-				description={data ? t('form.drawer.editDescription') : t('form.drawer.createDescription')}
-				trigger={trigger}>
+				description={data ? t('form.drawer.editDescription') : t('form.drawer.createDescription')}>
 				<div className='space-y-8 mt-4'>
 					<div className='relative card !p-4 !mb-6'>
-						<span className='absolute -top-4 left-2 text-[#18181B] text-sm bg-white font-medium px-2 py-1'>
+						<span className='absolute -top-4 left-2 text-content-zinc-bold text-sm bg-surface font-medium px-2 py-1'>
 							{t('form.drawer.detailsSectionBadge')}
 						</span>
 						<div className='space-y-4'>
@@ -260,7 +278,7 @@ const CreateCustomerDrawer: FC<Props> = ({ data, onOpenChange, open, trigger }) 
 
 					{uiState.showBillingDetails && (
 						<div className='relative card !p-4'>
-							<span className='absolute -top-4 left-2 text-[#18181B] text-sm bg-white font-medium px-2 py-1'>
+							<span className='absolute -top-4 left-2 text-content-zinc-bold text-sm bg-surface font-medium px-2 py-1'>
 								{t('form.drawer.billingSectionBadge')}
 							</span>
 							<div className='space-y-4'>

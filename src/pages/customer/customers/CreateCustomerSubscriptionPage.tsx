@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useNavigate, useParams } from 'react-router';
+import { useNavigate, useParams, useLocation } from 'react-router';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
 
@@ -49,13 +49,16 @@ import { ExtendedPriceOverride, getLineItemOverrides } from '@/utils/common/pric
 import { extractLineItemCommitments } from '@/utils/common/commitment_helpers';
 import { sanitizeAddonLineItemCommitmentsForApi, filterAddonPricesForSubscription } from '@/utils/subscription/addon_commitment_helpers';
 import { extractSubscriptionBoundaries, extractFirstPhaseData } from '@/utils/subscription/phaseConversion';
+import { stripDisplayMeterFromLineItemRequest } from '@/utils/subscription/internalPriceToSubscriptionLineItemRequest';
 
 import { useBreadcrumbsStore } from '@/store/useBreadcrumbsStore';
 import { useEnvironment } from '@/hooks/useEnvironment';
 import { usePlanPrices } from '@/hooks/usePlanPrices';
 import {
+	cadenceKey,
 	filterPlanPricesForSubscriptionCharges,
 	isOneTimePlanPrice,
+	partitionPricesForSubscription,
 	uniqueRecurringBillingPeriodsFromPrices,
 } from '@/utils/subscription/planPricesForSubscriptionUi';
 
@@ -77,8 +80,12 @@ function subscriptionChargesHaveFixedPrice(
 }
 
 type Params = {
-	id: string;
+	id?: string;
 	subscription_id?: string;
+};
+
+type CreateSubscriptionLocationState = {
+	returnTo?: string;
 };
 
 export enum SubscriptionPhaseState {
@@ -127,6 +134,15 @@ export type SubscriptionFormState = {
 	subscriptionTrialPeriodDays: string;
 	/** Set to send `auto_invoice_threshold` when plan has no FIXED charges; leave empty to omit. */
 	autoInvoiceThreshold: string;
+	/**
+	 * Cadence keys (`period:count`, e.g. "MONTHLY:1") the user opted in from the
+	 * "Also available on this plan" section. Each opted-in cadence pulls **all**
+	 * plan prices of that cadence into the main Charges table. Empty = user
+	 * accepted the default (exact cadence + ONETIME only).
+	 * On submit: if non-empty, we send `include_price_ids = [primary_ids +
+	 * every_price_in_opted_in_cadences]` so backend attaches exactly the user's selection.
+	 */
+	optedInAdditionalCadences: string[];
 };
 
 const usePlans = () => {
@@ -226,23 +242,29 @@ const usePlanDetails = (planId: string | undefined) => {
 
 const CreateCustomerSubscriptionPage: React.FC = () => {
 	const { t } = useTranslation(['customers', 'common']);
-	const { id: customerId, subscription_id } = useParams<Params>();
+	const { id: urlCustomerId, subscription_id } = useParams<Params>();
 	const navigate = useNavigate();
+	const location = useLocation();
 	const updateBreadcrumb = useBreadcrumbsStore((state) => state.updateBreadcrumb);
+	const returnTo = (location.state as CreateSubscriptionLocationState | null)?.returnTo;
+
+	const [selectedCustomer, setSelectedCustomer] = useState<Customer | undefined>();
+	const effectiveCustomerId = urlCustomerId ?? selectedCustomer?.id;
+	const showCustomerPicker = !urlCustomerId;
 
 	const [isDraft, setIsDraft] = useState(false);
 	const { data: customerTaxAssociations } = useQuery({
-		queryKey: ['customerTaxAssociations', customerId],
+		queryKey: ['customerTaxAssociations', effectiveCustomerId],
 		queryFn: async () => {
 			return await TaxApi.listTaxAssociations({
 				limit: 100,
 				offset: 0,
-				entity_id: customerId!,
+				entity_id: effectiveCustomerId!,
 				expand: EXPAND.TAX_RATE,
 				entity_type: TAXRATE_ENTITY_TYPE.CUSTOMER,
 			});
 		},
-		enabled: !!customerId,
+		enabled: !!effectiveCustomerId,
 	});
 
 	useEffect(() => {
@@ -284,7 +306,7 @@ const CreateCustomerSubscriptionPage: React.FC = () => {
 		linkedCoupon: null,
 		lineItemCoupons: {},
 		addons: [],
-		customerId: customerId!,
+		customerId: urlCustomerId ?? '',
 		tax_rate_overrides: [],
 		entitlementOverrides: {},
 		creditGrants: [],
@@ -298,10 +320,11 @@ const CreateCustomerSubscriptionPage: React.FC = () => {
 		inheritanceCustomers: [],
 		subscriptionTrialPeriodDays: '',
 		autoInvoiceThreshold: '',
+		optedInAdditionalCadences: [],
 	});
 
 	const { data: plans, isLoading: plansLoading, isError: plansError } = usePlans();
-	const { data: customerData } = useCustomerData(customerId);
+	const { data: customerData } = useCustomerData(effectiveCustomerId);
 	const { data: subscriptionData } = useSubscriptionData(subscription_id);
 	const {
 		data: planDetails,
@@ -328,6 +351,26 @@ const CreateCustomerSubscriptionPage: React.FC = () => {
 		const startDate = new Date(price.start_date);
 		if (isNaN(startDate.getTime())) return true;
 		return startDate <= now;
+	};
+
+	const navigateAfterAction = () => {
+		if (returnTo === RouteNames.subscriptions) {
+			navigate(RouteNames.subscriptions);
+			return;
+		}
+		if (effectiveCustomerId) {
+			navigate(`${RouteNames.customers}/${effectiveCustomerId}`);
+		}
+	};
+
+	const handleCustomerChange = (customer: Customer | undefined) => {
+		setSelectedCustomer(customer);
+		if (!customer) return;
+
+		setSubscriptionState((prev) => ({
+			...prev,
+			customerId: customer.id,
+		}));
 	};
 
 	useEffect(() => {
@@ -359,7 +402,7 @@ const CreateCustomerSubscriptionPage: React.FC = () => {
 				linkedCoupon: null,
 				lineItemCoupons: {},
 				addons: [],
-				customerId: customerId!,
+				customerId: urlCustomerId ?? '',
 				tax_rate_overrides: [],
 				entitlementOverrides: {},
 				creditGrants: (subscriptionData.details.credit_grants || []).map(creditGrantToInternal),
@@ -388,7 +431,7 @@ const CreateCustomerSubscriptionPage: React.FC = () => {
 				})(),
 			}));
 		}
-	}, [subscriptionData, customerId]);
+	}, [subscriptionData, effectiveCustomerId]);
 
 	// Sync plan details from usePlanDetails hook to state
 	useEffect(() => {
@@ -443,8 +486,9 @@ const CreateCustomerSubscriptionPage: React.FC = () => {
 
 			refetchQueries(['debug-customers']);
 			refetchQueries(['debug-subscriptions']);
+			refetchQueries(['fetchSubscriptions']);
 
-			navigate(`${RouteNames.customers}/${customerId}`);
+			navigateAfterAction();
 		},
 		onError: (error: Error) => {
 			toast.error(error.message || t('subscriptionCreate.toast.error'));
@@ -500,6 +544,11 @@ const CreateCustomerSubscriptionPage: React.FC = () => {
 			}
 		}
 
+		const hasEntitlementOverrides = Object.keys(subscriptionState.entitlementOverrides).length > 0;
+		if (hasEntitlementOverrides && subscriptionState.prorationCreateLineItems) {
+			return t('subscriptionCreate.validation.entitlementOverridesWithProration');
+		}
+
 		return null;
 	};
 
@@ -538,6 +587,7 @@ const CreateCustomerSubscriptionPage: React.FC = () => {
 			inheritanceCustomers,
 			subscriptionTrialPeriodDays,
 			autoInvoiceThreshold,
+			optedInAdditionalCadences,
 		} = subscriptionState;
 
 		const hasFixedSubscriptionChargePrice = subscriptionChargesHaveFixedPrice(prices, billingPeriod, currency, isPriceActive);
@@ -549,6 +599,14 @@ const CreateCustomerSubscriptionPage: React.FC = () => {
 		let finalOverrideLineItems: OverrideLineItemRequest[] | undefined;
 		let finalLineItemCommitments: Record<string, any> | undefined;
 		let sanitizedPhases: SubscriptionPhaseCreateRequest[] | undefined;
+		/**
+		 * When user opted in additional-cadence prices, send the full authoritative list
+		 * `[primary_ids + opted_in_ids]` so backend attaches exactly those. When user made
+		 * no selection, omit — backend applies its default (exact cadence + ONETIME).
+		 * Phases path is not opted into per-price selection in this iteration; leaves
+		 * include_price_ids unset for phases (backend default per phase).
+		 */
+		let finalIncludePriceIds: string[] | undefined;
 
 		if (phases.length > 0) {
 			// Multi-phase subscription: extract data from phases
@@ -581,6 +639,16 @@ const CreateCustomerSubscriptionPage: React.FC = () => {
 			// Plan prices for selected recurring period + currency, plus all one-time plan prices in that currency
 			const activeItems = prices?.items?.filter((price) => isPriceActive(price)) || [];
 			const currentPrices = filterPlanPricesForSubscriptionCharges(activeItems, billingPeriod, currency);
+
+			// Only send include_price_ids when the user opted in at least one additional-cadence
+			// bucket. Full authoritative list = primary partition IDs + every additional price
+			// whose (period, count) cadence key matches one of the opted-in cadences.
+			if (optedInAdditionalCadences.length > 0) {
+				const optedSet = new Set(optedInAdditionalCadences);
+				const { primary, additional } = partitionPricesForSubscription(activeItems, billingPeriod, 1, currency);
+				const optedInPrices = additional.filter((p) => optedSet.has(cadenceKey(p.billing_period, p.billing_period_count)));
+				finalIncludePriceIds = [...primary.map((p) => p.id), ...optedInPrices.map((p) => p.id)];
+			}
 
 			// Convert price overrides to line item overrides
 			// Note: getLineItemOverrides automatically excludes quantity for USAGE type prices
@@ -664,6 +732,7 @@ const CreateCustomerSubscriptionPage: React.FC = () => {
 			inheritanceExternalIds,
 			trial_period_days,
 			auto_invoice_threshold,
+			finalIncludePriceIds,
 		};
 	};
 
@@ -716,7 +785,7 @@ const CreateCustomerSubscriptionPage: React.FC = () => {
 			billing_cycle: sanitized.billingCycle,
 			billing_anchor: sanitized.billingAnchor,
 			currency: sanitized.currency.toLowerCase(),
-			customer_id: customerId!,
+			customer_id: effectiveCustomerId!,
 			plan_id: sanitized.selectedPlan,
 			start_date: sanitized.finalStartDate,
 			end_date: sanitized.finalEndDate,
@@ -753,12 +822,14 @@ const CreateCustomerSubscriptionPage: React.FC = () => {
 			line_items: (() => {
 				if (sanitized.sanitizedPhases) return undefined;
 				// Window commitment buckets are sanitized in AddSubscriptionChargeDialog (with meter context).
-				const addedItems = sanitized.addedSubscriptionLineItems?.map(({ tempId: _tempId, ...req }) => req) ?? [];
+				const addedItems =
+					sanitized.addedSubscriptionLineItems?.map(({ tempId: _tempId, ...req }) => stripDisplayMeterFromLineItemRequest(req)) ?? [];
 				return addedItems.length > 0 ? addedItems : undefined;
 			})(),
 			inheritance: Object.keys(inheritancePayload).length > 0 ? inheritancePayload : undefined,
 			...(sanitized.trial_period_days !== undefined ? { trial_period_days: sanitized.trial_period_days } : {}),
 			...(sanitized.auto_invoice_threshold !== undefined ? { auto_invoice_threshold: sanitized.auto_invoice_threshold } : {}),
+			...(sanitized.finalIncludePriceIds !== undefined ? { include_price_ids: sanitized.finalIncludePriceIds } : {}),
 		};
 
 		setIsDraft(isDraftParam);
@@ -773,7 +844,7 @@ const CreateCustomerSubscriptionPage: React.FC = () => {
 		handleSubscriptionSubmit(false);
 	};
 
-	const navigateBack = () => navigate(`${RouteNames.customers}/${customerId}`);
+	const navigateBack = navigateAfterAction;
 
 	return (
 		<div className={cn('flex gap-8 mt-5 relative mb-12')}>
@@ -803,13 +874,22 @@ const CreateCustomerSubscriptionPage: React.FC = () => {
 					}}
 					allCoupons={allCouponsData}
 					subscriberCustomer={customerData}
+					customerPicker={
+						showCustomerPicker
+							? {
+									value: selectedCustomer,
+									onChange: handleCustomerChange,
+									hint: t('subscriptionCreate.selectCustomerHint'),
+								}
+							: undefined
+					}
 				/>
 
 				{/* Sandbox Note */}
-				{isDevelopment && subscriptionState.selectedPlan && subscriptionState.startDate && (
-					<div className='w-full flex items-center gap-2.5 rounded-md border border-amber-300 bg-amber-50/80 px-3 py-2.5'>
-						<AlertTriangle className='h-4 w-4 flex-shrink-0 text-amber-600' />
-						<span className='text-sm font-medium text-amber-800 leading-relaxed'>
+				{effectiveCustomerId && isDevelopment && subscriptionState.selectedPlan && subscriptionState.startDate && (
+					<div className='w-full flex items-center gap-2.5 rounded-md border border-warning-line-strong bg-warning-muted/80 px-3 py-2.5'>
+						<AlertTriangle className='h-4 w-4 flex-shrink-0 text-warning' />
+						<span className='text-sm font-medium text-warning-deep leading-relaxed'>
 							{t('subscriptionCreate.sandboxNotice', {
 								date: new Date(
 									new Date(subscriptionState.startDate).getTime() + SANDBOX_AUTO_CANCELLATION_DAYS * 24 * 60 * 60 * 1000,
@@ -820,7 +900,7 @@ const CreateCustomerSubscriptionPage: React.FC = () => {
 					</div>
 				)}
 
-				{subscriptionState.selectedPlan && !subscription_id && (
+				{effectiveCustomerId && subscriptionState.selectedPlan && !subscription_id && (
 					<div className='flex items-center justify-between'>
 						<div className='flex items-center space-x-4'>
 							<Button onClick={navigateBack} variant={'outline'} disabled={isCreating}>

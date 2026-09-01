@@ -1,0 +1,4 @@
+{
+	"extends": "./tsconfig.lib.base.json",
+	"include": ["src/exportable/**/*.ts", "src/exportable/**/*.tsx", "src/pricing/**/*.ts", "src/pricing/**/*.tsx"]
+}

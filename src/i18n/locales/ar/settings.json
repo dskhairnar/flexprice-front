@@ -3,32 +3,99 @@
 		"settings": "الإعدادات",
 		"billing": "الفوترة"
 	},
+	"info": {
+		"ariaLabel": "مزيد من المعلومات حول {{field}}"
+	},
+	"superAdmin": {
+		"writeDeniedTooltip": "يمكن فقط لمسؤول متميز (Super Admin) تغيير هذا الإعداد. اطلب الوصول من مسؤول المستأجر."
+	},
 	"members": {
+		"writeDeniedTooltip": "ليس لديك صلاحية دعوة أعضاء الفريق. اطلب الوصول من مسؤول المستأجر.",
 		"roleAdmin": "مسؤول",
+		"roleMember": "عضو",
 		"errors": {
 			"userLimitReached": "تم بلوغ حد المستخدمين لهذه المنظمة.",
 			"userAlreadyExists": "يوجد مستخدم بهذا البريد الإلكتروني مسبقاً!",
 			"failedToAddUser": "فشل إضافة المستخدم",
-			"failedToLoadMembers": "فشل تحميل الأعضاء",
+			"failedToLoadUsers": "فشل تحميل المستخدمين",
 			"enterEmail": "أدخل عنوان بريد إلكتروني",
 			"emailInvalid": "يرجى إدخال بريد إلكتروني صالح",
 			"copyFailed": "تعذّر النسخ إلى الحافظة",
 			"loginLinkCopied": "تم نسخ رابط تسجيل الدخول – شاركه مع المستخدم بشكل آمن.",
 			"credentialsCopied": "تم نسخ بيانات الدخول إلى الحافظة.",
 			"credentialsDownloaded": "تم تنزيل بيانات الدخول.",
-			"loadError": "فشل تحميل الأعضاء. يُرجى المحاولة مرة أخرى."
+			"loadError": "فشل تحميل المستخدمين. يُرجى المحاولة مرة أخرى."
 		},
 		"columns": {
 			"email": "البريد الإلكتروني",
-			"role": "الدور"
+			"role": "الدور",
+			"joined": "تاريخ الانضمام"
 		},
-		"cardTitle": "الأعضاء",
+		"cardTitle": "المستخدمون",
+		"usersCount_one": "{{count}} مستخدم",
+		"usersCount_two": "{{count}} مستخدمان",
+		"usersCount_few": "{{count}} مستخدمين",
+		"usersCount_many": "{{count}} مستخدم",
+		"usersCount_other": "{{count}} مستخدم",
+		"actions": {
+			"add": "إضافة",
+			"invite": "دعوة",
+			"remove": "إزالة",
+			"editRoles": "تعديل الأدوار"
+		},
+		"editRoles": {
+			"title": "تعديل الأدوار",
+			"description": "إدارة صلاحيات هذا المستخدم.",
+			"submit": "حفظ الأدوار",
+			"success": "تم تحديث الأدوار لـ {{email}}.",
+			"failedGeneric": "فشل تحديث الأدوار.",
+			"activeKeysBody_one": "لدى هذا المستخدم مفتاح API نشط واحد يجب إلغاؤه قبل تغيير أدواره:",
+			"activeKeysBody_two": "لدى هذا المستخدم مفتاحا API نشطان يجب إلغاؤهما قبل تغيير أدواره:",
+			"activeKeysBody_few": "لدى هذا المستخدم {{count}} مفاتيح API نشطة يجب إلغاؤها قبل تغيير أدواره:",
+			"activeKeysBody_many": "لدى هذا المستخدم {{count}} مفتاح API نشط يجب إلغاؤها قبل تغيير أدواره:",
+			"activeKeysBody_other": "لدى هذا المستخدم {{count}} مفتاح API نشط يجب إلغاؤها قبل تغيير أدواره:",
+			"typeUser": "مستخدم",
+			"typeServiceAccount": "حساب خدمة",
+			"noRoles": "لا توجد أدوار",
+			"userFetchFailed": "تعذّر تحديث أحدث بيانات هذا المستخدم — يتم عرض آخر تفاصيل معروفة."
+		},
+		"filters": {
+			"title": "تصفية المستخدمين",
+			"role": "الدور",
+			"status": "الحالة",
+			"all": "الكل",
+			"joined": "منضم",
+			"pending": "قيد الانتظار"
+		},
+		"joinedPending": "قيد الانتظار",
 		"addMember": {
 			"title": "إضافة عضو",
 			"description": "ادعُ عضو فريق جديداً عبر البريد الإلكتروني.",
 			"emailLabel": "البريد الإلكتروني",
 			"emailPlaceholder": "user@example.com",
-			"addUser": "إضافة مستخدم"
+			"addUser": "إضافة مستخدم",
+			"rolesLabel": "الأدوار",
+			"rolesHint": "اختر دورًا واحدًا على الأقل لهذا العضو. تحديد \"مسؤول عام\" يمنح صلاحية كاملة ويزيل الاختيارات الأخرى.",
+			"rolesLoading": "جارٍ تحميل الأدوار...",
+			"rolesUnavailable": "تعذّر تحميل الأدوار المتاحة.",
+			"rolesRetry": "إعادة المحاولة",
+			"rolesRequired": "اختر دورًا واحدًا على الأقل"
+		},
+		"addUser": {
+			"title": "إضافة مستخدم",
+			"description": "أضف مستخدماً جديداً وأنشئ بيانات تسجيل الدخول.",
+			"nameLabel": "الاسم",
+			"namePlaceholder": "محمد أحمد",
+			"emailLabel": "البريد الإلكتروني",
+			"emailPlaceholder": "user@example.com",
+			"submit": "إضافة مستخدم"
+		},
+		"invite": {
+			"title": "دعوة مستخدم",
+			"description": "ادعُ مستخدماً عبر البريد الإلكتروني وأنشئ بيانات تسجيل الدخول للمشاركة.",
+			"nameLabel": "الاسم",
+			"namePlaceholder": "محمد أحمد",
+			"submit": "دعوة مستخدم"
 		},
 		"credentials": {
 			"title": "بيانات تسجيل الدخول",
@@ -53,7 +120,262 @@
 		"tabs": {
 			"team": "الفريق"
 		},
-		"unitMembers": "أعضاء"
+		"unitUsers_one": "مستخدم",
+		"unitUsers_other": "مستخدمين"
+	},
+	"organization": {
+		"writeDeniedTooltip": "ليس لديك صلاحية تعديل المؤسسة. اطلب الوصول من مسؤول المستأجر.",
+		"title": "المنظمة",
+		"workspaceOwner": "مالك مساحة العمل",
+		"editOrganization": "تعديل المنظمة"
+	},
+	"billing": {
+		"tabs": {
+			"billing": "الفوترة"
+		},
+		"actions": {
+			"resetToDefaults": "إعادة التعيين إلى الافتراضي"
+		},
+		"invoiceConfiguration": {
+			"title": "إعداد الفواتير",
+			"previewLabel": "معاينة",
+			"nextInvoiceNumber": "رقم الفاتورة التالي",
+			"infoAria": "مزيد من المعلومات حول {{field}}",
+			"saveSuccess": "تم حفظ إعداد الفواتير",
+			"saveError": "فشل حفظ إعداد الفواتير",
+			"resetSuccess": "تمت إعادة إعداد الفواتير إلى القيم الافتراضية",
+			"resetError": "فشلت إعادة إعداد الفواتير إلى القيم الافتراضية",
+			"validation": {
+				"prefixRequired": "البادئة مطلوبة",
+				"timezoneRequired": "المنطقة الزمنية مطلوبة",
+				"invalidSequenceDigits": "يجب أن تكون أرقام التسلسل عدداً صحيحاً",
+				"sequenceDigitsMin": "يجب أن تكون أرقام التسلسل 1 على الأقل",
+				"sequenceDigitsMax": "لا يمكن أن تتجاوز أرقام التسلسل 10"
+			},
+			"fields": {
+				"prefix": "البادئة",
+				"separator": "الفاصل",
+				"dateFormat": "تنسيق التاريخ",
+				"timezone": "المنطقة الزمنية",
+				"startSequence": "بداية التسلسل",
+				"sequenceDigits": "أرقام التسلسل",
+				"paymentDueDays": "استحقاق الدفع (أيام بعد الإصدار)"
+			},
+			"hints": {
+				"prefix": "نص غير فارغ. مثال: INV، ACME، FP",
+				"separator": "حرف بين البادئة والتاريخ والتسلسل. اتركه فارغاً لعدم وجود فاصل.",
+				"timezone": "يُنصح باسم منطقة IANA (مثل Asia/Kolkata)",
+				"dateFormat": "أحد الخيارات: YYYYMM أو YYYY أو YYYYMMDD أو YYMMDD أو YY. يُستخدم في جزء التاريخ من رقم الفاتورة.",
+				"startSequence": "عدد صحيح ≥ 0. رقم البداية للتسلسل.",
+				"sequenceDigits": "1–10 أرقام مع حشو بالأصفار. مثال: 5 → 00001",
+				"paymentDueDays": "عدد صحيح ≥ 0. أيام بعد إنشاء الفاتورة لتحديد تاريخ الاستحقاق. الافتراضي: 1."
+			},
+			"dateFormats": {
+				"YYYYMM": "YYYYMM — 202506",
+				"YYYY": "YYYY — 2025",
+				"YYYYMMDD": "YYYYMMDD — 20250629",
+				"YYMMDD": "YYMMDD — 250629",
+				"YY": "YY — 25"
+			}
+		},
+		"subscriptionConfiguration": {
+			"title": "إعداد الاشتراكات",
+			"previewLabel": "معاينة الإعداد",
+			"saveSuccess": "تم حفظ إعداد الاشتراكات",
+			"saveError": "فشل حفظ إعداد الاشتراكات",
+			"preview": {
+				"triggerColumn": "المحفز",
+				"gracePeriodColumn": "فترة السماح",
+				"actionColumn": "الإجراء",
+				"triggerValue": "فاتورة غير مدفوعة بعد تاريخ الاستحقاق",
+				"gracePeriodValue": "{{count}} أيام",
+				"actionEnabled": "إلغاء الاشتراك",
+				"actionDisabled": "غير مفعّل"
+			},
+			"fields": {
+				"autoCancellation": "تفعيل الإلغاء التلقائي",
+				"gracePeriodDays": "فترة السماح",
+				"gracePeriodSuffix": "أيام بعد تاريخ الاستحقاق"
+			},
+			"hints": {
+				"autoCancellation": "إلغاء الاشتراكات المتأخرة تلقائياً",
+				"disabledState": "عند التفعيل، تُلغى الاشتراكات تلقائياً بعد فترة السماح.",
+				"gracePeriodDays": "الحد الأدنى يوم واحد. الافتراضي 3."
+			},
+			"infoCallout": {
+				"title": "ماذا يحدث عند التفعيل",
+				"description1": "يُلغى الاشتراك فوراً — وليس في نهاية الفترة",
+				"description2": "يُرسل webhook من نوع subscription.cancelled لمزامنة الأنظمة الأخرى",
+				"description3": "تُلغى منح الائتمان المستقبلية، وتُنشأ فاتورة نهائية للفترة الجزئية"
+			}
+		}
+	},
+	"customerPortal": {
+		"tabs": {
+			"customerPortal": "بوابة العملاء"
+		},
+		"portal": {
+			"title": "البوابة",
+			"description": "تحكم في الأقسام والتبويبات المرئية للعملاء في بوابة الخدمة الذاتية.",
+			"showInvoices": "إظهار الفواتير",
+			"showInvoicesDescription": "يمكن للعملاء عرض وتنزيل فواتيرهم",
+			"showWalletBalance": "إظهار رصيد المحفظة",
+			"showWalletBalanceDescription": "يمكن للعملاء رؤية رصيد الائتمان وسجل المعاملات",
+			"showUsage": "إظهار الاستخدام",
+			"showUsageDescription": "يمكن للعملاء عرض بيانات الاستخدام المقاسة لاشتراكهم",
+			"showSubscriptions": "إظهار الاشتراكات",
+			"showSubscriptionsDescription": "يمكن للعملاء عرض تفاصيل اشتراكهم النشط",
+			"saveSuccess": "تم حفظ إعدادات البوابة",
+			"saveError": "فشل حفظ إعدادات البوابة"
+		}
+	},
+	"customerOnboarding": {
+		"tabs": {
+			"customerOnboarding": "تهيئة العملاء"
+		},
+		"workflow": {
+			"title": "تهيئة العملاء",
+			"description": "اضبط الإجراءات التي تعمل تلقائياً بعد إنشاء العميل. عند عدم وجود إجراءات، يتم تخطي التهيئة.",
+			"summaryLabel": "حالة سير العمل",
+			"noActionsConfigured": "لا توجد إجراءات تهيئة مضبوطة.",
+			"actionConfigured": "تم ضبط إجراء تهيئة واحد",
+			"actionsConfigured": "تم ضبط {{count}} إجراءات تهيئة",
+			"advancedActionsPreserved": "يتضمن هذا الإعداد إجراءات متقدمة غير قابلة للتعديل هنا. سيتم الاحتفاظ بها عند الحفظ.",
+			"selectedPlanUnavailable": "هذه الخطة محفوظة في سير العمل لكنها غير موجودة في قائمة الخطط المنشورة الحالية.",
+			"saveSuccess": "تم حفظ إعدادات تهيئة العملاء",
+			"saveError": "فشل حفظ إعدادات تهيئة العملاء",
+			"resetSuccess": "تمت إعادة تهيئة العملاء إلى القيم الافتراضية",
+			"resetError": "فشلت إعادة تهيئة العملاء",
+			"validation": {
+				"walletCurrencyRequired": "عملة المحفظة مطلوبة",
+				"walletConversionRateInvalid": "يجب أن يكون معدل التحويل أكبر من 0",
+				"walletInitialCreditsInvalid": "يجب أن تكون الأرصدة الأولية رقماً أكبر من أو يساوي 0",
+				"walletCreditsExpirationIncomplete": "عيّن مدة الانتهاء والوحدة معاً عند تفعيل انتهاء الأرصدة",
+				"walletCreditsExpirationInvalid": "يجب أن تكون مدة الانتهاء عدداً صحيحاً موجباً مع وحدة صالحة",
+				"walletCreditsExpirationWithoutCredits": "يمكن تعيين الانتهاء فقط عندما تكون الأرصدة الأولية أكبر من 0",
+				"subscriptionPlanRequired": "اختر خطة قبل تفعيل إنشاء الاشتراك",
+				"subscriptionStartDateInvalid": "يجب أن يكون تاريخ البدء بصيغة ISO datetime مثل 2026-07-04T00:00:00Z، أو اتركه فارغاً",
+				"customWorkflowNameRequired": "يحتاج كل سير عمل مخصص إلى اسم",
+				"customWorkflowNameInvalid": "يجب ألا تتجاوز أسماء سير العمل المخصص 100 حرفاً",
+				"customWorkflowNameDuplicate": "يجب أن تكون أسماء سير العمل المخصص فريدة"
+			},
+			"customWorkflows": {
+				"title": "سير عمل مخصص",
+				"description": "سير عمل مسمّى اختياري يمكن استخدامه لتوفير تدفقات تهيئة مختلفة لعملاء مختلفين.",
+				"empty": "لا يوجد سير عمل مخصص بعد.",
+				"add": "إضافة سير عمل مخصص",
+				"remove": "إزالة سير العمل المخصص",
+				"name": "الاسم",
+				"nameHint": "يُستخدم كاسم سير العمل. بحد أقصى 100 حرف.",
+				"namePlaceholder": "تجربة المؤسسات",
+				"untitled": "سير عمل بدون عنوان",
+				"noActionsSummary": "لا توجد إجراءات مفعّلة",
+				"advancedCount": "تم الاحتفاظ بـ {{count}} من الإجراءات المتقدمة"
+			},
+			"wallet": {
+				"title": "إنشاء محفظة",
+				"description": "إنشاء محفظة لكل عميل جديد.",
+				"type": "نوع المحفظة",
+				"typeHint": "المحافظ مسبقة الدفع تخصم من الرصيد؛ المحافظ لاحقة الدفع تُسوّى على الفواتير.",
+				"typePlaceholder": "اختر نوع المحفظة",
+				"types": {
+					"prePaid": "مسبقة الدفع",
+					"prePaidHint": "يشحن العملاء الأرصدة مسبقاً. يُخصم الاستخدام من رصيد فوري.",
+					"postPaid": "لاحقة الدفع",
+					"postPaidHint": "تُطبّق الأرصدة على الفواتير في نهاية دورة الفوترة."
+				},
+				"currency": "العملة",
+				"currencyHint": "عملة المحفظة التي سيتم إنشاؤها.",
+				"conversionRate": "معدل التحويل",
+				"conversionRateHint": "اختياري. القيمة الافتراضية 1 عند تركه فارغاً.",
+				"initialCredits": "الأرصدة الأولية",
+				"initialCreditsHint": "أرصدة ترحيبية مجانية اختيارية. اتركه فارغاً أو 0 لعدم إضافة أرصدة مجانية.",
+				"initialCreditsPlaceholder": "0",
+				"expireCredits": "انتهاء الأرصدة",
+				"expireCreditsHint": "عند الإيقاف، لا تنتهي الأرصدة الترحيبية. عند التفعيل، عيّن مدة ووحدة نسبيتين.",
+				"expirationDuration": "مدة انتهاء الأرصدة",
+				"expirationDurationHint": "المدة بعد المنح قبل انتهاء الأرصدة الترحيبية. مطلوبة مع الوحدة عند تفعيل الانتهاء.",
+				"expirationDurationPlaceholder": "30",
+				"expirationUnit": "وحدة انتهاء الأرصدة",
+				"expirationUnitHint": "وحدة مدة الانتهاء. مطلوبة مع المدة عند تفعيل الانتهاء.",
+				"expirationUnitPlaceholder": "اختر الوحدة",
+				"expirationUnits": {
+					"day": "يوم",
+					"week": "أسبوع",
+					"month": "شهر",
+					"year": "سنة"
+				}
+			},
+			"subscription": {
+				"title": "إنشاء اشتراك",
+				"description": "إنشاء اشتراك لكل عميل جديد.",
+				"plan": "الخطة",
+				"planPlaceholder": "اختر خطة",
+				"plansLoading": "جارٍ تحميل الخطط...",
+				"noPlans": "لا توجد خطط منشورة",
+				"planHint": "الخطة التي سيتم اشتراك العملاء الجدد بها.",
+				"billingCycle": "دورة الفوترة",
+				"billingCycleHint": "Anniversary تفوتر نسبةً إلى تاريخ تسجيل العميل؛ Calendar يوافق فترات التقويم.",
+				"startDate": "تاريخ البدء",
+				"startDatePlaceholder": "2026-07-04T00:00:00Z",
+				"startDateHint": "طابع زمني RFC3339 اختياري. اتركه فارغاً لحذف start_date."
+			}
+		}
+	},
+	"alerts": {
+		"tabs": {
+			"alerts": "التنبيهات"
+		},
+		"walletAlerts": {
+			"title": "إعدادات تنبيه المحفظة",
+			"description": "راقب رصيد المحفظة مقابل العتبات المُعدّة",
+			"thresholdValue": "قيمة العتبة ({{currency}})",
+			"condition": "الشرط",
+			"remove": "إزالة",
+			"add": "إضافة",
+			"amountPlaceholder": "0.00",
+			"saveChanges": "حفظ التغييرات",
+			"saveSuccess": "تم حفظ إعدادات تنبيه المحفظة",
+			"saveError": "فشل حفظ إعدادات تنبيه المحفظة",
+			"levels": {
+				"critical": "حرج",
+				"warning": "تحذير",
+				"info": "معلومات"
+			},
+			"levelDescriptions": {
+				"critical": "تنبيه عند المستوى الحرج",
+				"warning": "تنبيه عند مستوى التحذير",
+				"info": "تنبيه عند مستوى المعلومات"
+			},
+			"conditions": {
+				"below": "أقل من",
+				"above": "أكبر من"
+			},
+			"validation": {
+				"atLeastOneThreshold": "يرجى تكوين مستوى عتبة واحد على الأقل عند تفعيل التنبيهات",
+				"invalidCriticalThreshold": "يرجى إدخال قيمة عتبة حرجة صالحة",
+				"invalidWarningThreshold": "يرجى إدخال قيمة عتبة تحذير صالحة",
+				"invalidInfoThreshold": "يرجى إدخال قيمة عتبة معلومات صالحة",
+				"criticalRequiredForWarning": "عتبة حرجة مطلوبة عند تعيين عتبة تحذير",
+				"warningMustBeLessThanCritical": "لتنبيهات \"أكبر من\"، يجب أن تكون عتبة التحذير أقل من العتبة الحرجة",
+				"warningMustBeGreaterThanCritical": "لتنبيهات \"أقل من\"، يجب أن تكون عتبة التحذير أكبر من العتبة الحرجة",
+				"infoMustBeLessThanWarning": "لتنبيهات \"أكبر من\"، يجب أن تكون عتبة المعلومات أقل من عتبة التحذير",
+				"infoMustBeGreaterThanWarning": "لتنبيهات \"أقل من\"، يجب أن تكون عتبة المعلومات أكبر من عتبة التحذير",
+				"infoMustBeLessThanCritical": "لتنبيهات \"أكبر من\"، يجب أن تكون عتبة المعلومات أقل من العتبة الحرجة",
+				"infoMustBeGreaterThanCritical": "لتنبيهات \"أقل من\"، يجب أن تكون عتبة المعلومات أكبر من العتبة الحرجة"
+			}
+		}
+	},
+	"appearance": {
+		"tabs": {
+			"appearance": "المظهر"
+		},
+		"theme": {
+			"title": "الوضع الداكن",
+			"description": "بدّل لوحة التحكم بين المظهر الفاتح والداكن. يُحفظ اختيارك على هذا الجهاز.",
+			"toggleAriaLabel": "تبديل الوضع الداكن",
+			"rolloutNote": "لا يزال الوضع الداكن قيد الإطلاق — بعض الشاشات لم تُحوَّل بعد وستحتفظ بمظهرها الفاتح حالياً."
+		}
 	},
 	"billingPage": {
 		"errorFetchBilling": "خطأ في جلب تفاصيل الفوترة",
@@ -173,6 +495,7 @@
 		"chooseFile": "اختر ملفاً للرفع"
 	},
 	"bulkImports": {
+		"writeDeniedTooltip": "ليس لديك صلاحية إنشاء مهام الاستيراد. اطلب الوصول من مسؤول المستأجر.",
 		"title": "الاستيراد الجماعي",
 		"columns": {
 			"fileName": "اسم الملف",
@@ -309,8 +632,105 @@
 		}
 	},
 	"connection": {
+		"awsMarketplace": {
+			"titleConnect": "الاتصال بـ AWS Marketplace",
+			"titleEdit": "تعديل اتصال AWS Marketplace",
+			"description": "أنشئ دور IAM في حساب AWS الخاص بك، ثم الصق معرّف الدور (Role ARN) هنا. يتحقق Flexprice من الدور قبل الحفظ.",
+			"connectionNameLabel": "اسم الاتصال",
+			"connectionNameInfo": "اختر اسماً يساعد على تمييز اتصال AWS Marketplace هذا داخل مساحة عملك.",
+			"connectionNamePlaceholder": "مثال: AWS Marketplace",
+			"connectionNameHint": "اسم وصفي لهذا الاتصال.",
+			"step1Title": "١. أضف السياسات في حساب AWS الخاص بك",
+			"step1Hint": "أنشئ دور IAM، ثم انسخ كل سياسة أدناه إليه. وسّع لمراجعة JSON قبل النسخ.",
+			"iamPolicyLabel": "سياسة صلاحيات IAM",
+			"iamPolicyInfo": "تحدد بالضبط موارد AWS Marketplace التي يمكن لـ Flexprice الوصول إليها.",
+			"trustPolicyLabel": "سياسة الثقة",
+			"trustPolicyInfo": "تتيح لـ Flexprice تولي دور IAM هذا بأمان باستخدام المعرّف الخارجي أدناه.",
+			"externalIdLabel": "المعرّف الخارجي (External ID)",
+			"externalIdInfo": "يحمي هذا المعرّف الفريد من مشكلة الوكيل المخادع (Confused Deputy) عبر ضمان أن مساحة عمل Flexprice الخاصة بك فقط يمكنها تولي دور IAM هذا. لا حاجة لنسخه بشكل منفصل — فهو مضمّن بالفعل في سياسة الثقة أعلاه.",
+			"accountIdLabel": "معرّف حساب AWS الخاص بـ Flexprice",
+			"accountIdInfo": "حساب AWS الخاص بـ Flexprice الذي سيثق به دور IAM الخاص بك. وهو مضمّن بالفعل في سياسة الثقة أعلاه.",
+			"accountIdMissing": "غير مُهيّأ. اضبط VITE_FLEXPRICE_AWS_ACCOUNT_ID لتتمكن من توليد سياسة الثقة.",
+			"step2Title": "٢. الصق معرّف الدور (Role ARN)",
+			"roleArnLabel": "معرّف الدور (Role ARN)",
+			"roleArnInfo": "الصق معرّف الدور (ARN) الكامل للدور الذي أنشأته في حساب AWS الخاص بك. سنتحقق من إمكانية تولّيه قبل الحفظ.",
+			"roleArnPlaceholder": "arn:aws:iam::123456789012:role/flexprice-marketplace-role",
+			"roleArnHint": "معرّف دور IAM الذي أنشأته بالسياسات أعلاه.",
+			"regionLabel": "منطقة AWS Marketplace",
+			"regionInfo": "المنطقة (region) في AWS التي تم تفعيل خدمة قياس استخدام Marketplace لمنتجك فيها. القيمة الافتراضية هي us-east-1 — وهي المنطقة التي تخصصها AWS Marketplace لكل منتج SaaS ما لم تطلب صراحةً منطقة مختلفة.",
+			"regionPlaceholder": "us-east-1",
+			"regionHint": "غيّر هذه القيمة فقط إذا أكدت AWS أن منتجك يستخدم منطقة قياس استخدام مختلفة.",
+			"variablesTitle": "المتغيرات",
+			"variablesHint": "انسخ كل قيمة لملء العنصر النائب {VARIABLE} المطابق في سياسة الثقة أعلاه. تبقى القيم مخفية هنا ولا تظهر إلا بعد لصقها.",
+			"infoAriaLabel": "مزيد من المعلومات",
+			"copyIamPolicy": "تم نسخ سياسة IAM إلى الحافظة",
+			"copyTrustPolicy": "تم نسخ سياسة الثقة إلى الحافظة",
+			"copyExternalId": "تم نسخ المعرّف الخارجي إلى الحافظة",
+			"copyAccountId": "تم نسخ معرّف الحساب إلى الحافظة"
+		},
+		"gcpMarketplace": {
+			"titleConnect": "الاتصال بـ GCP Marketplace",
+			"titleEdit": "تعديل اتصال GCP Marketplace",
+			"description": "شغّل نص الإعداد (setup script) في مشروع GCP الخاص بك، ثم الصق ملف بيانات الاعتماد (credentials JSON) الناتج هنا. يتحقق Flexprice منه قبل الحفظ.",
+			"connectionNameLabel": "اسم الاتصال",
+			"connectionNameInfo": "اختر اسماً يساعد على تمييز اتصال GCP Marketplace هذا داخل مساحة عملك.",
+			"connectionNamePlaceholder": "مثال: GCP Marketplace",
+			"connectionNameHint": "اسم وصفي لهذا الاتصال. يغطي كل المنتجات المدرجة ضمن نفس مشروع GCP.",
+			"step1Title": "١. شغّل هذا النص في Cloud Shell الخاص بمشروع GCP",
+			"step1Hint": "ينشئ تجمّع Workload Identity Federation وحساب خدمة، ويمنحه بالضبط الصلاحية اللازمة للإبلاغ عن الاستخدام. وسّع للمراجعة قبل النسخ.",
+			"scriptLabel": "نص الإعداد",
+			"scriptInfo": "ينشئ تجمّع ومزوّد Workload Identity Federation وحساب خدمة في مشروع GCP الخاص بك، مقتصراً على الإبلاغ عن الاستخدام فقط.",
+			"copyScript": "تم نسخ نص الإعداد إلى الحافظة",
+			"variablesTitle": "المتغيرات",
+			"variablesHint": "انسخ كل قيمة لملء العنصر النائب {VARIABLE} المطابق في نص الإعداد أعلاه. تبقى القيم مخفية هنا ولا تظهر إلا بعد لصقها.",
+			"accountIdInfo": "حساب AWS الخاص بـ Flexprice الذي يثق به مزوّد Workload Identity Federation الخاص بك. وهو مضمّن بالفعل في نص الإعداد أعلاه.",
+			"roleNameInfo": "اسم دور AWS الذي يتحقق منه شرط سمة (attribute condition) مزوّد Workload Identity Federation الخاص بك. وهو مضمّن بالفعل في نص الإعداد أعلاه.",
+			"copyAccountId": "تم نسخ معرّف الحساب إلى الحافظة",
+			"copyRoleName": "تم نسخ اسم الدور إلى الحافظة",
+			"infoAriaLabel": "مزيد من المعلومات",
+			"accountIdMissing": "غير مُهيّأ. اضبط VITE_FLEXPRICE_AWS_ACCOUNT_ID و VITE_FLEXPRICE_AWS_ROLE_NAME لتوليد النص.",
+			"step2Title": "٢. الصق بيانات الاعتماد JSON الناتجة عن النص",
+			"credentialsJsonLabel": "بيانات الاعتماد JSON",
+			"credentialsJsonInfo": "ملف بيانات الاعتماد الذي أنشأه النص. يستخدمه Flexprice للمصادقة في مشروع GCP الخاص بك دون تخزين مفتاح طويل الأمد.",
+			"credentialsJsonPlaceholder": "{\"type\": \"external_account\", ...}",
+			"credentialsJsonHint": "المحتوى الكامل للملف الذي أنشأه النص (flexprice-gcp-creds.json) — وليس مفتاح حساب خدمة.",
+			"credentialsJsonRequired": "بيانات الاعتماد JSON مطلوبة",
+			"credentialsJsonInvalid": "هذا لا يبدو ملف بيانات اعتماد Workload Identity Federation — يجب أن يحتوي على \"type\": \"external_account\""
+		},
+		"azureMarketplace": {
+			"titleConnect": "الاتصال بـ Azure Marketplace",
+			"titleEdit": "تعديل اتصال Azure Marketplace",
+			"description": "زامن اشتراكات واستخدام Azure Marketplace باستخدام تطبيق Entra ID مُسجّل في مستأجرك (tenant) الخاص. يتحقق Flexprice من بيانات الاعتماد قبل الحفظ.",
+			"connectionNameLabel": "اسم الاتصال",
+			"connectionNameInfo": "اختر اسماً يساعد على تمييز اتصال Azure Marketplace هذا داخل مساحة عملك.",
+			"connectionNamePlaceholder": "مثال: Azure Marketplace",
+			"connectionNameHint": "اسم وصفي لهذا الاتصال.",
+			"infoAriaLabel": "مزيد من المعلومات",
+			"step1Title": "١. سجّل تطبيقاً في مستأجر Microsoft Entra ID الخاص بك",
+			"step1Hint": "أنشئ تسجيل تطبيق (app registration) في مستأجر Microsoft Entra ID الخاص بك وامنحه الوصول إلى موارد SaaS Marketplace الخاصة بك.",
+			"technicalConfigWarning": "استخدم نفس معرّف مستأجر Entra ومعرّف التطبيق اللذين حدّدتهما في صفحة Technical Configuration في Partner Center لكل عرض (offer) تريد الإبلاغ عن استخدامه.",
+			"step2Title": "٢. أدخل بيانات اعتماد التطبيق",
+			"tenantIdLabel": "معرّف المستأجر",
+			"tenantIdInfo": "معرّف الدليل (المستأجر) لمستأجر Microsoft Entra ID الذي سُجّل فيه التطبيق.",
+			"tenantIdPlaceholder": "أدخل معرّف المستأجر",
+			"tenantIdHint": "تجده في صفحة نظرة عامة على تسجيل التطبيق في Azure.",
+			"tenantIdRequired": "معرّف المستأجر مطلوب",
+			"clientIdLabel": "معرّف العميل",
+			"clientIdInfo": "معرّف التطبيق (العميل) للتطبيق المُسجّل.",
+			"clientIdPlaceholder": "أدخل معرّف العميل",
+			"clientIdHint": "تجده في صفحة نظرة عامة على تسجيل التطبيق في Azure.",
+			"clientIdRequired": "معرّف العميل مطلوب",
+			"clientSecretLabel": "سر العميل",
+			"clientSecretInfo": "سر عميل (client secret) مُولّد للتطبيق. يشفّره Flexprice ويستخدمه فقط لطلب رمز وصول.",
+			"clientSecretPlaceholder": "أدخل سر العميل",
+			"clientSecretHint": "يُولَّد ضمن Certificates and secrets في تسجيل التطبيق.",
+			"clientSecretRequired": "سر العميل مطلوب"
+		},
 		"validation": {
 			"nameRequired": "اسم الاتصال مطلوب",
+			"roleArnRequired": "معرّف الدور (Role ARN) مطلوب",
+			"roleArnInvalid": "أدخل معرّف دور IAM صالحاً (arn:aws:iam::<account-id>:role/<name>)",
+			"regionRequired": "المنطقة (Region) مطلوبة",
 			"awsAccessKeyRequired": "معرّف AWS Access Key مطلوب",
 			"awsSecretRequired": "مفتاح AWS Secret مطلوب",
 			"accessTokenRequired": "رمز الوصول مطلوب",
@@ -334,6 +754,7 @@
 			"updated": "تم تحديث اتصال {{provider}} بنجاح",
 			"failedToCreate": "فشل إنشاء الاتصال",
 			"failedToUpdate": "فشل تحديث الاتصال",
+			"externalIdUnavailable": "تعذّر إنشاء الاتصال — معرّف المستأجر أو البيئة غير متوفر",
 			"webhookUrlCopied": "تم نسخ عنوان الويب هوك!",
 			"redirectUriCopied": "تم نسخ عنوان إعادة التوجيه!",
 			"failedOAuth": "فشل بدء OAuth",
@@ -507,9 +928,22 @@
 			"secretKey": "المفتاح السري",
 			"secretKeyPlaceholder": "sk_...",
 			"secretKeyHint": "المفتاح السري من قسم مفاتيح API",
+			"publishableKey": "المفتاح القابل للنشر",
+			"publishableKeyPlaceholder": "pk_live_... أو pk_test_...",
+			"publishableKeyHint": "يُستخدم لعرض نموذج البطاقة الآمن للدفع التلقائي. ابحث عنه في لوحة تحكم Moyasar.",
+			"successUrl": "عنوان النجاح",
+			"successUrlPlaceholder": "https://your-app.com/billing/success",
+			"successUrlHint": "العنوان الذي يُوجَّه إليه العميل بعد نجاح الدفع (اختياري)",
+			"cancelUrl": "عنوان الإلغاء",
+			"cancelUrlPlaceholder": "https://your-app.com/billing/cancel",
+			"cancelUrlHint": "العنوان الذي يُوجَّه إليه العميل عند إلغاء الدفع (اختياري)",
 			"webhookIntro": "اضبط عنوان الويب هوك في لوحة Moyasar:",
 			"webhookEventsIntro": "اشترك في هذه الأحداث في Moyasar:",
-			"webhookEventPaymentPaid": "payment_paid"
+			"webhookEventPaymentPaid": "payment_paid",
+			"webhookEventPaymentFailed": "payment_failed",
+			"webhookEventPaymentRefunded": "payment_refunded",
+			"webhookEventPaymentVoided": "payment_voided",
+			"webhookEventPaymentCaptured": "payment_captured"
 		},
 		"razorpay": {
 			"description": "اضبط تكامل Razorpay ببيانات الاعتماد.",
@@ -537,8 +971,7 @@
 			"redirectUrlHint": "العنوان بعد نجاح الدفع (اختياري)",
 			"webhookSecretPlaceholder": "pdl_ntfset_...",
 			"webhookIntro": "اضبط عنوان الويب هوك في لوحة Paddle:",
-			"webhookEventsIntro": "اشترك Events في Paddle:",
-			"webhookEventTransactionsCompleted": "transactions.completed"
+			"webhookEventsIntro": "اشترك Events في Paddle:"
 		},
 		"whop": {
 			"description": "اربط Flexprice بـ Whop لمزامنة الفواتير.",
@@ -554,9 +987,19 @@
 			"productIdPlaceholder": "prod_... — اتركه فارغاً للإنشاء التلقائي",
 			"productIdHint": "منتج Whop المستخدم للفواتير. اتركه فارغاً لينشئ Flexprice واحداً تلقائياً.",
 			"invoiceSyncHint": "ادفع فواتير Flexprice إلى Whop كمدفوعات send_invoice",
-			"webhookIntroPrefix": "سجّل هذا العنوان في لوحة Whop ضمن Webhooks. سيتابع Flexprice",
-			"webhookEventName": "invoice.paid",
-			"webhookIntroSuffix": "لتحديث حالة الفاتورة تلقائياً عند الدفع."
+			"webhookSecret": "سرّ الويب هوك",
+			"webhookSecretPlaceholderCreate": "سرّ توقيع الويب هوك من Whop",
+			"webhookSecretPlaceholderEdit": "اتركه فارغاً للإبقاء على السرّ، أو أدخل سراً جديداً للتدوير",
+			"webhookSecretDescCreate": "مطلوب للتحقق من توقيع الويب هوك. يجب أن يطابق السرّ المُعدّ في Whop، ويُخزَّن مشفّراً بأمان مع الاتصال.",
+			"webhookSecretDescEdit": "مُخزَّن مشفّراً. اتركه فارغاً عند التحديث للإبقاء على السرّ الحالي."
+		},
+		"tabs": {
+			"description": "اضبط تكامل Tabs باستخدام بيانات الاعتماد المطلوبة.",
+			"connectionPlaceholder": "مثال: Tabs الإنتاج، Tabs الاختبار",
+			"connectionHint": "اسم ودي لتحديد اتصال Tabs هذا",
+			"apiKeyPlaceholder": "أدخل مفتاح Tabs API الخاص بك",
+			"apiKeyHint": "مفتاح Tabs API الخاص بك (مثال: tabs_sk_...)",
+			"pushToTabs": "دفع إلى Tabs"
 		}
 	},
 	"insightsTools": {
@@ -629,7 +1072,45 @@
 			"taskRunsHeading": "تشغيل المهام",
 			"backToExportDetails": "العودة إلى تفاصيل التصدير"
 		},
+		"usageSyncs": {
+			"pageHeading": "مزامنات الاستخدام",
+			"paginationUnit": "سجلات الاستخدام",
+			"notSynced": "لا توجد مزامنات بعد",
+			"entityName": "سجل الاستخدام",
+			"emptyDescription": "لا توجد سجلات استخدام بعد. اربط سوقًا سحابيًا واربط اشتراكًا لبدء رؤية مزامنات الاستخدام.",
+			"errors": {
+				"fetchFailed": "فشل تحميل سجلات الاستخدام"
+			},
+			"columns": {
+				"subscription": "الاشتراك",
+				"customer": "العميل",
+				"plan": "الخطة",
+				"amount": "المبلغ",
+				"currency": "العملة",
+				"periodStart": "بداية الفترة",
+				"periodEnd": "نهاية الفترة",
+				"syncs": "المزامنات"
+			},
+			"filterLabels": {
+				"customerId": "معرف العميل",
+				"subscriptionId": "معرف الاشتراك",
+				"periodStart": "بداية الفترة",
+				"periodEnd": "نهاية الفترة"
+			},
+			"sortLabels": {
+				"createdAt": "تاريخ الإنشاء",
+				"periodStart": "بداية الفترة",
+				"periodEnd": "نهاية الفترة"
+			},
+			"drawer": {
+				"title": "المزامنات",
+				"empty": "لا توجد مزامنات بعد.",
+				"synced": "تمت المزامنة",
+				"skipped": "تم التخطي"
+			}
+		},
 		"integrations": {
+			"writeDeniedTooltip": "ليس لديك صلاحية إدارة الاتصالات. اطلب الوصول من مسؤول المستأجر.",
 			"pageHeading": "التكاملات",
 			"availableSection": "متاح",
 			"premiumAddonsSection": "إضافات بريميوم",
@@ -664,7 +1145,9 @@
 					"customerService": "خدمة العملاء",
 					"accounting": "المحاسبة",
 					"payment": "الدفع",
-					"invoiceCustomer": "فاتورة العميل"
+					"invoiceCustomer": "فاتورة العميل",
+					"marketplace": "المتجر",
+					"usageMetering": "قياس الاستخدام"
 				},
 				"mode": {
 					"test": "وضع الاختبار"
@@ -896,6 +1379,119 @@
 							"paragraphs": ["استقبل إشعارات فورية عن أحداث الدفع عبر الويبهوك؛ اشترك في حدث transactions.completed لمتابعة حالة الدفع."]
 						}
 					}
+				},
+				"whop": {
+					"name": "Whop",
+					"description": "زامن الفواتير مع Whop مع تحديثات تلقائية لحالة الدفع.",
+					"sections": {
+						"overview": {
+							"title": "نظرة عامة",
+							"paragraphs": [
+								"يتيح تكامل Flexprice مع Whop إرسال الفواتير مباشرة إلى Whop كمدفوعات send_invoice لمرة واحدة. يدفع العملاء عبر صفحة الدفع المستضافة على Whop، ويتحدّث Flexprice تلقائياً عند استلام الدفع."
+							]
+						},
+						"invoiceSync": {
+							"title": "مزامنة الفواتير",
+							"paragraphs": [
+								"عند تفعيل مزامنة الفواتير، ينشئ Flexprice تلقائياً فاتورة مقابلة في Whop كلما اكتملت فاتورة في Flexprice. يضمن التكامل وجود منتج Whop (وينشئ واحداً عند الحاجة).",
+								"يمكنك أيضاً تعليم فاتورة Whop كمدفوعة من Flexprice، والذي يستدعي واجهة mark_paid في Whop نيابةً عنك."
+							]
+						},
+						"webhooks": {
+							"title": "الويبهوك",
+							"paragraphs": [
+								"سجّل عنوان ويبهوك Flexprice في إعدادات مطور Whop، واشترك في invoice.paid، واستخدم نفس سرّ توقيع الويبهوك في Flexprice. عند إطلاق Whop لهذا الحدث، يتحقق Flexprice من التوقيع، ويعلّم الفاتورة المقابلة كمدفوعة، ويسجّل الدفع."
+							]
+						}
+					}
+				},
+				"tabs": {
+					"name": "Tabs",
+					"description": "زامن الفواتير مع Tabs باستخدام مفتاح Tabs API الخاص بك.",
+					"sections": {
+						"overview": {
+							"title": "نظرة عامة",
+							"paragraphs": [
+								"يتيح تكامل Flexprice مع Tabs إرسال الفواتير مباشرة إلى Tabs باستخدام مفتاح Tabs API. اضبط اسم الاتصال ومفتاح API وإعدادات مزامنة الفواتير للبدء."
+							]
+						},
+						"invoiceSync": {
+							"title": "مزامنة الفواتير",
+							"paragraphs": ["عند تفعيل مزامنة الفواتير، يرسل Flexprice الفواتير المكتملة تلقائياً إلى Tabs."]
+						}
+					}
+				},
+				"aws_marketplace": {
+					"name": "AWS Marketplace",
+					"description": "أبلغ عن الاستخدام المقاس إلى AWS Marketplace لتتم فوترة مشتري AWS حسب استهلاكهم.",
+					"sections": {
+						"overview": {
+							"title": "نظرة عامة",
+							"paragraphs": [
+								"يُبلغ Flexprice عن الاستخدام الذي تقيسه بالفعل إلى AWS Marketplace نيابة عنك. اربط دور IAM الخاص بالقياس من حساب AWS الخاص بك، ويتولى Flexprice إرسال BatchMeterUsage لكل اتفاقية مسجّلة."
+							]
+						},
+						"setup": {
+							"title": "الإعداد",
+							"paragraphs": [
+								"أنشئ دور IAM في حساب AWS الخاص بك باستخدام سياسة IAM وسياسة الثقة الموضحتين في لوحة الاتصال. تمنح سياسة الثقة حساب AWS الخاص بـ Flexprice صلاحية تولي الدور، مقيّدة بمعرّف خارجي فريد. الصق معرّف الدور (Role ARN) الناتج في Flexprice واحفظ — يتحقق Flexprice من الدور بتوليه قبل حفظ الاتصال."
+							]
+						},
+						"usageReporting": {
+							"title": "الإبلاغ عن الاستخدام",
+							"paragraphs": [
+								"بعد الاتصال، تُجمّع مهمة كل ساعة الاستخدام لكل اتفاقية وتُبلغ عنه إلى AWS عبر BatchMeterUsage، مع تمريرة مطابقة يومية كإجراء احتياطي."
+							]
+						}
+					}
+				},
+				"gcp_marketplace": {
+					"name": "GCP Marketplace",
+					"description": "أبلغ عن الاستخدام المقاس إلى GCP Marketplace لتتم فوترة مشتري GCP حسب استهلاكهم.",
+					"sections": {
+						"overview": {
+							"title": "نظرة عامة",
+							"paragraphs": [
+								"يُبلغ Flexprice عن الاستخدام الذي تقيسه بالفعل إلى GCP Marketplace نيابة عنك. يُصادق Flexprice على مشروع GCP الخاص بك باستخدام Workload Identity Federation — دون تخزين أي مفتاح GCP طويل الأمد — ويرسل تقرير الاستخدام لكل استحقاق (entitlement) مسجّل."
+							]
+						},
+						"setup": {
+							"title": "الإعداد",
+							"paragraphs": [
+								"شغّل نص الإعداد الموضح في لوحة الاتصال من Cloud Shell الخاص بمشروع GCP. يُنشئ تجمّع Workload Identity وحساب خدمة مقيّد بصلاحية الإبلاغ عن الاستخدام فقط. الصق ملف بيانات الاعتماد الناتج في Flexprice واحفظ — يتحقق Flexprice من الاتصال باستبداله برمز فعلي قبل حفظه."
+							]
+						},
+						"usageReporting": {
+							"title": "الإبلاغ عن الاستخدام",
+							"paragraphs": [
+								"بعد الاتصال، تُجمّع مهمة مجدولة الاستخدام لكل استحقاق وتُبلغ عنه إلى GCP عبر services.report الخاصة بـ Service Control API."
+							]
+						}
+					}
+				},
+				"azure_marketplace": {
+					"name": "Azure Marketplace",
+					"description": "أبلغ عن الاستخدام المقاس إلى Azure Marketplace لتتم فوترة مشتري Azure حسب استهلاكهم.",
+					"sections": {
+						"overview": {
+							"title": "نظرة عامة",
+							"paragraphs": [
+								"يُبلغ Flexprice عن الاستخدام الذي تقيسه بالفعل إلى Azure Marketplace نيابة عنك. اربط تطبيق Entra ID مُسجّلاً في مستأجر Azure الخاص بك، ويرسل Flexprice حدث الاستخدام (usage event) لكل اشتراك مسجّل."
+							]
+						},
+						"setup": {
+							"title": "الإعداد",
+							"paragraphs": [
+								"سجّل تطبيقاً في مستأجر Microsoft Entra ID الخاص بك وولّد له سر عميل (client secret). تأكد من إدخال معرّف المستأجر ومعرّف التطبيق الخاصين بهذا التطبيق في صفحة Technical Configuration لكل عرض (offer) تريد الإبلاغ عن استخدامه. الصق معرّف المستأجر ومعرّف العميل وسر العميل في Flexprice واحفظ. يتحقق Flexprice من بيانات الاعتماد بطلب رمز وصول قبل تخزين الاتصال."
+							]
+						},
+						"usageReporting": {
+							"title": "الإبلاغ عن الاستخدام",
+							"paragraphs": [
+								"بعد الاتصال، تُبلغ مهمة مجدولة عن الاستخدام لكل اشتراك إلى واجهة برمجة تطبيقات حدث الاستخدام (usage event API) في Azure Marketplace."
+							]
+						}
+					}
 				}
 			}
 		},
@@ -945,6 +1541,7 @@
 			"labels": {
 				"plans": "الخطط",
 				"invoices": "الفواتير",
+				"prices": "الأسعار",
 				"subscriptions": "الاشتراكات"
 			},
 			"toast": {
@@ -1041,7 +1638,8 @@
 			"copyEnvironment": "نسخ البيئة",
 			"renameAria": "إعادة تسمية البيئة {{name}}",
 			"suspendedTitle": "تم تعليق البيئة",
-			"suspendedDescription": "هذه البيئة معلقة حاليًا. يرجى التواصل مع الدعم."
+			"suspendedDescription": "هذه البيئة معلقة حاليًا. يرجى التواصل مع الدعم.",
+			"writeDeniedTooltip": "ليس لديك إذن لإدارة البيئات"
 		},
 		"restrictedBanner": {
 			"productionAccount": "حساب الإنتاج",
@@ -1071,6 +1669,62 @@
 		"progress": "{{current}} من {{total}} حدث",
 		"streaming": "جارٍ البث...",
 		"startStreaming": "بدء البث"
+	},
+	"saml": {
+		"tabs": {
+			"saml": "تسجيل الدخول الموحد SAML"
+		},
+		"config": {
+			"title": "تسجيل الدخول الموحد SAML",
+			"description": "اسمح لفريقك بتسجيل الدخول عبر مزود الهوية الخاص بك بدلاً من كلمة المرور.",
+			"onboardingOrder": "انسخ رابط بيانات SP الوصفية أدناه إلى مزود الهوية الخاص بك وأنشئ التطبيق هناك أولاً، ثم املأ الحقول أدناه بالقيم التي يوفرها لك.",
+			"metadataUrlLabel": "رابط بيانات SP الوصفية",
+			"metadataUrlDescription": "الصق هذا في مزود الهوية الخاص بك عند إنشاء التطبيق.",
+			"copyMetadataUrl": "نسخ رابط البيانات الوصفية",
+			"copiedMetadataUrl": "تم نسخ رابط البيانات الوصفية",
+			"enabled": "تفعيل تسجيل الدخول الموحد SAML",
+			"enabledDescription": "تفعيل تسجيل الدخول الموحد لهذا المستأجر. يتطلب موافقة Flexprice قبل إتاحة تسجيل الدخول.",
+			"statusApproved": "تمت الموافقة",
+			"statusPending": "بانتظار موافقة Flexprice",
+			"statusDescription": "تراجع Flexprice وتوافق على وصول SSO لكل مستأجر. هذا منفصل عن المفتاح أعلاه.",
+			"enforceSso": "طلب SSO لتسجيل الدخول",
+			"enforceSsoWarning": "تفعيل هذا الخيار يعطل تسجيل الدخول بكلمة المرور لجميع المستخدمين في هذا المستأجر باستثناء المسؤولين الرئيسيين.",
+			"idpEntityId": "معرف كيان مزود الهوية",
+			"idpEntityIdDescription": "يجب أن يطابق المُصدر (Issuer) في تأكيد SAML.",
+			"idpEntityIdPlaceholder": "https://idp.example.com/metadata",
+			"idpSsoUrl": "رابط SSO لمزود الهوية",
+			"idpSsoUrlDescription": "يجب أن يكون رابط https:// كاملاً. يُسمح بـ http:// فقط لـ localhost / 127.0.0.1 / ::1.",
+			"idpSsoUrlPlaceholder": "https://idp.example.com/sso",
+			"idpCertificate": "شهادة مزود الهوية",
+			"idpCertificateDescription": "شهادة X.509 بترميز PEM، تبدأ بـ -----BEGIN CERTIFICATE-----.",
+			"idpCertificatePlaceholder": "-----BEGIN CERTIFICATE-----\n...\n-----END CERTIFICATE-----",
+			"emailAttribute": "سمة البريد الإلكتروني",
+			"emailAttributeDescription": "سمة التأكيد التي تحمل بريد المستخدم الإلكتروني. اتركها فارغة لاستخدام NameID.",
+			"emailAttributePlaceholder": "email",
+			"defaultRole": "الدور الافتراضي",
+			"defaultRoleDescription": "الدور الممنوح للمستخدمين عند أول تسجيل دخول عبر SSO.",
+			"defaultRolePlaceholder": "اختر دورًا",
+			"roleAllReader": "قارئ عام",
+			"roleAllWriter": "كاتب عام",
+			"validation": {
+				"idpEntityIdRequired": "معرف كيان مزود الهوية مطلوب عند تفعيل SAML SSO",
+				"idpSsoUrlRequired": "رابط SSO لمزود الهوية مطلوب عند تفعيل SAML SSO",
+				"idpSsoUrlInvalid": "يجب أن يكون رابط SSO لمزود الهوية رابط https:// كاملاً (يُسمح بـ http:// فقط لـ localhost)",
+				"idpCertificateRequired": "شهادة مزود الهوية مطلوبة عند تفعيل SAML SSO",
+				"defaultRoleRequired": "الدور الافتراضي مطلوب عند تفعيل SAML SSO"
+			},
+			"saveSuccess": "تم حفظ إعدادات SAML SSO",
+			"saveSuccessPendingApproval": "تم الحفظ. بانتظار موافقة Flexprice قبل إتاحة تسجيل الدخول.",
+			"saveError": "فشل حفظ إعدادات SAML SSO",
+			"saveErrorForbidden": "لا يمكن تهيئة SAML SSO إلا بواسطة مستخدم مسؤول رئيسي. لا يمكن استخدام مفتاح API لمسؤول رئيسي لتغيير طريقة تسجيل دخول المستخدمين.",
+			"saveErrorDisabled": "لا تقدم هذه البيئة تسجيل الدخول الموحد.",
+			"ssoLoginUrlLabel": "رابط تسجيل الدخول الأحادي",
+			"ssoLoginUrlDescription": "شارك هذا الرابط مع فريقك. سينقلهم مباشرة إلى موفّر الهوية لتسجيل الدخول.",
+			"copySsoLoginUrl": "نسخ رابط تسجيل الدخول الأحادي",
+			"copiedSsoLoginUrl": "تم نسخ رابط تسجيل الدخول الأحادي",
+			"unsupportedSigning": "لا يوقّع Flexprice طلبات المصادقة ولا يقبل التأكيدات المشفّرة. الشهادة أعلاه هي الشهادة العامة لموفّر الهوية لديك — ولا يحتفظ Flexprice بمفتاح توقيع خاص به. إذا كان موفّر الهوية يشترط توقيع الطلبات أو تشفير التأكيدات، فعطّل هذين الخيارين لهذا التطبيق، وإلا فسيفشل تسجيل الدخول.",
+			"saveConflict": "قام شخص آخر بتغيير هذه الإعدادات أثناء فتح الصفحة. تم تحميل أحدث القيم — راجعها ثم احفظ مرة أخرى."
+		}
 	},
 	"region": {
 		"dataRegion": "منطقة البيانات",

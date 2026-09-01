@@ -30,6 +30,17 @@ interface Props {
 	hideSelectedTick?: boolean;
 	trigger?: React.ReactNode;
 	contentClassName?: string;
+	/**
+	 * Id put on the Radix trigger and pointed at by the label's `htmlFor`. Generated when
+	 * omitted; pass one only when something outside this component needs to reference it.
+	 */
+	id?: string;
+	/**
+	 * Accessible name for the trigger when there is no visible `label` — e.g. a toolbar
+	 * dropdown that shows only its current value. Ignored when `label` is set, because the
+	 * visible label is already the accessible name and a second one would override it.
+	 */
+	ariaLabel?: string;
 }
 
 const RadioSelectItem = React.forwardRef<
@@ -46,10 +57,10 @@ const RadioSelectItem = React.forwardRef<
 		{/* Checkbox Icon - Show Empty when Not Selected, Filled when Selected */}
 		<span className='absolute left-2 top-[10px] flex h-4 w-4  justify-center'>
 			<SelectPrimitive.ItemIndicator className='flex items-center justify-center w-full h-full'>
-				<Circle className='size-2 text-black fill-current' />
+				<Circle className='size-2 text-content-black fill-current' />
 			</SelectPrimitive.ItemIndicator>
 			{/* Default Unselected Checkbox */}
-			<Circle className='size-4 text-gray-400 absolute' />
+			<Circle className='size-4 text-content-subtle absolute' />
 		</span>
 
 		<SelectPrimitive.ItemText>{children}</SelectPrimitive.ItemText>
@@ -73,12 +84,19 @@ const FlexPriceSelect: React.FC<Props> = ({
 	hideSelectedTick = true,
 	trigger,
 	contentClassName,
+	id,
+	ariaLabel,
 }) => {
+	const generatedId = React.useId();
+	const triggerId = id ?? generatedId;
+
 	return (
 		<div className={cn('space-y-1 ', className)}>
 			{/* Label */}
 			{label && (
-				<label className={cn(' block text-sm font-medium text-zinc break-words', disabled ? 'text-zinc-500' : 'text-zinc-950')}>
+				<label
+					htmlFor={triggerId}
+					className={cn(' block text-sm font-medium break-words', disabled ? 'text-content-zinc-muted' : 'text-content-zinc')}>
 					{label}
 					{required && <span className='text-destructive'> *</span>}
 				</label>
@@ -86,15 +104,17 @@ const FlexPriceSelect: React.FC<Props> = ({
 
 			<Select
 				defaultOpen={defaultOpen}
-				defaultValue={value || ''}
 				onValueChange={(newValue) => {
 					if (onChange) {
 						onChange(newValue === value ? '' : newValue);
 					}
 				}}
-				value={value}
+				value={value ?? ''}
 				disabled={disabled}>
-				<SelectTrigger className={cn(disabled && 'cursor-not-allowed', className)}>
+				<SelectTrigger
+					id={triggerId}
+					aria-label={label ? undefined : ariaLabel}
+					className={cn(disabled && 'cursor-not-allowed', className)}>
 					{trigger ? (
 						trigger
 					) : (
@@ -118,7 +138,7 @@ const FlexPriceSelect: React.FC<Props> = ({
 												<div className='flex flex-col me-2 w-full'>
 													<span className='break-words'>{option.label}</span>
 													{option.description && (
-														<span className='text-sm text-gray-500 break-words whitespace-normal'>{option.description}</span>
+														<span className='text-sm text-content-muted break-words whitespace-normal'>{option.description}</span>
 													)}
 												</div>
 											</div>
@@ -148,7 +168,7 @@ const FlexPriceSelect: React.FC<Props> = ({
 												<div className={cn('flex flex-col w-full', !hideSelectedTick && 'mr-0')}>
 													<span className='break-words'>{option.label}</span>
 													{option.description && (
-														<span className='text-sm text-gray-500 break-words whitespace-normal'>{option.description}</span>
+														<span className='text-sm text-content-muted break-words whitespace-normal'>{option.description}</span>
 													)}
 												</div>
 												{option.suffixIcon && <span className='absolute right-2 top-1/2 -translate-y-1/2'>{option.suffixIcon}</span>}

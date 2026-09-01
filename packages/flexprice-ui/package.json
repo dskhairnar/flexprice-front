@@ -1,0 +1,40 @@
+{
+	"name": "@flexprice/ui",
+	"version": "0.1.0",
+	"description": "Flexprice UI — drop-in React components (pricing, and more). Bring your own data.",
+	"license": "MIT",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/flexprice/flexprice-front.git",
+		"directory": "packages/flexprice-ui"
+	},
+	"homepage": "https://github.com/flexprice/flexprice-front/tree/main/packages/flexprice-ui#readme",
+	"bugs": {
+		"url": "https://github.com/flexprice/flexprice-front/issues"
+	},
+	"type": "module",
+	"sideEffects": [
+		"**/*.css"
+	],
+	"main": "./dist/flexprice-ui.cjs",
+	"module": "./dist/flexprice-ui.mjs",
+	"types": "./dist/flexprice-ui.d.mts",
+	"exports": {
+		".": {
+			"types": "./dist/flexprice-ui.d.mts",
+			"import": "./dist/flexprice-ui.mjs",
+			"require": "./dist/flexprice-ui.cjs"
+		},
+		"./style.css": "./dist/style.css"
+	},
+	"files": [
+		"dist"
+	],
+	"peerDependencies": {
+		"react": "^18 || ^19",
+		"react-dom": "^18 || ^19"
+	},
+	"publishConfig": {
+		"access": "public"
+	}
+}

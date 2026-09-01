@@ -1,10 +1,10 @@
-import FlexpriceTable, { ColumnData } from '@/components/molecules/Table';
+import FlexpriceTable, { ColumnData } from '@/components/molecules/Table/Table';
 import { cn } from '@/lib/utils';
 import { WALLET_TRANSACTION_REASON } from '@/models/Wallet';
 import { WalletTransaction } from '@/models/WalletTransaction';
 import { formatDateShort, getCurrencySymbol } from '@/utils/common/helper_functions';
 import { FC, useMemo } from 'react';
-import { useTranslation } from 'react-i18next';
+import { useWalletTransactionsTableT } from './WalletTransactionsTable.i18n';
 
 const TX_AMOUNT_PRIMARY = 'text-base font-medium';
 const TX_AMOUNT_SECONDARY = 'text-sm';
@@ -14,7 +14,7 @@ interface Props {
 }
 
 const WalletTransactionsTable: FC<Props> = ({ data }) => {
-	const { t } = useTranslation('billing');
+	const t = useWalletTransactionsTableT();
 
 	const columnData: ColumnData<WalletTransaction>[] = useMemo(() => {
 		const formatAmountEl = ({
@@ -22,14 +22,19 @@ const WalletTransactionsTable: FC<Props> = ({ data }) => {
 			amount,
 			currency,
 			className,
+			status,
 		}: {
 			type: string;
 			amount: number;
 			currency?: string;
 			className?: string;
+			status?: string;
 		}) => {
+			const isPending = status?.toLowerCase() === 'pending';
+			const colorClass = isPending ? 'text-accent-yellow-brand' : type === 'credit' ? 'text-accent-teal-brand' : 'text-content-zinc-bold';
+
 			return (
-				<span className={cn(type === 'credit' ? 'text-[#2A9D90] ' : 'text-[#18181B] ', className)}>
+				<span className={cn(colorClass, className)}>
 					{type === 'credit' ? '+' : '-'}
 					{amount}
 					{currency ? ` ${getCurrencySymbol(currency)}` : ` ${t('payments.transactions.creditsSuffix')}`}
@@ -87,8 +92,19 @@ const WalletTransactionsTable: FC<Props> = ({ data }) => {
 				render: (rowData) => {
 					return (
 						<span className='flex flex-col justify-center items-end'>
-							{formatAmountEl({ type: rowData.type, amount: rowData.amount, currency: rowData.currency, className: TX_AMOUNT_PRIMARY })}
-							{formatAmountEl({ type: rowData.type, amount: rowData.credit_amount, className: TX_AMOUNT_SECONDARY })}
+							{formatAmountEl({
+								type: rowData.type,
+								amount: rowData.amount,
+								currency: rowData.currency,
+								className: TX_AMOUNT_PRIMARY,
+								status: rowData.transaction_status,
+							})}
+							{formatAmountEl({
+								type: rowData.type,
+								amount: rowData.credit_amount,
+								className: TX_AMOUNT_SECONDARY,
+								status: rowData.transaction_status,
+							})}
 						</span>
 					);
 				},

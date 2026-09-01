@@ -10,6 +10,7 @@ import {
 	resolveCommitmentTypeFromConfig,
 	validateCommitment,
 	supportsWindowCommitment,
+	resolveBucketSize,
 	supportsCommitmentTimeBuckets,
 	type CommitmentValidationTarget,
 } from '@/utils/common/commitment_helpers';
@@ -20,7 +21,7 @@ import { useTranslation } from 'react-i18next';
 import CommitmentTimeBucketsEditor from '@/components/molecules/CommitmentTimeBucketsEditor';
 import CommitmentTypeSelect from '@/components/molecules/CommitmentTypeSelect';
 import {
-	buildCommitmentTimeBucketDefaults,
+	bucketDefaultsFromPrice,
 	normalizeTimeBucketDraftsOrError,
 	timeBucketToDraft,
 	type CommitmentTimeBucketDraft,
@@ -31,7 +32,7 @@ interface CommitmentConfigDialogProps {
 	isOpen: boolean;
 	onOpenChange: (isOpen: boolean) => void;
 	price: Price;
-	onSave: (priceId: string, config: LineItemCommitmentConfig | null, timeBuckets?: CommitmentTimeBucket[]) => void;
+	onSave: (priceId: string, config: LineItemCommitmentConfig | null, timeBuckets?: CommitmentTimeBucket[]) => void | Promise<void>;
 	currentConfig: LineItemCommitmentConfig | undefined;
 	currentTimeBuckets?: CommitmentTimeBucket[];
 	billingPeriod?: BILLING_PERIOD;
@@ -57,9 +58,11 @@ const CommitmentConfigDialog: FC<CommitmentConfigDialogProps> = ({
 	const [timeBuckets, setTimeBuckets] = useState<CommitmentTimeBucketDraft[]>([]);
 	const [validationError, setValidationError] = useState<string | null>(null);
 	const [commitmentErrorTarget, setCommitmentErrorTarget] = useState<CommitmentValidationTarget | null>(null);
+	const [isSaving, setIsSaving] = useState(false);
 
 	const commitmentDurationOptions = useMemo(
 		() => [
+			{ label: t('commitmentConfig.billingPeriodLabels.DAILY'), value: BILLING_PERIOD.DAILY },
 			{ label: t('commitmentConfig.billingPeriodLabels.MONTHLY'), value: BILLING_PERIOD.MONTHLY },
 			{ label: t('commitmentConfig.billingPeriodLabels.QUARTERLY'), value: BILLING_PERIOD.QUARTERLY },
 			{ label: t('commitmentConfig.billingPeriodLabels.HALF_YEARLY'), value: BILLING_PERIOD.HALF_YEARLY },
@@ -74,16 +77,7 @@ const CommitmentConfigDialog: FC<CommitmentConfigDialogProps> = ({
 	const showTimeBucketEditor = showWindowCommitment && supportsCommitmentTimeBuckets(price) && isWindowCommitment;
 	const bucketPriceContext = useMemo(() => bucketPriceContextFromPrice(price), [price]);
 
-	const bucketDefaults = useMemo(
-		() =>
-			buildCommitmentTimeBucketDefaults(price, {
-				commitmentType,
-				commitmentValue: commitmentType === CommitmentType.AMOUNT ? commitmentAmount : commitmentQuantity,
-				overageFactor,
-				trueUpEnabled: enableTrueUp,
-			}),
-		[commitmentType, commitmentAmount, commitmentQuantity, overageFactor, enableTrueUp, price],
-	);
+	const bucketDefaults = useMemo(() => bucketDefaultsFromPrice(price), [price]);
 
 	const clearValidation = useCallback(() => {
 		setValidationError(null);
@@ -113,7 +107,14 @@ const CommitmentConfigDialog: FC<CommitmentConfigDialogProps> = ({
 		clearValidation();
 	}, [currentConfig, currentTimeBuckets, isOpen, showWindowCommitment, billingPeriod, clearValidation]);
 
-	const handleSave = () => {
+	const handleDialogOpenChange = (open: boolean) => {
+		if (!open && isSaving) return;
+		onOpenChange(open);
+	};
+
+	const handleSave = async () => {
+		if (isSaving) return;
+
 		const config: Partial<LineItemCommitmentConfig> = {
 			commitment_type: commitmentType,
 			overage_factor: parseFloat(overageFactor) || 1.0,
@@ -138,7 +139,7 @@ const CommitmentConfigDialog: FC<CommitmentConfigDialogProps> = ({
 		let normalizedTimeBuckets: CommitmentTimeBucket[] | undefined;
 		if (showTimeBucketEditor) {
 			if (timeBuckets.length > 0) {
-				const result = normalizeTimeBucketDraftsOrError(timeBuckets, commitmentType, price.meter?.aggregation?.bucket_size, {
+				const result = normalizeTimeBucketDraftsOrError(timeBuckets, commitmentType, resolveBucketSize(price), {
 					requireCommitmentFields: true,
 					requireBucketPrice: !!bucketPriceContext,
 					requireNonEmpty: false,
@@ -156,16 +157,33 @@ const CommitmentConfigDialog: FC<CommitmentConfigDialogProps> = ({
 		}
 
 		setCommitmentErrorTarget(null);
-		onSave(price.id, config as LineItemCommitmentConfig, normalizedTimeBuckets);
-		onOpenChange(false);
+		try {
+			setIsSaving(true);
+			await onSave(price.id, config as LineItemCommitmentConfig, normalizedTimeBuckets);
+			onOpenChange(false);
+		} catch {
+			// Keep dialog open so the user can fix and retry.
+		} finally {
+			setIsSaving(false);
+		}
 	};
 
-	const handleClear = () => {
-		onSave(price.id, null);
-		onOpenChange(false);
+	const handleClear = async () => {
+		if (isSaving) return;
+
+		try {
+			setIsSaving(true);
+			await onSave(price.id, null);
+			onOpenChange(false);
+		} catch {
+			// Keep dialog open so the user can fix and retry.
+		} finally {
+			setIsSaving(false);
+		}
 	};
 
 	const handleCancel = () => {
+		if (isSaving) return;
 		clearValidation();
 		onOpenChange(false);
 	};
@@ -179,7 +197,7 @@ const CommitmentConfigDialog: FC<CommitmentConfigDialogProps> = ({
 	return (
 		<Dialog
 			isOpen={isOpen}
-			onOpenChange={onOpenChange}
+			onOpenChange={handleDialogOpenChange}
 			title={t('commitmentConfig.title')}
 			description={t('commitmentConfig.description', { name: meterDisplayName })}
 			className='w-full max-w-4xl'>
@@ -196,7 +214,7 @@ const CommitmentConfigDialog: FC<CommitmentConfigDialogProps> = ({
 					<div className='space-y-1'>
 						{commitmentType === CommitmentType.AMOUNT ? (
 							<>
-								<label className='text-sm font-medium text-gray-700'>
+								<label className='text-sm font-medium text-content-secondary'>
 									{t('commitmentConfig.commitmentAmount', { currency: price.currency })}
 								</label>
 								<Input
@@ -211,11 +229,11 @@ const CommitmentConfigDialog: FC<CommitmentConfigDialogProps> = ({
 									className='w-full'
 									error={showAmountError}
 								/>
-								<p className='text-xs text-gray-500'>{t('commitmentConfig.commitmentAmountHint')}</p>
+								<p className='text-xs text-content-muted'>{t('commitmentConfig.commitmentAmountHint')}</p>
 							</>
 						) : (
 							<>
-								<label className='text-sm font-medium text-gray-700'>{t('commitmentConfig.commitmentQuantity')}</label>
+								<label className='text-sm font-medium text-content-secondary'>{t('commitmentConfig.commitmentQuantity')}</label>
 								<Input
 									type='number'
 									value={commitmentQuantity}
@@ -227,12 +245,12 @@ const CommitmentConfigDialog: FC<CommitmentConfigDialogProps> = ({
 									className='w-full'
 									error={showQuantityError}
 								/>
-								<p className='text-xs text-gray-500'>{t('commitmentConfig.commitmentQuantityHint')}</p>
+								<p className='text-xs text-content-muted'>{t('commitmentConfig.commitmentQuantityHint')}</p>
 							</>
 						)}
 					</div>
 					<div className='space-y-1'>
-						<label className='text-sm font-medium text-gray-700'>{t('commitmentConfig.commitmentPeriod')}</label>
+						<label className='text-sm font-medium text-content-secondary'>{t('commitmentConfig.commitmentPeriod')}</label>
 						<Select
 							value={commitmentDuration}
 							options={commitmentDurationOptions}
@@ -242,12 +260,12 @@ const CommitmentConfigDialog: FC<CommitmentConfigDialogProps> = ({
 							}}
 							placeholder={t('commitmentConfig.sameAsBillingPlaceholder')}
 						/>
-						<p className='text-xs text-gray-500'>{t('commitmentConfig.commitmentPeriodHint')}</p>
+						<p className='text-xs text-content-muted'>{t('commitmentConfig.commitmentPeriodHint')}</p>
 					</div>
 				</div>
 
 				<div className='space-y-2'>
-					<label className='text-sm font-medium text-gray-700'>{t('commitmentConfig.overageFactor')}</label>
+					<label className='text-sm font-medium text-content-secondary'>{t('commitmentConfig.overageFactor')}</label>
 					<Input
 						type='number'
 						value={overageFactor}
@@ -259,23 +277,23 @@ const CommitmentConfigDialog: FC<CommitmentConfigDialogProps> = ({
 						className='w-full'
 						error={commitmentErrorTarget === 'overageField' ? (validationError ?? undefined) : undefined}
 					/>
-					<p className='text-xs text-gray-500'>{t('commitmentConfig.overageFactorHint')}</p>
+					<p className='text-xs text-content-muted'>{t('commitmentConfig.overageFactorHint')}</p>
 				</div>
 
-				<div className='flex items-center justify-between p-4 bg-gray-50 rounded-lg'>
+				<div className='flex items-center justify-between p-4 bg-surface-subtle rounded-lg'>
 					<div className='flex-1'>
-						<label className='text-sm font-medium text-gray-700 block mb-1'>{t('commitmentConfig.enableTrueUp')}</label>
-						<p className='text-xs text-gray-500'>{t('commitmentConfig.enableTrueUpHint')}</p>
+						<label className='text-sm font-medium text-content-secondary block mb-1'>{t('commitmentConfig.enableTrueUp')}</label>
+						<p className='text-xs text-content-muted'>{t('commitmentConfig.enableTrueUpHint')}</p>
 					</div>
 					<Switch checked={enableTrueUp} onCheckedChange={setEnableTrueUp} />
 				</div>
 
 				{showWindowCommitment && (
-					<div className='flex items-center justify-between p-4 bg-gray-50 rounded-lg'>
+					<div className='flex items-center justify-between p-4 bg-surface-subtle rounded-lg'>
 						<div className='flex-1'>
-							<label className='text-sm font-medium text-gray-700 block mb-1'>{t('commitmentConfig.windowCommitment')}</label>
-							<p className='text-xs text-gray-500'>
-								{t('commitmentConfig.windowCommitmentHint', { bucketSize: price.meter?.aggregation?.bucket_size })}
+							<label className='text-sm font-medium text-content-secondary block mb-1'>{t('commitmentConfig.windowCommitment')}</label>
+							<p className='text-xs text-content-muted'>
+								{t('commitmentConfig.windowCommitmentHint', { bucketSize: resolveBucketSize(price) })}
 							</p>
 						</div>
 						<Switch
@@ -291,37 +309,41 @@ const CommitmentConfigDialog: FC<CommitmentConfigDialogProps> = ({
 				{showTimeBucketEditor && (
 					<CommitmentTimeBucketsEditor
 						buckets={timeBuckets}
-						onChange={setTimeBuckets}
-						bucketSize={price.meter?.aggregation?.bucket_size}
+						onChange={(nextBuckets) => {
+							setTimeBuckets(nextBuckets);
+							if (commitmentErrorTarget === 'banner') clearValidation();
+						}}
+						bucketSize={resolveBucketSize(price)}
 						defaultCommitmentType={commitmentType}
 						currencySymbol={currencySymbol}
 						currency={price.currency}
 						bucketDefaults={bucketDefaults}
+						showErrors={commitmentErrorTarget === 'banner'}
 					/>
 				)}
 
 				{validationError && commitmentErrorTarget === 'banner' && (
-					<div className='p-3 bg-red-50 border border-red-200 rounded-lg'>
-						<p className='text-sm text-red-700'>{validationError}</p>
+					<div className='p-3 bg-danger-muted border border-danger-line rounded-lg'>
+						<p className='text-sm text-danger-strong'>{validationError}</p>
 					</div>
 				)}
 
 				{hasExistingConfig && (
-					<div className='p-3 bg-blue-50 border border-blue-200 rounded-lg'>
-						<p className='text-sm text-blue-700'>{t('commitmentConfig.existingNotice')}</p>
+					<div className='p-3 bg-info-muted border border-info-line rounded-lg'>
+						<p className='text-sm text-info-strong'>{t('commitmentConfig.existingNotice')}</p>
 					</div>
 				)}
 
 				<div className='flex gap-3 pt-4 border-t'>
-					<Button variant='outline' onClick={handleCancel} className='flex-1'>
+					<Button variant='outline' onClick={handleCancel} className='flex-1' disabled={isSaving}>
 						{t('commitmentConfig.cancel')}
 					</Button>
 					{hasExistingConfig && (
-						<Button variant='outline' onClick={handleClear} className='flex-1 text-red-600 hover:bg-red-50'>
+						<Button variant='outline' onClick={handleClear} className='flex-1 text-danger hover:bg-danger-muted' disabled={isSaving}>
 							{t('commitmentConfig.clearCommitment')}
 						</Button>
 					)}
-					<Button onClick={handleSave} className='flex-1'>
+					<Button onClick={handleSave} className='flex-1' isLoading={isSaving} disabled={isSaving}>
 						{hasExistingConfig ? t('commitmentConfig.updateCommitment') : t('commitmentConfig.saveCommitment')}
 					</Button>
 				</div>

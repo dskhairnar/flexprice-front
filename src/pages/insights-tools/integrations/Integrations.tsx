@@ -1,4 +1,5 @@
-import { Loader, Page, Dialog, Card, Button, Divider } from '@/components/atoms';
+import { Loader, Page, Dialog, Card, Button, Divider, Tooltip } from '@/components/atoms';
+import { useCurrentUserPermissions } from '@/hooks/useCurrentUserPermissions';
 import { Integration, INTEGRATION_TAG_DATA_PIPELINES } from './integrationsData';
 import { useIntegrationsCatalog } from './useIntegrationsCatalog';
 import { cn } from '@/lib/utils';
@@ -21,6 +22,10 @@ import ZohoBooksConnectionDrawer from '@/components/molecules/ZohoBooksConnectio
 import NomodConnectionDrawer from '@/components/molecules/NomodConnectionDrawer';
 import MoyasarConnectionDrawer from '@/components/molecules/MoyasarConnectionDrawer';
 import WhopConnectionDrawer from '@/components/molecules/WhopConnectionDrawer';
+import TabsConnectionDrawer from '@/components/molecules/TabsConnectionDrawer';
+import AwsMarketplaceConnectionDrawer from '@/components/molecules/AwsMarketplaceConnectionDrawer';
+import GcpMarketplaceConnectionDrawer from '@/components/molecules/GcpMarketplaceConnectionDrawer';
+import AzureMarketplaceConnectionDrawer from '@/components/molecules/AzureMarketplaceConnectionDrawer';
 import IntegrationDrawer from '@/components/molecules/IntegrationDrawer/IntegrationDrawer';
 
 /** UI preview only: shows one card in connected state without real API data. Set to `null` to turn off. */
@@ -309,6 +314,78 @@ const Integrations = () => {
 								setActiveIntegration(null);
 							}}
 						/>
+					) : activeIntegration.id === CONNECTION_PROVIDER_TYPE.TABS ? (
+						<TabsConnectionDrawer
+							isOpen={isDrawerOpen}
+							onOpenChange={(open) => {
+								setIsDrawerOpen(open);
+								if (!open) {
+									setEditingConnection(null);
+									setActiveIntegration(null);
+								}
+							}}
+							connection={editingConnection}
+							onSave={() => {
+								connectionQueries.forEach((q) => q.refetch?.());
+								setIsDrawerOpen(false);
+								setEditingConnection(null);
+								setActiveIntegration(null);
+							}}
+						/>
+					) : activeIntegration.id === CONNECTION_PROVIDER_TYPE.AWS_MARKETPLACE ? (
+						<AwsMarketplaceConnectionDrawer
+							isOpen={isDrawerOpen}
+							onOpenChange={(open) => {
+								setIsDrawerOpen(open);
+								if (!open) {
+									setEditingConnection(null);
+									setActiveIntegration(null);
+								}
+							}}
+							connection={editingConnection}
+							onSave={() => {
+								connectionQueries.forEach((q) => q.refetch?.());
+								setIsDrawerOpen(false);
+								setEditingConnection(null);
+								setActiveIntegration(null);
+							}}
+						/>
+					) : activeIntegration.id === CONNECTION_PROVIDER_TYPE.GCP_MARKETPLACE ? (
+						<GcpMarketplaceConnectionDrawer
+							isOpen={isDrawerOpen}
+							onOpenChange={(open) => {
+								setIsDrawerOpen(open);
+								if (!open) {
+									setEditingConnection(null);
+									setActiveIntegration(null);
+								}
+							}}
+							connection={editingConnection}
+							onSave={() => {
+								connectionQueries.forEach((q) => q.refetch?.());
+								setIsDrawerOpen(false);
+								setEditingConnection(null);
+								setActiveIntegration(null);
+							}}
+						/>
+					) : activeIntegration.id === CONNECTION_PROVIDER_TYPE.AZURE_MARKETPLACE ? (
+						<AzureMarketplaceConnectionDrawer
+							isOpen={isDrawerOpen}
+							onOpenChange={(open) => {
+								setIsDrawerOpen(open);
+								if (!open) {
+									setEditingConnection(null);
+									setActiveIntegration(null);
+								}
+							}}
+							connection={editingConnection}
+							onSave={() => {
+								connectionQueries.forEach((q) => q.refetch?.());
+								setIsDrawerOpen(false);
+								setEditingConnection(null);
+								setActiveIntegration(null);
+							}}
+						/>
 					) : (
 						<IntegrationDrawer
 							isOpen={isDrawerOpen}
@@ -351,6 +428,8 @@ const IntegrationCard = ({ integration, connected, connection, isPreviewConnecti
 	const { t } = useTranslation('settings');
 	const { i18n } = useTranslation();
 	const [disconnectDialogOpen, setDisconnectDialogOpen] = useState(false);
+	const { can } = useCurrentUserPermissions();
+	const canWriteConnection = can('connection', 'write');
 
 	const providerKey = integration.id;
 
@@ -389,22 +468,31 @@ const IntegrationCard = ({ integration, connected, connection, isPreviewConnecti
 
 	return (
 		<PremiumFeature isPremiumFeature={integration.premium}>
-			<Card className={cn('min-w-0 overflow-hidden border-slate-200 shadow-sm rounded-xl h-full flex flex-col')} noPadding>
+			<Card className={cn('min-w-0 overflow-hidden border-line-slate shadow-sm rounded-xl h-full flex flex-col')} noPadding>
 				<div className='min-w-0 overflow-hidden p-6 flex-1'>
 					<div className='flex gap-5'>
-						<div className='flex size-14 shrink-0 items-center justify-center rounded-lg bg-slate-100'>
-							<img src={integration.logo} alt={integration.name} className='size-8 object-contain' />
+						<div className='flex size-14 shrink-0 items-center justify-center rounded-lg bg-surface-slate-subtle'>
+							{/* Brands whose mark is a deep navy ship a dark variant; the rest read fine on either
+					    surface and reuse the one logo. `hidden` means only the shown image is fetched. */}
+							<img
+								src={integration.logo}
+								alt={integration.name}
+								className={cn('size-8 object-contain', integration.logoDark && 'dark:hidden')}
+							/>
+							{integration.logoDark && (
+								<img src={integration.logoDark} alt={integration.name} className='size-8 hidden object-contain dark:block' />
+							)}
 						</div>
 						<div className='min-w-0 flex-1 space-y-2'>
 							<div className='flex items-center gap-2'>
 								<h3 className='font-semibold text-lg text-foreground'>{integration.name}</h3>
 								{connected && (
-									<span className='inline-flex h-5 items-center rounded-sm bg-emerald-100 px-2 text-xs font-medium text-emerald-700'>
+									<span className='inline-flex h-5 items-center rounded-sm bg-accent-emerald-muted px-2 text-xs font-medium text-accent-emerald-deep'>
 										{t('insightsTools.integrations.badgeConnected')}
 									</span>
 								)}
 								{integration.premium && (
-									<span className='inline-flex h-5 items-center rounded-sm bg-amber-100 px-2 text-xs font-medium text-amber-700'>
+									<span className='inline-flex h-5 items-center rounded-sm bg-warning-muted-strong px-2 text-xs font-medium text-warning-strong'>
 										{t('insightsTools.integrations.badgePremium')}
 									</span>
 								)}
@@ -414,7 +502,7 @@ const IntegrationCard = ({ integration, connected, connection, isPreviewConnecti
 											href={integration.docsUrl}
 											target='_blank'
 											rel='noopener noreferrer'
-											className='inline-flex h-5 items-center gap-1 text-xs text-slate-500 transition-colors hover:text-slate-700'
+											className='inline-flex h-5 items-center gap-1 text-xs text-content-slate-muted transition-colors hover:text-content-slate-secondary'
 											title={t('insightsTools.integrations.openDocsTitle', { name: integration.name })}>
 											{t('insightsTools.integrations.docsLink')}
 											<ExternalLinkIcon className='size-3.5' />
@@ -423,12 +511,12 @@ const IntegrationCard = ({ integration, connected, connection, isPreviewConnecti
 								</div>
 							</div>
 							<div className='min-w-0 overflow-hidden'>
-								<p className='text-sm text-slate-500 line-clamp-2 break-words'>{integration.description}</p>
+								<p className='text-sm text-content-slate-muted line-clamp-2 break-words'>{integration.description}</p>
 							</div>
 							{integration.tags.length > 0 && (
 								<div className='flex flex-wrap gap-1.5 pt-1'>
 									{integration.tags.slice(0, 3).map((tag, idx) => (
-										<span key={idx} className='text-xs bg-slate-100 text-slate-600 px-2 py-0.5 rounded-sm'>
+										<span key={idx} className='text-xs bg-surface-slate-subtle text-content-slate-tertiary px-2 py-0.5 rounded-sm'>
 											{tag}
 										</span>
 									))}
@@ -437,7 +525,7 @@ const IntegrationCard = ({ integration, connected, connection, isPreviewConnecti
 						</div>
 					</div>
 				</div>
-				<Divider color='#f1f5f9' className='w-full' />
+				<Divider color='rgb(var(--fp-line-slate-subtle))' className='w-full' />
 				<div className='flex flex-row items-center justify-between px-6 py-4'>
 					<div className='flex items-center gap-2'>
 						{connected ? (
@@ -448,7 +536,7 @@ const IntegrationCard = ({ integration, connected, connection, isPreviewConnecti
 									size='icon'
 									className='h-8 w-8'
 									onClick={() => onOpenDrawer?.('edit')}
-									disabled={integration.premium || isPreviewConnection}>
+									disabled={integration.premium || isPreviewConnection || !canWriteConnection}>
 									<PencilIcon className='size-4' />
 								</Button>
 								<Button
@@ -457,21 +545,22 @@ const IntegrationCard = ({ integration, connected, connection, isPreviewConnecti
 									size='icon'
 									className='h-8 w-8'
 									onClick={() => setDisconnectDialogOpen(true)}
-									disabled={integration.premium}>
+									disabled={integration.premium || !canWriteConnection}>
 									<TrashIcon className='size-4' />
 								</Button>
 							</>
 						) : null}
 					</div>
-					<Switch
-						checked={connected}
-						onCheckedChange={handleToggle}
-						disabled={integration.premium}
-						className={cn(
-							'data-[state=unchecked]:bg-slate-800',
-							'data-[state=checked]:bg-emerald-500 data-[state=checked]:border-emerald-500',
-						)}
-					/>
+					<Tooltip content={!canWriteConnection ? t('insightsTools.integrations.writeDeniedTooltip') : undefined}>
+						<span tabIndex={canWriteConnection ? -1 : 0} className='inline-block'>
+							<Switch
+								checked={connected}
+								onCheckedChange={handleToggle}
+								disabled={integration.premium || !canWriteConnection}
+								className='data-[state=checked]:bg-accent-emerald data-[state=checked]:border-accent-emerald'
+							/>
+						</span>
+					</Tooltip>
 				</div>
 			</Card>
 

@@ -5,10 +5,11 @@ import SidebarNav, { NavItem } from './SidebarMenu';
 import FlexpriceSidebarFooter from './SidebarFooter';
 import { RouteNames } from '@/core/routes/Routes';
 import { EnvironmentSelector } from '@/components/molecules';
-import { Settings, Landmark, Layers2, CodeXml, Puzzle, GalleryHorizontalEnd, Home, BarChart3 } from 'lucide-react';
+import { Landmark, Layers2, CodeXml, Puzzle, GalleryHorizontalEnd, Home, BarChart3 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useLocaleStore } from '@/store/useLocaleStore';
 import { Direction } from '@/config/branding';
+import { config } from '@/config/config';
 
 const AppSidebar: React.FC<React.ComponentProps<typeof Sidebar>> = ({ ...props }) => {
 	const { t } = useTranslation('common');
@@ -89,27 +90,16 @@ const AppSidebar: React.FC<React.ComponentProps<typeof Sidebar>> = ({ ...props }
 					},
 				],
 			},
-			{
-				title: t('sidebar.nav.revenue'),
-				url: RouteNames.revenue,
-				icon: BarChart3,
-			},
+			...(config.platform.revenue.enabled
+				? [
+						{
+							title: t('sidebar.nav.revenue'),
+							url: RouteNames.revenue,
+							icon: BarChart3,
+						},
+					]
+				: []),
 
-			{
-				title: t('sidebar.nav.tools'),
-				url: RouteNames.bulkImports,
-				icon: Settings,
-				items: [
-					{
-						title: t('sidebar.nav.imports'),
-						url: RouteNames.bulkImports,
-					},
-					{
-						title: t('sidebar.nav.exports'),
-						url: RouteNames.exports,
-					},
-				],
-			},
 			{
 				title: t('sidebar.nav.developers'),
 				url: RouteNames.events,
@@ -132,6 +122,14 @@ const AppSidebar: React.FC<React.ComponentProps<typeof Sidebar>> = ({ ...props }
 						url: RouteNames.webhooks,
 					},
 					{
+						title: t('sidebar.nav.exports'),
+						url: RouteNames.exports,
+					},
+					{
+						title: t('sidebar.nav.usageSyncs'),
+						url: RouteNames.usageSyncs,
+					},
+					{
 						title: t('sidebar.nav.workflows'),
 						url: RouteNames.workflows,
 					},
@@ -152,7 +150,11 @@ const AppSidebar: React.FC<React.ComponentProps<typeof Sidebar>> = ({ ...props }
 	);
 
 	return (
-		<Sidebar collapsible='icon' side={side} {...props} className={cn('border-gray-300 py-1 bg-[#f9f9f9]', sidebarOpen ? 'px-3' : 'px-2')}>
+		<Sidebar
+			collapsible='icon'
+			side={side}
+			{...props}
+			className={cn('border-line-strong py-1 bg-surface-sidebar', sidebarOpen ? 'px-3' : 'px-2')}>
 			<SidebarHeader>
 				<EnvironmentSelector />
 			</SidebarHeader>

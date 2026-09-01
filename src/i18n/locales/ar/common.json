@@ -3,6 +3,7 @@
 		"save": "حفظ",
 		"cancel": "إلغاء",
 		"add": "إضافة",
+		"adding": "جارٍ الإضافة...",
 		"edit": "تعديل",
 		"archive": "أرشفة",
 		"delete": "حذف",
@@ -35,7 +36,8 @@
 		"sync": "مزامنة",
 		"linking": "جارٍ الربط...",
 		"unlink": "إلغاء الربط",
-		"unlinking": "جارٍ إلغاء الربط..."
+		"unlinking": "جارٍ إلغاء الربط...",
+		"rowActions": "إجراءات الصف"
 	},
 	"status": {
 		"active": "نشط",
@@ -145,7 +147,12 @@
 		"searchPlaceholderExtended": "بحث في الميزات والخطط والعملاء…",
 		"searchCommandsAriaLabel": "بحث في الأوامر",
 		"keyboardShortcutsSrOnly": "اختصارات لوحة المفاتيح:",
-		"keyboardShortcutsHint": "↑↓ للتنقل · Enter للاختيار · Esc للإغلاق · {{shortcut}} للفتح في أي وقت",
+		"footerNavigate": "تنقل",
+		"footerSelect": "اختيار",
+		"footerClose": "إغلاق",
+		"footerOpenAnytime": "للفتح في أي وقت",
+		"keyEnter": "Enter",
+		"keyEscape": "Esc",
 		"shortcutToast": "اضغط {{shortcut}} لفتح لوحة الأوامر في أي وقت",
 		"keyboardShortcutTitle": "أمر + K",
 		"kbdDisplay": "⌘ + K"
@@ -232,13 +239,22 @@
 		"keyboardTip": "اضغط Tab للتنقل و Enter للاختيار",
 		"notFoundTitle": "صفحة خطأ 404",
 		"notFoundSubtitle": "عذراً! يبدو أنك سلكت مساراً خاطئاً",
-		"notFoundBackToHome": "العودة إلى الرئيسية"
+		"notFoundBackToHome": "العودة إلى الرئيسية",
+		"forbiddenTitle": "الوصول مرفوض",
+		"forbiddenSubtitle": "ليس لديك إذن لعرض هذه الصفحة. اطلب من مسؤول المستأجر منحك الوصول."
 	},
 	"copyId": {
+		"genericLabel": "نسخ المعرّف",
 		"toastFallback": "تم نسخ المعرّف إلى الحافظة",
 		"toastWithType": "تم نسخ معرّف {{type}} إلى الحافظة",
 		"titleWithType": "نسخ معرّف {{type}}",
-		"defaultEntityType": "المعرّف"
+		"defaultEntityType": "المعرّف",
+		"lineItemId": "معرّف بند السطر",
+		"priceId": "معرّف السعر",
+		"entityTypes": {
+			"lineItem": "بند السطر",
+			"price": "السعر"
+		}
 	},
 	"dateTime": {
 		"placeholderFormat": "MM/DD/YYYY hh:mm aa",
@@ -250,7 +266,8 @@
 		"timezoneLocal": "محلي",
 		"timezoneUtc": "UTC",
 		"timezoneSectionAriaLabel": "المنطقة الزمنية",
-		"timezoneSectionLabel": "المنطقة الزمنية"
+		"timezoneSectionLabel": "المنطقة الزمنية",
+		"clear": "مسح التاريخ"
 	},
 	"breadcrumb": {
 		"navAriaLabel": "مسار التنقل",
@@ -279,6 +296,7 @@
 			"tools": "الأدوات",
 			"imports": "الاستيراد",
 			"exports": "التصدير",
+			"usageSyncs": "مزامنات الاستخدام",
 			"developers": "المطورون",
 			"eventsDebugger": "مصحح الأحداث",
 			"apiKeys": "مفاتيح API",
@@ -347,6 +365,9 @@
 		"unlinkConfirmDescription": "سيؤدي هذا إلى إزالة الربط بين هذا الكيان و{{provider}}. يمكنك إعادة ربطه مرة أخرى لاحقًا."
 	},
 	"labels": {
+		"addonWriteDeniedTooltip": "ليس لديك صلاحية إدارة الإضافات في هذا الاشتراك. اطلب الوصول من مسؤول المستأجر.",
+		"couponWriteDeniedTooltip": "ليس لديك صلاحية إدارة الكوبونات في هذا الاشتراك. اطلب الوصول من مسؤول المستأجر.",
+		"taxWriteDeniedTooltip": "ليس لديك صلاحية إدارة الضرائب في هذا الاشتراك. اطلب الوصول من مسؤول المستأجر.",
 		"payload": "الحمولة",
 		"sort": "ترتيب",
 		"na": "--",
@@ -365,6 +386,7 @@
 		"metered": "مقاس",
 		"boolean": "منطقي",
 		"static": "ثابت",
+		"config": "تهيئة",
 		"unknownFeature": "ميزة غير معروفة",
 		"entitlementOverrideApplied": "تم تطبيق تجاوز الاستحقاق",
 		"noEntitlementsAvailable": "لا توجد استحقاقات متاحة",
@@ -510,6 +532,45 @@
 		"recurring": "متكرر",
 		"previewBooleanNotIncluded": "{{name}} غير مشمول"
 	},
+	"usageWidgets": {
+		"quotaTitle": "حصة الاستخدام",
+		"unknownFeature": "ميزة غير معروفة",
+		"unlimited": "غير محدود",
+		"revenue": "الإيرادات",
+		"cost": "التكلفة",
+		"margin": "الهامش",
+		"marginPercent": "الهامش %",
+		"cpm": "CPM",
+		"trendTitle": "اتجاه الاستخدام",
+		"breakdownTitle": "تفصيل الاستخدام",
+		"feature": "الميزة",
+		"totalUsage": "إجمالي الاستخدام",
+		"totalCost": "إجمالي التكلفة",
+		"noGroup": "بلا مجموعة",
+		"expandAllAria": "توسيع الكل",
+		"collapseAllAria": "طي الكل",
+		"unknownRow": "غير معروف",
+		"cellEmDash": "—",
+		"cellEmpty": "--"
+	},
+	"creditWidgets": {
+		"defaultName": "محفظة",
+		"balance": "الرصيد",
+		"credits": "أرصدة",
+		"valueSuffix": "قيمة",
+		"emptyTitle": "لا توجد محفظة",
+		"emptyDescription": "لم يتم إعداد محفظة لهذا الحساب",
+		"status": {
+			"active": "نشط",
+			"frozen": "مجمّد",
+			"closed": "مغلق"
+		},
+		"transactionHistory": "سجل المعاملات",
+		"transactionsUnit": "معاملات",
+		"noTransactionsTitle": "لا توجد معاملات",
+		"noTransactionsDescription": "سيظهر سجل معاملاتك هنا",
+		"fallbackWalletName": "محفظة {{id}}"
+	},
 	"taxAssociation": {
 		"dialogTitle": "ربط سعر ضريبي",
 		"taxRateRequired": "سعر الضريبة مطلوب",
@@ -553,7 +614,10 @@
 		"commitmentUsageOnlyHint": "يمكن تهيئة الالتزامات فقط للرسوم المعتمدة على الاستخدام.",
 		"saveChanges": "حفظ التغييرات",
 		"submitAddAddon": "إضافة إضافة",
-		"chargeFallbackLabel": "رسوم"
+		"chargeFallbackLabel": "رسوم",
+		"columnPrice": "السعر",
+		"labelStartDate": "تاريخ البدء (اختياري)",
+		"placeholderStartDate": "اختر تاريخ البدء"
 	},
 	"priceTooltip": {
 		"volumeTierPricing": "تسعير الشرائح بالحجم",
@@ -651,20 +715,29 @@
 		"loadingWorkspaceAria": "جارٍ تحميل مساحة العمل",
 		"flexpriceLogoAlt": "Flexprice",
 		"welcomeHeading": "مرحباً بك في Flexprice",
-		"welcomeSubtext": "لنكمّل إعداد مساحة عملك وأكمل هذا النموذج للبدء.",
+		"welcomeSubtext": "سؤالان سريعان لإعداد مساحة عملك.",
+		"getStarted": "ابدأ",
+		"reviewCompanyLogoAlt": "شعار {{company}}",
 		"orgNameLabel": "اسم المنظمة",
 		"orgNamePlaceholder": "أدخل اسم منظمتك",
-		"websiteUrlLabel": "رابط الموقع الإلكتروني",
-		"websiteUrlPlaceholder": "مثال: https://example.com",
-		"websiteUrlDescription": "أدخل رابط موقع منظمتك",
-		"roleQuestion": "ما الدور الذي تؤديه في منظمتك؟",
-		"rolePlaceholder": "دورك",
-		"teamSizeQuestion": "كم حجم فريقك؟",
-		"teamSizePlaceholder": "حجم الفريق",
-		"pricingModelQuestion": "ما نموذج التسعير الذي تختاره لـ Flexprice؟",
-		"pricingModelPlaceholder": "كيف تسعّر اليوم؟",
 		"referralQuestion": "كيف عرفت عنا؟",
-		"referralPlaceholder": "من أين سمعت بنا؟"
+		"referralPlaceholder": "من أين سمعت بنا؟",
+		"referralRequired": "يرجى اختيار كيف عرفت عنا",
+		"orgNameRequired": "اسم المنظمة مطلوب",
+		"orgNameIsFlexprice": "هذه نحن! يرجى إدخال اسم منظمتك بدلاً من ذلك.",
+		"orgNameIsFlexpriceToast": "هذه نحن، يرجى إدخال اسم منظمتك.",
+		"orgNameBannedWord": "لا يمكن أن يتضمن اسم المنظمة الكلمة «{{word}}». يرجى اختيار اسم آخر.",
+		"successToast": "أصبحت جاهزاً!",
+		"completeFailed": "تعذّر إكمال الإعداد. يرجى المحاولة مجدداً.",
+		"referralSources": {
+			"linkedin": "LinkedIn",
+			"x": "X (Formerly Twitter)",
+			"reddit": "Reddit",
+			"blogs": "المدونات",
+			"aiSearch": "ChatGPT / Perplexity / Gemini",
+			"hackerNews": "HackerNews",
+			"productHunt": "Product Hunt"
+		}
 	},
 	"pricingSetupPage": {
 		"closeReturnDashboardAria": "إغلاق والعودة إلى لوحة التحكم",
@@ -710,6 +783,7 @@
 		"tools": "الأدوات",
 		"imports": "الاستيراد",
 		"exports": "التصدير",
+		"usageSyncs": "مزامنات الاستخدام",
 		"developers": "المطورون",
 		"eventsDebugger": "مصحح الأحداث",
 		"apiKeys": "مفاتيح API",
@@ -719,10 +793,6 @@
 		"integrations": "التكاملات",
 		"pricingWidget": "أداة التسعير",
 		"settings": "الإعدادات"
-	},
-	"fundingStrip": {
-		"announcement": "Flexprice تحصل على تمويل بذري بقيمة 1.5 مليون دولار",
-		"knowMore": "اعرف المزيد"
 	},
 	"queryableDataArea": {
 		"errorFetching": "خطأ في جلب البيانات",

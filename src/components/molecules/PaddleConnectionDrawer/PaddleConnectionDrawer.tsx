@@ -9,6 +9,8 @@ import ConnectionApi from '@/api/ConnectionApi';
 import toast from 'react-hot-toast';
 import { Copy, CheckCircle, ChevronDown, ChevronRight } from 'lucide-react';
 import { CONNECTION_PROVIDER_TYPE } from '@/models';
+import { PaddleWebhookEvents, getDefaultPaddleWebhookEvents } from '@/types';
+import { mergeConnectionMetadata } from '@/utils/common/connection_metadata_helpers';
 
 interface PaddleConnection {
 	id: string;
@@ -18,9 +20,7 @@ interface PaddleConnection {
 		webhook_secret?: string;
 		client_side_token?: string;
 	};
-	metadata?: {
-		redirect_url?: string;
-	};
+	metadata?: Record<string, string>;
 }
 
 interface PaddleConnectionDrawerProps {
@@ -58,6 +58,10 @@ const PaddleConnectionDrawer: FC<PaddleConnectionDrawerProps> = ({ isOpen, onOpe
 
 	const webhookUrl =
 		user?.tenant?.id && activeEnvironment?.id ? `${config.api.baseUrl}/webhooks/paddle/${user.tenant.id}/${activeEnvironment.id}` : '';
+
+	const getWebhookEvents = (): PaddleWebhookEvents[] => {
+		return getDefaultPaddleWebhookEvents();
+	};
 
 	useEffect(() => {
 		if (isOpen) {
@@ -119,6 +123,7 @@ const PaddleConnectionDrawer: FC<PaddleConnectionDrawerProps> = ({ isOpen, onOpe
 
 	const { mutate: createConnection, isPending: isCreating } = useMutation({
 		mutationFn: async () => {
+			const metadata = mergeConnectionMetadata(undefined, { redirect_url: formData.redirect_url });
 			const payload = {
 				name: formData.name,
 				provider_type: CONNECTION_PROVIDER_TYPE.PADDLE,
@@ -127,9 +132,7 @@ const PaddleConnectionDrawer: FC<PaddleConnectionDrawerProps> = ({ isOpen, onOpe
 					webhook_secret: formData.webhook_secret,
 					client_side_token: formData.client_side_token,
 				},
-				...(formData.redirect_url.trim() && {
-					metadata: { redirect_url: formData.redirect_url.trim() },
-				}),
+				...(Object.keys(metadata).length > 0 && { metadata }),
 				sync_config: {
 					invoice: { inbound: false, outbound: true },
 				},
@@ -149,10 +152,13 @@ const PaddleConnectionDrawer: FC<PaddleConnectionDrawerProps> = ({ isOpen, onOpe
 
 	const { mutate: updateConnection, isPending: isUpdating } = useMutation({
 		mutationFn: async () => {
-			const trimmedRedirectUrl = formData.redirect_url.trim();
+			// The API replaces metadata wholesale, so re-read it and send the full merged map.
+			// Reading here rather than trusting the prop keeps the window for a lost concurrent
+			// write down to this request instead of however long the drawer has been open.
+			const existingConnection = await ConnectionApi.Get(connection!.id);
 			const payload = {
 				name: formData.name,
-				metadata: trimmedRedirectUrl ? { redirect_url: trimmedRedirectUrl } : ({} as Record<string, string>),
+				metadata: mergeConnectionMetadata(existingConnection.metadata, { redirect_url: formData.redirect_url }),
 			};
 			return await ConnectionApi.Update(connection!.id, payload);
 		},
@@ -242,8 +248,8 @@ const PaddleConnectionDrawer: FC<PaddleConnectionDrawerProps> = ({ isOpen, onOpe
 					description={t('connection.paddle.redirectUrlHint')}
 				/>
 
-				<div className='p-4 bg-blue-50 border border-blue-200 rounded-lg'>
-					<h3 className='text-sm font-medium text-blue-800 mb-3'>{t('connection.webhook.sectionTitle')}</h3>
+				<div className='p-4 bg-info-muted border border-info-line rounded-lg'>
+					<h3 className='text-sm font-medium text-info-deep mb-3'>{t('connection.webhook.sectionTitle')}</h3>
 
 					{!connection && (
 						<div className='mb-4'>
@@ -260,10 +266,10 @@ const PaddleConnectionDrawer: FC<PaddleConnectionDrawerProps> = ({ isOpen, onOpe
 					)}
 
 					<div className='mb-4'>
-						<label className='text-sm font-medium text-blue-800 mb-2 block'>{t('connection.webhook.url')}</label>
-						<p className='text-xs text-blue-700 mb-3'>{t('connection.paddle.webhookIntro')}</p>
-						<div className='flex items-center gap-2 p-2 bg-white border border-blue-200 rounded-md'>
-							<code className='flex-1 text-xs text-gray-800 font-mono break-all'>{webhookUrl}</code>
+						<label className='text-sm font-medium text-info-deep mb-2 block'>{t('connection.webhook.url')}</label>
+						<p className='text-xs text-info-strong mb-3'>{t('connection.paddle.webhookIntro')}</p>
+						<div className='flex items-center gap-2 p-2 bg-surface border border-info-line rounded-md'>
+							<code className='flex-1 text-xs text-content-heading font-mono break-all'>{webhookUrl}</code>
 							<Button type='button' size='xs' variant='outline' onClick={handleCopyWebhookUrl} className='flex items-center gap-1'>
 								{webhookCopied ? <CheckCircle className='w-3 h-3' /> : <Copy className='w-3 h-3' />}
 								{webhookCopied ? t('connection.webhook.copied') : t('connection.webhook.copy')}
@@ -275,19 +281,21 @@ const PaddleConnectionDrawer: FC<PaddleConnectionDrawerProps> = ({ isOpen, onOpe
 						<button
 							type='button'
 							onClick={() => setIsWebhookEventsExpanded(!isWebhookEventsExpanded)}
-							className='flex items-center gap-2 text-sm font-medium text-blue-800 hover:text-blue-900 mb-2'>
+							className='flex items-center gap-2 text-sm font-medium text-info-deep hover:text-info-deepest mb-2'>
 							{isWebhookEventsExpanded ? <ChevronDown className='w-4 h-4' /> : <ChevronRight className='w-4 h-4' />}
 							{t('connection.webhook.eventsToSubscribe')}
 						</button>
 
 						{isWebhookEventsExpanded && (
-							<div className='mt-2 p-3 bg-white border border-blue-200 rounded-md'>
-								<p className='text-xs text-blue-700 mb-3'>{t('connection.paddle.webhookEventsIntro')}</p>
+							<div className='mt-2 p-3 bg-surface border border-info-line rounded-md'>
+								<p className='text-xs text-info-strong mb-3'>{t('connection.paddle.webhookEventsIntro')}</p>
 								<div className='space-y-1'>
-									<div className='flex items-center gap-2 text-xs text-blue-700'>
-										<div className='w-1.5 h-1.5 bg-blue-500 rounded-full'></div>
-										<code className='font-mono'>{t('connection.paddle.webhookEventTransactionsCompleted')}</code>
-									</div>
+									{getWebhookEvents().map((event, index) => (
+										<div key={index} className='flex items-center gap-2 text-xs text-info-strong'>
+											<div className='w-1.5 h-1.5 bg-info-bright rounded-full'></div>
+											<code className='font-mono'>{event}</code>
+										</div>
+									))}
 								</div>
 							</div>
 						)}

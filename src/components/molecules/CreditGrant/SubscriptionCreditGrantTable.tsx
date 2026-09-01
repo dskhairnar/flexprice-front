@@ -113,6 +113,7 @@ const SubscriptionCreditGrantTable: React.FC<Props> = ({
 				return (
 					<ActionButton
 						id={row.id}
+						copyId={{ entityType: 'Credit Grant' }}
 						deleteMutationFn={() => handleDelete(row.id)}
 						refetchQueryKey='credit_grants'
 						entityName={row.name}
@@ -145,7 +146,7 @@ const SubscriptionCreditGrantTable: React.FC<Props> = ({
 					<FormHeader className='mb-0' title={t('labels.creditGrants')} variant='sub-header' />
 					<AddButton onClick={() => setIsOpen(true)} disabled={disabled} />
 				</div>
-				<div className='rounded-[6px] border border-gray-300'>
+				<div className='rounded-[6px] border border-line-strong'>
 					<FlexpriceTable data={data} columns={columns} showEmptyRow />
 				</div>
 			</div>

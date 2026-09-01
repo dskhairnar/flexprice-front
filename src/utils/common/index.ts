@@ -1,4 +1,5 @@
 export { default as formatNumber, formatCompactNumber } from './format_number';
+export { formatCurrencyAmount } from './format_currency_amount';
 export {
 	getCurrencySymbol,
 	getCurrencyName,
@@ -24,6 +25,7 @@ export {
 	getCommitmentConfig,
 	validateCommitment,
 	formatCommitmentSummary,
+	resolveBucketSize,
 	supportsWindowCommitment,
 	supportsCommitmentTimeBuckets,
 	isHourBucketSize,

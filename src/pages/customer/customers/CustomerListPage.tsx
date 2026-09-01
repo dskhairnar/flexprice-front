@@ -1,9 +1,11 @@
-import { AddButton, Page, ActionButton, Chip } from '@/components/atoms';
+import { AddButton, Page, ActionButton, Chip, Tooltip } from '@/components/atoms';
 import { CreateCustomerDrawer, ApiDocsContent } from '@/components/molecules';
+import { useCurrentUserPermissions } from '@/hooks/useCurrentUserPermissions';
 import { ColumnData } from '@/components/molecules/Table';
 import { QueryableDataArea } from '@/components/organisms';
 import { buildGuides } from '@/constants/guides';
 import { API_DOCS_TAGS } from '@/constants/apiDocsTags';
+import { CustomerOrgTypeFilterValue } from '@/constants/customerOrgTypeFilter';
 import Customer from '@/models/Customer';
 import CustomerApi from '@/api/CustomerApi';
 import { useState, useMemo, useCallback, FC } from 'react';
@@ -24,14 +26,19 @@ import { RouteNames } from '@/core/routes/Routes';
 import formatDate from '@/utils/common/format_date';
 import { ExternalLink } from 'lucide-react';
 import { useCustomerPortalUrl } from '@/hooks/useCustomerPortalUrl';
+import { useTenantFeatureAllowlist } from '@/hooks/useTenantFeatureAllowlist';
 import { useTranslation } from 'react-i18next';
+import { mergeCustomerSearchMetadata } from '@/utils/customer/mergeCustomerSearchMetadata';
 
 const ActionButtonWithPortal: FC<{ customer: Customer; onEdit: (customer: Customer) => void }> = ({ customer, onEdit }) => {
 	const { t } = useTranslation(['customers', 'common']);
 	const { openInNewTab } = useCustomerPortalUrl(customer.external_id);
+	const { can } = useCurrentUserPermissions();
+	const canWriteCustomer = can('customer', 'write');
 	return (
 		<ActionButton
 			id={customer.id}
+			copyId={{ entityType: 'Customer' }}
 			deleteMutationFn={(id) => CustomerApi.deleteCustomerById(id)}
 			refetchQueryKey='fetchCustomers'
 			entityName={t('list.entityName')}
@@ -39,9 +46,13 @@ const ActionButtonWithPortal: FC<{ customer: Customer; onEdit: (customer: Custom
 				enabled: customer.status === ENTITY_STATUS.PUBLISHED,
 				path: `/billing/customers/edit-customer?id=${customer.id}`,
 				onClick: () => onEdit(customer),
+				disabled: !canWriteCustomer,
+				disabledReason: canWriteCustomer ? undefined : t('list.writeDeniedTooltip'),
 			}}
 			archive={{
 				enabled: customer.status === ENTITY_STATUS.PUBLISHED,
+				disabled: !canWriteCustomer,
+				disabledReason: canWriteCustomer ? undefined : t('list.writeDeniedTooltip'),
 			}}
 			customActions={[
 				{
@@ -60,7 +71,11 @@ const CustomerListPage = () => {
 	const guides = useMemo(() => buildGuides(tGuide), [tGuide]);
 	const [activeCustomer, setactiveCustomer] = useState<Customer>();
 	const [customerDrawerOpen, setcustomerDrawerOpen] = useState(false);
+	const [orgTypeFilter, setOrgTypeFilter] = useState<CustomerOrgTypeFilterValue | null>(null);
+	const showOrgTypeFilter = useTenantFeatureAllowlist();
 	const navigate = useNavigate();
+	const { can } = useCurrentUserPermissions();
+	const canWriteCustomer = can('customer', 'write');
 
 	const handleCreateCustomer = useCallback(() => {
 		setactiveCustomer(undefined);
@@ -214,6 +229,8 @@ const CustomerListPage = () => {
 		[handleEdit, t],
 	);
 
+	const additionalQueryParams = useMemo(() => ({ orgTypeFilter }), [orgTypeFilter]);
+
 	return (
 		<Page
 			heading={t('list.title')}
@@ -221,11 +238,19 @@ const CustomerListPage = () => {
 				<div className='flex justify-between gap-2 items-center'>
 					<CreateCustomerDrawer
 						trigger={
-							<AddButton
-								onClick={() => {
-									setactiveCustomer(undefined);
-								}}
-							/>
+							canWriteCustomer ? (
+								<AddButton
+									onClick={() => {
+										setactiveCustomer(undefined);
+									}}
+								/>
+							) : (
+								<Tooltip content={t('list.writeDeniedTooltip')}>
+									<span tabIndex={0} className='inline-block'>
+										<AddButton disabled />
+									</span>
+								</Tooltip>
+							)
 						}
 						open={customerDrawerOpen}
 						onOpenChange={setcustomerDrawerOpen}
@@ -241,15 +266,28 @@ const CustomerListPage = () => {
 					initialFilters,
 					initialSorts,
 					debounceTime: 300,
+					...(showOrgTypeFilter
+						? {
+								orgTypeMetadataFilter: {
+									value: orgTypeFilter,
+									onChange: setOrgTypeFilter,
+								},
+							}
+						: {}),
 				}}
 				dataConfig={{
 					queryKey: 'fetchCustomers',
+					additionalQueryParams,
 					fetchFn: async (params) => {
-						const { filters, metadata } = extractMetadataFromTypedFilters(params.filters);
+						const { orgTypeFilter, filters: rawFilters, sort, limit, offset } = params;
+						const { filters, metadata } = extractMetadataFromTypedFilters(rawFilters);
+						const mergedMetadata = mergeCustomerSearchMetadata(metadata, orgTypeFilter);
 						return CustomerApi.getCustomersByFilters({
-							...params,
+							limit,
+							offset,
+							sort,
 							filters,
-							...(metadata ? { metadata } : {}),
+							...(mergedMetadata ? { metadata: mergedMetadata } : {}),
 						});
 					},
 					probeFetchFn: async (params) =>
@@ -276,11 +314,12 @@ const CustomerListPage = () => {
 					description: t('list.emptyDescription'),
 					buttonLabel: t('list.createCustomer'),
 					buttonAction: handleCreateCustomer,
+					buttonDisabled: !canWriteCustomer,
+					buttonDisabledReason: canWriteCustomer ? undefined : t('list.writeDeniedTooltip'),
 					tags: API_DOCS_TAGS.Customers,
 					tutorials: guides.customers.tutorials,
 				}}
 			/>
-			<CreateCustomerDrawer open={customerDrawerOpen} onOpenChange={setcustomerDrawerOpen} data={activeCustomer} />
 		</Page>
 	);
 };

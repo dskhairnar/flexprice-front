@@ -20,6 +20,7 @@
 		}
 	},
 	"addons": {
+		"writeDeniedTooltip": "You don't have permission to manage addons. Ask a tenant admin for access.",
 		"drawer": {
 			"editTitle": "Edit Addon",
 			"createTitle": "Create Addon",
@@ -50,7 +51,9 @@
 		"details": {
 			"title": "Addon Details",
 			"charges": "Charges",
+			"chargesWriteDeniedTooltip": "You don't have permission to modify addon charges. Ask a tenant admin for access.",
 			"entitlements": "Entitlements",
+			"creditGrants": "Credit Grants",
 			"metadata": "Metadata"
 		},
 		"subscriptionSheet": {
@@ -100,6 +103,7 @@
 		}
 	},
 	"costSheets": {
+		"writeDeniedTooltip": "You don't have permission to manage cost sheets. Ask a tenant admin for access.",
 		"listPage": {
 			"title": "Cost Sheets",
 			"paginationUnit": "Cost Sheets",
@@ -138,6 +142,24 @@
 		"details": {
 			"title": "Cost Sheet Details",
 			"charges": "Charges",
+			"chargesWriteDeniedTooltip": "You don't have permission to modify cost sheet charges. Ask a tenant admin for access.",
+			"chargeCount": "{{count}} charges",
+			"searchCharges": "Search charges...",
+			"noDescription": "No description",
+			"noChargesSubtitle": "No charges added to the cost sheet yet",
+			"columns": {
+				"feature": "Feature",
+				"chargeType": "Charge Type",
+				"billingTiming": "Billing Timing",
+				"billingPeriod": "Billing Period",
+				"value": "Value"
+			},
+			"fields": {
+				"costSheetName": "Cost Sheet Name",
+				"lookupKey": "Lookup Key",
+				"status": "Status",
+				"description": "Description"
+			},
 			"metadata": "Metadata"
 		},
 		"toast": {
@@ -158,6 +180,7 @@
 		}
 	},
 	"coupons": {
+		"writeDeniedTooltip": "You don't have permission to manage coupons. Ask a tenant admin for access.",
 		"listPage": {
 			"title": "Coupons",
 			"paginationUnit": "Coupons",
@@ -221,8 +244,12 @@
 			"cadenceOnce": "Once",
 			"cadenceRepeated": "Repeated",
 			"cadenceForever": "Forever",
+			"couponCode": "Coupon Code",
+			"couponCodePlaceholder": "e.g. SUMMER20",
+			"couponCodeHelp": "Human-readable code used to apply this coupon via API. Cannot be changed after creation.",
 			"validation": {
 				"nameRequired": "Name is required",
+				"couponCodeRequired": "Coupon code is required",
 				"typeRequired": "Type is required",
 				"cadenceRequired": "Cadence is required",
 				"amountOffFixedRequired": "Amount off is required for fixed type coupons",
@@ -262,6 +289,7 @@
 		}
 	},
 	"groups": {
+		"writeDeniedTooltip": "You don't have permission to manage groups. Ask a tenant admin for access.",
 		"listPage": {
 			"title": "Groups",
 			"sortLabels": {
@@ -389,6 +417,8 @@
 				"archive": "Archive"
 			},
 			"createWithAi": "Create with AI",
+			"writeDeniedTooltip": "You don't have permission to create plans. Ask a tenant admin for access.",
+			"aiPricingWriteDeniedTooltip": "AI pricing setup creates both plans and features, so it needs write access to both. Ask a tenant admin for access.",
 			"emptyStateCustom": {
 				"heading": "Plans",
 				"description": "Create a plan to display pricing and start billing customers."
@@ -402,14 +432,35 @@
 			"creditGrants": "Credit Grants",
 			"entitlements": "Entitlements"
 		},
+		"entitlementsTab": {
+			"configSheet": {
+				"keysCount": "{{count}} keys",
+				"title": "Config Value"
+			},
+			"writeDeniedTooltip": "You don't have permission to modify entitlements",
+			"emptyStateSubtitle": "No entitlements added to the plan yet"
+		},
+		"creditGrantsTab": {
+			"writeDeniedTooltip": "You don't have permission to modify credit grants"
+		},
+		"detailsPage": {
+			"writeDeniedTooltip": "You don't have permission to modify this plan. Ask a tenant admin for access.",
+			"syncWriteDeniedTooltip": "You don't have permission to sync this plan's prices. Ask a tenant admin for access.",
+			"unsyncedCountTooltip_one": "{{count}} subscription is out of sync with this plan's prices.",
+			"unsyncedCountTooltip_other": "{{count}} subscriptions are out of sync with this plan's prices."
+		},
 		"information": {
 			"loading": "Loading plan details...",
 			"planDetails": "Plan Details",
-			"metadata": "Metadata"
+			"metadata": "Metadata",
+			"writeDeniedTooltip": "You don't have permission to edit this plan"
 		},
 		"pricing": {
 			"noWidget": "No Pricing Widget Exists",
-			"widgetsPageTitle": "Pricing Widgets"
+			"widgetsPageTitle": "Pricing Widgets",
+			"selectBillingPeriod": "Select billing period",
+			"selectCurrency": "Select currency",
+			"fetchError": "Error fetching plans"
 		},
 		"organisms": {
 			"chargeLabels": {
@@ -450,7 +501,11 @@
 				"billingModelPlaceholder": "Billing Model",
 				"selectBillingPeriod": "Select The Billing Period",
 				"per": "per",
-				"amountPlaceholder": "0.00"
+				"amountPlaceholder": "0.00",
+				"bucketSize": "Bucket Size (Optional)",
+				"bucketSizeNone": "No bucketing",
+				"bucketSizePlaceholder": "No bucketing",
+				"bucketSizeDescription": "Window usage into fixed-size buckets before aggregation, e.g. per-hour totals"
 			},
 			"priceForm": {
 				"displayName": "Display Name",
@@ -481,6 +536,7 @@
 				"noDateInformation": "No date information",
 				"fallbackName": "--",
 				"charges": "Charges",
+				"writeDeniedTooltip": "You don't have permission to modify prices. Ask a tenant admin for access.",
 				"recurring": "Recurring",
 				"advance": "Advance",
 				"arrear": "Arrear",
@@ -501,6 +557,7 @@
 		}
 	},
 	"priceUnits": {
+		"writeDeniedTooltip": "You don't have permission to manage price units. Ask a tenant admin for access.",
 		"listPage": {
 			"title": "Price Units",
 			"paginationUnit": "Price Units",
@@ -599,6 +656,8 @@
 		}
 	},
 	"features": {
+		"writeDeniedTooltip": "You don't have permission to manage features. Ask a tenant admin for access.",
+		"alertSettingsWriteDeniedTooltip": "You don't have permission to manage alert settings for this feature. Ask a tenant admin for access.",
 		"listPage": {
 			"title": "Features",
 			"columns": {
@@ -627,12 +686,14 @@
 			"filterTypes": {
 				"metered": "Metered",
 				"boolean": "Boolean",
-				"static": "Static"
+				"static": "Static",
+				"config": "Config"
 			},
 			"typeChips": {
 				"metered": "Metered",
 				"boolean": "Boolean",
 				"static": "Static",
+				"config": "Config",
 				"unknown": "Unknown"
 			},
 			"emptyCell": "—",
@@ -727,13 +788,15 @@
 			"aggregationField": "Aggregation Field*",
 			"aggregationFieldPh": "tokens",
 			"aggregationFieldHelp": "Specify the property in the event data that will be aggregated. e.g. tokens, messages_sent, storage_used.",
+			"customExpressionButton": "Custom expression",
+			"aggregationFieldButton": "Aggregation field",
+			"customExpression": "Custom Expression*",
+			"customExpressionPh": "ceil(duration_ms / 1000)",
+			"customExpressionHelp": "Write a CEL formula evaluated per event to compute the quantity. Variables are top-level property names on your events (e.g. duration_ms, tokens).\n\nAvailable functions: max(a, b), min(a, b), abs(x), ceil(x), floor(x), round(x), pow(x, y), sqrt(x), log(x).\n\nExamples:\n• input_tokens + output_tokens\n• ceil(duration_ms / 1000)\n• min(usage, quota)\n• max(cores * hours * rate, 0.01)\n\nOnly available for SUM, AVG, MAX and LATEST.",
 			"aggregationMultiplier": "Aggregation Multiplier*",
 			"aggregationMultiplierPh": "1",
 			"aggregationMultiplierHelp": "Specify the multiplier for the aggregation. e.g. 1.5, 0.25, or 1000.",
-			"bucketSizeButton": "Bucket size",
 			"groupByButton": "Group by",
-			"bucketSize": "Bucket Size",
-			"bucketSizeHelp": "The size of the window to aggregate over. eg. 15MIN, 30MIN, HOUR, etc.",
 			"groupBy": "Group by",
 			"groupByPlaceholder": "e.g. user_id, tenant_id",
 			"groupByHelp": "Field to group aggregation by. Must be a string (e.g. event property name).",
@@ -752,6 +815,7 @@
 			"aggregationDetails": "Aggregation Details",
 			"type": "Type",
 			"value": "Value",
+			"customExpression": "Custom Expression",
 			"unitName": "Unit Name",
 			"displayUnitName": "Display Unit Name",
 			"usageReset": "Usage Reset ",
@@ -835,6 +899,27 @@
 			"detailSep": ", "
 		}
 	},
+	"jsonEditor": {
+		"title": "Config Value (JSON)",
+		"showEditor": "Show Editor",
+		"hideEditor": "Hide Editor",
+		"validJson": "Valid JSON",
+		"errorInvalidJson": "Invalid JSON",
+		"errorMustBeObject": "Must be a JSON object",
+		"lines": "lines"
+	},
+	"configKeyValueEditor": {
+		"title": "Config Values",
+		"addRow": "Add",
+		"keyHeader": "Key",
+		"valueHeader": "Value",
+		"keyPlaceholder": "usage_limit",
+		"valuePlaceholder": "100",
+		"errorDuplicateKey": "Duplicate key: \"{{key}}\"",
+		"errorEmptyValue": "Value is required",
+		"errorEmptyKey": "Key is required",
+		"removeRow": "Remove row"
+	},
 	"entitlements": {
 		"usageResetPeriod": {
 			"DAILY": "Daily",
@@ -884,7 +969,8 @@
 			"save": "Save",
 			"unlimitedDisplay": "Unlimited",
 			"calculatorAriaLabel": "Display value calculator",
-			"unitsFallback": "units"
+			"unitsFallback": "units",
+			"configValueRequired": "A valid JSON object is required for config features"
 		},
 		"displayCalculator": {
 			"titleFallback": "Display value",
@@ -927,6 +1013,7 @@
 			"tooltipUsageLimit": "Usage Limit: {{from}} → {{to}}",
 			"tooltipStaticValue": "Static Value: {{from}} → {{to}}",
 			"tooltipStatus": "Status: {{from}} → {{to}}",
+			"tooltipConfig": "Config value overridden for this subscription",
 			"valuePlaceholder": "--",
 			"perPeriodSuffix": " / {{period}}",
 			"featureTypeMetered": "Metered",
@@ -939,6 +1026,22 @@
 			"enabled": "Enabled",
 			"disabled": "Disabled",
 			"unknownFeature": "Unknown Feature"
+		},
+		"subscriptionEdit": {
+			"columnSource": "Source",
+			"sourcePlan": "Plan",
+			"sourceAddon": "Addon",
+			"sourceSubscription": "Subscription",
+			"sourceOverride": "Subscription override",
+			"resetAction": "Reset to default",
+			"resetConfirmTitle": "Reset \"{{name}}\" to plan default?",
+			"resetConfirmDescription": "This removes the subscription override. The plan entitlement will apply again.",
+			"deleteConfirmTitle": "Delete entitlement for \"{{name}}\"?",
+			"saveSuccess": "Entitlement updated successfully",
+			"saveFailed": "Failed to update entitlement",
+			"deleteSuccess": "Entitlement removed successfully",
+			"deleteFailed": "Failed to remove entitlement",
+			"createRequiresParent": "Cannot create override without a parent entitlement"
 		}
 	},
 	"premiumFeature": {
@@ -956,6 +1059,9 @@
 		},
 		"originalPrice": "Original Price",
 		"billingModel": "Billing Model",
+		"bucketSize": "Bucket Size (Optional)",
+		"bucketSizePlaceholder": "No bucketing",
+		"bucketSizeSetOnMeter": "Already set on the meter ({{bucketSize}}) - a price can't define its own on top of that.",
 		"selectBillingModel": "Select billing model",
 		"overrideAmountLabel": "Override Amount ({{unit}})",
 		"enterNewAmountOptional": "Enter new amount (optional)",

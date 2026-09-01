@@ -5,7 +5,6 @@ import Dialog from '@/components/atoms/Dialog';
 import { RecurringChargesForm } from '@/components/organisms/PlanForm';
 import UsagePricingForm, { PriceInternalState } from '@/components/organisms/PlanForm/UsagePricingForm';
 import type { InternalPrice } from '@/components/organisms/PlanForm/SetupChargesSection';
-import type { CreateSubscriptionLineItemRequest } from '@/types/dto/Subscription';
 import { RectangleRadiogroup, type RectangleRadiogroupOption } from '@/components/molecules';
 import { INVOICE_CADENCE } from '@/models/Invoice';
 import { BILLING_MODEL, PRICE_TYPE, PRICE_ENTITY_TYPE } from '@/models/Price';
@@ -14,6 +13,7 @@ import { Gauge, Repeat } from 'lucide-react';
 import {
 	internalPriceToSubscriptionLineItemRequest,
 	subscriptionLineItemToInternalPrice,
+	type AddedSubscriptionLineItem,
 } from '@/utils/subscription/internalPriceToSubscriptionLineItemRequest';
 import SubscriptionChargeCommitmentSection, {
 	DEFAULT_SUBSCRIPTION_CHARGE_COMMITMENT_STATE,
@@ -28,7 +28,7 @@ import {
 import { useMeterForCommitment } from '@/hooks/useMeterForCommitment';
 import { useTranslation } from 'react-i18next';
 
-export type AddedSubscriptionLineItem = CreateSubscriptionLineItemRequest & { tempId: string };
+export type { AddedSubscriptionLineItem };
 
 const CHARGE_OPTIONS: RectangleRadiogroupOption[] = [
 	{
@@ -48,7 +48,7 @@ const CHARGE_OPTIONS: RectangleRadiogroupOption[] = [
 interface AddSubscriptionChargeDialogProps {
 	isOpen: boolean;
 	onOpenChange: (open: boolean) => void;
-	onSave: (item: AddedSubscriptionLineItem) => void;
+	onSave: (item: AddedSubscriptionLineItem) => void | Promise<void>;
 	defaultCurrency?: string;
 	defaultBillingPeriod?: BILLING_PERIOD;
 	/** Default start date for new charges (e.g. subscription start_date in ISO format). */
@@ -57,6 +57,8 @@ interface AddSubscriptionChargeDialogProps {
 	initialItem?: AddedSubscriptionLineItem | null;
 	/** When provided (e.g. on subscription edit page), passed to UsagePricingForm for context. */
 	subscriptionId?: string;
+	/** When true, shows loading state on save/update buttons and blocks dialog close. */
+	isSaving?: boolean;
 }
 
 function getEmptyPrice(
@@ -100,6 +102,7 @@ const AddSubscriptionChargeDialog: React.FC<AddSubscriptionChargeDialogProps> = 
 	defaultStartDate,
 	initialItem = null,
 	subscriptionId,
+	isSaving = false,
 }) => {
 	const { t } = useTranslation('billing');
 	const isEditMode = !!initialItem;
@@ -112,7 +115,10 @@ const AddSubscriptionChargeDialog: React.FC<AddSubscriptionChargeDialogProps> = 
 	const [selectedMeterId, setSelectedMeterId] = useState<string | undefined>();
 
 	const meterId = selectedMeterId ?? price.meter_id;
+	// Features from SelectFeature often carry only meter_id — fetch the meter so
+	// price-then-meter bucket resolution works for legacy meter-bucketed prices.
 	const { meter } = useMeterForCommitment(meterId);
+	const effectiveBucketSize = price.bucket_size ?? meter?.aggregation?.bucket_size;
 
 	const resetForm = useCallback(() => {
 		setSelectedChargeType(null);
@@ -141,10 +147,11 @@ const AddSubscriptionChargeDialog: React.FC<AddSubscriptionChargeDialogProps> = 
 
 	const handleOpenChange = useCallback(
 		(open: boolean) => {
+			if (!open && isSaving) return;
 			if (!open) resetForm();
 			onOpenChange(open);
 		},
-		[onOpenChange, resetForm],
+		[onOpenChange, resetForm, isSaving],
 	);
 
 	const handleChargeTypeSelect = useCallback(
@@ -158,7 +165,7 @@ const AddSubscriptionChargeDialog: React.FC<AddSubscriptionChargeDialogProps> = 
 	);
 
 	const buildAndSave = useCallback(
-		(partial: Partial<InternalPrice>, tempId: string) => {
+		async (partial: Partial<InternalPrice>, tempId: string) => {
 			const isUsage = partial.type === PRICE_TYPE.USAGE;
 			const quantity = isUsage ? 0 : partial.min_quantity != null ? Number(partial.min_quantity) : 1;
 			const request = internalPriceToSubscriptionLineItemRequest(partial, quantity);
@@ -166,7 +173,10 @@ const AddSubscriptionChargeDialog: React.FC<AddSubscriptionChargeDialogProps> = 
 			let finalRequest = request;
 
 			if (isUsage) {
-				const commitmentError = applyWindowCommitmentToLineItem(finalRequest, commitmentState, partial, meter);
+				const commitmentError = applyWindowCommitmentToLineItem(finalRequest, commitmentState, {
+					...partial,
+					bucket_size: partial.bucket_size ?? meter?.aggregation?.bucket_size,
+				});
 				if (commitmentError) {
 					toast.error(formatWindowCommitmentError(commitmentError.error, t));
 					return;
@@ -174,12 +184,25 @@ const AddSubscriptionChargeDialog: React.FC<AddSubscriptionChargeDialogProps> = 
 				finalRequest = sanitizeSubscriptionLineItemForApi(
 					finalRequest,
 					(partial.currency ?? defaultCurrency ?? 'usd').toLowerCase(),
-					meter,
+					partial.bucket_size ?? meter?.aggregation?.bucket_size,
 				);
+				// Carry the meter bucket on the pending item so the added-charges table can
+				// display it (the API payload strips `price.meter` before sending).
+				const meterBucketSize = meter?.aggregation?.bucket_size;
+				if (finalRequest.price && !finalRequest.price.bucket_size && meterBucketSize) {
+					finalRequest = {
+						...finalRequest,
+						price: { ...finalRequest.price, meter: { aggregation: { bucket_size: meterBucketSize } } } as typeof finalRequest.price,
+					};
+				}
 			}
 
-			onSave({ ...finalRequest, tempId });
-			onOpenChange(false);
+			try {
+				await onSave({ ...finalRequest, tempId });
+				onOpenChange(false);
+			} catch {
+				// Keep dialog open so the user can fix and retry.
+			}
 		},
 		[commitmentState, defaultCurrency, meter, onOpenChange, onSave, t],
 	);
@@ -228,6 +251,7 @@ const AddSubscriptionChargeDialog: React.FC<AddSubscriptionChargeDialogProps> = 
 					onEditClicked={() => {}}
 					onDeleteClicked={() => onOpenChange(false)}
 					entityName=''
+					isSaving={isSaving}
 				/>
 			)}
 			{showUsageForm && (
@@ -240,13 +264,17 @@ const AddSubscriptionChargeDialog: React.FC<AddSubscriptionChargeDialogProps> = 
 					entityType={PRICE_ENTITY_TYPE.SUBSCRIPTION}
 					entityId={subscriptionId}
 					onMeterChange={(feature) => setSelectedMeterId(feature?.meter_id)}
+					isSaving={isSaving}
 					formFooter={
 						<SubscriptionChargeCommitmentSection
 							meterId={meterId}
 							currency={price.currency ?? defaultCurrency}
+							billingPeriod={defaultBillingPeriod}
 							value={commitmentState}
 							onChange={setCommitmentState}
 							sourcePrice={price}
+							sourceBucketSize={effectiveBucketSize}
+							disabled={isSaving}
 						/>
 					}
 				/>

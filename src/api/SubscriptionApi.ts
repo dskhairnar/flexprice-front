@@ -1,4 +1,5 @@
 import { AxiosClient } from '@/core/axios/verbs';
+import { GetSubscriptionEntitlementsResponse } from '@/types/dto/Subscription';
 import { SubscriptionUsage } from '@/models';
 import {
 	ListSubscriptionsPayload,
@@ -214,9 +215,7 @@ class SubscriptionApi {
 	 * Get subscription entitlements
 	 */
 	public static async getSubscriptionEntitlements(subscriptionId: string) {
-		return await AxiosClient.get<{ features: any[]; subscription_id: string; plan_id: string }>(
-			`${this.baseUrl}/${subscriptionId}/entitlements`,
-		);
+		return await AxiosClient.get<GetSubscriptionEntitlementsResponse>(`${this.baseUrl}/${subscriptionId}/entitlements`);
 	}
 
 	// =============================================================================

@@ -2,31 +2,27 @@ import { FC, useState, useMemo, useCallback, ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { TFunction } from 'i18next';
 import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query';
-import { Trash2 } from 'lucide-react';
+import { Settings2, Trash2, Copy } from 'lucide-react';
 import { Button, Card, CardHeader, Chip, DatePicker, Dialog, AddButton, Select, Tooltip, NoDataCard } from '@/components/atoms';
 import { FlexpriceTable, ColumnData } from '@/components/molecules';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { BsThreeDotsVertical } from 'react-icons/bs';
+import { BsThreeDots } from 'react-icons/bs';
 import SubscriptionApi from '@/api/SubscriptionApi';
 import { ADDON_ASSOCIATION_STATUS } from '@/models/AddonAssociation';
 import { AddonAssociationResponse } from '@/types/dto/Subscription';
 import { ADDON_PRORATION_BEHAVIOR } from '@/types/dto/Addon';
 import { BILLING_PERIOD } from '@/constants/constants';
-import { toSentenceCase } from '@/utils/common/helper_functions';
+import { toSentenceCase, copyToClipboard } from '@/utils/common/helper_functions';
 import { Price, PRICE_TYPE } from '@/models/Price';
 import { getCurrentPriceAmount } from '@/utils/common/price_override_helpers';
 import { getTotalPayableTextWithCoupons } from '@/utils/common/helper_functions';
 import toast from 'react-hot-toast';
+import { cn } from '@/lib/utils';
 import AddAddonDialog from './AddAddonDialog';
+import ConfigureAddonDialog from './ConfigureAddonDialog';
 import { formatDateTimeWithSecondsAndTimezone } from '@/utils/common/format_date';
 import { refetchQueries } from '@/core/services/tanstack/ReactQueryProvider';
-import CommitmentTimeBucketsInline from '@/components/molecules/CommitmentTimeBucketsInline/CommitmentTimeBucketsInline';
-import { EXPAND } from '@/models';
-import { SUBSCRIPTION_LINE_ITEM_ENTITY_TYPE } from '@/models/Subscription';
-import { DataType, FilterOperator } from '@/types/common/QueryBuilder';
-import type { CommitmentTimeBucket } from '@/types/dto/CommitmentTimeBucket';
-import { lineItemHasWindowCommitment } from '@/utils/subscription/subscription_line_item_commitment_helpers';
-import { subscriptionLineItemListItemToLineItem } from '@/utils/subscription/subscriptionLineItemListItemToLineItem';
+import { useCurrentUserPermissions } from '@/hooks/useCurrentUserPermissions';
 
 interface SubscriptionAddonsSectionProps {
 	subscriptionId: string;
@@ -40,9 +36,6 @@ interface SubscriptionAddonsSectionProps {
 	subscriptionCurrency?: string;
 	subscriptionCurrentPeriodStart?: string;
 	subscriptionCurrentPeriodEnd?: string;
-	subscriptionCustomerId?: string;
-	/** Show window commitment time buckets from addon usage line items. */
-	showCommitmentColumn?: boolean;
 }
 
 const formatAddonCharges = (prices: Price[] = []): string => {
@@ -93,7 +86,7 @@ const formatAddonAssociationTooltip = (association: AddonAssociationResponse, t:
 		if (!isNaN(parsed.getTime())) {
 			items.push(
 				<div key='start' className='flex items-center gap-2'>
-					<span className='text-xs font-medium text-gray-500'>{t('labels.start')}</span>
+					<span className='text-xs font-medium text-content-muted'>{t('labels.start')}</span>
 					<span className='text-sm font-medium'>{formatDateTimeWithSecondsAndTimezone(parsed)}</span>
 				</div>,
 			);
@@ -105,7 +98,7 @@ const formatAddonAssociationTooltip = (association: AddonAssociationResponse, t:
 		if (!isNaN(parsed.getTime())) {
 			items.push(
 				<div key='end' className='flex items-center gap-2'>
-					<span className='text-xs font-medium text-gray-500'>{t('labels.end')}</span>
+					<span className='text-xs font-medium text-content-muted'>{t('labels.end')}</span>
 					<span className='text-sm font-medium'>{formatDateTimeWithSecondsAndTimezone(parsed)}</span>
 				</div>,
 			);
@@ -159,11 +152,12 @@ const SubscriptionAddonsSection: FC<SubscriptionAddonsSectionProps> = ({
 	subscriptionCurrency,
 	subscriptionCurrentPeriodStart,
 	subscriptionCurrentPeriodEnd,
-	subscriptionCustomerId,
-	showCommitmentColumn = false,
 }) => {
-	const { t } = useTranslation('common');
+	const { t } = useTranslation(['common', 'billing']);
+	const { can } = useCurrentUserPermissions();
+	const canWriteAddon = can('addon', 'write');
 	const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+	const [addonToConfigure, setAddonToConfigure] = useState<AddonAssociationResponse | null>(null);
 	const [isCancelDialogOpen, setIsCancelDialogOpen] = useState(false);
 	const [addonToCancel, setAddonToCancel] = useState<AddonAssociationResponse | null>(null);
 	const [effectiveEndDate, setEffectiveEndDate] = useState<Date | undefined>(undefined);
@@ -214,40 +208,6 @@ const SubscriptionAddonsSection: FC<SubscriptionAddonsSectionProps> = ({
 		const response = addonAssociationsResponse as any;
 		return response.items ?? response ?? [];
 	}, [addonAssociationsResponse]);
-
-	const { data: addonLineItemsResponse } = useQuery({
-		queryKey: ['subscriptionAddonLineItems', subscriptionId, subscriptionCustomerId, subscriptionCurrentPeriodStart],
-		queryFn: () =>
-			SubscriptionApi.searchSubscriptionLineItems({
-				subscription_ids: [subscriptionId],
-				customer_ids: subscriptionCustomerId ? [subscriptionCustomerId] : undefined,
-				current_period_start: subscriptionCurrentPeriodStart!,
-				active_filter: true,
-				limit: 100,
-				offset: 0,
-				expand: EXPAND.PRICES,
-				filters: [
-					{
-						field: 'entity_type',
-						operator: FilterOperator.EQUAL,
-						data_type: DataType.STRING,
-						value: { string: SUBSCRIPTION_LINE_ITEM_ENTITY_TYPE.ADDON },
-					},
-				],
-			}),
-		enabled: showCommitmentColumn && !!subscriptionId && !!subscriptionCustomerId && !!subscriptionCurrentPeriodStart,
-	});
-
-	const addonCommitmentBucketsByAddonId = useMemo(() => {
-		const map = new Map<string, CommitmentTimeBucket[]>();
-		for (const item of addonLineItemsResponse?.items ?? []) {
-			const lineItem = subscriptionLineItemListItemToLineItem(item);
-			if (!lineItemHasWindowCommitment(lineItem) || !lineItem.entity_id) continue;
-			const existing = map.get(lineItem.entity_id) ?? [];
-			map.set(lineItem.entity_id, [...existing, ...(lineItem.commitment_time_buckets ?? [])]);
-		}
-		return map;
-	}, [addonLineItemsResponse?.items]);
 
 	const processedAddonAssociations = useMemo<AddonAssociationWithStatus[]>(() => {
 		return addonAssociations.map((association) => {
@@ -337,7 +297,7 @@ const SubscriptionAddonsSection: FC<SubscriptionAddonsSectionProps> = ({
 						content={row.tooltipContent}
 						delayDuration={0}
 						sideOffset={5}
-						className='bg-white border border-gray-200 shadow-lg text-sm text-gray-900 px-4 py-3 rounded-lg max-w-[320px]'>
+						className='bg-surface border border-line shadow-lg text-sm text-content px-4 py-3 rounded-lg max-w-[320px]'>
 						<span>
 							<Chip label={row.statusLabel} variant={row.statusVariant} />
 						</span>
@@ -351,20 +311,6 @@ const SubscriptionAddonsSection: FC<SubscriptionAddonsSectionProps> = ({
 					return <span>{formatAddonCharges(prices)}</span>;
 				},
 			},
-			...(showCommitmentColumn
-				? [
-						{
-							title: 'Commitment',
-							render: (row: AddonAssociationWithStatus) => {
-								const buckets = addonCommitmentBucketsByAddonId.get(row.addon_id);
-								if (!buckets?.length) {
-									return <span className='text-sm text-gray-400'>—</span>;
-								}
-								return <CommitmentTimeBucketsInline buckets={buckets} currency={subscriptionDetails?.currency} />;
-							},
-						},
-					]
-				: []),
 			{
 				title: '',
 				width: '30px',
@@ -383,18 +329,45 @@ const SubscriptionAddonsSection: FC<SubscriptionAddonsSectionProps> = ({
 							<DropdownMenu open={dropdownOpen === row.id} onOpenChange={(open) => setDropdownOpen(open ? row.id : null)}>
 								<DropdownMenuTrigger asChild>
 									<button className='focus:outline-none'>
-										<BsThreeDotsVertical className='text-base text-muted-foreground hover:text-foreground transition-colors' />
+										<BsThreeDots className='text-base text-muted-foreground hover:text-foreground transition-colors' />
 									</button>
 								</DropdownMenuTrigger>
 								<DropdownMenuContent align='end'>
 									<DropdownMenuItem
-										disabled={hasEndDate}
+										disabled={hasEndDate || !canWriteAddon}
 										onSelect={(e) => {
-											if (hasEndDate) return;
+											if (hasEndDate || !canWriteAddon) return;
+											e.preventDefault();
+											setDropdownOpen(null);
+											setAddonToConfigure(row);
+										}}
+										className={cn(
+											'flex gap-2 items-center cursor-pointer',
+											(hasEndDate || !canWriteAddon) && 'opacity-50 cursor-not-allowed',
+										)}>
+										<Settings2 className='h-4 w-4' />
+										<span>{t('billing:subscriptions.configure')}</span>
+									</DropdownMenuItem>
+									<DropdownMenuItem
+										onSelect={(e) => {
+											e.preventDefault();
+											void copyToClipboard(row.id, t('copyId.toastWithType', { type: 'Addon' }));
+										}}
+										className='flex gap-2 items-center cursor-pointer'>
+										<Copy className='h-4 w-4' />
+										<span>{t('copyId.genericLabel')}</span>
+									</DropdownMenuItem>
+									<DropdownMenuItem
+										disabled={hasEndDate || !canWriteAddon}
+										onSelect={(e) => {
+											if (hasEndDate || !canWriteAddon) return;
 											e.preventDefault();
 											handleCancel(row);
 										}}
-										className={`flex gap-2 items-center cursor-pointer text-red-600 ${hasEndDate ? 'opacity-50 cursor-not-allowed' : ''}`}>
+										className={cn(
+											'flex gap-2 items-center cursor-pointer text-danger',
+											(hasEndDate || !canWriteAddon) && 'opacity-50 cursor-not-allowed',
+										)}>
 										<Trash2 className='h-4 w-4' />
 										<span>{t('actions.cancel')}</span>
 									</DropdownMenuItem>
@@ -405,17 +378,25 @@ const SubscriptionAddonsSection: FC<SubscriptionAddonsSectionProps> = ({
 				},
 			},
 		],
-		[addonCommitmentBucketsByAddonId, dropdownOpen, handleCancel, readOnly, showCommitmentColumn, subscriptionDetails?.currency],
+		[dropdownOpen, handleCancel, readOnly, canWriteAddon, t],
 	);
 
-	const addButton = readOnly ? undefined : <AddButton onClick={() => setIsAddDialogOpen(true)} />;
+	const addButton = readOnly ? undefined : canWriteAddon ? (
+		<AddButton onClick={() => setIsAddDialogOpen(true)} />
+	) : (
+		<Tooltip content={t('labels.addonWriteDeniedTooltip')}>
+			<span tabIndex={0} className='inline-block'>
+				<AddButton disabled />
+			</span>
+		</Tooltip>
+	);
 
 	if (isLoading) {
 		return (
 			<Card variant='notched'>
 				<CardHeader title={t('labels.addons')} cta={addButton} />
 				<div className='flex justify-center items-center py-8'>
-					<span className='text-gray-500'>{t('labels.loadingAddons')}</span>
+					<span className='text-content-muted'>{t('labels.loadingAddons')}</span>
 				</div>
 			</Card>
 		);
@@ -447,11 +428,23 @@ const SubscriptionAddonsSection: FC<SubscriptionAddonsSectionProps> = ({
 				/>
 			)}
 
+			<ConfigureAddonDialog
+				isOpen={!!addonToConfigure}
+				onOpenChange={(open) => {
+					if (!open) setAddonToConfigure(null);
+				}}
+				subscriptionId={subscriptionId}
+				association={addonToConfigure}
+				currentPeriodStart={subscriptionDetails?.current_period_start}
+				currentPeriodEnd={subscriptionDetails?.current_period_end}
+				readOnly={readOnly}
+			/>
+
 			{/* Cancel Addon Dialog */}
 			<Dialog
 				title={`Cancel "${addonNameToCancel}"?`}
 				description={t('labels.cancelAddonDescription')}
-				titleClassName='text-lg font-normal text-gray-800'
+				titleClassName='text-lg font-normal text-content-heading'
 				isOpen={isCancelDialogOpen}
 				onOpenChange={(open) => {
 					setIsCancelDialogOpen(open);
@@ -488,7 +481,7 @@ const SubscriptionAddonsSection: FC<SubscriptionAddonsSectionProps> = ({
 								onChange={(v) => setCancelProrationBehavior(v as ADDON_PRORATION_BEHAVIOR)}
 							/>
 						</div>
-						<p className='text-xs text-gray-500'>{t('labels.leaveEmptyToCancelAtPeriodEnd')}</p>
+						<p className='text-xs text-content-muted'>{t('labels.leaveEmptyToCancelAtPeriodEnd')}</p>
 					</div>
 
 					<div className='flex justify-end gap-3'>

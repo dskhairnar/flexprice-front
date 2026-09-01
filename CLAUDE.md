@@ -1,3 +1,5 @@
+@AGENTS.md
+
 # CLAUDE.md
 
 This file provides guidance to Claude Code when working with the Flexprice frontend repository.
@@ -89,7 +91,6 @@ src/
 | Recharts | Data visualization |
 | Zod | Schema validation |
 | Supabase | Authentication |
-| Sentry | Error monitoring |
 
 ## Development Conventions
 

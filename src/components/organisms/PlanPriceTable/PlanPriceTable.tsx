@@ -9,7 +9,7 @@ import {
 	UpdatePriceDetailsDrawer,
 	QueryBuilder,
 } from '@/components/molecules';
-import { Price, Plan, PRICE_STATUS, PRICE_ENTITY_TYPE, PRICE_TYPE, INVOICE_CADENCE } from '@/models';
+import { Price, Plan, PRICE_STATUS, PRICE_ENTITY_TYPE, PRICE_TYPE, INVOICE_CADENCE, EXPAND } from '@/models';
 import { PriceUnit } from '@/models/PriceUnit';
 import { Plus, Trash2, Pencil, FileText, Copy } from 'lucide-react';
 import { useMutation, useQuery } from '@tanstack/react-query';
@@ -22,12 +22,15 @@ import { ChargeValueCell } from '@/components/molecules';
 import { Dialog } from '@/components/ui';
 import { DeletePriceRequest } from '@/types/dto';
 import { formatDateTimeWithSecondsAndTimezone } from '@/utils/common/format_date';
+import { getBucketSizeLabel } from '@/utils/common/helper_functions';
+import { resolveBucketSize } from '@/utils/common/commitment_helpers';
 import useFilterSorting from '@/hooks/useFilterSorting';
 import { FilterField, FilterFieldType, FilterOperator, DataType, SortDirection, FilterCondition } from '@/types/common/QueryBuilder';
 import { sanitizeFilterConditions, sanitizeSortConditions } from '@/types/formatters/QueryBuilder';
 import usePagination, { PAGINATION_PREFIX } from '@/hooks/usePagination';
 import { ShortPagination } from '@/components/atoms';
 import type { SearchPricesResponse } from '@/types/dto';
+import { useCurrentUserPermissions } from '@/hooks/useCurrentUserPermissions';
 import type { TFunction } from 'i18next';
 import { useTranslation } from 'react-i18next';
 
@@ -38,6 +41,10 @@ const CHARGE_FILTER_FIELD = {
 	CHARGE_TYPE: 'charge_type',
 	CURRENCY: 'currency',
 	BILLING_PERIOD: 'billing_period',
+	/** Client-only pseudo-field: presence (Status = Active) sets `allow_expired_prices: false` on the
+	 * request; removing the filter shows expired prices too. Never sent as a backend filter (the
+	 * backend has no such field) — stripped out in `searchFilters`. */
+	STATUS: 'status',
 } as const;
 
 const PLAN_CHARGES_PAGE_SIZE = 10;
@@ -55,9 +62,19 @@ interface PriceDropdownProps {
 	onEditPrice: (price: Price) => void;
 	onEditDetails: (price: Price) => void;
 	onTerminatePrice: (price: Price) => void;
+	canWritePrice: boolean;
+	writeDeniedTooltip: string;
 }
 
-const PriceDropdown: FC<PriceDropdownProps> = ({ row, hasEndDate, onEditPrice, onEditDetails, onTerminatePrice }) => {
+const PriceDropdown: FC<PriceDropdownProps> = ({
+	row,
+	hasEndDate,
+	onEditPrice,
+	onEditDetails,
+	onTerminatePrice,
+	canWritePrice,
+	writeDeniedTooltip,
+}) => {
 	const [isOpen, setIsOpen] = useState(false);
 
 	const handleClick = (e: React.MouseEvent) => {
@@ -90,7 +107,8 @@ const PriceDropdown: FC<PriceDropdownProps> = ({ row, hasEndDate, onEditPrice, o
 							setIsOpen(false);
 							onEditPrice(row);
 						},
-						disabled: hasEndDate,
+						disabled: hasEndDate || !canWritePrice,
+						disabledReason: !canWritePrice ? writeDeniedTooltip : undefined,
 					},
 					{
 						label: 'Edit Details',
@@ -100,7 +118,8 @@ const PriceDropdown: FC<PriceDropdownProps> = ({ row, hasEndDate, onEditPrice, o
 							setIsOpen(false);
 							onEditDetails(row);
 						},
-						disabled: hasEndDate,
+						disabled: hasEndDate || !canWritePrice,
+						disabledReason: !canWritePrice ? writeDeniedTooltip : undefined,
 					},
 					{
 						label: 'Terminate Price',
@@ -110,7 +129,8 @@ const PriceDropdown: FC<PriceDropdownProps> = ({ row, hasEndDate, onEditPrice, o
 							setIsOpen(false);
 							onTerminatePrice(row);
 						},
-						disabled: hasEndDate,
+						disabled: hasEndDate || !canWritePrice,
+						disabledReason: !canWritePrice ? writeDeniedTooltip : undefined,
 					},
 				]}
 			/>
@@ -186,7 +206,7 @@ const formatPriceDateTooltip = (price: Price & { start_date?: string; end_date?:
 			if (!isNaN(startDate.getTime())) {
 				dateItems.push(
 					<div key='start' className='flex items-center gap-2'>
-						<span className='text-xs font-medium text-gray-500'>{t('catalog:plans.organisms.planPriceTable.start')}</span>
+						<span className='text-xs font-medium text-content-muted'>{t('catalog:plans.organisms.planPriceTable.start')}</span>
 						<span className='text-sm font-medium'>{formatDateTimeWithSecondsAndTimezone(startDate)}</span>
 					</div>,
 				);
@@ -202,7 +222,7 @@ const formatPriceDateTooltip = (price: Price & { start_date?: string; end_date?:
 			if (!isNaN(endDate.getTime())) {
 				dateItems.push(
 					<div key='end' className='flex items-center gap-2'>
-						<span className='text-xs font-medium text-gray-500'>{t('catalog:plans.organisms.planPriceTable.end')}</span>
+						<span className='text-xs font-medium text-content-muted'>{t('catalog:plans.organisms.planPriceTable.end')}</span>
 						<span className='text-sm font-medium'>{formatDateTimeWithSecondsAndTimezone(endDate)}</span>
 					</div>,
 				);
@@ -234,6 +254,14 @@ const chargeFilterOptions: FilterField[] = [
 		operators: [FilterOperator.EQUAL, FilterOperator.GREATER_THAN, FilterOperator.LESS_THAN],
 		dataType: DataType.NUMBER,
 	},
+	{
+		field: CHARGE_FILTER_FIELD.STATUS,
+		label: 'Status',
+		fieldType: FilterFieldType.SELECT,
+		operators: [FilterOperator.EQUAL],
+		options: [{ value: 'active', label: 'Active' }],
+		dataType: DataType.STRING,
+	},
 ];
 
 const chargeSortOptions = [
@@ -245,6 +273,10 @@ const chargeSortOptions = [
 const PlanPriceTable: FC<PlanChargesTableProps> = ({ plan, onPriceUpdate }) => {
 	const { t } = useTranslation(['catalog', 'common']);
 	const navigate = useNavigate();
+	const { can } = useCurrentUserPermissions();
+	// Charges/prices are gated by the `price` entity server-side (internal/api/router.go's
+	// price group), not `plan` — a role can hold plan:write without price:write or vice versa.
+	const canWritePrice = can('price', 'write');
 	const [showTerminateModal, setShowTerminateModal] = useState(false);
 	const [selectedPriceForTermination, setSelectedPriceForTermination] = useState<Price | null>(null);
 	const [selectedPriceForEdit, setSelectedPriceForEdit] = useState<Price | null>(null);
@@ -327,6 +359,13 @@ const PlanPriceTable: FC<PlanChargesTableProps> = ({ plan, onPriceUpdate }) => {
 				dataType: DataType.STRING,
 			},
 			{ id: 'plan-amount', field: CHARGE_FILTER_FIELD.AMOUNT, operator: FilterOperator.EQUAL, valueString: '', dataType: DataType.NUMBER },
+			{
+				id: 'plan-status',
+				field: CHARGE_FILTER_FIELD.STATUS,
+				operator: FilterOperator.EQUAL,
+				valueString: 'active',
+				dataType: DataType.STRING,
+			},
 		],
 		[],
 	);
@@ -348,21 +387,28 @@ const PlanPriceTable: FC<PlanChargesTableProps> = ({ plan, onPriceUpdate }) => {
 		prefix: PAGINATION_PREFIX.PLAN_CHARGES,
 	});
 
-	const searchFilters = useMemo(() => sanitizeFilterConditions(filters), [filters]);
+	// STATUS is a client-only pseudo-filter ("Status = Active") that maps to the request-level
+	// `allow_expired_prices` flag instead of being sent as a backend filter condition — present
+	// (Active) means active-only; removing the filter (via the standard remove-filter control)
+	// shows expired prices too.
+	const showExpiredPrices = useMemo(() => !filters.some((f) => f.field === CHARGE_FILTER_FIELD.STATUS), [filters]);
+	const searchFilters = useMemo(() => sanitizeFilterConditions(filters.filter((f) => f.field !== CHARGE_FILTER_FIELD.STATUS)), [filters]);
 	const searchSorts = useMemo(() => sanitizeSortConditions(sorts), [sorts]);
 
 	// Stable signature so we only reset page when filter values change, not when resetPage reference changes (e.g. after setPage(2))
 	const searchFiltersSignature = useMemo(() => JSON.stringify(searchFilters), [searchFilters]);
 
 	const { data: searchData, isLoading: isSearchLoading } = useQuery<SearchPricesResponse>({
-		queryKey: ['planChargesSearch', plan.id, searchFilters, searchSorts, page, limit],
+		queryKey: ['planChargesSearch', plan.id, searchFilters, searchSorts, page, limit, showExpiredPrices],
 		queryFn: () =>
 			PriceApi.searchPrices({
 				entity_ids: [plan.id],
 				entity_type: PRICE_ENTITY_TYPE.PLAN,
 				filters: searchFilters.length > 0 ? searchFilters : undefined,
 				sorts: searchSorts.length > 0 ? searchSorts : undefined,
-				allow_expired_prices: true,
+				allow_expired_prices: showExpiredPrices,
+				// Legacy prices carry the bucket on the meter; expand it so bucket-size display and edit guards resolve.
+				expand: EXPAND.METERS,
 				limit,
 				offset,
 			}),
@@ -373,7 +419,7 @@ const PlanPriceTable: FC<PlanChargesTableProps> = ({ plan, onPriceUpdate }) => {
 	resetPageRef.current = resetPage;
 	useEffect(() => {
 		resetPageRef.current();
-	}, [searchFiltersSignature]);
+	}, [searchFiltersSignature, showExpiredPrices]);
 
 	// Use search API response directly (no client-side filter/sort)
 	const tableItems = searchData?.items || [];
@@ -442,6 +488,13 @@ const PlanPriceTable: FC<PlanChargesTableProps> = ({ plan, onPriceUpdate }) => {
 				render: (row) => <span>{formatBillingPeriod(row.billing_period as string)}</span>,
 			},
 			{
+				title: 'Bucket Size',
+				render: (row) => {
+					const label = getBucketSizeLabel(resolveBucketSize(row));
+					return label ? <Chip label={label} variant='default' /> : <span className='text-content-muted'>{t('common:labels.na')}</span>;
+				},
+			},
+			{
 				title: 'Status',
 				render: (row) => {
 					const status = getPriceStatus(row);
@@ -453,7 +506,7 @@ const PlanPriceTable: FC<PlanChargesTableProps> = ({ plan, onPriceUpdate }) => {
 							content={tooltipContent}
 							delayDuration={0}
 							sideOffset={5}
-							className='bg-white border border-gray-200 shadow-lg text-sm text-gray-900 px-4 py-3 rounded-[6px] max-w-[320px]'>
+							className='bg-surface border border-line shadow-lg text-sm text-content px-4 py-3 rounded-[6px] max-w-[320px]'>
 							<span>
 								<Chip label={label} variant={variant} />
 							</span>
@@ -481,12 +534,14 @@ const PlanPriceTable: FC<PlanChargesTableProps> = ({ plan, onPriceUpdate }) => {
 							onEditPrice={handleEditPrice}
 							onEditDetails={handleEditDetails}
 							onTerminatePrice={handleTerminatePrice}
+							canWritePrice={canWritePrice}
+							writeDeniedTooltip={t('catalog:plans.organisms.planPriceTable.writeDeniedTooltip')}
 						/>
 					);
 				},
 			},
 		],
-		[t, handleEditPrice, handleEditDetails, handleTerminatePrice],
+		[t, handleEditPrice, handleEditDetails, handleTerminatePrice, canWritePrice],
 	);
 
 	// ===== RENDER =====
@@ -531,9 +586,19 @@ const PlanPriceTable: FC<PlanChargesTableProps> = ({ plan, onPriceUpdate }) => {
 				<CardHeader
 					title={t('catalog:plans.organisms.planPriceTable.charges')}
 					cta={
-						<Button prefixIcon={<Plus />} onClick={() => navigate(`${RouteNames.plan}/${plan.id}/add-charges`)}>
-							{t('common:actions.add')}
-						</Button>
+						canWritePrice ? (
+							<Button prefixIcon={<Plus />} onClick={() => navigate(`${RouteNames.plan}/${plan.id}/add-charges`)}>
+								{t('common:actions.add')}
+							</Button>
+						) : (
+							<Tooltip content={t('catalog:plans.organisms.planPriceTable.writeDeniedTooltip')}>
+								<span tabIndex={0} className='inline-block cursor-not-allowed'>
+									<Button disabled prefixIcon={<Plus />}>
+										{t('common:actions.add')}
+									</Button>
+								</span>
+							</Tooltip>
+						)
 					}
 				/>
 				<div>

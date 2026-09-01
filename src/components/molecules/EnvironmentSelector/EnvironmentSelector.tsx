@@ -12,7 +12,8 @@ import { useNavigate } from 'react-router';
 import { RouteNames } from '@/core/routes/Routes';
 import { useEnvironment } from '@/hooks/useEnvironment';
 import { useRestrictedEnvs, EnvRestrictionState } from '@/hooks/useRestrictedEnvs';
-import { Button } from '@/components/atoms';
+import { Button, Tooltip } from '@/components/atoms';
+import { useCurrentUserPermissions } from '@/hooks/useCurrentUserPermissions';
 import EnvironmentCreator from '../EnvironmentCreator/EnvironmentCreator';
 import EnvironmentCopier from '../EnvironmentCopier/EnvironmentCopier';
 import EnvironmentEditor from '../EnvironmentEditor/EnvironmentEditor';
@@ -73,6 +74,8 @@ const EnvironmentSelector: React.FC<Props> = ({ disabled = false, className }) =
 
 	const { environments, activeEnvironment, changeActiveEnvironment, refetchEnvironments, isDevelopment, isProduction } = useEnvironment();
 	const { getRestriction } = useRestrictedEnvs();
+	const { can } = useCurrentUserPermissions();
+	const canWriteEnvironment = can('environment', 'write');
 
 	const [isOpen, setIsOpen] = useState(false);
 	const [isCreatorOpen, setIsCreatorOpen] = useState(false);
@@ -89,7 +92,38 @@ const EnvironmentSelector: React.FC<Props> = ({ disabled = false, className }) =
 		);
 
 	if (!environments || environments.length === 0) {
-		return <div className='p-2 text-sm text-muted-foreground'>{t('environment.selector.noneAvailable')}</div>;
+		return (
+			<div className={cn('mt-1 w-full', className)}>
+				<p className='p-2 text-sm text-muted-foreground'>{t('environment.selector.noneAvailable')}</p>
+				{canWriteEnvironment ? (
+					<Button onClick={() => setIsCreatorOpen(true)} size='sm' className='w-full text-center rounded-[6px] justify-center items-center'>
+						<Plus className='h-4 w-4' />
+						{t('environment.selector.addEnvironment')}
+					</Button>
+				) : (
+					<Tooltip content={t('environment.selector.writeDeniedTooltip')}>
+						<span tabIndex={0} className='inline-block w-full'>
+							<Button disabled size='sm' className='w-full text-center rounded-[6px] justify-center items-center'>
+								<Plus className='h-4 w-4' />
+								{t('environment.selector.addEnvironment')}
+							</Button>
+						</span>
+					</Tooltip>
+				)}
+
+				<EnvironmentCreator
+					isOpen={isCreatorOpen}
+					onOpenChange={setIsCreatorOpen}
+					onEnvironmentCreated={async (environmentId) => {
+						await refetchEnvironments();
+						if (environmentId) {
+							changeActiveEnvironment(environmentId);
+							navigate(RouteNames.home);
+						}
+					}}
+				/>
+			</div>
+		);
 	}
 
 	const options: SelectOption[] = environments.map((env) => ({
@@ -133,7 +167,7 @@ const EnvironmentSelector: React.FC<Props> = ({ disabled = false, className }) =
 			{/* Tenant */}
 			<div className='w-full mt-2 flex items-center justify-between gap-2'>
 				<div className='flex items-center text-start gap-2 min-w-0'>
-					<span className='size-7 bg-black text-white flex justify-center items-center bg-contain rounded-[6px] text-xs font-semibold'>
+					<span className='size-7 bg-surface-avatar text-content-inverse flex justify-center items-center bg-contain rounded-[6px] text-xs font-semibold'>
 						{user?.tenant?.name
 							?.split(' ')
 							.map((n) => n[0])
@@ -152,13 +186,18 @@ const EnvironmentSelector: React.FC<Props> = ({ disabled = false, className }) =
 					<div
 						className={cn(
 							'w-full mt-3.5 flex items-center justify-between h-10 px-2 py-[10px] rounded-[6px] border',
-							isDevelopment && 'border-yellow-400 text-yellow-900',
-							isProduction && 'border-[#BFD0F5] text-[#1F5ADA]',
+							isDevelopment && 'border-accent-yellow-line text-accent-yellow-deep',
+							isProduction && 'border-env-prod-line text-env-prod-text',
 						)}
+						/*
+						 * The gradient is tokenized rather than literal: its text colour is a token that
+						 * flips light in dark mode, so the surface underneath has to move with it. Leaving
+						 * these as pale pastels produced light-on-light in dark mode.
+						 */
 						style={{
 							background: isProduction
-								? 'linear-gradient(to right, #EEF4FF, #DDE7FF, #EEF4FF)'
-								: 'linear-gradient(to right, #FFFCEE, #FFF9DD, #FFFCEE)',
+								? 'linear-gradient(to right, rgb(var(--fp-env-prod-bg)), rgb(var(--fp-env-prod-bg-mid)), rgb(var(--fp-env-prod-bg)))'
+								: 'linear-gradient(to right, rgb(var(--fp-env-dev-bg)), rgb(var(--fp-env-dev-bg-mid)), rgb(var(--fp-env-dev-bg)))',
 						}}>
 						<div className='flex items-center gap-2 min-w-0'>
 							{isDevelopment ? (
@@ -171,7 +210,7 @@ const EnvironmentSelector: React.FC<Props> = ({ disabled = false, className }) =
 						<ChevronsUpDown className='h-4 w-4 opacity-60 shrink-0' />
 					</div>
 				</SelectTrigger>
-				<SelectContent className='mt-2 w-[calc(var(--radix-select-trigger-width)+8px)] max-w-[calc(var(--radix-select-trigger-width)+8px)]'>
+				<SelectContent className='mt-2 w-[calc(var(--radix-select-trigger-width)+8px)] max-w-[calc(var(--radix-select-trigger-width)+8px)] border-line bg-surface text-content'>
 					{options.map((option, idx) => {
 						const env = environments[idx];
 						return (
@@ -184,42 +223,86 @@ const EnvironmentSelector: React.FC<Props> = ({ disabled = false, className }) =
 										</span>
 									</div>
 								</SelectItem>
-								<button
-									type='button'
-									aria-label={t('environment.selector.renameAria', { name: option.label })}
-									onPointerDown={(e) => e.stopPropagation()}
-									onClick={(e) => handleEditClick(env, e)}
-									className='absolute right-1.5 top-1/2 -translate-y-1/2 p-1 rounded-[4px] text-muted-foreground hover:bg-accent hover:text-foreground opacity-60 hover:opacity-100 transition-opacity'>
-									<Pencil className='h-3.5 w-3.5' />
-								</button>
+								{canWriteEnvironment ? (
+									<button
+										type='button'
+										aria-label={t('environment.selector.renameAria', { name: option.label })}
+										onPointerDown={(e) => e.stopPropagation()}
+										onClick={(e) => handleEditClick(env, e)}
+										className='absolute right-1.5 top-1/2 -translate-y-1/2 p-1 rounded-[4px] text-muted-foreground hover:bg-accent hover:text-foreground opacity-0 group-hover:opacity-100 focus-visible:opacity-100 transition-opacity'>
+										<Pencil className='h-3.5 w-3.5' />
+									</button>
+								) : (
+									<Tooltip content={t('environment.selector.writeDeniedTooltip')}>
+										<span
+											tabIndex={0}
+											className='absolute right-1.5 top-1/2 -translate-y-1/2 inline-block opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity'>
+											<button
+												type='button'
+												disabled
+												aria-label={t('environment.selector.renameAria', { name: option.label })}
+												onPointerDown={(e) => e.stopPropagation()}
+												className='p-1 rounded-[4px] text-muted-foreground cursor-not-allowed'>
+												<Pencil className='h-3.5 w-3.5' />
+											</button>
+										</span>
+									</Tooltip>
+								)}
 							</div>
 						);
 					})}
 					<div className='flex flex-col gap-1.5 m-2 text-muted-foreground'>
-						<Button
-							onClick={() => {
-								setIsOpen(false);
-								setIsCreatorOpen(true);
-							}}
-							key='create'
-							value='create'
-							size='sm'
-							className='w-full text-center rounded-[6px] justify-center items-center'>
-							<Plus className='h-4 w-4' />
-							{t('environment.selector.addEnvironment')}
-						</Button>
-						<Button
-							onClick={() => {
-								setIsOpen(false);
-								setIsCopierOpen(true);
-							}}
-							key='copy'
-							size='sm'
-							variant='outline'
-							className='w-full text-center rounded-[6px] justify-center items-center'>
-							<Copy className='h-4 w-4' />
-							{t('environment.selector.copyEnvironment')}
-						</Button>
+						{canWriteEnvironment ? (
+							<Button
+								onClick={() => {
+									setIsOpen(false);
+									setIsCreatorOpen(true);
+								}}
+								key='create'
+								value='create'
+								size='sm'
+								className='w-full text-center rounded-[6px] justify-center items-center'>
+								<Plus className='h-4 w-4' />
+								{t('environment.selector.addEnvironment')}
+							</Button>
+						) : (
+							<Tooltip content={t('environment.selector.writeDeniedTooltip')}>
+								<span tabIndex={0} className='inline-block w-full'>
+									<Button disabled key='create' size='sm' className='w-full text-center rounded-[6px] justify-center items-center'>
+										<Plus className='h-4 w-4' />
+										{t('environment.selector.addEnvironment')}
+									</Button>
+								</span>
+							</Tooltip>
+						)}
+						{canWriteEnvironment ? (
+							<Button
+								onClick={() => {
+									setIsOpen(false);
+									setIsCopierOpen(true);
+								}}
+								key='copy'
+								size='sm'
+								variant='outline'
+								className='w-full text-center rounded-[6px] justify-center items-center'>
+								<Copy className='h-4 w-4' />
+								{t('environment.selector.copyEnvironment')}
+							</Button>
+						) : (
+							<Tooltip content={t('environment.selector.writeDeniedTooltip')}>
+								<span tabIndex={0} className='inline-block w-full'>
+									<Button
+										disabled
+										key='copy'
+										size='sm'
+										variant='outline'
+										className='w-full text-center rounded-[6px] justify-center items-center'>
+										<Copy className='h-4 w-4' />
+										{t('environment.selector.copyEnvironment')}
+									</Button>
+								</span>
+							</Tooltip>
+						)}
 					</div>
 				</SelectContent>
 			</Select>

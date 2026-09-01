@@ -1,6 +1,6 @@
 import { Button, CheckboxRadioGroupItem, FormHeader, Modal, Select, Spacer, Input, Textarea } from '@/components/atoms';
-import { refetchQueries } from '@/core/services/tanstack/ReactQueryProvider';
-import { Invoice } from '@/models/Invoice';
+import { refetchInvoiceQueries } from '@/core/services/tanstack/queryKeys';
+import { InvoiceListItem } from '@/types/dto';
 import InvoiceApi from '@/api/InvoiceApi';
 import { useMutation } from '@tanstack/react-query';
 import { FC, useEffect, useState } from 'react';
@@ -22,7 +22,7 @@ const ALLOWED_PAYMENT_STATUSES_FOR_VOID = [
 interface InvoiceStatusProps {
 	isOpen: boolean;
 	onOpenChange: (open: boolean) => void;
-	invoice?: Invoice;
+	invoice?: InvoiceListItem;
 }
 
 /**
@@ -90,9 +90,7 @@ const InvoiceStatusModal: FC<InvoiceStatusProps> = ({ isOpen, onOpenChange, invo
 		},
 		async onSuccess() {
 			toast.success('Invoice status updated successfully');
-			await refetchQueries(['fetchInvoices']);
-			await refetchQueries(['fetchInvoice']);
-			await refetchQueries(['invoice']);
+			await refetchInvoiceQueries();
 		},
 		onError: (error: Error) => {
 			toast.error(error.message || 'Failed to update invoice status');
@@ -136,7 +134,7 @@ const InvoiceStatusModal: FC<InvoiceStatusProps> = ({ isOpen, onOpenChange, invo
 
 	return (
 		<Modal isOpen={isOpen} onOpenChange={onOpenChange}>
-			<div className='card bg-white max-w-lg'>
+			<div className='card bg-surface max-w-lg'>
 				<FormHeader
 					title={t('invoices.details.updateInvoiceStatus')}
 					variant='sub-header'
@@ -154,7 +152,7 @@ const InvoiceStatusModal: FC<InvoiceStatusProps> = ({ isOpen, onOpenChange, invo
 					<>
 						<Spacer className='!my-6' />
 						<div className='border-t pt-6'>
-							<h3 className='text-lg font-medium text-gray-900 mb-4'>{t('invoices.details.addMetadataOptional')}</h3>
+							<h3 className='text-lg font-medium text-content mb-4'>{t('invoices.details.addMetadataOptional')}</h3>
 							<div className='flex flex-col gap-4'>
 								{voidMetadata.map((item, idx) => (
 									<div key={idx} className='flex gap-2 items-center'>

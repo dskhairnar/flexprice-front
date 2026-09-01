@@ -194,17 +194,16 @@ export function convertDateTimeToTimezone(date: Date, fromZone: DateTimezone, to
 	return dateTimeInZone(year, month, d, hours, minutes, seconds, toZone);
 }
 
-/** Format a date as "7 Mar" (day + short month) for billing period display. Uses UTC so API timestamps (e.g. 2025-09-30T23:00:00.000Z) show as the intended calendar day (30 Sep) regardless of user timezone. */
-export function formatBillingPeriodDate(date: string | Date): string {
+/** Format a date as "7 Mar" (day + short month) for billing period display. Pass `'utc'` (default) to render the UTC calendar day; `'local'` for the user's timezone. */
+export function formatBillingPeriodDate(date: string | Date, zone: DateTimezone = 'utc'): string {
 	const dateObj = typeof date === 'string' ? new Date(date) : date;
 	if (isNaN(dateObj.getTime())) return 'Invalid Date';
-	const day = dateObj.getUTCDate();
-	const month = dateObj.toLocaleDateString('en-US', { month: 'short', timeZone: 'UTC' });
+	const day = zone === 'utc' ? dateObj.getUTCDate() : dateObj.getDate();
+	const month = dateObj.toLocaleDateString('en-US', { month: 'short', ...(zone === 'utc' ? { timeZone: 'UTC' } : {}) });
 	return `${day} ${month}`;
 }
 
-/** Format a billing period as "7 Mar - 8 Dec". End date is shown as periodEnd - 1 second. */
+/** Format a billing period as "7 Mar - 8 Dec". Both ends use the user's local timezone so IST (etc.) midnight boundaries (e.g. `…T18:30:00Z`) map to the intended calendar day. */
 export function formatBillingPeriod(periodStart: string, periodEnd: string): string {
-	const endMinusOneSec = new Date(new Date(periodEnd).getTime() - 1000).toISOString();
-	return `${formatBillingPeriodDate(periodStart)} - ${formatBillingPeriodDate(endMinusOneSec)}`;
+	return `${formatBillingPeriodDate(periodStart, 'local')} - ${formatBillingPeriodDate(periodEnd, 'local')}`;
 }

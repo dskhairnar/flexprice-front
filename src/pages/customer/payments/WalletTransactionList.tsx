@@ -45,7 +45,7 @@ const formatAmount = ({
 	creditsSuffix: string;
 }) => {
 	const isPending = status?.toLowerCase() === 'pending';
-	const colorClass = isPending ? 'text-[#f5c50b]' : type === 'credit' ? 'text-[#2A9D90]' : 'text-[#18181B]';
+	const colorClass = isPending ? 'text-accent-yellow-brand' : type === 'credit' ? 'text-accent-teal-brand' : 'text-content-zinc-bold';
 
 	return (
 		<span className={cn(colorClass, className)}>
@@ -181,7 +181,7 @@ const WalletTransactionList = () => {
 						const customerName = rowData.customer?.name || rowData.customer?.email || rowData.customer_id;
 						return <RedirectCell redirectUrl={`${RouteNames.customers}/${rowData.customer_id}`}>{customerName}</RedirectCell>;
 					}
-					return <span className='text-gray-400'>{naLabel}</span>;
+					return <span className='text-content-subtle'>{naLabel}</span>;
 				},
 			},
 			{
@@ -200,9 +200,9 @@ const WalletTransactionList = () => {
 						if (user) {
 							return <span>{user.email || user.name || rowData.created_by}</span>;
 						}
-						return <span className='text-gray-400 font-mono text-xs'>{rowData.created_by}</span>;
+						return <span className='text-content-subtle font-mono text-xs'>{rowData.created_by}</span>;
 					}
-					return <span className='text-gray-400'>{naLabel}</span>;
+					return <span className='text-content-subtle'>{naLabel}</span>;
 				},
 			},
 			{
@@ -220,7 +220,7 @@ const WalletTransactionList = () => {
 								creditsSuffix,
 							})}
 							{rowData.credit_amount > 0 && (
-								<span className='text-sm text-gray-500'>
+								<span className='text-sm text-content-muted'>
 									{formatAmount({
 										type: rowData.type,
 										amount: rowData.credit_amount,

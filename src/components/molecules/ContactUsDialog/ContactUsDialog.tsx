@@ -36,7 +36,7 @@ const ContactUsDialog: React.FC<ContactUsDialogProps> = ({ isOpen, onOpenChange,
 						style={{ backgroundColor: '#4A154B' }}>
 						<img src='/assets/logo/slack-logo.png' alt={t('contactUs.slackAlt')} className='h-7 w-7 object-contain' />
 					</div>
-					<span className='text-xs font-medium text-gray-700 group-hover:text-[#4A154B] transition-colors duration-300 ease-in-out'>
+					<span className='text-xs font-medium text-content-secondary group-hover:text-[#4A154B] transition-colors duration-300 ease-in-out'>
 						{t('contactUs.slackLabel')}
 					</span>
 				</button>
@@ -47,10 +47,10 @@ const ContactUsDialog: React.FC<ContactUsDialogProps> = ({ isOpen, onOpenChange,
 					aria-label={t('contactUs.emailAria')}>
 					<div
 						className='h-14 w-14 rounded-xl flex items-center justify-center shadow-sm transition-shadow duration-300 ease-in-out group-hover:shadow-md'
-						style={{ backgroundColor: '#E5E7EB' }}>
-						<Mail className='h-7 w-7 text-gray-700' strokeWidth={1.5} />
+						style={{ backgroundColor: 'rgb(var(--fp-surface-strong))' }}>
+						<Mail className='h-7 w-7 text-content-secondary' strokeWidth={1.5} />
 					</div>
-					<span className='text-xs font-medium text-gray-700 group-hover:text-gray-900 transition-colors duration-300 ease-in-out'>
+					<span className='text-xs font-medium text-content-secondary group-hover:text-content transition-colors duration-300 ease-in-out'>
 						{t('contactUs.emailLabel')}
 					</span>
 				</button>
@@ -64,7 +64,7 @@ const ContactUsDialog: React.FC<ContactUsDialogProps> = ({ isOpen, onOpenChange,
 						style={{ backgroundColor: '#0069FF' }}>
 						<CalendarDays className='h-7 w-7 text-white' strokeWidth={1.5} />
 					</div>
-					<span className='text-xs font-medium text-gray-700 group-hover:text-[#0069FF] transition-colors duration-300 ease-in-out'>
+					<span className='text-xs font-medium text-content-secondary group-hover:text-[#0069FF] transition-colors duration-300 ease-in-out'>
 						{t('contactUs.bookCallLabel')}
 					</span>
 				</button>

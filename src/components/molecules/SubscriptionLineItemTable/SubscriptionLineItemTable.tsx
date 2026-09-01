@@ -2,26 +2,32 @@ import { Card, CardHeader, NoDataCard, Chip, Tooltip } from '@/components/atoms'
 import { useTranslation } from 'react-i18next';
 import { TFunction } from 'i18next';
 import type { SubscriptionCommitmentInfo } from '@/models/Subscription';
-import { ChargeValueCell, ColumnData, FlexpriceTable, TerminateLineItemModal, DropdownMenu } from '@/components/molecules';
+import {
+	ChargeValueCell,
+	ColumnData,
+	FlexpriceTable,
+	TerminateLineItemModal,
+	DropdownMenu,
+	AlertSettingsDialog,
+} from '@/components/molecules';
 import { PriceTooltip } from '@/components/molecules/PriceTooltip';
 import { LineItem, SUBSCRIPTION_LINE_ITEM_ENTITY_TYPE } from '@/models/Subscription';
+import { ALERT_ENTITY_TYPE } from '@/models/AlertSetting';
 import { FC, useState, useCallback, useMemo } from 'react';
-import { Trash2, Pencil, Info, Eye } from 'lucide-react';
+import { Trash2, Pencil, Info, Eye, Tag, TicketX, Copy, Bell } from 'lucide-react';
 import { ENTITY_STATUS } from '@/models/base';
-import { formatBillingPeriodForDisplay, getCurrencySymbol, getPriceTypeLabel } from '@/utils/common/helper_functions';
-import { PRICE_ENTITY_TYPE, PRICE_STATUS } from '@/models/Price';
+import {
+	copyToClipboard,
+	formatBillingPeriodForDisplay,
+	getBucketSizeLabel,
+	getCurrencySymbol,
+	getPriceTypeLabel,
+} from '@/utils/common/helper_functions';
+import { resolveBucketSize } from '@/utils/common/commitment_helpers';
+import { PRICE_ENTITY_TYPE, PRICE_STATUS, PRICE_TYPE } from '@/models/Price';
 import { formatDateTimeWithSecondsAndTimezone } from '@/utils/common/format_date';
 import LineItemWindowCommitmentViewDialog from '@/components/molecules/Subscription/LineItemWindowCommitmentViewDialog';
-import {
-	attachCommitmentBucketPrices,
-	getMinutesEnabledForMeter,
-	lineItemHasWindowCommitment,
-	formatCommitmentTimeBucketLabel,
-} from '@/utils/subscription/subscription_line_item_commitment_helpers';
-import { hydrateCommitmentTimeBucketsForDisplay } from '@/utils/common/commitment_time_bucket_draft';
-import { useCommitmentTimeBucketPrices } from '@/hooks/useCommitmentTimeBucketPrices';
-import type { Price } from '@/models/Price';
-
+import { lineItemHasCommitment } from '@/utils/subscription/subscription_line_item_commitment_helpers';
 interface Props {
 	data: LineItem[];
 	onEdit?: (lineItem: LineItem) => void;
@@ -39,6 +45,19 @@ interface Props {
 	noDataSubtitle?: string;
 	/** Show per-line-item window commitment buckets (details + edit pages). */
 	showCommitmentColumn?: boolean;
+	onApplyCoupon?: (lineItem: LineItem) => void;
+	onRemoveCoupon?: (lineItem: LineItem) => void;
+	/** Set of line item IDs that have an active coupon association — used to conditionally show "Remove coupon" */
+	lineItemIdsWithCoupon?: Set<string>;
+}
+
+/**
+ * Quantity is only meaningful for FIXED charges — USAGE charges are billed
+ * from metered consumption, so their quantity column shows "--" instead.
+ */
+export function getQuantityDisplayForLineItem(row: Pick<LineItem, 'price_type' | 'quantity'>): string {
+	if (row.price_type !== PRICE_TYPE.FIXED) return '--';
+	return String(row.quantity);
 }
 
 interface LineItemWithStatus extends LineItem {
@@ -56,6 +75,10 @@ interface ViewCommitmentDropdownProps {
 const ViewCommitmentDropdown: FC<ViewCommitmentDropdownProps> = ({ row, onView }) => {
 	const { t } = useTranslation('billing');
 	const [isOpen, setIsOpen] = useState(false);
+
+	if (!lineItemHasCommitment(row)) {
+		return null;
+	}
 
 	const handleClick = (e: React.MouseEvent) => {
 		e.preventDefault();
@@ -91,6 +114,9 @@ interface LineItemDropdownProps {
 	onEdit: (lineItem: LineItem) => void;
 	onTerminate: (lineItem: LineItem) => void;
 	onViewCommitment?: (lineItem: LineItem) => void;
+	onApplyCoupon?: (lineItem: LineItem) => void;
+	onRemoveCoupon?: (lineItem: LineItem) => void;
+	hasLinkedCoupon?: boolean;
 }
 
 const LineItemDropdown: FC<LineItemDropdownProps> = ({
@@ -100,10 +126,15 @@ const LineItemDropdown: FC<LineItemDropdownProps> = ({
 	onEdit,
 	onTerminate,
 	onViewCommitment,
+	onApplyCoupon,
+	onRemoveCoupon,
+	hasLinkedCoupon,
 }) => {
 	const { t } = useTranslation('billing');
+	const { t: tCommon } = useTranslation('common');
 	const [isOpen, setIsOpen] = useState(false);
-	const showViewCommitment = !!onViewCommitment && lineItemHasWindowCommitment(row);
+	const [showAlertDialog, setShowAlertDialog] = useState(false);
+	const showViewCommitment = !!onViewCommitment && lineItemHasCommitment(row);
 
 	const handleClick = (e: React.MouseEvent) => {
 		e.preventDefault();
@@ -112,47 +143,110 @@ const LineItemDropdown: FC<LineItemDropdownProps> = ({
 	};
 
 	return (
-		<div data-interactive='true' onClick={handleClick}>
-			<DropdownMenu
-				isOpen={isOpen}
-				onOpenChange={setIsOpen}
-				options={[
-					...(showViewCommitment
-						? [
-								{
-									label: t('commitmentConfig.viewCommitment', { defaultValue: 'View commitment' }),
-									icon: <Eye />,
-									onSelect: (e: Event) => {
-										e.preventDefault();
-										setIsOpen(false);
-										onViewCommitment?.(row);
+		<>
+			<div data-interactive='true' onClick={handleClick}>
+				<DropdownMenu
+					isOpen={isOpen}
+					onOpenChange={setIsOpen}
+					options={[
+						{
+							label: tCommon('copyId.lineItemId'),
+							icon: <Copy />,
+							onSelect: (e: Event) => {
+								e.preventDefault();
+								setIsOpen(false);
+								void copyToClipboard(row.id, tCommon('copyId.toastWithType', { type: tCommon('copyId.entityTypes.lineItem') }));
+							},
+						},
+						{
+							label: tCommon('copyId.priceId'),
+							icon: <Copy />,
+							onSelect: (e: Event) => {
+								e.preventDefault();
+								setIsOpen(false);
+								void copyToClipboard(row.price_id, tCommon('copyId.toastWithType', { type: tCommon('copyId.entityTypes.price') }));
+							},
+							disabled: !row.price_id,
+						},
+						...(showViewCommitment
+							? [
+									{
+										label: t('commitmentConfig.viewCommitment', { defaultValue: 'View commitment' }),
+										icon: <Eye />,
+										onSelect: (e: Event) => {
+											e.preventDefault();
+											setIsOpen(false);
+											onViewCommitment?.(row);
+										},
 									},
-								},
-							]
-						: []),
-					{
-						label: 'Edit',
-						icon: <Pencil />,
-						onSelect: (e: Event) => {
-							e.preventDefault();
-							setIsOpen(false);
-							onEdit(row);
+								]
+							: []),
+						{
+							label: 'Edit',
+							icon: <Pencil />,
+							onSelect: (e: Event) => {
+								e.preventDefault();
+								setIsOpen(false);
+								onEdit(row);
+							},
+							disabled: isEditDisabled,
 						},
-						disabled: isEditDisabled,
-					},
-					{
-						label: 'Terminate',
-						icon: <Trash2 />,
-						onSelect: (e: Event) => {
-							e.preventDefault();
-							setIsOpen(false);
-							onTerminate(row);
+						{
+							label: 'Alert Settings',
+							icon: <Bell />,
+							onSelect: (e: Event) => {
+								e.preventDefault();
+								setIsOpen(false);
+								setShowAlertDialog(true);
+							},
 						},
-						disabled: isTerminateDisabled,
-					},
-				]}
+						{
+							label: 'Terminate',
+							icon: <Trash2 />,
+							onSelect: (e: Event) => {
+								e.preventDefault();
+								setIsOpen(false);
+								onTerminate(row);
+							},
+							disabled: isTerminateDisabled,
+						},
+						...(onApplyCoupon && !hasLinkedCoupon
+							? [
+									{
+										label: 'Apply coupon',
+										icon: <Tag />,
+										onSelect: (e: Event) => {
+											e.preventDefault();
+											setIsOpen(false);
+											onApplyCoupon(row);
+										},
+									},
+								]
+							: []),
+						...(onRemoveCoupon && hasLinkedCoupon
+							? [
+									{
+										label: 'Remove coupon',
+										icon: <TicketX />,
+										onSelect: (e: Event) => {
+											e.preventDefault();
+											setIsOpen(false);
+											onRemoveCoupon(row);
+										},
+									},
+								]
+							: []),
+					]}
+				/>
+			</div>
+			<AlertSettingsDialog
+				open={showAlertDialog}
+				onClose={() => setShowAlertDialog(false)}
+				entityType={ALERT_ENTITY_TYPE.SUBSCRIPTION_LINE_ITEM}
+				entityId={row.id}
+				parentEntityId={row.subscription_id}
 			/>
-		</div>
+		</>
 	);
 };
 
@@ -230,7 +324,7 @@ const formatLineItemDateTooltip = (lineItem: LineItem, t: TFunction): React.Reac
 			if (!isNaN(startDate.getTime())) {
 				dateItems.push(
 					<div key='start' className='flex items-center gap-2'>
-						<span className='text-xs font-medium text-gray-500'>{t('labels.start')}</span>
+						<span className='text-xs font-medium text-content-muted'>{t('labels.start')}</span>
 						<span className='text-sm font-medium'>{formatDateTimeWithSecondsAndTimezone(startDate)}</span>
 					</div>,
 				);
@@ -246,7 +340,7 @@ const formatLineItemDateTooltip = (lineItem: LineItem, t: TFunction): React.Reac
 			if (!isNaN(endDate.getTime())) {
 				dateItems.push(
 					<div key='end' className='flex items-center gap-2'>
-						<span className='text-xs font-medium text-gray-500'>{t('labels.end')}</span>
+						<span className='text-xs font-medium text-content-muted'>{t('labels.end')}</span>
 						<span className='text-sm font-medium'>{formatDateTimeWithSecondsAndTimezone(endDate)}</span>
 					</div>,
 				);
@@ -307,56 +401,6 @@ const formatCommitmentTooltip = (info: SubscriptionCommitmentInfo, t: TFunction)
 	return <div className='flex flex-col gap-2'>{rows}</div>;
 };
 
-interface CommitmentColumnCellProps {
-	row: LineItemWithStatus;
-	pricesById: Record<string, Price>;
-}
-
-const CommitmentColumnCell: FC<CommitmentColumnCellProps> = ({ row, pricesById }) => {
-	const { t } = useTranslation('billing');
-	if (!lineItemHasWindowCommitment(row)) {
-		return <span className='text-sm text-gray-400'>—</span>;
-	}
-
-	const buckets = hydrateCommitmentTimeBucketsForDisplay(attachCommitmentBucketPrices(row.commitment_time_buckets ?? [], pricesById));
-	const minutesEnabled = getMinutesEnabledForMeter(row.price?.meter);
-	const currencySymbol = getCurrencySymbol(row.currency ?? 'usd');
-
-	if (buckets.length === 0) {
-		return <span className='text-sm text-gray-400'>—</span>;
-	}
-
-	const labels = buckets.map((bucket) => formatCommitmentTimeBucketLabel(bucket, currencySymbol, minutesEnabled));
-	const primaryLabel = labels[0];
-
-	if (labels.length === 1) {
-		return <span className='text-sm text-gray-600 leading-snug'>{primaryLabel}</span>;
-	}
-
-	return (
-		<Tooltip
-			content={
-				<ul className='space-y-1.5'>
-					{labels.map((label, index) => (
-						<li key={index} className='text-sm leading-snug'>
-							{label}
-						</li>
-					))}
-				</ul>
-			}
-			delayDuration={0}
-			sideOffset={5}
-			className='bg-white border border-gray-200 shadow-lg text-sm text-gray-900 px-4 py-3 rounded-lg max-w-[420px]'>
-			<span className='text-sm text-gray-600 leading-snug'>
-				{primaryLabel}
-				<span className='ms-1 text-xs text-gray-500'>
-					+{labels.length - 1} {t('commitmentConfig.timeBuckets.moreBuckets')}
-				</span>
-			</span>
-		</Tooltip>
-	);
-};
-
 const SubscriptionLineItemTable: FC<Props> = ({
 	data,
 	onEdit,
@@ -369,6 +413,9 @@ const SubscriptionLineItemTable: FC<Props> = ({
 	showNoDataCard = true,
 	noDataSubtitle,
 	showCommitmentColumn = false,
+	onApplyCoupon,
+	onRemoveCoupon,
+	lineItemIdsWithCoupon,
 }) => {
 	const { t } = useTranslation('common');
 	const [showTerminateModal, setShowTerminateModal] = useState(false);
@@ -434,42 +481,49 @@ const SubscriptionLineItemTable: FC<Props> = ({
 		return types.size > 1;
 	}, [data]);
 
-	const allCommitmentBuckets = useMemo(
-		() => (showCommitmentColumn ? (data ?? []).flatMap((item) => item.commitment_time_buckets ?? []) : []),
-		[data, showCommitmentColumn],
-	);
-	const { pricesById } = useCommitmentTimeBucketPrices(allCommitmentBuckets);
-
 	const columns: ColumnData<LineItemWithStatus>[] = useMemo(
 		() => [
 			{
 				title: 'Display Name',
-				render: (row: LineItemWithStatus) => (
-					<div className='flex items-center gap-1'>
-						<span>{row.display_name}</span>
-						{shouldShowCommitmentIcon(row, commitmentInfo) && (
-							<Tooltip
-								content={formatCommitmentTooltip(commitmentInfo!, t)}
-								delayDuration={0}
-								sideOffset={5}
-								className='bg-white border border-gray-200 shadow-lg text-sm text-gray-900 px-4 py-3 rounded-[6px] max-w-[320px]'>
-								<button
-									type='button'
-									data-interactive='true'
-									className='inline-flex items-center rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500'>
-									<Info className='h-4 w-4 text-blue-500 flex-shrink-0' />
-								</button>
-							</Tooltip>
-						)}
-					</div>
-				),
+				render: (row: LineItemWithStatus) => {
+					const displayName = row.display_name?.trim() || '--';
+					return (
+						<div className='flex min-w-0 max-w-[240px] items-center gap-1'>
+							{displayName === '--' ? (
+								<span className='truncate'>{displayName}</span>
+							) : (
+								<Tooltip
+									content={displayName}
+									delayDuration={0}
+									sideOffset={5}
+									className='bg-surface border border-line shadow-lg text-sm text-content px-4 py-3 rounded-[6px] max-w-[320px]'>
+									<span className='block min-w-0 truncate'>{displayName}</span>
+								</Tooltip>
+							)}
+							{shouldShowCommitmentIcon(row, commitmentInfo) && (
+								<Tooltip
+									content={formatCommitmentTooltip(commitmentInfo!, t)}
+									delayDuration={0}
+									sideOffset={5}
+									className='bg-surface border border-line shadow-lg text-sm text-content px-4 py-3 rounded-[6px] max-w-[320px]'>
+									<button
+										type='button'
+										data-interactive='true'
+										className='inline-flex items-center rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-info-bright'>
+										<Info className='h-4 w-4 text-info-bright flex-shrink-0' />
+									</button>
+								</Tooltip>
+							)}
+						</div>
+					);
+				},
 			},
 			...(phaseLabelsById && Object.keys(phaseLabelsById).length > 0
 				? [
 						{
 							title: 'Phase',
 							render: (row: LineItemWithStatus) => (
-								<span className='text-sm text-gray-700'>
+								<span className='text-sm text-content-secondary'>
 									{(row.subscription_phase_id && phaseLabelsById[row.subscription_phase_id]) ?? '—'}
 								</span>
 							),
@@ -483,6 +537,13 @@ const SubscriptionLineItemTable: FC<Props> = ({
 			{
 				title: 'Billing Period',
 				render: (row) => formatBillingPeriodForDisplay(row.billing_period),
+			},
+			{
+				title: 'Bucket Size',
+				render: (row) => {
+					const label = getBucketSizeLabel(resolveBucketSize(row.price));
+					return label ? <Chip label={label} variant='default' /> : <span className='text-content-muted'>{t('labels.na')}</span>;
+				},
 			},
 			...(hasMultipleEntityTypes
 				? [
@@ -502,7 +563,7 @@ const SubscriptionLineItemTable: FC<Props> = ({
 							content={rowData.tooltipContent}
 							delayDuration={0}
 							sideOffset={5}
-							className='bg-white border border-gray-200 shadow-lg text-sm text-gray-900 px-4 py-3 rounded-[6px] max-w-[320px]'>
+							className='bg-surface border border-line shadow-lg text-sm text-content px-4 py-3 rounded-[6px] max-w-[320px]'>
 							<span>
 								<Chip label={rowData.statusLabel} variant={rowData.statusVariant} />
 							</span>
@@ -510,14 +571,10 @@ const SubscriptionLineItemTable: FC<Props> = ({
 					);
 				},
 			},
-			...(showCommitmentColumn
-				? [
-						{
-							title: 'Commitment',
-							render: (row: LineItemWithStatus) => <CommitmentColumnCell row={row} pricesById={pricesById} />,
-						},
-					]
-				: []),
+			{
+				title: 'Quantity',
+				render: (row) => <span>{getQuantityDisplayForLineItem(row)}</span>,
+			},
 			{
 				title: 'Charge',
 				render: (row) => {
@@ -539,7 +596,6 @@ const SubscriptionLineItemTable: FC<Props> = ({
 							width: '48px',
 							hideOnEmpty: true,
 							render: (row: LineItemWithStatus) => {
-								if (!lineItemHasWindowCommitment(row)) return null;
 								return <ViewCommitmentDropdown row={row} onView={setViewCommitmentLineItem} />;
 							},
 						},
@@ -564,6 +620,9 @@ const SubscriptionLineItemTable: FC<Props> = ({
 										onEdit={handleEditClick}
 										onTerminate={handleTerminateClick}
 										onViewCommitment={setViewCommitmentLineItem}
+										onApplyCoupon={onApplyCoupon}
+										onRemoveCoupon={onRemoveCoupon}
+										hasLinkedCoupon={lineItemIdsWithCoupon?.has(row.id)}
 									/>
 								);
 							},
@@ -578,8 +637,10 @@ const SubscriptionLineItemTable: FC<Props> = ({
 			readOnly,
 			phaseLabelsById,
 			showCommitmentColumn,
-			pricesById,
 			t,
+			onApplyCoupon,
+			onRemoveCoupon,
+			lineItemIdsWithCoupon,
 		],
 	);
 
@@ -588,9 +649,9 @@ const SubscriptionLineItemTable: FC<Props> = ({
 			return (
 				<div className='p-4'>
 					<div className='animate-pulse space-y-4'>
-						<div className='h-4 bg-gray-200 rounded w-3/4'></div>
-						<div className='h-4 bg-gray-200 rounded w-1/2'></div>
-						<div className='h-4 bg-gray-200 rounded w-5/6'></div>
+						<div className='h-4 bg-surface-strong rounded w-3/4'></div>
+						<div className='h-4 bg-surface-strong rounded w-1/2'></div>
+						<div className='h-4 bg-surface-strong rounded w-5/6'></div>
 					</div>
 				</div>
 			);
@@ -600,9 +661,9 @@ const SubscriptionLineItemTable: FC<Props> = ({
 				<CardHeader title={t('labels.subscriptionLineItems')} />
 				<div className='p-4'>
 					<div className='animate-pulse space-y-4'>
-						<div className='h-4 bg-gray-200 rounded w-3/4'></div>
-						<div className='h-4 bg-gray-200 rounded w-1/2'></div>
-						<div className='h-4 bg-gray-200 rounded w-5/6'></div>
+						<div className='h-4 bg-surface-strong rounded w-3/4'></div>
+						<div className='h-4 bg-surface-strong rounded w-1/2'></div>
+						<div className='h-4 bg-surface-strong rounded w-5/6'></div>
 					</div>
 				</div>
 			</Card>

@@ -41,11 +41,13 @@ export interface LineItem extends BaseModel {
 	/** ID of the source entity (plan_id, addon_id, or subscription_id) */
 	readonly entity_id?: string;
 	// Commitment fields
+	readonly commitment_amount?: string | number;
 	readonly commitment_quantity?: string;
 	readonly commitment_type?: string;
 	readonly commitment_overage_factor?: string;
 	readonly commitment_true_up_enabled?: boolean;
 	readonly commitment_windowed?: boolean;
+	readonly commitment_duration?: string;
 	readonly commitment_time_buckets?: CommitmentTimeBucket[];
 }
 
@@ -106,6 +108,9 @@ export interface Subscription extends BaseModel {
 
 	/** Usage-style subscriptions: optional threshold amount for auto-invoicing behavior (API-defined semantics). */
 	readonly auto_invoice_threshold?: number;
+
+	/** IANA timezone for billing period calculations; defaults to UTC when unset. */
+	readonly timezone?: string;
 }
 
 export interface SubscriptionUsage extends BaseModel {
@@ -215,10 +220,24 @@ export enum SUBSCRIPTION_MODIFY_TYPE {
 	INHERITANCE = 'inheritance',
 	QUANTITY_CHANGE = 'quantity_change',
 	GROUPED_INVOICING = 'grouped_invoicing',
+	COUPON = 'coupon',
+	TAX = 'tax',
 }
 
 /** Payload `grouped_invoicing_params.action` for {@link SUBSCRIPTION_MODIFY_TYPE.GROUPED_INVOICING}. */
 export enum GROUPED_INVOICING_MODIFY_ACTION {
+	ADD = 'add',
+	REMOVE = 'remove',
+}
+
+/** Payload `coupon_params.action` for {@link SUBSCRIPTION_MODIFY_TYPE.COUPON}. */
+export enum SUB_MODIFY_COUPON_ACTION {
+	ADD = 'add',
+	REMOVE = 'remove',
+}
+
+/** Payload `tax_params.action` for {@link SUBSCRIPTION_MODIFY_TYPE.TAX}. */
+export enum SUB_MODIFY_TAX_ACTION {
 	ADD = 'add',
 	REMOVE = 'remove',
 }

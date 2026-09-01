@@ -179,8 +179,9 @@ const FilterPopover: React.FC<Props> = ({ fields, value = [], onChange, classNam
 						date={filter.valueDate}
 						{...inputProps}
 						popoverContentClassName='w-full !z-[110]'
-						className={cn(inputProps.className, 'h-9 min-w-[182px] text-xs')}
+						className={cn(inputProps.className, 'h-9 text-xs')}
 						placeholder={t('queryBuilder.selectDate')}
+						clearable
 					/>
 				),
 				[FilterFieldType.RADIO]: (
@@ -310,7 +311,7 @@ const FilterPopover: React.FC<Props> = ({ fields, value = [], onChange, classNam
 			</PopoverTrigger>
 			<PopoverContent
 				align='start'
-				className={cn('w-screen border-border/70 shadow-lg bg-[#fbfbfb]', POPOVER_PADDING)}
+				className={cn('w-screen border-border/70 shadow-lg bg-surface-panel', POPOVER_PADDING)}
 				style={{ maxWidth: '600px', minWidth: MIN_POPOVER_WIDTH }}>
 				<div className='flex flex-col gap-1.5'>
 					{value.length === 0 ? (

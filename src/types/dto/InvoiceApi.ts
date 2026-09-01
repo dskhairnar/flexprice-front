@@ -1,9 +1,17 @@
-import { Invoice, Pagination, Metadata } from '@/models';
+import { Invoice, LineItem, Pagination, Metadata } from '@/models';
 import { TaxRateOverride } from './tax';
 import { TypedBackendFilter, TypedBackendSort } from '@/types/formatters/QueryBuilder';
 
 export interface GetInvoicesResponse {
 	items: Invoice[];
+	pagination: Pagination;
+}
+
+/** Invoice shape returned by list/search calls made with `skip_line_items: true` — line_items is omitted by the backend, so it's optional here unlike on `Invoice`. */
+export type InvoiceListItem = Omit<Invoice, 'line_items'> & { line_items?: LineItem[] };
+
+export interface GetInvoicesListResponse {
+	items: InvoiceListItem[];
 	pagination: Pagination;
 }
 

@@ -4,8 +4,9 @@ import { ColumnData, FlexpriceTable, LineItemCoupon } from '@/components/molecul
 import PriceOverrideDialog from '@/components/molecules/PriceOverrideDialog/PriceOverrideDialog';
 import CommitmentConfigDialog from '@/components/molecules/CommitmentConfigDialog';
 import { Price, PRICE_TYPE, PRICE_UNIT_TYPE } from '@/models';
-import { ChevronDownIcon, ChevronUpIcon, Pencil, RotateCcw, Tag, Target, Trash2 } from 'lucide-react';
-import { FormHeader, DecimalUsageInput, AddButton } from '@/components/atoms';
+import type { PriceBucketSize } from '@/models/Meter';
+import { ChevronDownIcon, ChevronUpIcon, Copy, Pencil, RotateCcw, Tag, Target, Trash2 } from 'lucide-react';
+import { FormHeader, DecimalUsageInput, AddButton, Chip } from '@/components/atoms';
 import { ChargeValueCell } from '@/components/molecules';
 import { capitalize } from 'es-toolkit';
 import { Coupon } from '@/models';
@@ -16,14 +17,25 @@ import { ExtendedPriceOverride } from '@/utils';
 import { LineItemCommitmentConfig } from '@/types/dto/LineItemCommitmentConfig';
 import type { CommitmentTimeBucket } from '@/types/dto/CommitmentTimeBucket';
 import type { AddedSubscriptionLineItem } from './AddSubscriptionChargeDialog';
-import { getCurrencySymbol } from '@/utils/common/helper_functions';
+import { getCurrencySymbol, copyToClipboard, getBucketSizeLabel } from '@/utils/common/helper_functions';
 import { formatBillingPeriodForPrice } from '@/utils/common/helper_functions';
+import { resolveBucketSize } from '@/utils/common/commitment_helpers';
 import { formatAmount } from '@/components/atoms/Input/Input';
-import { BILLING_PERIOD } from '@/constants/constants';
-import { isOneTimePlanPrice } from '@/utils/subscription/planPricesForSubscriptionUi';
+import { BILLING_PERIOD, BUCKET_SIZE_NONE } from '@/constants/constants';
+import { isCadenceCompatible } from '@/utils/subscription/cadenceCompatibility';
 import { useTranslation } from 'react-i18next';
 
 const DEFAULT_ROW_LIMIT = 5;
+
+/**
+ * Resolves the committed quantity from a table-cell input string.
+ * Falls back to `minQuantity` only when the input doesn't parse to a
+ * number at all — a typed "0" must resolve to 0, not fall back.
+ */
+export function resolveQuantityFromInput(value: string, minQuantity: number): number {
+	const parsed = parseInt(value, 10);
+	return Number.isNaN(parsed) ? minQuantity : parsed;
+}
 
 type ChargeTableData = {
 	priceId: string;
@@ -31,7 +43,25 @@ type ChargeTableData = {
 	quantity: ReactNode;
 	price: ReactNode;
 	invoice_cadence: string;
+	bucketSize: ReactNode;
 	actions?: ReactNode;
+};
+
+/**
+ * Price-then-meter bucket resolution for added line items. The request type only
+ * carries meter_id, but items round-tripped from existing line items can carry a
+ * meter object at runtime — same fallback order as resolveBucketSize.
+ */
+const resolveAddedItemBucketSize = (item: AddedSubscriptionLineItem): PriceBucketSize | string | undefined => {
+	const priceWithMeter = item.price as
+		| (typeof item.price & { meter?: { aggregation?: { bucket_size?: PriceBucketSize | string | null } } })
+		| undefined;
+	return priceWithMeter?.bucket_size ?? priceWithMeter?.meter?.aggregation?.bucket_size ?? undefined;
+};
+
+const bucketSizeCell = (bucketSize: ReturnType<typeof resolveBucketSize> | PriceBucketSize | undefined, naLabel: string): ReactNode => {
+	const label = getBucketSizeLabel(bucketSize);
+	return label ? <Chip label={label} variant='default' /> : <span className='text-content-muted'>{naLabel}</span>;
 };
 
 interface PriceActionMenuProps {
@@ -54,6 +84,7 @@ const PriceActionMenu: FC<PriceActionMenuProps> = ({
 	onOpenCoupon,
 }) => {
 	const { t } = useTranslation('customers');
+	const { t: tc } = useTranslation('common');
 	const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
 	return (
@@ -71,6 +102,13 @@ const PriceActionMenu: FC<PriceActionMenuProps> = ({
 					</button>
 				</DropdownMenuTrigger>
 				<DropdownMenuContent align='end' className='w-48'>
+					<DropdownMenuItem
+						onClick={() => {
+							void copyToClipboard(price.id, tc('copyId.toastWithType', { type: 'Price' }));
+						}}>
+						<Copy className='me-2 h-4 w-4' />
+						{tc('copyId.genericLabel')}
+					</DropdownMenuItem>
 					<DropdownMenuItem onClick={() => onOverride(price)}>
 						<Pencil className='me-2 h-4 w-4' />
 						{isOverridden ? t('organisms.subscriptionPriceTable.editOverride') : t('organisms.subscriptionPriceTable.overridePrice')}
@@ -150,7 +188,7 @@ const PriceQuantityCell: FC<PriceQuantityCellProps> = ({
 						onQuantityChange('');
 						return;
 					}
-					const quantity = parseInt(value, 10) || minQuantity;
+					const quantity = resolveQuantityFromInput(value, minQuantity);
 
 					if (quantity === minQuantity) {
 						const onlyQuantityOverride =
@@ -184,6 +222,12 @@ export interface Props {
 	data: Price[];
 	/** Used for filtering and dialog context (e.g. commitment). */
 	billingPeriod?: BILLING_PERIOD;
+	/**
+	 * Subscription-level billing_period_count used with `billingPeriod` for the cadence-compatibility
+	 * check. Defaults to 1 because today's create/edit flows do not expose a count > 1 field; callers
+	 * that add such a control should pass the state value through.
+	 */
+	billingPeriodCount?: number;
 	/** Used for filtering and LineItemCoupon. */
 	currency?: string;
 	onPriceOverride?: (priceId: string, override: Partial<ExtendedPriceOverride>) => void;
@@ -220,6 +264,7 @@ function formatAddedLineItemPrice(item: AddedSubscriptionLineItem, fallbackCurre
 const SubscriptionPriceTable: FC<Props> = ({
 	data,
 	billingPeriod,
+	billingPeriodCount = 1,
 	currency,
 	onPriceOverride,
 	onResetOverride,
@@ -256,6 +301,7 @@ const SubscriptionPriceTable: FC<Props> = ({
 			},
 			{ fieldName: 'quantity', title: t('organisms.subscriptionPriceTable.colQuantity') },
 			{ fieldName: 'price', title: t('organisms.subscriptionPriceTable.colPrice') },
+			{ fieldName: 'bucketSize', title: t('organisms.subscriptionPriceTable.colBucketSize') },
 			{
 				fieldName: 'actions',
 				title: '',
@@ -273,11 +319,10 @@ const SubscriptionPriceTable: FC<Props> = ({
 			filtered = filtered.filter((p) => p.currency.toLowerCase() === currency.toLowerCase());
 		}
 		if (billingPeriod) {
-			const periodKey = billingPeriod.toUpperCase();
-			filtered = filtered.filter((p) => isOneTimePlanPrice(p) || p.billing_period.toUpperCase() === periodKey);
+			filtered = filtered.filter((p) => isCadenceCompatible(billingPeriod, billingPeriodCount, p.billing_period, p.billing_period_count));
 		}
 		return filtered;
-	}, [data, billingPeriod, currency]);
+	}, [data, billingPeriod, billingPeriodCount, currency]);
 
 	const handleOverride = (price: Price) => {
 		if (lineItemCoupons[price.id]) {
@@ -329,6 +374,14 @@ const SubscriptionPriceTable: FC<Props> = ({
 				),
 				price: <ChargeValueCell data={price} appliedCoupon={appliedCoupon} priceOverride={isOverridden ? override : undefined} />,
 				invoice_cadence: price.invoice_cadence,
+				bucketSize: bucketSizeCell(
+					isOverridden && override?.bucket_size !== undefined
+						? override.bucket_size === BUCKET_SIZE_NONE
+							? undefined
+							: override.bucket_size
+						: (resolveBucketSize(price) ?? undefined),
+					t('common:labels.na'),
+				),
 				actions: (
 					<PriceActionMenu
 						price={price}
@@ -344,6 +397,8 @@ const SubscriptionPriceTable: FC<Props> = ({
 		});
 	}, [
 		filteredPrices,
+		billingPeriod,
+		billingPeriodCount,
 		overriddenPrices,
 		lineItemCoupons,
 		quantityInputs,
@@ -365,6 +420,7 @@ const SubscriptionPriceTable: FC<Props> = ({
 			quantity: <span>{item.quantity ?? 1}</span>,
 			price: <span>{formatAddedLineItemPrice(item, currency)}</span>,
 			invoice_cadence: item.price?.invoice_cadence ?? '--',
+			bucketSize: bucketSizeCell(resolveAddedItemBucketSize(item), t('common:labels.na')),
 			actions:
 				onRemoveAddedCharge || onEditAddedCharge ? (
 					<OptionsDropdownMenu
@@ -384,7 +440,7 @@ const SubscriptionPriceTable: FC<Props> = ({
 											label: t('organisms.subscriptionPriceTable.deleteAdded'),
 											icon: <Trash2 className='h-4 w-4' />,
 											onSelect: () => onRemoveAddedCharge(item.tempId),
-											className: 'text-red-600 focus:text-red-600',
+											className: 'text-danger focus:text-danger',
 										},
 									]
 								: []),
@@ -412,7 +468,7 @@ const SubscriptionPriceTable: FC<Props> = ({
 				<FormHeader title={t('organisms.subscriptionPriceTable.charges')} variant='sub-header' />
 				{onAddCharge && <AddButton onClick={onAddCharge} disabled={disabled} className='w-fit'></AddButton>}
 			</div>
-			<div className='rounded-[6px] border border-gray-300'>
+			<div className='rounded-[6px] border border-line-strong'>
 				<div style={{ overflow: 'hidden' }}>
 					<FlexpriceTable columns={chargesTableColumns} data={displayedData} />
 				</div>
@@ -421,7 +477,7 @@ const SubscriptionPriceTable: FC<Props> = ({
 				<div className='flex justify-center mt-3'>
 					<button
 						onClick={() => setShowAllRows((prev) => !prev)}
-						className='flex items-center gap-1.5 text-sm text-gray-600 hover:text-gray-900 transition-colors py-2 px-3 rounded-[6px] hover:bg-gray-50'>
+						className='flex items-center gap-1.5 text-sm text-content-tertiary hover:text-content transition-colors py-2 px-3 rounded-[6px] hover:bg-surface-subtle'>
 						{showAllRows ? (
 							<>
 								<span>{t('organisms.subscriptionPriceTable.showLess')}</span>

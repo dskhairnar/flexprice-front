@@ -9,7 +9,7 @@ import { DashboardAnalyticsRequest } from '@/types';
 import { WindowSize } from '@/models';
 import { DatePicker } from '@/components/atoms';
 import { usePortalConfig } from '@/context/PortalConfigContext';
-import TabRenderer from './TabRenderer';
+import TabRenderer, { DEFAULT_USAGE_GRAPH_CONFIG } from './TabRenderer';
 import { cn } from '@/lib/utils';
 
 interface SectionContentProps {
@@ -154,8 +154,12 @@ const SectionContent = ({ section }: SectionContentProps) => {
 	// ── Shared date filter state (hoisted to section level) ──────────────────
 	const usageGraphTab: TabConfig | undefined = enabledTabs.find((t) => t.type === 'usage_graph');
 	const hasAnalytics = enabledTabs.some((t) => t.type === 'usage_graph' || t.type === 'metric_cards');
+	// metric_cards has no date config of its own (MetricCardsConfig carries only which cards to
+	// show) — fall back to the same defaults TabRenderer uses so a metric_cards-only section still
+	// gets a working date filter instead of losing it entirely for want of a usage_graph tab.
+	const usageGraphConfig = usageGraphTab?.usage_graph ?? DEFAULT_USAGE_GRAPH_CONFIG;
 
-	const defaultPreset = usageGraphTab?.usage_graph?.default_preset ?? DatePreset.Last7Days;
+	const defaultPreset = usageGraphConfig.default_preset;
 	const [selectedPreset, setSelectedPreset] = useState<DatePreset>(defaultPreset);
 	const [customStart, setCustomStart] = useState('');
 	const [customEnd, setCustomEnd] = useState('');
@@ -220,9 +224,9 @@ const SectionContent = ({ section }: SectionContentProps) => {
 	return (
 		<div className='space-y-6'>
 			{/* Single date filter at the top — shared by all analytics widgets in this section */}
-			{hasAnalytics && usageGraphTab?.usage_graph && (
+			{hasAnalytics && (
 				<SectionDateFilter
-					usageGraphConfig={usageGraphTab.usage_graph}
+					usageGraphConfig={usageGraphConfig}
 					selectedPreset={selectedPreset}
 					useCustom={useCustom}
 					effectiveStart={effectiveRange.start_time}

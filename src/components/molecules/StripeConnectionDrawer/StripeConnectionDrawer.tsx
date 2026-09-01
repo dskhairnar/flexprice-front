@@ -35,6 +35,7 @@ interface StripeFormData {
 		plan: boolean; // pull from Stripe
 		subscription: boolean; // pull from Stripe
 		invoice: boolean; // push to Stripe
+		price: boolean; // push to Stripe
 	};
 }
 
@@ -51,6 +52,7 @@ const StripeConnectionDrawer: FC<StripeConnectionDrawerProps> = ({ isOpen, onOpe
 			plan: false, // pull from Stripe
 			subscription: false, // pull from Stripe
 			invoice: false, // push to Stripe
+			price: false, // push to Stripe
 		},
 	});
 	const [errors, setErrors] = useState<Record<string, string>>({});
@@ -96,6 +98,7 @@ const StripeConnectionDrawer: FC<StripeConnectionDrawerProps> = ({ isOpen, onOpe
 					plan: legacySyncConfig?.plan?.inbound || false,
 					subscription: legacySyncConfig?.subscription?.inbound || false,
 					invoice: legacySyncConfig?.invoice?.outbound || false,
+					price: legacySyncConfig?.price?.outbound || false,
 				};
 
 				setFormData({
@@ -113,6 +116,7 @@ const StripeConnectionDrawer: FC<StripeConnectionDrawerProps> = ({ isOpen, onOpe
 						plan: false,
 						subscription: false,
 						invoice: false,
+						price: false,
 					},
 				});
 			}
@@ -180,6 +184,10 @@ const StripeConnectionDrawer: FC<StripeConnectionDrawerProps> = ({ isOpen, onOpe
 						inbound: false,
 						outbound: formData.sync_config.invoice,
 					},
+					price: {
+						inbound: false,
+						outbound: formData.sync_config.price,
+					},
 				},
 			};
 
@@ -211,6 +219,10 @@ const StripeConnectionDrawer: FC<StripeConnectionDrawerProps> = ({ isOpen, onOpe
 					invoice: {
 						inbound: false,
 						outbound: formData.sync_config.invoice,
+					},
+					price: {
+						inbound: false,
+						outbound: formData.sync_config.price,
 					},
 				},
 			};
@@ -288,34 +300,43 @@ const StripeConnectionDrawer: FC<StripeConnectionDrawerProps> = ({ isOpen, onOpe
 				)}
 
 				{/* Sync Configuration Section */}
-				<div className='p-4 bg-gray-50 border border-gray-200 rounded-lg'>
-					<h3 className='text-sm font-medium text-gray-800 mb-3'>{t('connection.sync.title')}</h3>
-					<p className='text-xs text-gray-600 mb-4'>{t('connection.sync.description', { partner: STRIPE_PROVIDER })}</p>
+				<div className='p-4 bg-surface-subtle border border-line rounded-lg'>
+					<h3 className='text-sm font-medium text-content-heading mb-3'>{t('connection.sync.title')}</h3>
+					<p className='text-xs text-content-tertiary mb-4'>{t('connection.sync.description', { partner: STRIPE_PROVIDER })}</p>
 
 					<div className='space-y-4'>
 						{/* Plans */}
-						<div className='flex items-center justify-between p-3 bg-white border border-gray-200 rounded-lg'>
+						<div className='flex items-center justify-between p-3 bg-surface border border-line rounded-lg'>
 							<div>
-								<label className='text-sm font-medium text-gray-700'>{t('integrations.stripe.labels.plans')}</label>
-								<p className='text-xs text-gray-500'>{t('integrations.stripe.pullFromStripe')}</p>
+								<label className='text-sm font-medium text-content-secondary'>{t('integrations.stripe.labels.plans')}</label>
+								<p className='text-xs text-content-muted'>{t('integrations.stripe.pullFromStripe')}</p>
 							</div>
 							<Switch checked={formData.sync_config.plan} onCheckedChange={(checked) => handleSyncConfigChange('plan', checked)} />
 						</div>
 
 						{/* Invoices */}
-						<div className='flex items-center justify-between p-3 bg-white border border-gray-200 rounded-lg'>
+						<div className='flex items-center justify-between p-3 bg-surface border border-line rounded-lg'>
 							<div>
-								<label className='text-sm font-medium text-gray-700'>{t('integrations.stripe.labels.invoices')}</label>
-								<p className='text-xs text-gray-500'>{t('integrations.stripe.pushToStripe')}</p>
+								<label className='text-sm font-medium text-content-secondary'>{t('integrations.stripe.labels.invoices')}</label>
+								<p className='text-xs text-content-muted'>{t('integrations.stripe.pushToStripe')}</p>
 							</div>
 							<Switch checked={formData.sync_config.invoice} onCheckedChange={(checked) => handleSyncConfigChange('invoice', checked)} />
 						</div>
 
-						{/* Subscriptions */}
-						<div className='flex items-center justify-between p-3 bg-white border border-gray-200 rounded-lg'>
+						{/* Prices */}
+						<div className='flex items-center justify-between p-3 bg-surface border border-line rounded-lg'>
 							<div>
-								<label className='text-sm font-medium text-gray-700'>{t('integrations.stripe.labels.subscriptions')}</label>
-								<p className='text-xs text-gray-500'>{t('integrations.stripe.pullFromStripe')}</p>
+								<label className='text-sm font-medium text-content-secondary'>{t('integrations.stripe.labels.prices')}</label>
+								<p className='text-xs text-content-muted'>{t('integrations.stripe.pushToStripe')}</p>
+							</div>
+							<Switch checked={formData.sync_config.price} onCheckedChange={(checked) => handleSyncConfigChange('price', checked)} />
+						</div>
+
+						{/* Subscriptions */}
+						<div className='flex items-center justify-between p-3 bg-surface border border-line rounded-lg'>
+							<div>
+								<label className='text-sm font-medium text-content-secondary'>{t('integrations.stripe.labels.subscriptions')}</label>
+								<p className='text-xs text-content-muted'>{t('integrations.stripe.pullFromStripe')}</p>
 							</div>
 							<Switch
 								checked={formData.sync_config.subscription}
@@ -326,8 +347,8 @@ const StripeConnectionDrawer: FC<StripeConnectionDrawerProps> = ({ isOpen, onOpe
 				</div>
 
 				{/* Webhook Section */}
-				<div className='p-4 bg-blue-50 border border-blue-200 rounded-lg'>
-					<h3 className='text-sm font-medium text-blue-800 mb-3'>{t('connection.webhook.sectionTitle')}</h3>
+				<div className='p-4 bg-info-muted border border-info-line rounded-lg'>
+					<h3 className='text-sm font-medium text-info-deep mb-3'>{t('connection.webhook.sectionTitle')}</h3>
 
 					{/* Webhook Secret */}
 					{!connection && (
@@ -346,10 +367,10 @@ const StripeConnectionDrawer: FC<StripeConnectionDrawerProps> = ({ isOpen, onOpe
 
 					{/* Webhook URL Block */}
 					<div className='mb-4'>
-						<label className='text-sm font-medium text-blue-800 mb-2 block'>{t('connection.webhook.url')}</label>
-						<p className='text-xs text-blue-700 mb-3'>{t('integrations.stripe.webhookIntro')}</p>
-						<div className='flex items-center gap-2 p-2 bg-white border border-blue-200 rounded-md'>
-							<code className='flex-1 text-xs text-gray-800 font-mono break-all'>{webhookUrl}</code>
+						<label className='text-sm font-medium text-info-deep mb-2 block'>{t('connection.webhook.url')}</label>
+						<p className='text-xs text-info-strong mb-3'>{t('integrations.stripe.webhookIntro')}</p>
+						<div className='flex items-center gap-2 p-2 bg-surface border border-info-line rounded-md'>
+							<code className='flex-1 text-xs text-content-heading font-mono break-all'>{webhookUrl}</code>
 							<Button size='xs' variant='outline' onClick={handleCopyWebhookUrl} className='flex items-center gap-1'>
 								{webhookCopied ? <CheckCircle className='w-3 h-3' /> : <Copy className='w-3 h-3' />}
 								{webhookCopied ? t('connection.webhook.copied') : t('connection.webhook.copy')}
@@ -362,18 +383,18 @@ const StripeConnectionDrawer: FC<StripeConnectionDrawerProps> = ({ isOpen, onOpe
 						<button
 							type='button'
 							onClick={() => setIsWebhookEventsExpanded(!isWebhookEventsExpanded)}
-							className='flex items-center gap-2 text-sm font-medium text-blue-800 hover:text-blue-900 mb-2'>
+							className='flex items-center gap-2 text-sm font-medium text-info-deep hover:text-info-deepest mb-2'>
 							{isWebhookEventsExpanded ? <ChevronDown className='w-4 h-4' /> : <ChevronRight className='w-4 h-4' />}
 							{t('connection.webhook.eventsToSubscribe')}
 						</button>
 
 						{isWebhookEventsExpanded && (
-							<div className='mt-2 p-3 bg-white border border-blue-200 rounded-md'>
-								<p className='text-xs text-blue-700 mb-3'>{t('integrations.stripe.webhookEventsIntro')}</p>
+							<div className='mt-2 p-3 bg-surface border border-info-line rounded-md'>
+								<p className='text-xs text-info-strong mb-3'>{t('integrations.stripe.webhookEventsIntro')}</p>
 								<div className='space-y-1'>
 									{getWebhookEvents().map((event, index) => (
-										<div key={index} className='flex items-center gap-2 text-xs text-blue-700'>
-											<div className='w-1.5 h-1.5 bg-blue-500 rounded-full'></div>
+										<div key={index} className='flex items-center gap-2 text-xs text-info-strong'>
+											<div className='w-1.5 h-1.5 bg-info-bright rounded-full'></div>
 											<code className='font-mono'>{event}</code>
 										</div>
 									))}

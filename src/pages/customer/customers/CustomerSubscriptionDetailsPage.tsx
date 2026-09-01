@@ -1,5 +1,5 @@
 import { Card, FormHeader, Page, Spacer, Chip } from '@/components/atoms';
-import { SubscriptionAddonsSection, UpcomingCreditGrantApplicationsTable } from '@/components/molecules';
+import { IntegrationMappingCard, SubscriptionAddonsSection, UpcomingCreditGrantApplicationsTable } from '@/components/molecules';
 import SubscriptionDetailChargesSection from '@/components/molecules/Subscription/SubscriptionDetailChargesSection';
 import FlexpriceTable, { ColumnData, RedirectCell } from '@/components/molecules/Table';
 import { SubscriptionPreviewLineItemTable } from '@/components/molecules/InvoiceLineItemTable';
@@ -19,8 +19,9 @@ import { useParams, Link } from 'react-router';
 import { INVOICE_TYPE } from '@/models/Invoice';
 import { TAXRATE_ENTITY_TYPE } from '@/models/Tax';
 import TaxAssociationTable from '@/components/molecules/TaxAssociationTable';
+import CouponAssociationTable from '@/components/molecules/CouponAssociationTable/CouponAssociationTable';
 import { Subscription as SubscriptionType, SUBSCRIPTION_STATUS, SUBSCRIPTION_TYPE } from '@/models/Subscription';
-import { EXPAND } from '@/models';
+import { ENTITY_STATUS, EXPAND } from '@/models';
 import { DataType, FilterOperator } from '@/types/common/QueryBuilder';
 import { SubscriptionResponse } from '@/types/dto/Subscription';
 import { generateExpandQueryParams } from '@/utils/common/api_helper';
@@ -40,7 +41,11 @@ function getSubscriptionTypeChipProps(raw: string | null | undefined): Subscript
 	const t = raw?.trim().toLowerCase();
 	switch (t) {
 		case SUBSCRIPTION_TYPE.STANDALONE:
-			return { textColor: '#0F766E', bgColor: '#CCFBF1', borderColor: '#99F6E4' };
+			return {
+				textColor: 'rgb(var(--fp-chip-teal-text))',
+				bgColor: 'rgb(var(--fp-chip-teal-bg))',
+				borderColor: 'rgb(var(--fp-chip-teal-line))',
+			};
 		case SUBSCRIPTION_TYPE.PARENT:
 			return { variant: 'success' };
 		case SUBSCRIPTION_TYPE.INHERITED:
@@ -48,9 +53,17 @@ function getSubscriptionTypeChipProps(raw: string | null | undefined): Subscript
 		case SUBSCRIPTION_TYPE.GROUPED_INVOICING:
 			return { variant: 'warning' };
 		case SUBSCRIPTION_TYPE.DELEGATED_INVOICING:
-			return { textColor: '#6D28D9', bgColor: '#F5F3FF', borderColor: '#DDD6FE' };
+			return {
+				textColor: 'rgb(var(--fp-chip-violet-text))',
+				bgColor: 'rgb(var(--fp-chip-violet-bg))',
+				borderColor: 'rgb(var(--fp-chip-violet-line))',
+			};
 		default:
-			return { textColor: '#4338CA', bgColor: '#EEF2FF', borderColor: '#E0E7FF' };
+			return {
+				textColor: 'rgb(var(--fp-chip-indigo-text))',
+				bgColor: 'rgb(var(--fp-chip-indigo-bg))',
+				borderColor: 'rgb(var(--fp-chip-indigo-line))',
+			};
 	}
 }
 
@@ -160,6 +173,7 @@ const CustomerSubscriptionDetailsPage: FC = () => {
 				offset: 0,
 				entity_id: subscription_id!,
 				entity_type: TAXRATE_ENTITY_TYPE.SUBSCRIPTION,
+				expand: generateExpandQueryParams([EXPAND.TAX_RATE]),
 			});
 		},
 		enabled: !!subscription_id,
@@ -188,6 +202,7 @@ const CustomerSubscriptionDetailsPage: FC = () => {
 				limit: 100,
 				offset: 0,
 				expand: generateExpandQueryParams([EXPAND.PLAN, EXPAND.CUSTOMER]),
+				status: ENTITY_STATUS.PUBLISHED,
 			}),
 		enabled: !!subscription_id && !!subscriptionDetails,
 	});
@@ -321,13 +336,13 @@ const CustomerSubscriptionDetailsPage: FC = () => {
 					<SubscriptionActionButton subscription={subscriptionDetails!} />
 				</div>
 				<div className='w-full flex justify-between items-center'>
-					<p className='text-[#71717A] text-sm'>{t('subscriptionDetail.subscriptionName')}</p>
-					<p className='text-[#09090B] text-sm'>{subscriptionDetails?.plan.name ?? t('usageTable.featureTypes.dash')}</p>
+					<p className='text-content-zinc-muted text-sm'>{t('subscriptionDetail.subscriptionName')}</p>
+					<p className='text-content-zinc text-sm'>{subscriptionDetails?.plan.name ?? t('usageTable.featureTypes.dash')}</p>
 				</div>
 				<Spacer className='!my-4' />
 				<div className='w-full flex justify-between items-center'>
-					<p className='text-[#71717A] text-sm'>{t('subscriptionDetail.status')}</p>
-					<div className='text-[#09090B] text-sm flex items-center gap-2'>
+					<p className='text-content-zinc-muted text-sm'>{t('subscriptionDetail.status')}</p>
+					<div className='text-content-zinc text-sm flex items-center gap-2'>
 						{getSubscriptionStatus(subscriptionDetails?.subscription_status ?? '', t)}
 						{showEndDateTag ? (
 							<Chip
@@ -350,27 +365,37 @@ const CustomerSubscriptionDetailsPage: FC = () => {
 				<Spacer className='!my-4' />
 
 				<div className='w-full flex justify-between items-center'>
-					<p className='text-[#71717A] text-sm'>{t('subscriptionDetail.billingCycle')}</p>
-					<p className='text-[#09090B] text-sm'>{subscriptionDetails?.billing_cycle || t('usageTable.featureTypes.dash')}</p>
+					<p className='text-content-zinc-muted text-sm'>{t('subscriptionDetail.billingCycle')}</p>
+					<p className='text-content-zinc text-sm'>{subscriptionDetails?.billing_cycle || t('usageTable.featureTypes.dash')}</p>
 				</div>
 				<Spacer className='!my-4' />
 
 				<div className='w-full flex justify-between items-center'>
-					<p className='text-[#71717A] text-sm'>{t('subscriptionDetail.commitmentPeriod')}</p>
-					<p className='text-[#09090B] text-sm'>{getCommitmentPeriodLabel(subscriptionDetails, t)}</p>
+					<p className='text-content-zinc-muted text-sm'>{t('subscriptionDetail.commitmentPeriod')}</p>
+					<p className='text-content-zinc text-sm'>{getCommitmentPeriodLabel(subscriptionDetails, t)}</p>
 				</div>
 				<Spacer className='!my-4' />
 
 				<div className='w-full flex justify-between items-center'>
-					<p className='text-[#71717A] text-sm'>{t('subscriptionDetail.paymentTerms')}</p>
-					<p className='text-[#09090B] text-sm'>{subscriptionDetails?.payment_terms ?? t('usageTable.featureTypes.dash')}</p>
+					<p className='text-content-zinc-muted text-sm'>{t('subscriptionDetail.paymentTerms')}</p>
+					<p className='text-content-zinc text-sm'>{subscriptionDetails?.payment_terms ?? t('usageTable.featureTypes.dash')}</p>
 				</div>
 				<Spacer className='!my-4' />
+
+				{subscriptionDetails?.timezone?.trim() && (
+					<>
+						<div className='w-full flex justify-between items-center'>
+							<p className='text-content-zinc-muted text-sm'>{t('subscriptionDetail.timezone')}</p>
+							<p className='text-content-zinc text-sm'>{subscriptionDetails.timezone}</p>
+						</div>
+						<Spacer className='!my-4' />
+					</>
+				)}
 
 				{subscriptionDetails?.invoicing_customer_id && (
 					<>
 						<div className='w-full flex justify-between items-center'>
-							<p className='text-[#71717A] text-sm'>{t('subscriptionDetail.invoicingCustomer')}</p>
+							<p className='text-content-zinc-muted text-sm'>{t('subscriptionDetail.invoicingCustomer')}</p>
 							<Link
 								to={`${RouteNames.customers}/${subscriptionDetails.invoicing_customer_id}`}
 								className='inline-flex items-center text-sm gap-1.5 hover:underline transition-colors'>
@@ -385,7 +410,7 @@ const CustomerSubscriptionDetailsPage: FC = () => {
 				{subscriptionDetails?.parent_subscription_id && (
 					<>
 						<div className='w-full flex justify-between items-center'>
-							<p className='text-[#71717A] text-sm'>{t('subscriptionDetail.parentCustomer')}</p>
+							<p className='text-content-zinc-muted text-sm'>{t('subscriptionDetail.parentCustomer')}</p>
 							{isParentSubscriptionLoading || (parentCustomerId && isParentCustomerLoading) ? (
 								<Skeleton className='h-4 w-40' />
 							) : parentCustomerId ? (
@@ -396,7 +421,7 @@ const CustomerSubscriptionDetailsPage: FC = () => {
 									<ExternalLink className='w-3.5 h-3.5' />
 								</Link>
 							) : (
-								<p className='text-[#09090B] text-sm'>{t('usageTable.featureTypes.dash')}</p>
+								<p className='text-content-zinc text-sm'>{t('usageTable.featureTypes.dash')}</p>
 							)}
 						</div>
 						<Spacer className='!my-4' />
@@ -405,8 +430,8 @@ const CustomerSubscriptionDetailsPage: FC = () => {
 
 				{subscriptionDetails?.commitment_amount && (
 					<div className='w-full flex justify-between items-center'>
-						<p className='text-[#71717A] text-sm'>{t('subscriptionDetail.commitmentLabel')}</p>
-						<p className='text-[#09090B] text-sm'>
+						<p className='text-content-zinc-muted text-sm'>{t('subscriptionDetail.commitmentLabel')}</p>
+						<p className='text-content-zinc text-sm'>
 							{getCurrencySymbol(subscriptionDetails?.currency || '')} {subscriptionDetails?.commitment_amount || '0'}/{' '}
 							{getCommitmentPeriodLabel(subscriptionDetails, t)}
 						</p>
@@ -415,8 +440,8 @@ const CustomerSubscriptionDetailsPage: FC = () => {
 
 				{subscriptionDetails?.auto_invoice_threshold != null && (
 					<div className='w-full flex justify-between items-center'>
-						<p className='text-[#71717A] text-sm'>{t('subscriptionDetail.autoInvoiceThreshold')}</p>
-						<p className='text-[#09090B] text-sm'>
+						<p className='text-content-zinc-muted text-sm'>{t('subscriptionDetail.autoInvoiceThreshold')}</p>
+						<p className='text-content-zinc text-sm'>
 							{getCurrencySymbol(subscriptionDetails?.currency || '')} {subscriptionDetails.auto_invoice_threshold}
 						</p>
 					</div>
@@ -425,75 +450,24 @@ const CustomerSubscriptionDetailsPage: FC = () => {
 
 				{subscriptionDetails?.overage_factor && subscriptionDetails?.overage_factor > 1 && (
 					<div className='w-full flex justify-between items-center'>
-						<p className='text-[#71717A] text-sm'>{t('subscriptionDetail.overageFactor')}</p>
-						<p className='text-[#09090B] text-sm'>{subscriptionDetails?.overage_factor}</p>
+						<p className='text-content-zinc-muted text-sm'>{t('subscriptionDetail.overageFactor')}</p>
+						<p className='text-content-zinc text-sm'>{subscriptionDetails?.overage_factor}</p>
 					</div>
 				)}
 				<Spacer className='!my-4' />
 
 				<div className='w-full flex justify-between items-center'>
-					<p className='text-[#71717A] text-sm'>{t('subscriptionDetail.startDate')}</p>
-					<p className='text-[#09090B] text-sm'>{formatDateShort(subscriptionDetails?.start_date ?? '')}</p>
+					<p className='text-content-zinc-muted text-sm'>{t('subscriptionDetail.startDate')}</p>
+					<p className='text-content-zinc text-sm'>{formatDateShort(subscriptionDetails?.start_date ?? '')}</p>
 				</div>
 				<Spacer className='!my-4' />
 			</Card>
 
-			{subscription_id && subscriptionDetails?.customer_id && subscriptionDetails?.current_period_start && (
-				<Card className='card mt-8'>
-					<FormHeader title={t('common:labels.charges')} variant='sub-header' titleClassName='font-semibold' />
-					<div className='mt-4'>
-						<SubscriptionDetailChargesSection
-							subscriptionId={subscription_id}
-							customerId={subscriptionDetails.customer_id}
-							currentPeriodStart={subscriptionDetails.current_period_start}
-							commitmentInfo={{
-								enable_true_up: subscriptionDetails.enable_true_up,
-								commitment_amount: subscriptionDetails.commitment_amount,
-								overage_factor: subscriptionDetails.overage_factor,
-								commitment_duration: subscriptionDetails.commitment_duration,
-								currency: subscriptionDetails.currency,
-							}}
-						/>
-					</div>
-				</Card>
-			)}
-
-			{subscription_id && subscriptionDetails && (
+			{/* third-party integration mappings (e.g. AWS Marketplace license_arn) */}
+			{subscription_id && (
 				<div className='mt-8'>
-					<SubscriptionAddonsSection
-						subscriptionId={subscription_id}
-						readOnly
-						subscriptionBillingPeriod={subscriptionDetails.billing_period}
-						subscriptionCurrency={subscriptionDetails.currency}
-						subscriptionCurrentPeriodStart={subscriptionDetails.current_period_start}
-						subscriptionCurrentPeriodEnd={subscriptionDetails.current_period_end}
-						subscriptionCustomerId={subscriptionDetails.customer_id}
-						showCommitmentColumn
-					/>
+					<IntegrationMappingCard entityType='subscription' entityId={subscription_id} />
 				</div>
-			)}
-
-			{inheritedSubscriptionRows.length > 0 && (
-				<Card className='card mt-8'>
-					<FormHeader
-						className='mb-0'
-						title={t('subscriptionDetail.subscriptionsInheritance')}
-						variant='sub-header'
-						titleClassName='font-semibold'
-					/>
-					<div className='mt-4 rounded-[6px] border border-gray-300'>
-						<FlexpriceTable data={inheritedSubscriptionRows} columns={inheritedSubscriptionsColumns} />
-					</div>
-				</Card>
-			)}
-
-			{subscriptionTaxAssociations?.items && subscriptionTaxAssociations.items.length > 0 && (
-				<Card className='card mt-8'>
-					<FormHeader title={t('subscriptionDetail.taxAssociations')} variant='sub-header' titleClassName='font-semibold' />
-					<div className='mt-4'>
-						<TaxAssociationTable data={subscriptionTaxAssociations.items} refetchQueryKey='subscriptionTaxAssociations' />
-					</div>
-				</Card>
 			)}
 
 			{/* subscription schedule */}
@@ -507,25 +481,25 @@ const CustomerSubscriptionDetailsPage: FC = () => {
 									{/* Timeline Dot & Line */}
 									<div className='flex flex-col items-center mr-2'>
 										<div
-											className={`w-2.5 h-2.5 rounded-full ${idx === subscriptionDetails.schedule.current_phase_index ? 'bg-blue-600' : 'bg-gray-300'}`}></div>
+											className={`w-2.5 h-2.5 rounded-full ${idx === subscriptionDetails.schedule.current_phase_index ? 'bg-info' : 'bg-surface-bold'}`}></div>
 										{idx < subscriptionDetails.schedule.phases.length - 1 && (
-											<div className='w-0.5 flex-1 bg-gray-200' style={{ minHeight: 40 }}></div>
+											<div className='w-0.5 flex-1 bg-surface-strong' style={{ minHeight: 40 }}></div>
 										)}
 									</div>
 									{/* Phase Card */}
 									<div className='flex-1'>
-										<div className='rounded-2xl border border-gray-100 bg-[#FAFAFA] px-8 py-5 flex flex-col gap-1'>
-											<div className='text-sm font-medium text-gray-400 mb-2'>
+										<div className='rounded-2xl border border-line-subtle bg-surface-faint px-8 py-5 flex flex-col gap-1'>
+											<div className='text-sm font-medium text-content-subtle mb-2'>
 												{t('subscriptionDetail.phaseHeading', { index: idx + 1 })}
 											</div>
 											<div className='grid grid-cols-4 gap-8'>
 												<div>
-													<div className='text-xs text-gray-400'>{t('subscriptionDetail.phaseStart')}</div>
-													<div className='font-normal text-lg text-gray-900'>{formatDateShort(phase.start_date.toString())}</div>
+													<div className='text-xs text-content-subtle'>{t('subscriptionDetail.phaseStart')}</div>
+													<div className='font-normal text-lg text-content'>{formatDateShort(phase.start_date.toString())}</div>
 												</div>
 												<div>
-													<div className='text-xs text-gray-400'>{t('subscriptionDetail.phaseEnd')}</div>
-													<div className='font-normal text-lg text-gray-900'>
+													<div className='text-xs text-content-subtle'>{t('subscriptionDetail.phaseEnd')}</div>
+													<div className='font-normal text-lg text-content'>
 														{phase.end_date ? formatDateShort(phase.end_date.toString()) : t('usageTable.featureTypes.dash')}
 													</div>
 												</div>
@@ -536,7 +510,7 @@ const CustomerSubscriptionDetailsPage: FC = () => {
 								</div>
 							))
 						) : (
-							<span className='text-[#71717A] text-sm'>{t('subscriptionDetail.noPhases')}</span>
+							<span className='text-content-zinc-muted text-sm'>{t('subscriptionDetail.noPhases')}</span>
 						)}
 					</div>
 				</Card>
@@ -550,8 +524,8 @@ const CustomerSubscriptionDetailsPage: FC = () => {
 							<>
 								<FormHeader
 									variant='sub-header'
-									titleClassName='font-semibold text-gray-900'
-									subtitleClassName='text-sm text-gray-500 !mb-0 !mt-1'
+									titleClassName='font-semibold text-content'
+									subtitleClassName='text-sm text-content-muted !mb-0 !mt-1'
 									title={t('subscriptionDetail.upcomingInvoicesTitle')}
 									subtitle={t('subscriptionDetail.upcomingInvoicesSubtitle', {
 										date: formatDateShort(subscriptionDetails?.current_period_end ?? ''),
@@ -585,7 +559,7 @@ const CustomerSubscriptionDetailsPage: FC = () => {
 							<>
 								<FormHeader
 									variant='sub-header'
-									titleClassName='font-semibold text-gray-900'
+									titleClassName='font-semibold text-content'
 									title={t('subscriptionDetail.upcomingInvoicesTitle')}
 									subtitle={t('subscriptionDetail.upcomingInvoicesEmpty', {
 										date: formatDateShort(subscriptionDetails?.current_period_end ?? ''),
@@ -597,6 +571,60 @@ const CustomerSubscriptionDetailsPage: FC = () => {
 				)}
 
 			<UpcomingCreditGrantApplicationsTable data={upcomingCreditGrantApplications?.items ?? []} customerId={customerId} />
+
+			{subscription_id && subscriptionDetails?.customer_id && subscriptionDetails?.current_period_start && (
+				<SubscriptionDetailChargesSection
+					subscriptionId={subscription_id}
+					customerId={subscriptionDetails.customer_id}
+					currentPeriodStart={subscriptionDetails.current_period_start}
+					commitmentInfo={{
+						enable_true_up: subscriptionDetails.enable_true_up,
+						commitment_amount: subscriptionDetails.commitment_amount,
+						overage_factor: subscriptionDetails.overage_factor,
+						commitment_duration: subscriptionDetails.commitment_duration,
+						currency: subscriptionDetails.currency,
+					}}
+				/>
+			)}
+
+			{subscription_id && subscriptionDetails && (
+				<div className='mt-8'>
+					<SubscriptionAddonsSection
+						subscriptionId={subscription_id}
+						readOnly
+						subscriptionBillingPeriod={subscriptionDetails.billing_period}
+						subscriptionCurrency={subscriptionDetails.currency}
+						subscriptionCurrentPeriodStart={subscriptionDetails.current_period_start}
+						subscriptionCurrentPeriodEnd={subscriptionDetails.current_period_end}
+					/>
+				</div>
+			)}
+
+			{inheritedSubscriptionRows.length > 0 && (
+				<Card className='card mt-8'>
+					<FormHeader
+						className='mb-0'
+						title={t('subscriptionDetail.subscriptionsInheritance')}
+						variant='sub-header'
+						titleClassName='font-semibold'
+					/>
+					<div className='mt-4 rounded-[6px] border border-line-strong'>
+						<FlexpriceTable data={inheritedSubscriptionRows} columns={inheritedSubscriptionsColumns} />
+					</div>
+				</Card>
+			)}
+
+			{subscription_id && (
+				<div className='mt-8'>
+					<CouponAssociationTable subscriptionId={subscription_id} />
+				</div>
+			)}
+
+			{subscriptionTaxAssociations?.items && subscriptionTaxAssociations.items.length > 0 && (
+				<div className='mt-8'>
+					<TaxAssociationTable data={subscriptionTaxAssociations.items} refetchQueryKey='subscriptionTaxAssociations' />
+				</div>
+			)}
 		</div>
 	);
 };

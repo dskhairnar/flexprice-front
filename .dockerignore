@@ -25,4 +25,3 @@ dist-ssr
 .vercel
 tsconfig.tsbuildinfo
 tsconfig.app.tsbuildinfo
-# Sentry Config File

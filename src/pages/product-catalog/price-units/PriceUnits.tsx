@@ -1,5 +1,6 @@
-import { AddButton, Page, ActionButton, Chip } from '@/components/atoms';
+import { AddButton, Page, ActionButton, Chip, Tooltip } from '@/components/atoms';
 import { ApiDocsContent, PriceUnitDrawer } from '@/components/molecules';
+import { useCurrentUserPermissions } from '@/hooks/useCurrentUserPermissions';
 import { API_DOCS_TAGS } from '@/constants/apiDocsTags';
 import { ColumnData } from '@/components/molecules/Table';
 import { PriceUnit } from '@/models/PriceUnit';
@@ -58,6 +59,11 @@ const PriceUnitsPage = () => {
 	const { t } = useTranslation('catalog');
 	const [activePriceUnit, setActivePriceUnit] = useState<PriceUnit | null>(null);
 	const [priceUnitDrawerOpen, setPriceUnitDrawerOpen] = useState(false);
+	const { can, isLoading: permissionsLoading } = useCurrentUserPermissions();
+	// Optimistic during the loading window rather than gated behind a page-level Loader — the write
+	// controls would otherwise briefly evaluate against an empty role catalog and flash a false
+	// "denied" state for authorized users; can() settles to the real value once roles arrive.
+	const canWritePriceUnit = permissionsLoading || can('price', 'write');
 
 	const sortingOptions: SortOption[] = useMemo(
 		() => [
@@ -197,28 +203,45 @@ const PriceUnitsPage = () => {
 					return (
 						<ActionButton
 							id={row?.id}
+							copyId={{ entityType: 'Price Unit' }}
 							deleteMutationFn={async () => {
 								return await PriceUnitApi.DeletePriceUnit(row?.id);
 							}}
 							refetchQueryKey='fetchPriceUnits'
 							entityName={row?.name}
 							edit={{
-								enabled: false,
+								enabled: true,
 								onClick: () => handleEdit(row),
+								disabled: !canWritePriceUnit,
+								disabledReason: canWritePriceUnit ? undefined : t('priceUnits.writeDeniedTooltip'),
 							}}
 							archive={{
 								enabled: row?.status !== ENTITY_STATUS.ARCHIVED,
+								disabled: !canWritePriceUnit,
+								disabledReason: canWritePriceUnit ? undefined : t('priceUnits.writeDeniedTooltip'),
 							}}
 						/>
 					);
 				},
 			},
 		],
-		[t],
+		[t, canWritePriceUnit],
 	);
 
 	return (
-		<Page heading={t('priceUnits.listPage.title')} headingCTA={<AddButton onClick={handleOnAdd} />}>
+		<Page
+			heading={t('priceUnits.listPage.title')}
+			headingCTA={
+				canWritePriceUnit ? (
+					<AddButton onClick={handleOnAdd} />
+				) : (
+					<Tooltip content={t('priceUnits.writeDeniedTooltip')}>
+						<span tabIndex={0} className='inline-block'>
+							<AddButton disabled onClick={handleOnAdd} />
+						</span>
+					</Tooltip>
+				)
+			}>
 			<PriceUnitDrawer
 				data={activePriceUnit}
 				open={priceUnitDrawerOpen}
@@ -259,6 +282,8 @@ const PriceUnitsPage = () => {
 						description: t('priceUnits.listPage.emptyState.description'),
 						buttonLabel: t('priceUnits.listPage.emptyState.createButton'),
 						buttonAction: handleOnAdd,
+						buttonDisabled: !canWritePriceUnit,
+						buttonDisabledReason: canWritePriceUnit ? undefined : t('priceUnits.writeDeniedTooltip'),
 						tags: API_DOCS_TAGS.PriceUnits,
 					}}
 				/>

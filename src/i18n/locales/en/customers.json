@@ -1,5 +1,6 @@
 {
 	"list": {
+		"writeDeniedTooltip": "You don't have permission to manage customers. Ask a tenant admin for access.",
 		"title": "Customers",
 		"paginationUnit": "Customers",
 		"entityName": "Customer",
@@ -27,6 +28,11 @@
 			"email": "Email",
 			"createdAt": "Created At",
 			"updatedAt": "Updated At"
+		},
+		"orgTypeFilter": {
+			"ariaLabel": "Filter by organization type",
+			"parent": "Parent",
+			"child": "Child"
 		}
 	},
 	"detail": {
@@ -62,6 +68,7 @@
 			"state": "State",
 			"city": "City",
 			"postalCode": "Postal Code",
+			"timezone": "Timezone",
 			"subscriptionAmount": "Subscription Amount",
 			"subscriptionStartDate": "Subscription Start Date"
 		},
@@ -192,12 +199,16 @@
 			"static": "Static",
 			"metered": "Metered",
 			"boolean": "Boolean",
+			"config": "Config",
 			"dash": "--",
 			"usageProgressUnlimited": "{{usage}} / Unlimited"
 		},
 		"fallback": "--"
 	},
 	"subscriptionCreate": {
+		"selectCustomerLabel": "Customer",
+		"selectCustomerPlaceholder": "Search for customer...",
+		"selectCustomerHint": "Select a customer to continue with creating a subscription",
 		"toast": {
 			"draftSaved": "Draft subscription saved successfully",
 			"created": "Subscription created successfully",
@@ -210,7 +221,8 @@
 			"saveEditsFirst": "Please save your changes before submitting.",
 			"trialDays": "Enter a valid trial length in days (at least 1), or leave empty to use the plan default.",
 			"autoThresholdFixed": "Auto invoice threshold is not available when the plan includes fixed charges.",
-			"autoThresholdNonNegative": "Enter a valid auto invoice threshold (0 or greater), or leave empty to omit."
+			"autoThresholdNonNegative": "Enter a valid auto invoice threshold (0 or greater), or leave empty to omit.",
+			"entitlementOverridesWithProration": "Entitlement overrides cannot be combined with proration. Disable proration or remove entitlement overrides."
 		},
 		"billingCustomer": {
 			"loadFailed": "Could not load billing customer details.",
@@ -227,6 +239,7 @@
 		"billingCycle": "Billing cycle",
 		"commitmentPeriod": "Commitment Period",
 		"paymentTerms": "Payment terms",
+		"timezone": "Timezone",
 		"invoicingCustomer": "Invoicing Customer",
 		"parentCustomer": "Parent customer",
 		"commitmentLabel": "Commitment",
@@ -236,6 +249,7 @@
 		"renewalDate": "Renewal date",
 		"subscriptionsInheritance": "Subscriptions Inheritance",
 		"taxAssociations": "Tax Associations",
+		"couponAssociations": "Coupon Associations",
 		"subscriptionPhases": "Subscription Phases",
 		"phaseHeading": "Phase {{index}}",
 		"phaseStart": "Start",
@@ -291,10 +305,12 @@
 			"expandAll": "Expand all",
 			"totalUsage": "Total Usage",
 			"totalCost": "Total Cost",
+			"cogs": "Cost",
 			"tableEmpty": "--"
 		},
 		"information": {
 			"saveCardOnStripe": "Save Card on Stripe",
+			"setupAutopayMoyasar": "Setup Autopay",
 			"sharePortalLinkTitle": "Share Customer Portal Link",
 			"childCustomersTitle": "Child customers"
 		},
@@ -302,6 +318,7 @@
 			"title": "Invoices",
 			"emptySubtitle": "No invoices found",
 			"addInvoice": "Add Invoice",
+			"writeDeniedTooltip": "You don't have permission to create invoices. Ask a tenant admin for access.",
 			"paginationUnit": "Invoices"
 		},
 		"overview": {
@@ -310,6 +327,7 @@
 			"entitlementsCardTitle": "Entitlements"
 		},
 		"tax": {
+			"writeDeniedTooltip": "You don't have permission to manage tax associations. Ask a tenant admin for access.",
 			"emptyTitle": "Tax",
 			"emptySubtitle": "No tax rate assigned to this customer",
 			"associationsTitle": "Tax Associations",
@@ -321,6 +339,8 @@
 			"noEventsFound": "No events found"
 		},
 		"wallet": {
+			"writeDeniedTooltip": "You don't have permission to manage this wallet. Ask a tenant admin for access.",
+			"alertSettingsWriteDeniedTooltip": "You don't have permission to manage alert settings for this wallet. Ask a tenant admin for access.",
 			"emptyTitle": "Wallets",
 			"emptySubtitle": "No wallets linked to the customer",
 			"addWallet": "Add Wallet",
@@ -339,6 +359,34 @@
 			"noMetadataTitle": "No metadata",
 			"noMetadataHint": "Add custom metadata to store additional information about this wallet."
 		}
+	},
+	"moyasarAutopay": {
+		"title": "Setup Autopay with Moyasar",
+		"intro": "Enter card details to enable autopay. The card is securely tokenized by Moyasar.",
+		"setupCard": "Set up card",
+		"loadingForm": "Loading secure card form…",
+		"savingCard": "Saving card…",
+		"successTitle": "Autopay is enabled. Future invoices for this customer will be charged automatically.",
+		"alreadyConfiguredTitle": "Autopay already configured",
+		"alreadyConfiguredDesc": "This customer already has a saved payment method. Remove it first to register a new card.",
+		"done": "Done",
+		"toastEnabled": "Autopay enabled. Future invoices will be charged automatically.",
+		"toastInitFailed": "Failed to initialize Moyasar autopay",
+		"toastSaveFailed": "Failed to save card",
+		"toastScriptFailed": "Moyasar.js failed to load. Please refresh and try again.",
+		"toastNoToken": "No card token returned from Moyasar",
+		"toastParseTokenFailed": "Failed to parse checkout token",
+		"loadingSetup": "Completing card setup…",
+		"formTitle": "Save card for autopay",
+		"formDesc": "We’ll charge 1 SAR to verify your card, then refund it automatically.",
+		"formLoadFailed": "Failed to load payment form. Please refresh.",
+		"cardSavedTitle": "Card saved successfully",
+		"cardSavedDescription": "Your card has been saved and autopay is now active. Future invoices will be charged automatically.",
+		"cardSetupInProgressTitle": "Card setup in progress",
+		"cardSetupInProgressDescription": "Your card is being verified. This usually completes within a few minutes. You can safely close this page.",
+		"cardSetupFailedTitle": "Card setup failed",
+		"cardSetupFailedDefaultDescription": "Something went wrong. Please try again.",
+		"tryAgain": "Try again"
 	},
 	"organisms": {
 		"phaseForm": {
@@ -366,6 +414,8 @@
 			"chargeFallback": "Charge"
 		},
 		"subscriptionAction": {
+			"writeDeniedTooltip": "You don't have permission to manage subscriptions. Ask a tenant admin for access.",
+			"alertSettingsWriteDeniedTooltip": "You don't have permission to manage alert settings for this subscription. Ask a tenant admin for access.",
 			"cancelTitle": "Cancel Subscription",
 			"cancelSubtitle": "This action cannot be undone. Choose cancellation and invoice behavior before continuing.",
 			"cancellationType": "Cancellation Type",
@@ -413,6 +463,7 @@
 			"commitmentAmount": "Commitment Amount",
 			"commitmentAmountPlaceholder": "e.g. $100.00",
 			"commitmentPeriod": "Commitment Period",
+			"commitmentDaily": "Daily",
 			"commitmentMonthly": "Monthly",
 			"commitmentQuarterly": "Quarterly",
 			"commitmentHalfYearly": "Half-Yearly",
@@ -441,7 +492,9 @@
 			"aboutAutoInvoiceAria": "About auto invoice threshold",
 			"autoInvoiceHelp": "Usage amount that can trigger an invoice before the period ends. Available when charges are usage-based; fixed-price subscription charges disable this field.",
 			"autoInvoicePlaceholder": "100.00",
-			"autoInvoiceAmountAria": "Auto invoice threshold amount"
+			"autoInvoiceAmountAria": "Auto invoice threshold amount",
+			"planNoCharges": "No charges added to this plan",
+			"addedChargesLostOnPhaseConversion": "Added charges are not supported in phased subscriptions and have been removed. Add them again within a phase, or after the subscription is created."
 		},
 		"subscriptionPriceTable": {
 			"overridePrice": "Override Price",
@@ -459,8 +512,20 @@
 			"colBillingPeriod": "Billing Period",
 			"colQuantity": "Quantity",
 			"colPrice": "Price",
+			"colBucketSize": "Bucket Size",
 			"editAdded": "Edit",
 			"deleteAdded": "Delete"
+		},
+		"additionalPlanPrices": {
+			"title": "Also available on this plan",
+			"explainer": "These cadences bill more frequently than your subscription cadence. Toggle a cadence on to add all its plan prices to Charges.",
+			"colCadence": "Cadence",
+			"colCount": "Charges",
+			"colBillingImpact": "Billing impact",
+			"chargeCount_one": "{{count}} charge",
+			"chargeCount_other": "{{count}} charges",
+			"fanoutHint": "Each bills as {{count}} line items per subscription invoice",
+			"noFanout": "Same as subscription cadence"
 		},
 		"subscriptionTable": {
 			"planModifiedAria": "Plan modified",
@@ -496,6 +561,10 @@
 	"subscriptionEdit": {
 		"pageTitle": "Edit Subscription",
 		"pageHeading": "Edit Subscription",
+		"couponAssociations": "Coupon Associations",
+		"addCoupon": "Add Coupon",
+		"taxAssociations": "Tax Associations",
+		"addTax": "Add Tax",
 		"toast": {
 			"lineItemUpdated": "Line item updated successfully",
 			"lineItemUpdateFailed": "Failed to update line item",

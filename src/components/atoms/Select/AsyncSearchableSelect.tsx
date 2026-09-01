@@ -12,6 +12,13 @@ import { SelectOption } from './SearchableSelect';
 export interface SearchConfig<T = any> {
 	/** Function that performs the search and returns objects with SelectOption format */
 	searchFn: (query: string) => Promise<Array<SelectOption & { data: T }>>;
+	/**
+	 * Uniquely identifies this picker's search config for query caching. Every consumer of
+	 * AsyncSearchableSelect shares one query cache, so this must include anything that affects
+	 * searchFn's output (e.g. which entity type, filters, exclusions) - otherwise unrelated
+	 * pickers opened within the same staleTime window can silently serve each other's cached results.
+	 */
+	queryKeyPrefix: Array<string | number | boolean | undefined>;
 	/** Debounce time in milliseconds (default: 300) */
 	debounceTime?: number;
 	/** Search input placeholder */
@@ -90,7 +97,13 @@ const AsyncSearchableSelect = <T = any,>({
 	disabled = false,
 }: AsyncSearchableSelectProps<T>) => {
 	const { t } = useTranslation('common');
-	const { searchFn, debounceTime = 300, placeholder: searchPlaceholder = t('search.placeholderShort'), initialOptions = [] } = search;
+	const {
+		searchFn,
+		queryKeyPrefix,
+		debounceTime = 300,
+		placeholder: searchPlaceholder = t('search.placeholderShort'),
+		initialOptions = [],
+	} = search;
 
 	const { valueExtractor, labelExtractor, descriptionExtractor } = extractors;
 
@@ -140,7 +153,7 @@ const AsyncSearchableSelect = <T = any,>({
 		isError,
 		error: queryError,
 	} = useQuery<Array<SelectOption & { data: T }>, Error>({
-		queryKey: ['async-searchable-select', debouncedQuery],
+		queryKey: ['async-searchable-select', ...queryKeyPrefix, debouncedQuery],
 		queryFn: () => searchFn(debouncedQuery),
 		enabled: open,
 		staleTime: 30000, // Cache for 30 seconds
@@ -220,14 +233,14 @@ const AsyncSearchableSelect = <T = any,>({
 				)}>
 				{/* Radio Icon */}
 				<span className='absolute left-2 top-[10px] flex h-4 w-4 justify-center'>
-					{isSelected ? <Circle className='size-2 text-black fill-current' /> : null}
-					<Circle className='size-4 text-gray-400 absolute' />
+					{isSelected ? <Circle className='size-2 text-content-black fill-current' /> : null}
+					<Circle className='size-4 text-content-subtle absolute' />
 				</span>
 
 				<div className='flex items-center space-x-2 w-full'>
 					<div className='flex flex-col me-2 w-full'>
 						<span className='break-words'>{option.label}</span>
-						{option.description && <span className='text-sm text-gray-500 break-words whitespace-normal'>{option.description}</span>}
+						{option.description && <span className='text-sm text-content-muted break-words whitespace-normal'>{option.description}</span>}
 					</div>
 				</div>
 			</CommandItem>
@@ -257,7 +270,7 @@ const AsyncSearchableSelect = <T = any,>({
 
 					<div className={cn('flex flex-col w-full', !hideSelectedTick && 'mr-0')}>
 						<span className='break-words'>{option.label}</span>
-						{option.description && <span className='text-sm text-gray-500 break-words whitespace-normal'>{option.description}</span>}
+						{option.description && <span className='text-sm text-content-muted break-words whitespace-normal'>{option.description}</span>}
 					</div>
 
 					<div className='flex items-center gap-2'>
@@ -276,7 +289,7 @@ const AsyncSearchableSelect = <T = any,>({
 		<div className={cn('space-y-1')}>
 			{/* Label */}
 			{label && (
-				<label className={cn(' block text-sm font-medium text-zinc break-words', disabled ? 'text-zinc-500' : 'text-zinc-950')}>
+				<label className={cn(' block text-sm font-medium break-words', disabled ? 'text-content-zinc-muted' : 'text-content-zinc')}>
 					{label}
 				</label>
 			)}

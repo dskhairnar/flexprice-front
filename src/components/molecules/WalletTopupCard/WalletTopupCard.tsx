@@ -278,7 +278,7 @@ const TopupCard: FC<TopupCardProps> = ({ walletId, currency, conversion_rate = 1
 						});
 					}}
 				/>
-				<p className='text-sm text-gray-500 -my-2'>
+				<p className='text-sm text-content-muted -my-2'>
 					{topupPayload.credits_type === CreditsType.PurchasedCredits
 						? t('wallet.topup.typeHintPurchased')
 						: t('wallet.topup.typeHintFree')}

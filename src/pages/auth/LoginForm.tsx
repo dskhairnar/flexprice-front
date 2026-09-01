@@ -10,6 +10,7 @@ import AuthApi from '@/api/AuthApi';
 import { config, APP_ENV } from '@/config/config';
 import { RouteNames } from '@/core/routes/Routes';
 import GoogleSignin from './GoogleSignin';
+import SamlSignin, { SSO_TENANT_PARAM, resolveSsoTenantId } from './SamlSignin';
 import { AuthTab } from './authTabs';
 import { useTranslation } from 'react-i18next';
 
@@ -26,6 +27,10 @@ const LoginForm: React.FC<LoginFormProps> = ({ switchTab }) => {
 	const [password, setPassword] = useState('');
 	const [showPassword, setShowPassword] = useState(false);
 	const [loading, setLoading] = useState(false);
+	// Read straight from the URL rather than held in state: the prefill effect
+	// below rewrites the query string, and a stale copy would make the SSO button
+	// disappear mid-visit.
+	const ssoTenantId = resolveSsoTenantId(searchParams.get(SSO_TENANT_PARAM), import.meta.env.VITE_SSO_TENANT_ID as string | undefined);
 
 	// Prefill from query params (e.g. shared login link); then strip params from URL
 	useEffect(() => {
@@ -103,6 +108,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ switchTab }) => {
 					id='email'
 					name='email'
 					type='email'
+					autoComplete='username'
 					label={t('fields.email')}
 					placeholder={t('fields.emailPlaceholder')}
 					required
@@ -112,7 +118,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ switchTab }) => {
 
 				<div>
 					<div className='flex justify-between items-center mb-1'>
-						<label htmlFor='password' className='block text-sm font-medium text-gray-700'>
+						<label htmlFor='password' className='block text-sm font-medium text-content-secondary'>
 							{t('fields.password')}
 						</label>
 						<button type='button' onClick={() => switchTab(AuthTab.FORGOT_PASSWORD)} className='text-sm text-grey-600 hover:underline'>
@@ -122,6 +128,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ switchTab }) => {
 					<Input
 						id='password'
 						name='password'
+						autoComplete='current-password'
 						type={showPassword ? 'text' : 'password'}
 						suffix={
 							<span onClick={() => setShowPassword(!showPassword)} className='cursor-pointer'>
@@ -143,20 +150,44 @@ const LoginForm: React.FC<LoginFormProps> = ({ switchTab }) => {
 			{config.app.env !== APP_ENV.SelfHosted && (
 				<>
 					<div className='flex items-center justify-center my-6'>
-						<div className='flex-1 h-px bg-gray-200'></div>
-						<span className='mx-4 text-sm text-gray-500'>{t('divider')}</span>
-						<div className='flex-1 h-px bg-gray-200'></div>
+						<div className='flex-1 h-px bg-surface-strong'></div>
+						<span className='mx-4 text-sm text-content-muted'>{t('divider')}</span>
+						<div className='flex-1 h-px bg-surface-strong'></div>
 					</div>
 					<GoogleSignin />
 				</>
 			)}
 
-			<p className='mt-6 text-center text-sm text-gray-600'>
-				{t('noAccount')}{' '}
-				<button onClick={() => switchTab(AuthTab.SIGNUP)} className='text-grey-600 underline font-medium'>
-					{t('links.signUp')}
-				</button>
-			</p>
+			{/* SAML single sign-on. Shown only when the link names a tenant: SSO is
+			    configured per tenant, so without one there is no identity provider
+			    to send the browser to, and an always-visible button would fail for
+			    everyone who arrived at /login directly.
+
+			    Deliberately not restricted by environment. SAML is a per-tenant
+			    feature, so a hosted deployment backed by Supabase may still serve
+			    tenants that sign in through an identity provider; gating the button
+			    on the deployment hid SSO from every such tenant. The button is
+			    still safe to offer on a tenant that has not set SSO up: SamlSignin
+			    asks the endpoint first and reports it as unavailable on a 404. */}
+			{ssoTenantId && (
+				<>
+					<div className='flex items-center justify-center my-6'>
+						<div className='flex-1 h-px bg-surface-strong'></div>
+						<span className='mx-4 text-sm text-content-muted'>{t('divider')}</span>
+						<div className='flex-1 h-px bg-surface-strong'></div>
+					</div>
+					<SamlSignin tenantId={ssoTenantId} />
+				</>
+			)}
+
+			{config.platform.signup.enabled && (
+				<p className='mt-6 text-center text-sm text-content-tertiary'>
+					{t('noAccount')}{' '}
+					<button onClick={() => switchTab(AuthTab.SIGNUP)} className='text-grey-600 underline font-medium'>
+						{t('links.signUp')}
+					</button>
+				</p>
+			)}
 		</>
 	);
 };

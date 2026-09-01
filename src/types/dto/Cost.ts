@@ -14,6 +14,9 @@ export interface GetCostAnalyticsRequest {
 	// Expand options - specify which entities to expand
 	expand?: string[]; // "meter", "price"
 
+	/** When true, aggregates cost from child customers linked via subscription hierarchy. */
+	include_children?: boolean;
+
 	// Pagination
 	limit?: number;
 	offset?: number;

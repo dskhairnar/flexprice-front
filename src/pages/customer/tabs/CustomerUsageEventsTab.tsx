@@ -72,6 +72,7 @@ const CustomerUsageEventsTab = () => {
 	const [loading, setLoading] = useState(false);
 	const [iterLastKey, setIterLastKey] = useState<string | undefined>(undefined);
 	const observer = useRef<IntersectionObserver | null>(null);
+	const requestIdRef = useRef(0);
 
 	const sortingOptions: SortOption[] = useMemo(
 		() => [
@@ -195,10 +196,16 @@ const CustomerUsageEventsTab = () => {
 		};
 	}, [sanitizedFilters, customer?.external_id]);
 
-	// Fetch events from API
+	// Fetch events from API. `force` bypasses the in-flight guard so a filter change or manual
+	// refresh always supersedes a stale in-flight pagination request instead of being dropped by
+	// it - without it, refetchEvents (called right after setHasMore(true)) would still see the
+	// pre-update hasMore/loading values from this closure, since React state updates are async.
 	const fetchEvents = useCallback(
-		async (iterLastKey?: string) => {
-			if (!hasMore || loading || !customer?.external_id) return;
+		async (iterLastKey?: string, force = false) => {
+			// external_id is a hard precondition (not an in-flight guard), so force never bypasses it.
+			if (!customer?.external_id) return;
+			if (!force && (!hasMore || loading)) return;
+			const requestId = ++requestIdRef.current;
 			setLoading(true);
 			try {
 				const response = await EventsApi.getRawEvents({
@@ -206,6 +213,8 @@ const CustomerUsageEventsTab = () => {
 					page_size: 10,
 					...apiParams,
 				});
+
+				if (requestIdRef.current !== requestId) return;
 
 				if (response.events) {
 					setEvents((prevEvents) => (iterLastKey ? [...prevEvents, ...response.events] : response.events));
@@ -215,7 +224,7 @@ const CustomerUsageEventsTab = () => {
 			} catch (error) {
 				logger.error('Error fetching events:', error);
 			} finally {
-				setLoading(false);
+				if (requestIdRef.current === requestId) setLoading(false);
 			}
 		},
 		[apiParams, hasMore, loading, customer?.external_id],
@@ -237,15 +246,14 @@ const CustomerUsageEventsTab = () => {
 	);
 
 	const refetchEvents = () => {
+		// Disconnect the pagination observer first: it holds the pre-refresh iterLastKey in its
+		// closure, and if it fires after this forced refresh starts, it would append a stale page
+		// onto the freshly-refreshed first page.
+		observer.current?.disconnect();
 		setEvents([]);
 		setIterLastKey(undefined);
 		setHasMore(true);
-		fetchEvents(undefined);
-	};
-
-	const resetFilters = () => {
-		setFilters(initialFilters);
-		refetchEvents();
+		fetchEvents(undefined, true);
 	};
 
 	// Reset pagination when filters change
@@ -256,21 +264,22 @@ const CustomerUsageEventsTab = () => {
 	// Refetch events when filters change
 	useEffect(() => {
 		if (!customer?.external_id) return;
+		observer.current?.disconnect();
 		setEvents([]);
 		setIterLastKey(undefined);
 		setHasMore(true);
-		fetchEvents(undefined);
+		fetchEvents(undefined, true);
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [apiParams]);
 
 	if (customerLoading) {
 		return (
 			<div className='space-y-6'>
-				<Card className='bg-white border border-[#E9E9E9] rounded-xl p-6'>
+				<Card className='bg-surface border border-line-hairline rounded-xl p-6'>
 					<div className='animate-pulse space-y-4'>
-						<div className='h-10 bg-zinc-100 rounded' />
-						<div className='h-12 bg-zinc-100 rounded' />
-						<div className='h-12 bg-zinc-100 rounded' />
+						<div className='h-10 bg-surface-muted rounded' />
+						<div className='h-12 bg-surface-muted rounded' />
+						<div className='h-12 bg-surface-muted rounded' />
 					</div>
 				</Card>
 			</div>
@@ -279,7 +288,7 @@ const CustomerUsageEventsTab = () => {
 
 	if (!customer?.external_id) {
 		return (
-			<Card className='bg-white border border-[#E9E9E9] rounded-xl p-6'>
+			<Card className='bg-surface border border-line-hairline rounded-xl p-6'>
 				<EmptyState title={t('tabPanels.usageEvents.loadErrorTitle')} description={t('tabPanels.usageEvents.loadErrorDescription')} />
 			</Card>
 		);
@@ -287,7 +296,7 @@ const CustomerUsageEventsTab = () => {
 
 	return (
 		<>
-			<div className='bg-white rounded-md flex items-start gap-4'>
+			<div className='bg-surface rounded-md flex items-start gap-4'>
 				<QueryBuilder
 					filterOptions={filterOptions}
 					filters={filters}
@@ -296,11 +305,11 @@ const CustomerUsageEventsTab = () => {
 					onSortChange={setSorts}
 					selectedSorts={sorts}
 				/>
-				<Button variant='outline' onClick={resetFilters}>
+				<Button variant='outline' onClick={refetchEvents}>
 					<RefreshCw />
 				</Button>
 			</div>
-			<div className='bg-white rounded-md '>
+			<div className='bg-surface rounded-md '>
 				<EventsTable data={events} />
 				<div ref={lastElementRef} />
 				{loading && (
@@ -311,7 +320,7 @@ const CustomerUsageEventsTab = () => {
 					</div>
 				)}
 				{!hasMore && events.length === 0 && (
-					<p className=' text-[#64748B] text-xs font-normal font-sans mt-4'>{t('tabPanels.usageEvents.noEventsFound')}</p>
+					<p className=' text-content-slate-muted text-xs font-normal font-sans mt-4'>{t('tabPanels.usageEvents.noEventsFound')}</p>
 				)}
 			</div>
 		</>

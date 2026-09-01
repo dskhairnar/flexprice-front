@@ -1,4 +1,4 @@
-import { Button, Page, ShortPagination, SectionHeader } from '@/components/atoms';
+import { Button, Page, ShortPagination, SectionHeader, Tooltip } from '@/components/atoms';
 import { ColumnData, FlexpriceTable, SecretKeyDrawer, ApiDocsContent } from '@/components/molecules';
 import SecretKeysApi from '@/api/SecretKeysApi';
 import { useQuery } from '@tanstack/react-query';
@@ -14,6 +14,7 @@ import { API_DOCS_TAGS } from '@/constants/apiDocsTags';
 import ActionButton from '@/components/atoms/ActionButton/ActionButton';
 import { useTranslation } from 'react-i18next';
 import i18n from 'i18next';
+import { useCurrentUserPermissions } from '@/hooks/useCurrentUserPermissions';
 
 // Utility function to format permissions for display
 export const formatPermissionDisplay = (permissions: readonly string[]): string => {
@@ -57,19 +58,19 @@ export const getPermissionIcon = (permissions: readonly string[]): LucideIcon =>
 // Utility function to get color based on permission level
 export const getPermissionColor = (permissions: readonly string[]): string => {
 	if (!permissions || permissions.length === 0) {
-		return 'text-gray-500';
+		return 'text-content-muted';
 	}
 	const hasRead = permissions.includes('read');
 	const hasWrite = permissions.includes('write');
 
 	if (hasRead && hasWrite) {
-		return 'text-green-600'; // Full access color
+		return 'text-success'; // Full access color
 	} else if (hasRead) {
-		return 'text-blue-600'; // Read only color
+		return 'text-info'; // Read only color
 	} else if (hasWrite) {
-		return 'text-amber-600'; // Write only color
+		return 'text-warning'; // Write only color
 	} else {
-		return 'text-gray-500'; // No access color
+		return 'text-content-muted'; // No access color
 	}
 };
 
@@ -79,6 +80,8 @@ const DeveloperPage = () => {
 	const guides = useMemo(() => buildGuides(tGuide), [tGuide]);
 	const { page, limit, offset } = usePagination();
 	const [isSecretKeyDrawerOpen, setIsSecretKeyDrawerOpen] = useState(false);
+	const { can } = useCurrentUserPermissions();
+	const canWriteSecret = can('secret', 'write');
 
 	const {
 		data: secretKeys,
@@ -99,8 +102,11 @@ const DeveloperPage = () => {
 				title: t('labels.name'),
 				render(rowData: SecretKey) {
 					return (
-						<div className='flex gap-2 items-center font-medium'>
-							<span>{rowData.name}</span>
+						<div className='flex flex-col gap-0.5'>
+							<span className='font-medium text-sm text-content'>{rowData.name}</span>
+							{rowData.user_type === 'service_account' && rowData.service_account_name && (
+								<span className='text-xs text-content-subtle'>{rowData.service_account_name}</span>
+							)}
 						</div>
 					);
 				},
@@ -114,7 +120,7 @@ const DeveloperPage = () => {
 
 					return (
 						<div className='flex gap-2 items-center'>
-							<code className='px-2 py-1 text-sm bg-gray-100 rounded font-mono'>{masked}</code>
+							<code className='px-2 py-1 text-sm bg-surface-shell rounded font-mono'>{masked}</code>
 						</div>
 					);
 				},
@@ -126,12 +132,12 @@ const DeveloperPage = () => {
 					return (
 						<div className='flex gap-2 items-center'>
 							{isServiceAccount ? (
-								<div className='flex items-center gap-1.5 text-purple-600'>
+								<div className='flex items-center gap-1.5 text-accent-purple'>
 									<Bot size={16} />
 									<span className='text-sm font-medium'>{t('apiKeys.accountTypes.serviceAccount')}</span>
 								</div>
 							) : (
-								<div className='flex items-center gap-1.5 text-blue-600'>
+								<div className='flex items-center gap-1.5 text-info'>
 									<User2 size={16} />
 									<span className='text-sm font-medium'>{t('apiKeys.accountTypes.userAccount')}</span>
 								</div>
@@ -144,13 +150,14 @@ const DeveloperPage = () => {
 				title: t('labels.roles'),
 				render(rowData: SecretKey) {
 					if (!rowData.roles || rowData.roles.length === 0) {
-						return <span className='text-gray-500 text-sm'>{t('apiKeys.roles.fullAccess')}</span>;
+						return <span className='text-sm text-content-muted'>{t('apiKeys.roles.fullAccess')}</span>;
 					}
-
 					return (
 						<div className='flex flex-wrap gap-1'>
 							{rowData.roles.map((role) => (
-								<span key={role} className='inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800'>
+								<span
+									key={role}
+									className='inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-info-muted-strong text-info-deep'>
 									{role}
 								</span>
 							))}
@@ -163,7 +170,7 @@ const DeveloperPage = () => {
 				width: 150,
 				align: 'right',
 				render(rowData) {
-					return <span className='text-gray-600'>{formatDateShort(rowData.created_at)}</span>;
+					return <span className='text-content-tertiary'>{formatDateShort(rowData.created_at)}</span>;
 				},
 			},
 		],
@@ -174,19 +181,18 @@ const DeveloperPage = () => {
 		() => [
 			...baseColumns,
 			{
-				width: '30px',
-				align: 'right',
-				hideOnEmpty: true,
+				fieldVariant: 'interactive',
 				render(rowData: SecretKey) {
 					return (
 						<div className='flex justify-end'>
 							<ActionButton
 								id={rowData.id}
+								copyId={{ entityType: 'Secret Key' }}
 								deleteMutationFn={async (id: string) => {
 									await SecretKeysApi.deleteSecretKey(id);
 								}}
 								refetchQueryKey='secret-keys'
-								entityName={t('apiKeys.entityName')}
+								entityName={rowData?.name}
 								// edit={{
 								// 	enabled: true,
 								// 	onClick: () => {},
@@ -195,6 +201,8 @@ const DeveloperPage = () => {
 								archive={{
 									text: t('common:actions.delete'),
 									icon: <TrashIcon />,
+									disabled: !canWriteSecret,
+									disabledReason: canWriteSecret ? undefined : t('apiKeys.writeDeniedTooltip'),
 								}}
 							/>
 						</div>
@@ -202,7 +210,7 @@ const DeveloperPage = () => {
 				},
 			},
 		],
-		[baseColumns, t],
+		[baseColumns, t, canWriteSecret],
 	);
 
 	if (isLoading) {
@@ -231,14 +239,26 @@ const DeveloperPage = () => {
 					}}
 					tutorials={guides.secrets.tutorials}
 					tags={API_DOCS_TAGS.Secrets}
+					addDisabled={!canWriteSecret}
+					addDisabledReason={canWriteSecret ? undefined : t('apiKeys.writeDeniedTooltip')}
 				/>
 			)}
 			{(secretKeys?.items.length || 0) > 0 && (
 				<Page>
 					<SectionHeader title={t('common:nav.apiKeys')} titleClassName='text-3xl font-medium'>
-						<Button prefixIcon={<Plus />} onClick={handleAddSecretKey}>
-							{t('common:actions.add')}
-						</Button>
+						{canWriteSecret ? (
+							<Button prefixIcon={<Plus />} onClick={handleAddSecretKey}>
+								{t('common:actions.add')}
+							</Button>
+						) : (
+							<Tooltip content={t('apiKeys.writeDeniedTooltip')}>
+								<span tabIndex={0} className='inline-block'>
+									<Button disabled prefixIcon={<Plus />}>
+										{t('common:actions.add')}
+									</Button>
+								</span>
+							</Tooltip>
+						)}
 					</SectionHeader>
 					<div className='pb-12 mt-2'>
 						<FlexpriceTable showEmptyRow columns={columns} data={secretKeys?.items || []} />

@@ -2,6 +2,7 @@ import { FC, useState, useEffect, useMemo } from 'react';
 import { Dialog } from '@/components/atoms';
 import { Input, Button, Select, SelectOption, DatePicker } from '@/components/atoms';
 import { Price, BILLING_MODEL, TIER_MODE, CreatePriceTier, TransformQuantity, PRICE_TYPE, PRICE_UNIT_TYPE } from '@/models/Price';
+import { PriceBucketSize } from '@/models/Meter';
 import { formatAmount, removeFormatting } from '@/components/atoms/Input/Input';
 import { getCurrencySymbol } from '@/utils/common/helper_functions';
 import VolumeTieredPricingForm from '@/components/organisms/PlanForm/VolumeTieredPricingForm';
@@ -9,8 +10,10 @@ import { useMutation } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
 import { PriceApi } from '@/api/PriceApi';
 import { UpdatePriceRequest } from '@/types/dto';
+import { BUCKET_SIZE_NONE, priceBucketSizeOptions } from '@/constants/constants';
 import { formatDateTimeWithSecondsAndTimezone } from '@/utils/common/format_date';
 import { PremiumFeatureIcon } from '../PremiumFeature/PremiumFeature';
+import { useMeterForCommitment } from '@/hooks/useMeterForCommitment';
 import { useTranslation } from 'react-i18next';
 
 interface UpdatePriceDialogProps {
@@ -43,6 +46,14 @@ const UpdatePriceDialog: FC<UpdatePriceDialogProps> = ({ isOpen, onOpenChange, p
 		divide_by: 1,
 	});
 	const [effectiveFrom, setEffectiveFrom] = useState<Date | undefined>(undefined);
+	const [overrideBucketSize, setOverrideBucketSize] = useState<PriceBucketSize | ''>(
+		(price.bucket_size as PriceBucketSize | undefined) ?? '',
+	);
+	// The API rejects a price defining its own bucket_size when the meter already carries one
+	// ("meter already defines a bucket size") - disable the override instead of surfacing that as a 400.
+	// The price may embed only meter_id, so fetch the meter when aggregation data is missing.
+	const { meter: resolvedMeter } = useMeterForCommitment(price.meter_id, price.meter ?? null);
+	const meterBucketSize = price.meter?.aggregation?.bucket_size ?? resolvedMeter?.aggregation?.bucket_size;
 
 	// Detect price unit type
 	const isCustomPriceUnit = price.price_unit_type === PRICE_UNIT_TYPE.CUSTOM;
@@ -102,6 +113,7 @@ const UpdatePriceDialog: FC<UpdatePriceDialogProps> = ({ isOpen, onOpenChange, p
 
 			setOverrideTransformQuantity(price.transform_quantity || { divide_by: 1, round: 'up' });
 			setEffectiveFrom(undefined);
+			setOverrideBucketSize((price.bucket_size as PriceBucketSize | undefined) ?? '');
 		}
 	}, [isOpen, price, isCustomPriceUnit]);
 
@@ -168,6 +180,12 @@ const UpdatePriceDialog: FC<UpdatePriceDialogProps> = ({ isOpen, onOpenChange, p
 			};
 		}
 
+		// Bucket size override - send BUCKET_SIZE_NONE to explicitly clear, omit to leave unchanged
+		const originalBucketSize = price.bucket_size ?? '';
+		if (overrideBucketSize !== originalBucketSize) {
+			updateData.bucket_size = overrideBucketSize || BUCKET_SIZE_NONE;
+		}
+
 		// Include effective_from if provided
 		if (effectiveFrom) {
 			updateData.effective_from = effectiveFrom.toISOString();
@@ -198,7 +216,7 @@ const UpdatePriceDialog: FC<UpdatePriceDialogProps> = ({ isOpen, onOpenChange, p
 		const originalBillingModel = price.billing_model;
 		const originalTierMode = price.tier_mode || TIER_MODE.VOLUME;
 
-		let billingModelChanged = false;
+		let billingModelChanged: boolean;
 		if (overrideBillingModel === 'SLAB_TIERED' && originalBillingModel === BILLING_MODEL.TIERED && originalTierMode === TIER_MODE.SLAB) {
 			billingModelChanged = false;
 		} else if (
@@ -212,7 +230,7 @@ const UpdatePriceDialog: FC<UpdatePriceDialogProps> = ({ isOpen, onOpenChange, p
 		}
 
 		// Compare amount/price_unit_amount based on price unit type
-		let amountChanged = false;
+		let amountChanged: boolean;
 		if (isCustomPriceUnit) {
 			const originalAmount = price.price_unit_amount || price.price_unit_config?.amount || '';
 			amountChanged = !!(overrideAmount && removeFormatting(overrideAmount) !== originalAmount);
@@ -256,13 +274,16 @@ const UpdatePriceDialog: FC<UpdatePriceDialogProps> = ({ isOpen, onOpenChange, p
 			}
 		}
 
+		const bucketSizeChanged = overrideBucketSize !== (price.bucket_size ?? '');
+
 		return (
 			amountChanged ||
 			overrideQuantity !== undefined ||
 			billingModelChanged ||
 			tiersChanged ||
 			overrideTransformQuantity !== undefined ||
-			effectiveFrom !== undefined
+			effectiveFrom !== undefined ||
+			bucketSizeChanged
 		);
 	};
 
@@ -301,8 +322,8 @@ const UpdatePriceDialog: FC<UpdatePriceDialogProps> = ({ isOpen, onOpenChange, p
 			className='w-auto min-w-[32rem] max-w-[90vw]'>
 			<div className='space-y-6 max-h-[80vh] overflow-y-auto'>
 				<div className='space-y-4'>
-					<div className='flex items-center justify-between p-3 bg-gray-50 rounded-lg'>
-						<div className='text-sm text-gray-600'>{t('priceDialogs.originalPrice')}</div>
+					<div className='flex items-center justify-between p-3 bg-surface-subtle rounded-lg'>
+						<div className='text-sm text-content-tertiary'>{t('priceDialogs.originalPrice')}</div>
 						<div className='font-medium'>
 							{displaySymbol}
 							{originalFormatted}
@@ -311,7 +332,7 @@ const UpdatePriceDialog: FC<UpdatePriceDialogProps> = ({ isOpen, onOpenChange, p
 
 					{price.type === PRICE_TYPE.USAGE && (
 						<div className='space-y-2'>
-							<label className='text-sm font-medium text-gray-700'>{t('priceDialogs.billingModel')}</label>
+							<label className='text-sm font-medium text-content-secondary'>{t('priceDialogs.billingModel')}</label>
 							<Select
 								value={overrideBillingModel}
 								onChange={(value) => setOverrideBillingModel(value as BILLING_MODEL)}
@@ -321,9 +342,23 @@ const UpdatePriceDialog: FC<UpdatePriceDialogProps> = ({ isOpen, onOpenChange, p
 						</div>
 					)}
 
+					{price.type === PRICE_TYPE.USAGE && (
+						<div className='space-y-2'>
+							<label className='text-sm font-medium text-content-secondary'>{t('priceDialogs.bucketSize')}</label>
+							<Select
+								value={overrideBucketSize}
+								onChange={(value) => setOverrideBucketSize(value as PriceBucketSize)}
+								options={priceBucketSizeOptions}
+								placeholder={t('priceDialogs.bucketSizePlaceholder')}
+								disabled={!!meterBucketSize}
+								description={meterBucketSize ? t('priceDialogs.bucketSizeSetOnMeter', { bucketSize: meterBucketSize }) : undefined}
+							/>
+						</div>
+					)}
+
 					{overrideBillingModel !== BILLING_MODEL.TIERED && overrideBillingModel !== 'SLAB_TIERED' && (
 						<div className='space-y-2'>
-							<label className='text-sm font-medium text-gray-700'>
+							<label className='text-sm font-medium text-content-secondary'>
 								{t('priceDialogs.overrideAmountLabel', { unit: isCustomPriceUnit ? displaySymbol : price.currency })}
 							</label>
 							<Input
@@ -339,13 +374,13 @@ const UpdatePriceDialog: FC<UpdatePriceDialogProps> = ({ isOpen, onOpenChange, p
 
 					{(overrideBillingModel === BILLING_MODEL.TIERED || overrideBillingModel === 'SLAB_TIERED') && (
 						<div className='space-y-2'>
-							<label className='text-sm font-medium text-gray-700'>{t('priceDialogs.tiers')}</label>
+							<label className='text-sm font-medium text-content-secondary'>{t('priceDialogs.tiers')}</label>
 							<VolumeTieredPricingForm
 								tieredPrices={
 									overrideTiers.length > 0
 										? overrideTiers.map((tier, index) => {
-												let from = 0;
-												let up_to = null;
+												let from: number;
+												let up_to: number | null;
 
 												if (index === 0) {
 													from = 0;
@@ -394,9 +429,9 @@ const UpdatePriceDialog: FC<UpdatePriceDialogProps> = ({ isOpen, onOpenChange, p
 
 					{overrideBillingModel === BILLING_MODEL.PACKAGE && (
 						<div className='space-y-4'>
-							<label className='text-sm font-medium text-gray-700'>{t('priceDialogs.packageConfiguration')}</label>
+							<label className='text-sm font-medium text-content-secondary'>{t('priceDialogs.packageConfiguration')}</label>
 							<div className='space-y-2'>
-								<label className='text-sm text-gray-600'>{t('priceDialogs.unitsPerPackage')}</label>
+								<label className='text-sm text-content-tertiary'>{t('priceDialogs.unitsPerPackage')}</label>
 								<Input
 									type='number'
 									value={overrideTransformQuantity?.divide_by || ''}
@@ -410,7 +445,7 @@ const UpdatePriceDialog: FC<UpdatePriceDialogProps> = ({ isOpen, onOpenChange, p
 									className='w-full'
 								/>
 								{price.transform_quantity && (
-									<div className='text-xs text-gray-500'>
+									<div className='text-xs text-content-muted'>
 										{t('priceDialogs.originalUnitsPerPackage', { count: price.transform_quantity.divide_by })}
 									</div>
 								)}
@@ -428,7 +463,7 @@ const UpdatePriceDialog: FC<UpdatePriceDialogProps> = ({ isOpen, onOpenChange, p
 							labelClassName=''
 							popoverTriggerClassName='w-full'
 						/>
-						<p className='text-xs text-gray-500'>{t('priceDialogs.schedulePriceChangeHint')}</p>
+						<p className='text-xs text-content-muted'>{t('priceDialogs.schedulePriceChangeHint')}</p>
 					</div>
 				</div>
 

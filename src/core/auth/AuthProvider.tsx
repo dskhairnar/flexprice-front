@@ -6,11 +6,12 @@ import useUserhook from '@/hooks/useUser';
 
 interface AuthMiddlewareProps {
 	children: ReactNode;
-	requiredRole: string[];
 }
+
+/** Authentication only — per-route permission gating lives in MainLayout (see useRouteAccess). */
 const AuthMiddleware: React.FC<AuthMiddlewareProps> = ({ children }) => {
 	const userContext = useUser();
-	const { user, loading, error } = useUserhook();
+	const { user, loading } = useUserhook();
 
 	useEffect(() => {
 		if (user) {
@@ -22,15 +23,15 @@ const AuthMiddleware: React.FC<AuthMiddlewareProps> = ({ children }) => {
 		return <PageLoader />;
 	}
 
-	if (error || !user) {
+	// useUser() polls every minute to keep RBAC roles fresh (see its own comment). A transient
+	// failure on one of those background refetches sets `error` but leaves the previously-fetched
+	// `user` in place — checking `error` here as well as `!user` would log an already-authenticated
+	// user out on a one-off network blip. `!user` alone still covers "never authenticated": after
+	// the query's retries exhaust with no successful fetch, `user` stays undefined.
+	if (!user) {
 		return <Navigate to='/auth' />;
 	}
 
-	// if (requiredRole && !requiredRole.includes(user.role)) {
-	//     return <Navigate to="/not-authorized" />;
-	// }
-
-	// Wrap children with AuthStateListener to handle auth state changes
 	return <div>{children}</div>;
 };
 

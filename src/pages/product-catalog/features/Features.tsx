@@ -1,5 +1,6 @@
-import { AddButton, Page, ActionButton, Chip } from '@/components/atoms';
+import { AddButton, Page, ActionButton, Chip, Tooltip } from '@/components/atoms';
 import { ApiDocsContent, FeatureDrawer, RedirectCell } from '@/components/molecules';
+import { useCurrentUserPermissions } from '@/hooks/useCurrentUserPermissions';
 import { ColumnData } from '@/components/molecules/Table';
 import { QueryableDataArea } from '@/components/organisms';
 import { RouteNames } from '@/core/routes/Routes';
@@ -50,6 +51,8 @@ const FeaturesPage = () => {
 	const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 	const [selectedFeature, setSelectedFeature] = useState<Feature | null>(null);
 	const navigate = useNavigate();
+	const { can } = useCurrentUserPermissions();
+	const canWriteFeature = can('feature', 'write');
 
 	const handleEdit = useCallback((feature: Feature) => {
 		setSelectedFeature(feature);
@@ -114,6 +117,7 @@ const FeaturesPage = () => {
 					{ value: FEATURE_TYPE.METERED, label: t('features.listPage.filterTypes.metered') },
 					{ value: FEATURE_TYPE.BOOLEAN, label: t('features.listPage.filterTypes.boolean') },
 					{ value: FEATURE_TYPE.STATIC, label: t('features.listPage.filterTypes.static') },
+					{ value: FEATURE_TYPE.CONFIG, label: t('features.listPage.filterTypes.config') },
 				],
 			},
 			{
@@ -147,6 +151,7 @@ const FeaturesPage = () => {
 			if (key === FEATURE_TYPE.STATIC) return t('features.listPage.typeChips.static');
 			if (key === FEATURE_TYPE.METERED) return t('features.listPage.typeChips.metered');
 			if (key === FEATURE_TYPE.BOOLEAN) return t('features.listPage.typeChips.boolean');
+			if (key === FEATURE_TYPE.CONFIG) return t('features.listPage.typeChips.config', { defaultValue: 'Config' });
 			return t('features.listPage.typeChips.unknown', { defaultValue: toSentenceCase(type) });
 		},
 		[t],
@@ -158,14 +163,56 @@ const FeaturesPage = () => {
 			const label = getFeatureTypeChipLabel(type);
 			switch (type.toLocaleLowerCase()) {
 				case FEATURE_TYPE.STATIC: {
-					return <Chip textColor='#4B5563' bgColor='#F3F4F6' icon={addIcon ? icon : null} label={label} className='text-xs' />;
+					return (
+						<Chip
+							textColor='rgb(var(--fp-chip-type-static-text))'
+							bgColor='rgb(var(--fp-chip-type-static-bg))'
+							icon={addIcon ? icon : null}
+							label={label}
+							className='text-xs'
+						/>
+					);
 				}
 				case FEATURE_TYPE.METERED:
-					return <Chip textColor='#1E40AF' bgColor='#DBEAFE' icon={addIcon ? icon : null} label={label} className='text-xs' />;
+					return (
+						<Chip
+							textColor='rgb(var(--fp-chip-type-metered-text))'
+							bgColor='rgb(var(--fp-chip-type-metered-bg))'
+							icon={addIcon ? icon : null}
+							label={label}
+							className='text-xs'
+						/>
+					);
 				case FEATURE_TYPE.BOOLEAN:
-					return <Chip textColor='#166534' bgColor='#DCFCE7' icon={addIcon ? icon : null} label={label} className='text-xs' />;
+					return (
+						<Chip
+							textColor='rgb(var(--fp-chip-type-boolean-text))'
+							bgColor='rgb(var(--fp-chip-type-boolean-bg))'
+							icon={addIcon ? icon : null}
+							label={label}
+							className='text-xs'
+						/>
+					);
+				case FEATURE_TYPE.CONFIG:
+					return (
+						<Chip
+							textColor='rgb(var(--fp-chip-type-config-text))'
+							bgColor='rgb(var(--fp-chip-type-config-bg))'
+							icon={addIcon ? icon : null}
+							label={label}
+							className='text-xs'
+						/>
+					);
 				default:
-					return <Chip textColor='#6B7280' bgColor='#F9FAFB' icon={addIcon ? icon : null} label={label} className='text-xs' />;
+					return (
+						<Chip
+							textColor='rgb(var(--fp-chip-type-default-text))'
+							bgColor='rgb(var(--fp-chip-type-default-bg))'
+							icon={addIcon ? icon : null}
+							label={label}
+							className='text-xs'
+						/>
+					);
 			}
 		},
 		[getFeatureTypeChipLabel],
@@ -212,6 +259,7 @@ const FeaturesPage = () => {
 					return (
 						<ActionButton
 							id={row?.id}
+							copyId={{ entityType: 'Feature' }}
 							deleteMutationFn={async () => {
 								return await FeatureApi.deleteFeature(row?.id);
 							}}
@@ -219,17 +267,21 @@ const FeaturesPage = () => {
 							entityName={row?.name}
 							archive={{
 								enabled: row?.status !== ENTITY_STATUS.ARCHIVED,
+								disabled: !canWriteFeature,
+								disabledReason: canWriteFeature ? undefined : t('features.writeDeniedTooltip'),
 							}}
 							edit={{
 								enabled: true,
 								onClick: () => handleEdit(row),
+								disabled: !canWriteFeature,
+								disabledReason: canWriteFeature ? undefined : t('features.writeDeniedTooltip'),
 							}}
 						/>
 					);
 				},
 			},
 		],
-		[t, getFeatureTypeChips, handleEdit],
+		[t, getFeatureTypeChips, handleEdit, canWriteFeature],
 	);
 
 	return (
@@ -237,9 +289,17 @@ const FeaturesPage = () => {
 			heading={t('features.listPage.title')}
 			headingCTA={
 				<div className='flex justify-between items-center gap-2'>
-					<Link to={RouteNames.createFeature}>
-						<AddButton />
-					</Link>
+					{canWriteFeature ? (
+						<Link to={RouteNames.createFeature}>
+							<AddButton />
+						</Link>
+					) : (
+						<Tooltip content={t('features.writeDeniedTooltip')}>
+							<span tabIndex={0} className='inline-block'>
+								<AddButton disabled />
+							</span>
+						</Tooltip>
+					)}
 				</div>
 			}>
 			<ApiDocsContent tags={API_DOCS_TAGS.Features} />
@@ -278,6 +338,8 @@ const FeaturesPage = () => {
 					description: t('features.listPage.emptyState.description'),
 					buttonLabel: t('features.listPage.emptyState.createButton'),
 					buttonAction: () => navigate(RouteNames.createFeature),
+					buttonDisabled: !canWriteFeature,
+					buttonDisabledReason: canWriteFeature ? undefined : t('features.writeDeniedTooltip'),
 					tags: API_DOCS_TAGS.Features,
 					tutorials: guides.features.tutorials,
 				}}

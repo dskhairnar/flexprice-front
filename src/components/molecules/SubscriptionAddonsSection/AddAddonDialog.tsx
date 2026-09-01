@@ -23,7 +23,13 @@ import {
 	sanitizeAddonLineItemCommitmentsForApi,
 } from '@/utils/subscription/addon_commitment_helpers';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { ChevronDown } from 'lucide-react';
+import { ChevronDown, Pencil, RotateCcw, Target } from 'lucide-react';
+import { BsThreeDots } from 'react-icons/bs';
+import { usePriceOverrides } from '@/hooks/usePriceOverrides';
+import { getLineItemOverrides } from '@/utils/common/price_override_helpers';
+import PriceOverrideDialog from '@/components/molecules/PriceOverrideDialog/PriceOverrideDialog';
+import ChargeValueCell from '@/components/molecules/ChargeValueCell/ChargeValueCell';
+import { DropdownMenu as UiDropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 
 interface Props {
 	isOpen: boolean;
@@ -40,13 +46,15 @@ interface FormErrors {
 }
 
 const AddAddonDialog: React.FC<Props> = ({ isOpen, onOpenChange, subscriptionId, billingPeriod, currency, currentPeriodEndIso }) => {
-	const { t } = useTranslation(['billing', 'common']);
+	const { t } = useTranslation(['billing', 'common', 'customers']);
 	const [formData, setFormData] = useState<Partial<AddAddonRequest>>({});
 	const [errors, setErrors] = useState<FormErrors>({});
 	const [selectedAddonDetails, setSelectedAddonDetails] = useState<AddonResponse | null>(null);
 	const [lineItemCommitments, setLineItemCommitments] = useState<LineItemCommitmentsMap>({});
 	const [selectedCommitmentPrice, setSelectedCommitmentPrice] = useState<Price | null>(null);
 	const [isCommitmentDialogOpen, setIsCommitmentDialogOpen] = useState(false);
+	const [selectedOverridePrice, setSelectedOverridePrice] = useState<Price | null>(null);
+	const [isOverrideDialogOpen, setIsOverrideDialogOpen] = useState(false);
 	const [advancedOpen, setAdvancedOpen] = useState(false);
 	const [startDate, setStartDate] = useState<Date | undefined>(undefined);
 	const [cadence, setCadence] = useState<ADDON_CADENCE | ''>('');
@@ -73,6 +81,13 @@ const AddAddonDialog: React.FC<Props> = ({ isOpen, onOpenChange, subscriptionId,
 	});
 
 	// Reset form when modal opens/closes
+	const selectedAddonPrices = useMemo(
+		() => filterAddonPricesForSubscription((selectedAddonDetails?.prices as Price[]) || [], billingPeriod, currency),
+		[selectedAddonDetails, billingPeriod, currency],
+	);
+
+	const { overriddenPrices, overridePrice, resetOverride, resetAllOverrides } = usePriceOverrides(selectedAddonPrices);
+
 	useEffect(() => {
 		if (isOpen) {
 			setFormData({});
@@ -81,12 +96,15 @@ const AddAddonDialog: React.FC<Props> = ({ isOpen, onOpenChange, subscriptionId,
 			setLineItemCommitments({});
 			setSelectedCommitmentPrice(null);
 			setIsCommitmentDialogOpen(false);
+			setSelectedOverridePrice(null);
+			setIsOverrideDialogOpen(false);
+			resetAllOverrides();
 			setAdvancedOpen(false);
 			setStartDate(undefined);
 			setCadence('');
 			setProrationBehavior('');
 		}
-	}, [isOpen]);
+	}, [isOpen, resetAllOverrides]);
 
 	const currentPeriodEndDate = useMemo(() => {
 		const raw = resolvedPeriodEndRaw;
@@ -114,13 +132,8 @@ const AddAddonDialog: React.FC<Props> = ({ isOpen, onOpenChange, subscriptionId,
 		};
 	}, [formData, t]);
 
-	const selectedAddonPrices = useMemo(
-		() => filterAddonPricesForSubscription((selectedAddonDetails?.prices as Price[]) || [], billingPeriod, currency),
-		[selectedAddonDetails, billingPeriod, currency],
-	);
-
 	// Add addon mutation
-	const { mutate: addAddon, isPending: isAddingAddon } = useMutation({
+	const { mutateAsync: addAddon, isPending: isAddingAddon } = useMutation({
 		mutationFn: async (payload: AddAddonRequest) => {
 			return await SubscriptionApi.addAddonToSubscription(payload);
 		},
@@ -130,16 +143,15 @@ const AddAddonDialog: React.FC<Props> = ({ isOpen, onOpenChange, subscriptionId,
 			refetchQueries(['subscriptionDetails', subscriptionId]);
 			refetchQueries(['subscriptionEdit', subscriptionId]);
 			refetchQueries(['subscriptionEntitlements', subscriptionId]);
-			setFormData({});
-			setErrors({});
-			onOpenChange(false);
 		},
 		onError: (error: Error) => {
 			toast.error(error.message || t('billing:subscriptions.addAddonDialog.toast.addonAddFailed'));
 		},
 	});
 
-	const handleSave = useCallback(() => {
+	const handleSave = useCallback(async () => {
+		if (isAddingAddon) return;
+
 		const validation = validateForm();
 
 		if (!validation.isValid) {
@@ -149,30 +161,62 @@ const AddAddonDialog: React.FC<Props> = ({ isOpen, onOpenChange, subscriptionId,
 
 		setErrors({});
 		const line_item_commitments = sanitizeAddonLineItemCommitmentsForApi(lineItemCommitments, selectedAddonPrices);
+		const override_line_items = getLineItemOverrides(selectedAddonPrices, overriddenPrices);
 		const addonData: AddAddonRequest = {
 			subscription_id: subscriptionId,
 			addon_id: formData.addon_id!,
 			line_item_commitments,
+			...(override_line_items.length > 0 ? { override_line_items } : {}),
 			...(startDate ? { start_date: startDate.toISOString() } : {}),
 			...(cadence ? { cadence } : {}),
 			...(prorationBehavior ? { proration_behavior: prorationBehavior } : {}),
 		};
 
-		addAddon(addonData);
-	}, [formData, validateForm, subscriptionId, addAddon, lineItemCommitments, selectedAddonPrices, startDate, cadence, prorationBehavior]);
+		try {
+			await addAddon(addonData);
+			setFormData({});
+			setErrors({});
+			onOpenChange(false);
+		} catch {
+			// Keep dialog open so the user can fix and retry.
+		}
+	}, [
+		formData,
+		validateForm,
+		subscriptionId,
+		addAddon,
+		lineItemCommitments,
+		selectedAddonPrices,
+		startDate,
+		cadence,
+		prorationBehavior,
+		isAddingAddon,
+		onOpenChange,
+		overriddenPrices,
+	]);
 
 	const handleCancel = useCallback(() => {
+		if (isAddingAddon) return;
 		setFormData({});
 		setErrors({});
 		onOpenChange(false);
-	}, [onOpenChange]);
+	}, [onOpenChange, isAddingAddon]);
+
+	const handleDialogOpenChange = useCallback(
+		(open: boolean) => {
+			if (!open && isAddingAddon) return;
+			onOpenChange(open);
+		},
+		[onOpenChange, isAddingAddon],
+	);
 
 	const handleAddonSelect = useCallback(
 		(addonId: string) => {
 			const addonDetails = (addonsResponse?.items || []).find((addon: AddonResponse) => addon.id === addonId) || null;
 			setSelectedAddonDetails(addonDetails);
-			// Reset commitments when switching addons to avoid leaking configs across addons
+			// Reset commitments and price overrides when switching addons to avoid leaking configs across addons
 			setLineItemCommitments({});
+			resetAllOverrides();
 			// Reset advanced config when switching addons
 			setStartDate(undefined);
 			setCadence('');
@@ -192,6 +236,11 @@ const AddAddonDialog: React.FC<Props> = ({ isOpen, onOpenChange, subscriptionId,
 		if (price.type !== PRICE_TYPE.USAGE) return;
 		setSelectedCommitmentPrice(price);
 		setIsCommitmentDialogOpen(true);
+	}, []);
+
+	const handleConfigurePrice = useCallback((price: Price) => {
+		setSelectedOverridePrice(price);
+		setIsOverrideDialogOpen(true);
 	}, []);
 
 	const setCommitmentForPrice = useCallback((priceId: string, config: LineItemCommitmentConfig | null) => {
@@ -230,34 +279,64 @@ const AddAddonDialog: React.FC<Props> = ({ isOpen, onOpenChange, subscriptionId,
 				render: (row) => <span>{toSentenceCase(row.price.type || t('common:labels.na'))}</span>,
 			},
 			{
+				title: t('billing:subscriptions.addAddonDialog.columns.price'),
+				render: (row) => <ChargeValueCell data={row.price} priceOverride={overriddenPrices[row.price.id]} />,
+			},
+			{
 				title: t('billing:subscriptions.addAddonDialog.columns.commitment'),
 				render: (row) => {
 					if (row.price.type !== PRICE_TYPE.USAGE) {
-						return <span className='text-sm text-gray-400'>{t('billing:subscriptions.addAddonDialog.commitmentNotAvailable')}</span>;
+						return <span className='text-sm text-content-subtle'>{t('billing:subscriptions.addAddonDialog.commitmentNotAvailable')}</span>;
 					}
 					const config = lineItemCommitments[row.price.id];
-					return config ? <span className='text-sm text-gray-600'>{formatCommitmentSummary(config)}</span> : <span>—</span>;
+					return config ? <span className='text-sm text-content-tertiary'>{formatCommitmentSummary(config)}</span> : <span>—</span>;
 				},
 			},
 			{
 				fieldVariant: 'interactive',
 				hideOnEmpty: true,
 				title: '',
-				width: 140,
+				width: 60,
 				align: 'right',
 				render: (row) => {
-					const canConfigure = row.price.type === PRICE_TYPE.USAGE;
-					if (!canConfigure) return null;
-					const hasConfig = lineItemCommitments[row.price.id] !== undefined;
+					const isOverridden = overriddenPrices[row.price.id] !== undefined;
+					const hasCommitment = lineItemCommitments[row.price.id] !== undefined;
+					const canConfigureCommitment = row.price.type === PRICE_TYPE.USAGE;
 					return (
-						<Button variant='outline' onClick={() => handleConfigureCommitment(row.price)} type='button'>
-							{hasConfig ? t('common:actions.edit') : t('billing:subscriptions.configure')}
-						</Button>
+						<UiDropdownMenu>
+							<DropdownMenuTrigger asChild>
+								<button type='button' aria-label={t('billing:subscriptions.configure')}>
+									<BsThreeDots className='text-base size-4' />
+								</button>
+							</DropdownMenuTrigger>
+							<DropdownMenuContent align='end' className='w-48'>
+								<DropdownMenuItem onClick={() => handleConfigurePrice(row.price)}>
+									<Pencil className='me-2 h-4 w-4' />
+									{isOverridden
+										? t('customers:organisms.subscriptionPriceTable.editOverride')
+										: t('customers:organisms.subscriptionPriceTable.overridePrice')}
+								</DropdownMenuItem>
+								{isOverridden && (
+									<DropdownMenuItem onClick={() => resetOverride(row.price.id)}>
+										<RotateCcw className='me-2 h-4 w-4' />
+										{t('customers:organisms.subscriptionPriceTable.resetOverride')}
+									</DropdownMenuItem>
+								)}
+								{canConfigureCommitment && (
+									<DropdownMenuItem onClick={() => handleConfigureCommitment(row.price)}>
+										<Target className='me-2 h-4 w-4' />
+										{hasCommitment
+											? t('customers:organisms.subscriptionPriceTable.editCommitment')
+											: t('customers:organisms.subscriptionPriceTable.configureCommitment')}
+									</DropdownMenuItem>
+								)}
+							</DropdownMenuContent>
+						</UiDropdownMenu>
 					);
 				},
 			},
 		],
-		[lineItemCommitments, handleConfigureCommitment, t],
+		[lineItemCommitments, handleConfigureCommitment, handleConfigurePrice, overriddenPrices, resetOverride, t],
 	);
 
 	const filteredAddonOptions = useMemo(() => {
@@ -272,7 +351,7 @@ const AddAddonDialog: React.FC<Props> = ({ isOpen, onOpenChange, subscriptionId,
 		<Dialog
 			isOpen={isOpen}
 			showCloseButton={false}
-			onOpenChange={onOpenChange}
+			onOpenChange={handleDialogOpenChange}
 			title={t('common:actions.add')}
 			className='sm:max-w-[900px]'>
 			<div className='grid gap-4 mt-3'>
@@ -292,16 +371,16 @@ const AddAddonDialog: React.FC<Props> = ({ isOpen, onOpenChange, subscriptionId,
 					<div className='space-y-3'>
 						<div className='flex items-center justify-between'>
 							<div>
-								<p className='text-sm font-medium text-gray-700'>{t('common:labels.charges')}</p>
+								<p className='text-sm font-medium text-content-secondary'>{t('common:labels.charges')}</p>
 							</div>
 						</div>
 						{selectedAddonPrices.length > 0 ? (
-							<div className='rounded-xl border border-gray-200'>
+							<div className='rounded-xl border border-line'>
 								<FlexpriceTable columns={addonChargeColumns} data={selectedAddonPrices.map((p) => ({ price: p }))} />
 							</div>
 						) : (
-							<div className='rounded-xl border border-gray-200 p-4'>
-								<p className='text-sm text-gray-600'>{t('billing:subscriptions.addAddonDialog.emptyNoChargesForPeriodCurrency')}</p>
+							<div className='rounded-xl border border-line p-4'>
+								<p className='text-sm text-content-tertiary'>{t('billing:subscriptions.addAddonDialog.emptyNoChargesForPeriodCurrency')}</p>
 							</div>
 						)}
 
@@ -314,13 +393,15 @@ const AddAddonDialog: React.FC<Props> = ({ isOpen, onOpenChange, subscriptionId,
 									applyAdvancedDefaults();
 								}
 							}}>
-							<div className='rounded-xl border border-gray-200 bg-white'>
+							<div className='rounded-xl border border-line bg-surface'>
 								<CollapsibleTrigger asChild>
 									<button
 										type='button'
-										className='w-full flex items-center justify-between px-4 py-3 text-sm font-medium text-gray-800 hover:bg-gray-50 rounded-xl'>
+										className='w-full flex items-center justify-between px-4 py-3 text-sm font-medium text-content-heading hover:bg-surface-subtle rounded-xl'>
 										<span>{t('billing:subscriptions.addAddonDialog.advancedOptions')}</span>
-										<ChevronDown className={`h-4 w-4 text-gray-500 transition-transform ${advancedOpen ? 'rotate-180' : 'rotate-0'}`} />
+										<ChevronDown
+											className={`h-4 w-4 text-content-muted transition-transform ${advancedOpen ? 'rotate-180' : 'rotate-0'}`}
+										/>
 									</button>
 								</CollapsibleTrigger>
 								<CollapsibleContent>
@@ -374,7 +455,7 @@ const AddAddonDialog: React.FC<Props> = ({ isOpen, onOpenChange, subscriptionId,
 										<div className='pt-3'>
 											<button
 												type='button'
-												className='text-xs text-gray-500 hover:text-gray-700'
+												className='text-xs text-content-muted hover:text-content-secondary'
 												onClick={() => {
 													setStartDate(undefined);
 													setCadence(ADDON_CADENCE.RECURRING);
@@ -390,6 +471,18 @@ const AddAddonDialog: React.FC<Props> = ({ isOpen, onOpenChange, subscriptionId,
 					</div>
 				)}
 			</div>
+
+			{/* Price Override Dialog */}
+			{selectedOverridePrice && (
+				<PriceOverrideDialog
+					isOpen={isOverrideDialogOpen}
+					onOpenChange={setIsOverrideDialogOpen}
+					price={selectedOverridePrice}
+					onPriceOverride={overridePrice}
+					onResetOverride={resetOverride}
+					overriddenPrices={overriddenPrices}
+				/>
+			)}
 
 			{/* Commitment Configuration Dialog */}
 			{selectedCommitmentPrice && (
@@ -408,8 +501,8 @@ const AddAddonDialog: React.FC<Props> = ({ isOpen, onOpenChange, subscriptionId,
 				<Button variant='outline' onClick={handleCancel} disabled={isAddingAddon}>
 					{t('common:actions.cancel')}
 				</Button>
-				<Button onClick={handleSave} disabled={isAddingAddon}>
-					{isAddingAddon ? t('billing:subscriptions.addAddonDialog.adding') : t('common:actions.add')}
+				<Button onClick={handleSave} isLoading={isAddingAddon} disabled={isAddingAddon}>
+					{t('common:actions.add')}
 				</Button>
 			</div>
 		</Dialog>

@@ -1,5 +1,5 @@
 // React imports
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Outlet, useNavigate, useParams, useLocation } from 'react-router';
 
 // Third-party libraries
@@ -20,6 +20,7 @@ import { PlanApi, WorkflowApi } from '@/api';
 
 // Core services and routes
 import { RouteNames } from '@/core/routes/Routes';
+import { useCurrentUserPermissions } from '@/hooks/useCurrentUserPermissions';
 
 // Models and types
 import { Plan, ENTITY_STATUS } from '@/models';
@@ -61,7 +62,7 @@ type Params = {
 };
 
 const PlanDetailsPage = () => {
-	const { t } = useTranslation(['common']);
+	const { t } = useTranslation(['catalog', 'common']);
 	const navigate = useNavigate();
 	const location = useLocation();
 	const { planId } = useParams<Params>();
@@ -69,6 +70,8 @@ const PlanDetailsPage = () => {
 	const [activeTab, setActiveTab] = useState<TabId>(tabs[0]?.id);
 	const [planDrawerOpen, setPlanDrawerOpen] = useState(false);
 	const [duplicateDialogOpen, setDuplicateDialogOpen] = useState(false);
+	const { can } = useCurrentUserPermissions();
+	const canWritePlan = can('plan', 'write');
 
 	const {
 		data: planData,
@@ -82,11 +85,15 @@ const PlanDetailsPage = () => {
 				limit: 1,
 				offset: 0,
 				sort: [],
+				expand: 'price_sync_status',
 			});
 			return response.items[0] ?? null;
 		},
 		enabled: !!planId,
 	});
+
+	const isFullySynced = planData?.price_sync_status?.synced ?? false;
+	const unsyncedCount = planData?.price_sync_status?.unsynced_subscription_count ?? 0;
 
 	const { data: syncWorkflowsData } = useQuery({
 		queryKey: ['planSyncWorkflows', planId],
@@ -113,6 +120,24 @@ const PlanDetailsPage = () => {
 	);
 	const latestRun = planRuns[0];
 	const isSyncRunning = latestRun?.status === 'Running';
+	const isTerminalSyncStatus = latestRun?.status === 'Completed' || latestRun?.status === 'Failed';
+
+	// Refetch plan data after a sync we started reaches a terminal workflow status —
+	// including when the first poll is already Completed and never passed through Running.
+	// Also refetch if a run that was already Running when this page loaded later finishes.
+	const wasSyncRunning = useRef(isSyncRunning);
+	const awaitingPlanRefresh = useRef(false);
+	const workflowKeyWhenSyncStarted = useRef<string | undefined>(undefined);
+	useEffect(() => {
+		const finishedObservedRun = wasSyncRunning.current && !isSyncRunning;
+		const finishedStartedRun =
+			awaitingPlanRefresh.current && isTerminalSyncStatus && latestRun?.run_id !== workflowKeyWhenSyncStarted.current;
+		if (finishedObservedRun || finishedStartedRun) {
+			awaitingPlanRefresh.current = false;
+			void queryClient.invalidateQueries({ queryKey: ['fetchPlan', planId] });
+		}
+		wasSyncRunning.current = isSyncRunning;
+	}, [isSyncRunning, isTerminalSyncStatus, latestRun?.run_id, planId, queryClient]);
 
 	const { mutate: archivePlan } = useMutation({
 		mutationFn: async () => {
@@ -131,6 +156,8 @@ const PlanDetailsPage = () => {
 		mutationFn: () => PlanApi.synchronizePlanPricesWithSubscription(planId!),
 		onSuccess: () => {
 			toast.success('Sync has been started and will take up to 1 hour to complete.');
+			awaitingPlanRefresh.current = true;
+			workflowKeyWhenSyncStarted.current = latestRun?.run_id;
 			void queryClient.invalidateQueries({ queryKey: ['planSyncWorkflows', planId] });
 		},
 		onError: (error: Error) => {
@@ -146,20 +173,25 @@ const PlanDetailsPage = () => {
 				label: 'Edit',
 				icon: <Pencil />,
 				onSelect: () => setPlanDrawerOpen(true),
+				disabled: !canWritePlan,
+				disabledReason: canWritePlan ? undefined : t('plans.detailsPage.writeDeniedTooltip'),
 			},
 			{
 				label: 'Duplicate',
 				icon: <Copy />,
 				onSelect: () => setDuplicateDialogOpen(true),
+				disabled: !canWritePlan,
+				disabledReason: canWritePlan ? undefined : t('plans.detailsPage.writeDeniedTooltip'),
 			},
 			{
 				label: 'Archive',
 				icon: <EyeOff />,
 				onSelect: () => archivePlan(),
-				disabled: planData?.status !== ENTITY_STATUS.PUBLISHED,
+				disabled: planData?.status !== ENTITY_STATUS.PUBLISHED || !canWritePlan,
+				disabledReason: canWritePlan ? undefined : t('plans.detailsPage.writeDeniedTooltip'),
 			},
 		],
-		[archivePlan, planData?.status],
+		[archivePlan, planData?.status, canWritePlan, t],
 	);
 
 	// Handle tab changes based on URL
@@ -225,31 +257,38 @@ const PlanDetailsPage = () => {
 					<TooltipProvider delayDuration={0}>
 						<Tooltip>
 							<TooltipTrigger asChild>
-								<span className='inline-block'>
+								<span className='relative inline-block'>
 									<Button
 										onClick={() => syncPlan()}
-										disabled={isSyncing || isSyncRunning}
+										disabled={isSyncing || isSyncRunning || !canWritePlan || isFullySynced}
 										isLoading={isSyncing}
 										variant='outline'
 										className='flex gap-2'>
 										<RefreshCw />
 										Sync Usage Charges
 									</Button>
+									{/* The unsynced count lives in the tooltip only — no badge on the button. */}
 								</span>
 							</TooltipTrigger>
 							<TooltipContent>
-								{isSyncing ? (
+								{!canWritePlan ? (
+									<span className='text-sm'>{t('plans.detailsPage.syncWriteDeniedTooltip')}</span>
+								) : isSyncing ? (
 									<span className='text-sm'>Syncing...</span>
 								) : isSyncRunning ? (
 									<span className='text-sm'>
 										Sync in progress. You can check status in{' '}
 										<button
 											onClick={() => navigate(`${RouteNames.workflows}?entity_id=${planId}`)}
-											className='text-blue-600 hover:text-blue-800 underline'>
+											className='text-info hover:text-info-deep underline'>
 											Workflows
 										</button>
 										.
 									</span>
+								) : isFullySynced ? (
+									<span className='text-sm'>All subscriptions are already in sync with this plan's prices.</span>
+								) : unsyncedCount > 0 ? (
+									<span className='text-sm'>{t('plans.detailsPage.unsyncedCountTooltip', { count: unsyncedCount })}</span>
 								) : latestRun?.status === 'Completed' ? (
 									<span className='text-sm'>Sync completed. You can sync again.</span>
 								) : latestRun?.status === 'Failed' ? (

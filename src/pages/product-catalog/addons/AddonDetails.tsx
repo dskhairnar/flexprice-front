@@ -1,4 +1,5 @@
-import { ActionButton, Button, CardHeader, Chip, Loader, Page, Spacer, NoDataCard } from '@/components/atoms';
+import { ActionButton, Button, CardHeader, Chip, Loader, Page, Spacer, NoDataCard, Tooltip } from '@/components/atoms';
+import { useCurrentUserPermissions } from '@/hooks/useCurrentUserPermissions';
 import {
 	ApiDocsContent,
 	ColumnData,
@@ -7,17 +8,27 @@ import {
 	AddEntitlementDrawer,
 	RedirectCell,
 	DetailsCard,
+	AddonCreditGrantsSection,
+	DropdownMenu,
+	TerminatePriceModal,
+	UpdatePriceDialog,
+	UpdatePriceDetailsDrawer,
 } from '@/components/molecules';
+import { Dialog } from '@/components/ui';
+import { PriceApi } from '@/api/PriceApi';
+import { refetchQueries } from '@/core/services/tanstack/ReactQueryProvider';
+import { DeletePriceRequest } from '@/types/dto';
 import { API_DOCS_TAGS } from '@/constants/apiDocsTags';
 import { RouteNames } from '@/core/routes/Routes';
 import { Price } from '@/models/Price';
 import { useBreadcrumbsStore } from '@/store/useBreadcrumbsStore';
 import AddonApi from '@/api/AddonApi';
 import EntitlementApi from '@/api/EntitlementApi';
-import { getPriceTypeLabel } from '@/utils/common/helper_functions';
+import { copyToClipboard, getPriceTypeLabel } from '@/utils/common/helper_functions';
+import { ChargeActionHandlers } from '@/types/common';
 import { useMutation, useQuery } from '@tanstack/react-query';
-import { EyeOff, Plus, Pencil, Trash2 } from 'lucide-react';
-import { useEffect, useMemo, useState } from 'react';
+import { Copy, EyeOff, FileText, Plus, Pencil, Trash2 } from 'lucide-react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import toast from 'react-hot-toast';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useParams } from 'react-router';
@@ -67,7 +78,68 @@ type Params = {
 	id: string;
 };
 
-const getChargeColumns = (naLabel: string): ColumnData<Price>[] => [
+const ChargeRowMenu = ({ row, onEditPrice, onEditDetails, onTerminatePrice, canWritePrice }: ChargeActionHandlers & { row: Price }) => {
+	const [isOpen, setIsOpen] = useState(false);
+	const actionsDisabled = !!row.end_date || !canWritePrice;
+
+	return (
+		<div
+			data-interactive='true'
+			onClick={(e) => {
+				e.preventDefault();
+				e.stopPropagation();
+				setIsOpen(!isOpen);
+			}}>
+			<DropdownMenu
+				isOpen={isOpen}
+				onOpenChange={setIsOpen}
+				options={[
+					{
+						label: 'Copy Price ID',
+						icon: <Copy />,
+						onSelect: (e: Event) => {
+							e.preventDefault();
+							setIsOpen(false);
+							void copyToClipboard(row.id, 'Price ID copied to clipboard').catch(() => undefined);
+						},
+					},
+					{
+						label: 'Update Price',
+						icon: <Pencil />,
+						onSelect: (e: Event) => {
+							e.preventDefault();
+							setIsOpen(false);
+							onEditPrice(row);
+						},
+						disabled: actionsDisabled,
+					},
+					{
+						label: 'Edit Details',
+						icon: <FileText />,
+						onSelect: (e: Event) => {
+							e.preventDefault();
+							setIsOpen(false);
+							onEditDetails(row);
+						},
+						disabled: actionsDisabled,
+					},
+					{
+						label: 'Terminate Price',
+						icon: <Trash2 />,
+						onSelect: (e: Event) => {
+							e.preventDefault();
+							setIsOpen(false);
+							onTerminatePrice(row);
+						},
+						disabled: actionsDisabled,
+					},
+				]}
+			/>
+		</div>
+	);
+};
+
+const getChargeColumns = (naLabel: string, handlers: ChargeActionHandlers): ColumnData<Price>[] => [
 	{
 		title: 'Display Name',
 		render(rowData) {
@@ -98,6 +170,14 @@ const getChargeColumns = (naLabel: string): ColumnData<Price>[] => [
 			return <ChargeValueCell data={rowData} />;
 		},
 	},
+	{
+		fieldVariant: 'interactive',
+		width: '30px',
+		hideOnEmpty: true,
+		render(rowData) {
+			return <ChargeRowMenu row={rowData} {...handlers} />;
+		},
+	},
 ];
 
 const getFeatureValue = (entitlement: Entitlement, unlimited: string, unitLabel: string, unitsLabel: string) => {
@@ -112,7 +192,7 @@ const getFeatureValue = (entitlement: Entitlement, unlimited: string, unitLabel:
 			return (
 				<span className='flex items-end gap-1'>
 					{formatAmount(value || unlimited)}
-					<span className='text-[#64748B] text-sm font-normal font-sans'>
+					<span className='text-content-slate-muted text-sm font-normal font-sans'>
 						{value ? (Number(value) > 0 ? unitPlural : unitSingular) : unitPlural}
 					</span>
 				</span>
@@ -130,6 +210,8 @@ const getEntitlementColumns = (
 	unlimited: string,
 	unitLabel: string,
 	unitsLabel: string,
+	canWriteEntitlement: boolean,
+	entitlementWriteDeniedTooltip: string,
 ): ColumnData<EntitlementResponse>[] => [
 	{
 		title: 'Feature Name',
@@ -157,15 +239,19 @@ const getEntitlementColumns = (
 			return (
 				<ActionButton
 					id={row?.id}
+					copyId={{ entityType: 'Entitlement' }}
 					deleteMutationFn={async () => {
 						return await EntitlementApi.delete(row?.id);
 					}}
 					refetchQueryKey='fetchAddon'
 					entityName={row?.feature?.name}
+					edit={{ enabled: false }}
 					archive={{
 						enabled: row?.status !== ENTITY_STATUS.ARCHIVED,
 						text: 'Delete',
 						icon: <Trash2 />,
+						disabled: !canWriteEntitlement,
+						disabledReason: canWriteEntitlement ? undefined : entitlementWriteDeniedTooltip,
 					}}
 				/>
 			);
@@ -179,6 +265,16 @@ const AddonDetails = () => {
 	const { id } = useParams<Params>();
 	const [addonDrawerOpen, setAddonDrawerOpen] = useState(false);
 	const [entitlementDrawerOpen, setEntitlementDrawerOpen] = useState(false);
+	const { can } = useCurrentUserPermissions();
+	const canWriteAddon = can('addon', 'write');
+	const canWriteEntitlement = can('entitlement', 'write');
+	const canWritePrice = can('price', 'write');
+	const [selectedPriceForEdit, setSelectedPriceForEdit] = useState<Price | null>(null);
+	const [isPriceDialogOpen, setIsPriceDialogOpen] = useState(false);
+	const [selectedPriceForDetailsEdit, setSelectedPriceForDetailsEdit] = useState<Price | null>(null);
+	const [isDetailsDrawerOpen, setIsDetailsDrawerOpen] = useState(false);
+	const [selectedPriceForTermination, setSelectedPriceForTermination] = useState<Price | null>(null);
+	const [showTerminateModal, setShowTerminateModal] = useState(false);
 
 	const {
 		data: addonData,
@@ -213,7 +309,64 @@ const AddonDetails = () => {
 		}
 	}, [addonData, updateBreadcrumb]);
 
-	const chargeColumns = useMemo(() => getChargeColumns(t('common:labels.na')), [t]);
+	const { mutateAsync: deletePrice, isPending: isDeletingPrice } = useMutation({
+		mutationFn: async ({ priceId, data }: { priceId: string; data?: DeletePriceRequest }) => {
+			return await PriceApi.DeletePrice(priceId, data);
+		},
+		onSuccess: () => {
+			void refetchQueries(['fetchAddon']);
+		},
+		onError: (error: Error) => {
+			toast.error(error.message || 'Error terminating price');
+		},
+	});
+
+	const handleEditPrice = useCallback((price: Price) => {
+		setSelectedPriceForEdit(price);
+		setIsPriceDialogOpen(true);
+	}, []);
+
+	const handleEditDetails = useCallback((price: Price) => {
+		setSelectedPriceForDetailsEdit(price);
+		setIsDetailsDrawerOpen(true);
+	}, []);
+
+	const handleTerminatePrice = useCallback((price: Price) => {
+		setSelectedPriceForTermination(price);
+		setShowTerminateModal(true);
+	}, []);
+
+	const handlePriceUpdateSuccess = useCallback(() => {
+		setIsPriceDialogOpen(false);
+		setSelectedPriceForEdit(null);
+		void refetchQueries(['fetchAddon']);
+	}, []);
+
+	const handleTerminateConfirm = useCallback(
+		async (endDate: string | undefined) => {
+			if (!selectedPriceForTermination) return;
+			try {
+				await deletePrice({ priceId: selectedPriceForTermination.id, data: endDate ? { end_date: endDate } : undefined });
+				toast.success('Price terminated successfully');
+				setShowTerminateModal(false);
+				setSelectedPriceForTermination(null);
+			} catch {
+				// onError already surfaced the failure; keep the modal open so the user can retry.
+			}
+		},
+		[selectedPriceForTermination, deletePrice],
+	);
+
+	const chargeColumns = useMemo(
+		() =>
+			getChargeColumns(t('common:labels.na'), {
+				onEditPrice: handleEditPrice,
+				onEditDetails: handleEditDetails,
+				onTerminatePrice: handleTerminatePrice,
+				canWritePrice,
+			}),
+		[t, handleEditPrice, handleEditDetails, handleTerminatePrice, canWritePrice],
+	);
 
 	if (isLoading) {
 		return <Loader />;
@@ -228,6 +381,34 @@ const AddonDetails = () => {
 		toast.error('No addon data available');
 		return null;
 	}
+
+	const addChargeCta = canWritePrice ? (
+		<Button prefixIcon={<Plus />} onClick={() => navigate(`${RouteNames.addonCharges.replace(':addonId', id!)}`)}>
+			{t('common:actions.add')}
+		</Button>
+	) : (
+		<Tooltip content={t('catalog:addons.details.chargesWriteDeniedTooltip')}>
+			<span tabIndex={0} className='inline-block'>
+				<Button disabled prefixIcon={<Plus />}>
+					{t('common:actions.add')}
+				</Button>
+			</span>
+		</Tooltip>
+	);
+
+	const addEntitlementCta = canWriteEntitlement ? (
+		<Button prefixIcon={<Plus />} onClick={() => setEntitlementDrawerOpen(true)}>
+			{t('common:actions.add')}
+		</Button>
+	) : (
+		<Tooltip content={t('catalog:plans.entitlementsTab.writeDeniedTooltip')}>
+			<span tabIndex={0} className='inline-block'>
+				<Button disabled prefixIcon={<Plus />}>
+					{t('common:actions.add')}
+				</Button>
+			</span>
+		</Tooltip>
+	);
 
 	const addonDetails = [
 		{ label: 'Addon Name', value: addonData?.name },
@@ -247,19 +428,41 @@ const AddonDetails = () => {
 			heading={addonData?.name}
 			headingCTA={
 				<>
-					<Button onClick={() => setAddonDrawerOpen(true)} variant={'outline'} className='flex gap-2'>
-						<Pencil />
-						Edit
-					</Button>
+					{canWriteAddon ? (
+						<Button onClick={() => setAddonDrawerOpen(true)} variant={'outline'} className='flex gap-2'>
+							<Pencil />
+							Edit
+						</Button>
+					) : (
+						<Tooltip content={t('catalog:addons.writeDeniedTooltip')}>
+							<span tabIndex={0} className='inline-block'>
+								<Button disabled variant={'outline'} className='flex gap-2'>
+									<Pencil />
+									Edit
+								</Button>
+							</span>
+						</Tooltip>
+					)}
 
-					<Button
-						onClick={() => archiveAddon()}
-						disabled={addonData?.status !== ENTITY_STATUS.PUBLISHED}
-						variant={'outline'}
-						className='flex gap-2'>
-						<EyeOff />
-						Archive
-					</Button>
+					{canWriteAddon ? (
+						<Button
+							onClick={() => archiveAddon()}
+							disabled={addonData?.status !== ENTITY_STATUS.PUBLISHED}
+							variant={'outline'}
+							className='flex gap-2'>
+							<EyeOff />
+							Archive
+						</Button>
+					) : (
+						<Tooltip content={t('catalog:addons.writeDeniedTooltip')}>
+							<span tabIndex={0} className='inline-block'>
+								<Button disabled variant={'outline'} className='flex gap-2'>
+									<EyeOff />
+									Archive
+								</Button>
+							</span>
+						</Tooltip>
+					)}
 				</>
 			}>
 			<AddonDrawer data={addonData} open={addonDrawerOpen} onOpenChange={setAddonDrawerOpen} refetchQueryKeys={['fetchAddon']} />
@@ -273,45 +476,60 @@ const AddonDetails = () => {
 				refetchQueryKeys={['fetchAddon', 'fetchEntitlements']}
 			/>
 			<ApiDocsContent tags={API_DOCS_TAGS.Addons} />
+
+			{/* Update Price Dialog (critical fields — versioned update) */}
+			{selectedPriceForEdit && (
+				<UpdatePriceDialog
+					isOpen={isPriceDialogOpen}
+					onOpenChange={setIsPriceDialogOpen}
+					price={selectedPriceForEdit}
+					planId={addonData.id}
+					onSuccess={handlePriceUpdateSuccess}
+				/>
+			)}
+
+			{/* Update Price Details Drawer (non-critical fields) */}
+			{selectedPriceForDetailsEdit && (
+				<UpdatePriceDetailsDrawer
+					price={selectedPriceForDetailsEdit}
+					open={isDetailsDrawerOpen}
+					onOpenChange={setIsDetailsDrawerOpen}
+					refetchQueryKeys={['fetchAddon']}
+				/>
+			)}
+
+			{/* Terminate Price Modal */}
+			<Dialog open={showTerminateModal} onOpenChange={setShowTerminateModal}>
+				{selectedPriceForTermination && (
+					<TerminatePriceModal
+						planId={addonData.id}
+						price={selectedPriceForTermination}
+						onCancel={() => {
+							setShowTerminateModal(false);
+							setSelectedPriceForTermination(null);
+						}}
+						onConfirm={handleTerminateConfirm}
+						isLoading={isDeletingPrice}
+					/>
+				)}
+			</Dialog>
 			<div className='space-y-6'>
 				<DetailsCard variant='stacked' title={t('catalog:addons.details.title')} data={addonDetails} />
 
 				{/* addon charges table */}
 				{(addonData?.prices?.length ?? 0) > 0 ? (
 					<Card variant='notched'>
-						<CardHeader
-							title={t('catalog:addons.details.charges')}
-							cta={
-								<Button prefixIcon={<Plus />} onClick={() => navigate(`${RouteNames.addonCharges.replace(':addonId', id!)}`)}>
-									Add
-								</Button>
-							}
-						/>
+						<CardHeader title={t('catalog:addons.details.charges')} cta={addChargeCta} />
 						<FlexpriceTable columns={chargeColumns} data={addonData?.prices ?? []} />
 					</Card>
 				) : (
-					<NoDataCard
-						title={t('catalog:addons.details.charges')}
-						subtitle='No charges added to the addon yet'
-						cta={
-							<Button prefixIcon={<Plus />} onClick={() => navigate(`${RouteNames.addonCharges.replace(':addonId', id!)}`)}>
-								Add
-							</Button>
-						}
-					/>
+					<NoDataCard title={t('catalog:addons.details.charges')} subtitle='No charges added to the addon yet' cta={addChargeCta} />
 				)}
 
 				{/* Entitlements Section */}
 				{(addonData?.entitlements?.length ?? 0) > 0 ? (
 					<Card variant='notched'>
-						<CardHeader
-							title={t('catalog:addons.details.entitlements')}
-							cta={
-								<Button prefixIcon={<Plus />} onClick={() => setEntitlementDrawerOpen(true)}>
-									Add
-								</Button>
-							}
-						/>
+						<CardHeader title={t('catalog:addons.details.entitlements')} cta={addEntitlementCta} />
 						<FlexpriceTable
 							showEmptyRow
 							data={addonData.entitlements || []}
@@ -320,6 +538,8 @@ const AddonDetails = () => {
 								t('common:labels.unlimited'),
 								t('catalog:features.form.unitDefault'),
 								t('catalog:features.form.unitsDefault'),
+								canWriteEntitlement,
+								t('catalog:plans.entitlementsTab.writeDeniedTooltip'),
 							)}
 						/>
 					</Card>
@@ -327,19 +547,18 @@ const AddonDetails = () => {
 					<NoDataCard
 						title={t('catalog:addons.details.entitlements')}
 						subtitle='No entitlements added to the addon yet'
-						cta={
-							<Button prefixIcon={<Plus />} onClick={() => setEntitlementDrawerOpen(true)}>
-								Add
-							</Button>
-						}
+						cta={addEntitlementCta}
 					/>
 				)}
+
+				{/* Credit Grants Section */}
+				<AddonCreditGrantsSection addonId={addonData.id} />
 
 				{addonData.metadata && Object.keys(addonData.metadata).length > 0 && (
 					<Card variant='notched'>
 						<CardHeader title={t('catalog:addons.details.metadata')} />
 						<div className='p-4'>
-							<pre className='text-sm bg-gray-50 p-3 rounded overflow-auto'>{JSON.stringify(addonData.metadata, null, 2)}</pre>
+							<pre className='text-sm bg-surface-subtle p-3 rounded overflow-auto'>{JSON.stringify(addonData.metadata, null, 2)}</pre>
 						</div>
 					</Card>
 				)}

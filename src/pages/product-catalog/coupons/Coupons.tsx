@@ -1,5 +1,6 @@
-import { AddButton, Page, ActionButton, Chip } from '@/components/atoms';
+import { AddButton, Page, ActionButton, Chip, Tooltip } from '@/components/atoms';
 import { ApiDocsContent, CouponDrawer } from '@/components/molecules';
+import { useCurrentUserPermissions } from '@/hooks/useCurrentUserPermissions';
 import { ColumnData } from '@/components/molecules/Table';
 import { QueryableDataArea } from '@/components/organisms';
 import { buildGuides } from '@/constants/guides';
@@ -49,6 +50,8 @@ const CouponsPage = () => {
 	const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 	const [selectedCoupon, setSelectedCoupon] = useState<Coupon | null>(null);
 	const navigate = useNavigate();
+	const { can } = useCurrentUserPermissions();
+	const canWriteCoupon = can('coupon', 'write');
 
 	const sortingOptions: SortOption[] = useMemo(
 		() => [
@@ -184,21 +187,26 @@ const CouponsPage = () => {
 				render: (row) => (
 					<ActionButton
 						id={row.id}
+						copyId={{ entityType: 'Coupon' }}
 						deleteMutationFn={(id) => CouponApi.deleteCoupon(id)}
 						refetchQueryKey='fetchCoupons'
 						entityName={t('coupons.table.entityName')}
 						edit={{
 							path: `${RouteNames.couponDetails}/${row.id}`,
 							onClick: () => handleEdit(row),
+							disabled: !canWriteCoupon,
+							disabledReason: canWriteCoupon ? undefined : t('coupons.writeDeniedTooltip'),
 						}}
 						archive={{
 							enabled: row.status === ENTITY_STATUS.PUBLISHED,
+							disabled: !canWriteCoupon,
+							disabledReason: canWriteCoupon ? undefined : t('coupons.writeDeniedTooltip'),
 						}}
 					/>
 				),
 			},
 		],
-		[t],
+		[t, canWriteCoupon],
 	);
 
 	return (
@@ -207,7 +215,15 @@ const CouponsPage = () => {
 				heading={t('coupons.listPage.title')}
 				headingCTA={
 					<div className='flex justify-between items-center gap-2'>
-						<AddButton onClick={handleCreateCoupon} />
+						{canWriteCoupon ? (
+							<AddButton onClick={handleCreateCoupon} />
+						) : (
+							<Tooltip content={t('coupons.writeDeniedTooltip')}>
+								<span tabIndex={0} className='inline-block'>
+									<AddButton disabled onClick={handleCreateCoupon} />
+								</span>
+							</Tooltip>
+						)}
 					</div>
 				}>
 				<ApiDocsContent tags={API_DOCS_TAGS.Coupons} />
@@ -246,6 +262,8 @@ const CouponsPage = () => {
 						description: t('coupons.listPage.emptyState.description'),
 						buttonLabel: t('coupons.listPage.emptyState.createButton'),
 						buttonAction: handleCreateCoupon,
+						buttonDisabled: !canWriteCoupon,
+						buttonDisabledReason: canWriteCoupon ? undefined : t('coupons.writeDeniedTooltip'),
 						tags: API_DOCS_TAGS.Coupons,
 						tutorials: guides.coupons.tutorials,
 					}}

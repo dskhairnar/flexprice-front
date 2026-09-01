@@ -106,6 +106,8 @@ const DateRangePicker = ({
 			? `${formatDateInZone(selectedRange.from, timezone as DateTimezone)} - ${formatDateInZone(selectedRange.to, timezone as DateTimezone)}`
 			: placeholder;
 
+	const dateBounds = [...(minDate ? [{ before: minDate }] : []), ...(maxDate ? [{ after: maxDate }] : [])];
+
 	return (
 		<Popover open={open} onOpenChange={setOpen}>
 			<PopoverTrigger className={popoverTriggerClassName} disabled={disabled}>
@@ -116,7 +118,9 @@ const DateRangePicker = ({
 							variant='outline'
 							className={cn(
 								' justify-start text-start font-normal !h-10',
-								!selectedRange?.from || !selectedRange?.to ? 'text-muted-foreground opacity-70 hover:text-muted-foreground' : 'text-black',
+								!selectedRange?.from || !selectedRange?.to
+									? 'text-muted-foreground opacity-70 hover:text-muted-foreground'
+									: 'text-content-black',
 								!className && (selectedRange?.from && selectedRange?.to ? 'w-[260px]' : 'w-[240px]'),
 								'transition-all duration-300 ease-in-out',
 								className,
@@ -140,12 +144,12 @@ const DateRangePicker = ({
 
 			<PopoverContent className={cn('w-auto flex gap-4 p-2', popoverClassName, popoverContentClassName)} align='start'>
 				<Calendar
-					disabled={disabled}
+					disabled={disabled || (dateBounds.length ? dateBounds : undefined)}
 					mode='range'
 					selected={displayRange}
 					onSelect={handleSelect}
-					fromDate={minDate}
-					toDate={maxDate}
+					startMonth={minDate}
+					endMonth={maxDate}
 					defaultMonth={currentMonth}
 					numberOfMonths={2}
 					timezone={timezone}

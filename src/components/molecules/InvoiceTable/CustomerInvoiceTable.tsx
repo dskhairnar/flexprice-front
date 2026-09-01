@@ -2,26 +2,27 @@ import { FC, useMemo } from 'react';
 import FlexpriceTable, { ColumnData, RedirectCell } from '../Table';
 import { getCurrencySymbol } from '@/utils/common/helper_functions';
 import { formatBillingPeriod } from '@/utils/common/format_date';
-import { Invoice, INVOICE_STATUS, INVOICE_TYPE } from '@/models/Invoice';
+import { INVOICE_STATUS, INVOICE_TYPE } from '@/models/Invoice';
+import { InvoiceListItem } from '@/types/dto';
 import { getPaymentStatusChip, getStatusChip } from './InvoiceTable';
 import Customer from '@/models/Customer';
 import { RouteNames } from '@/core/routes/Routes';
 import { useTranslation } from 'react-i18next';
 
-const getPlanDisplayName = (invoice: Invoice): string => {
+const getPlanDisplayName = (invoice: InvoiceListItem): string => {
 	if (invoice.invoice_type !== INVOICE_TYPE.SUBSCRIPTION) return '--';
 	return invoice.line_items?.find((item) => item.plan_display_name)?.plan_display_name ?? '--';
 };
 
 import InvoiceTableMenu from './InvoiceTableMenu';
 
-/** Invoice enriched with subscription customer data */
-export type EnrichedInvoice = Invoice & { subscription_customer?: Customer };
+/** Invoice (list summary shape — line_items omitted) enriched with subscription customer data */
+export type EnrichedInvoice = InvoiceListItem & { subscription_customer?: Customer };
 
 interface Props {
 	data: EnrichedInvoice[];
 	customerId?: string;
-	onRowClick?: (row: Invoice) => void;
+	onRowClick?: (row: InvoiceListItem) => void;
 }
 
 const CustomerInvoiceTable: FC<Props> = ({ data, onRowClick }) => {
@@ -39,7 +40,7 @@ const CustomerInvoiceTable: FC<Props> = ({ data, onRowClick }) => {
 				title: t('invoices.list.sort.invoiceNumber'),
 				render: (row) =>
 					row.invoice_status?.toUpperCase() === INVOICE_STATUS.DRAFT ? (
-						<span className='text-gray-400 italic text-[13px]'>{t('invoices.list.toBeGenerated')}</span>
+						<span className='text-content-subtle italic text-[13px]'>{t('invoices.list.toBeGenerated')}</span>
 					) : (
 						<>{row.invoice_number || naLabel}</>
 					),

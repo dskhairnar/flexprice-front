@@ -1,4 +1,10 @@
 {
+    "$schema": "https://openapi.vercel.sh/vercel.json",
+    "framework": "vite",
+    "buildCommand": "npm run build",
+    "outputDirectory": "dist",
+    "installCommand": "npm install",
+    "devCommand": "vite --port $PORT",
     "rewrites": [
         {
             "source": "/(.*)",
@@ -7,19 +13,12 @@
     ],
     "headers": [
         {
-            "source": "/",
+            "source": "/(.*)",
             "headers": [
-                {
-                    "key": "Link",
-                    "value": "</.well-known/api-catalog>; rel=\"api-catalog\"; type=\"application/linkset+json\", <https://docs.flexprice.io>; rel=\"service-doc\"; type=\"text/html\", <https://api.cloud.flexprice.io/swagger/doc.json>; rel=\"service-desc\"; type=\"application/json\""
-                }
-            ]
-        },
-        {
-            "source": "/.well-known/api-catalog",
-            "headers": [
-                { "key": "Content-Type", "value": "application/linkset+json" },
-                { "key": "Cache-Control", "value": "public, max-age=3600" }
+                { "key": "Content-Security-Policy", "value": "frame-ancestors 'self';" },
+                { "key": "X-Frame-Options", "value": "SAMEORIGIN" },
+                { "key": "X-Content-Type-Options", "value": "nosniff" },
+                { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" }
             ]
         },
         {

@@ -15,7 +15,7 @@ import { Switch } from '@/components/ui';
 import { cn } from '@/lib/utils';
 import { toSentenceCase, getCurrencySymbol } from '@/utils/common/helper_functions';
 import { PlanResponse } from '@/types';
-import { useMemo, useEffect, useRef, useState } from 'react';
+import { useCallback, useMemo, useEffect, useRef, useState } from 'react';
 import toast from 'react-hot-toast';
 import SubscriptionCreditGrantTable from '@/components/molecules/CreditGrant/SubscriptionCreditGrantTable';
 import SubscriptionAddonTable from '@/components/molecules/SubscriptionAddonTable/SubscriptionAddonTable';
@@ -30,6 +30,7 @@ import {
 	ENTITY_STATUS,
 	EXPAND,
 	Customer,
+	PRICE_ENTITY_TYPE,
 	PRICE_TYPE,
 } from '@/models';
 import { BILLING_PERIOD, PAYMENT_TERMS_NONE, paymentTermsOptions } from '@/constants/constants';
@@ -37,6 +38,7 @@ import { SubscriptionFormState } from '@/pages';
 import { useQuery } from '@tanstack/react-query';
 import { usePlanPrices } from '@/hooks/usePlanPrices';
 import CreditGrantApi from '@/api/CreditGrantApi';
+import { PriceApi } from '@/api/PriceApi';
 import EntitlementApi from '@/api/EntitlementApi';
 import AddonApi from '@/api/AddonApi';
 import { AddAddonToSubscriptionRequest } from '@/types/dto/Addon';
@@ -46,7 +48,9 @@ import SubscriptionTaxAssociationTable from '@/components/molecules/Subscription
 import PhaseList from './PhaseList';
 import { SubscriptionPhaseCreateRequest, EntitlementOverrideRequest } from '@/types/dto/Subscription';
 import SubscriptionPriceTable from './SubscriptionPriceTable';
-import AddSubscriptionChargeDialog from './AddSubscriptionChargeDialog';
+import AddSubscriptionChargeDialog, { type AddedSubscriptionLineItem } from './AddSubscriptionChargeDialog';
+import type { LineItemCommitmentConfig } from '@/types/dto/LineItemCommitmentConfig';
+import type { CommitmentTimeBucket } from '@/types/dto/CommitmentTimeBucket';
 import { CustomerSearchSelect, InheritedCustomersTable } from '@/components/molecules/Customer';
 import { usePriceOverrides } from '@/hooks/usePriceOverrides';
 import { Coupon } from '@/models/Coupon';
@@ -54,10 +58,14 @@ import { InternalCreditGrantRequest, creditGrantToInternal } from '@/types/dto/C
 import { uniqueId } from 'lodash';
 import { generateExpandQueryParams } from '@/utils/common/api_helper';
 import {
+	cadenceKey,
 	filterPlanPricesForSubscriptionCharges,
+	groupAdditionalPricesByCadence,
 	isOneTimePlanPrice,
+	partitionPricesForSubscription,
 	uniqueRecurringBillingPeriodsFromPrices,
 } from '@/utils/subscription/planPricesForSubscriptionUi';
+import AdditionalPlanPricesSection from './AdditionalPlanPricesSection';
 import { Info } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
@@ -70,7 +78,7 @@ const BillingAccordionInfoTooltip = ({ description, ariaLabel }: { description: 
 		content={<span className='block max-w-xs text-xs font-normal leading-relaxed text-popover-foreground'>{description}</span>}
 		className='max-w-xs'>
 		<span
-			className='inline-flex size-[22px] shrink-0 items-center justify-center rounded-md text-zinc-400 outline-none transition-colors hover:bg-zinc-100 hover:text-zinc-600 focus-visible:ring-2 focus-visible:ring-zinc-400/40 focus-visible:ring-offset-2 focus-visible:ring-offset-white'
+			className='inline-flex size-[22px] shrink-0 items-center justify-center rounded-md text-content-zinc-subtle outline-none transition-colors hover:bg-surface-muted hover:text-content-zinc-tertiary focus-visible:ring-2 focus-visible:ring-line-zinc-bold/40 focus-visible:ring-offset-2 focus-visible:ring-offset-surface'
 			tabIndex={0}
 			aria-label={ariaLabel}
 			onPointerDown={(e) => e.stopPropagation()}
@@ -111,9 +119,9 @@ const BillingCycleSelector = ({
 						key={index}
 						data-state={value === option.value ? 'active' : 'inactive'}
 						className={cn(
-							'text-[15px] font-normal text-gray-500 px-3 py-1 rounded-[6px]',
-							'data-[state=active]:text-gray-900 data-[state=active]:bg-gray-100',
-							'hover:text-gray-900 transition-colors',
+							'text-[15px] font-normal text-content-muted px-3 py-1 rounded-[6px]',
+							'data-[state=active]:text-content data-[state=active]:bg-surface-shell',
+							'hover:text-content transition-colors',
 							'data-[state=inactive]:border data-[state=inactive]:border-border data-[state=active]:border-primary',
 							'bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0',
 							'cursor-pointer',
@@ -140,6 +148,7 @@ const SubscriptionForm = ({
 	onPhasesChange,
 	allCoupons = [],
 	subscriberCustomer,
+	customerPicker,
 }: {
 	state: SubscriptionFormState;
 	setState: React.Dispatch<React.SetStateAction<SubscriptionFormState>>;
@@ -154,16 +163,49 @@ const SubscriptionForm = ({
 	allCoupons?: Coupon[];
 	/** Subscription customer; used for invoicing "Self" option and labels */
 	subscriberCustomer?: Customer;
+	/** When set, renders a customer picker under Subscription Details and above Plan */
+	customerPicker?: {
+		value?: Customer;
+		onChange: (customer: Customer | undefined) => void;
+		hint?: string;
+	};
 }) => {
 	const { t } = useTranslation(['customers', 'common']);
+	const isCustomerSelectionPending = !!customerPicker && !customerPicker.value;
 	// Fetch plan prices via shared hook (same cache key + canonical active filter as CreateCustomerSubscriptionPage)
 	const { data: selectedPlanPrices } = usePlanPrices(state.selectedPlan);
 
-	// Current prices for subscription-level and phase management (hook already returns only active prices).
-	// Includes plan one-time (ONETIME) prices for the selected currency regardless of recurring billing period.
-	const currentPrices = selectedPlanPrices?.items
-		? filterPlanPricesForSubscriptionCharges(selectedPlanPrices.items, state.billingPeriod, state.currency)
-		: [];
+	// Split plan prices into what attaches by default (exact cadence + ONETIME) vs. what
+	// the user can opt into via the "Also available on this plan" section (compatible but
+	// finer cadence). Backend attaches partition.primary by default; sending
+	// include_price_ids on submit enumerates the full selection (primary + opted-in).
+	const pricePartition = useMemo(
+		() =>
+			selectedPlanPrices?.items
+				? partitionPricesForSubscription(selectedPlanPrices.items, state.billingPeriod, 1, state.currency)
+				: { primary: [], additional: [] },
+		[selectedPlanPrices?.items, state.billingPeriod, state.currency],
+	);
+
+	// Additional prices are opted in per **cadence** (toggling Monthly pulls in every monthly
+	// price on the plan). Grouped for the "Also available on this plan" section.
+	const additionalCadenceGroups = useMemo(() => groupAdditionalPricesByCadence(pricePartition.additional), [pricePartition.additional]);
+
+	// Prices in the main "Charges" table = primary partition + every additional price whose
+	// cadence key was opted in. Merged rows go through the existing SubscriptionPriceTable
+	// override / commitment / coupon flows unchanged.
+	//
+	// In phase mode (phases.length > 0) opt-in cadences are ignored: the create payload's
+	// phases branch does not send include_price_ids, so any opted-in additional prices
+	// would silently drop at submit. Return only the primary partition so what the UI shows
+	// (in PhaseList and elsewhere) matches what actually gets sent.
+	const currentPrices = useMemo(() => {
+		if (phases.length > 0) return pricePartition.primary;
+		if (state.optedInAdditionalCadences.length === 0) return pricePartition.primary;
+		const optedSet = new Set(state.optedInAdditionalCadences);
+		const optedIn = pricePartition.additional.filter((p) => optedSet.has(cadenceKey(p.billing_period, p.billing_period_count)));
+		return [...pricePartition.primary, ...optedIn];
+	}, [pricePartition, state.optedInAdditionalCadences, phases.length]);
 
 	const hasFixedSubscriptionChargePrice = useMemo(() => {
 		if (!selectedPlanPrices?.items?.length) return false;
@@ -178,6 +220,20 @@ const SubscriptionForm = ({
 			return { ...prev, autoInvoiceThreshold: '' };
 		});
 	}, [hasFixedSubscriptionChargePrice, setState]);
+
+	// Reconcile opted-in additional cadences when the available cadence set shifts (e.g. user
+	// changed billing_period / currency, or the plan swap changed prices). Keep keys still
+	// available; drop the rest. Do NOT silently re-add a cadence the user deselected earlier.
+	const additionalCadenceKeysStr = additionalCadenceGroups.map((g) => g.key).join('|');
+	useEffect(() => {
+		const availableKeys = new Set(additionalCadenceGroups.map((g) => g.key));
+		setState((prev) => {
+			const filtered = prev.optedInAdditionalCadences.filter((k) => availableKeys.has(k));
+			if (filtered.length === prev.optedInAdditionalCadences.length) return prev;
+			return { ...prev, optedInAdditionalCadences: filtered };
+		});
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [additionalCadenceKeysStr, setState]);
 
 	// Price overrides functionality for subscription-level
 	const { overriddenPrices, overridePrice, resetOverride } = usePriceOverrides(currentPrices);
@@ -208,14 +264,75 @@ const SubscriptionForm = ({
 		}
 	}, [overriddenPrices, setState]);
 
+	const planIds = useMemo(() => plans?.map((p) => p.id) ?? [], [plans]);
+
+	// Plans without any published charge cannot produce a valid subscription — look up which
+	// plans have prices so charge-less plans render grayed out and unselectable in the dropdown.
+	// Returns an array (not a Set) so the React Query cache stays serializable.
+	const { data: planIdsWithCharges } = useQuery({
+		queryKey: ['planIdsWithCharges', planIds],
+		queryFn: async () => {
+			const idsWithCharges = new Set<string>();
+			const PAGE_SIZE = 500;
+			// Hard cap on page requests so a misbehaving backend (full pages with an unreliable
+			// `total`) can't loop forever; return whatever IDs we've collected once reached.
+			const MAX_PAGES = 20;
+			let offset = 0;
+			for (let page = 0; page < MAX_PAGES; page++) {
+				const response = await PriceApi.searchPrices({
+					filters: [
+						{
+							field: 'entity_type',
+							operator: FilterOperator.EQUAL,
+							data_type: DataType.STRING,
+							value: { string: PRICE_ENTITY_TYPE.PLAN },
+						},
+						{
+							field: 'entity_id',
+							operator: FilterOperator.IN,
+							data_type: DataType.ARRAY,
+							value: { array: planIds },
+						},
+						{
+							field: 'status',
+							operator: FilterOperator.EQUAL,
+							data_type: DataType.STRING,
+							value: { string: ENTITY_STATUS.PUBLISHED },
+						},
+					],
+					limit: PAGE_SIZE,
+					offset,
+				});
+				response.items.forEach((price) => {
+					if (price.entity_id) idsWithCharges.add(price.entity_id);
+				});
+				if (response.items.length < PAGE_SIZE) break;
+				const total = response.pagination?.total;
+				if (total != null && offset + response.items.length >= total) break;
+				offset += PAGE_SIZE;
+			}
+			return [...idsWithCharges];
+		},
+		enabled: planIds.length > 0,
+	});
+
+	// Derived Set preserves O(1) lookups; undefined while the lookup is in flight.
+	const planIdsWithChargesSet = useMemo(() => (planIdsWithCharges ? new Set(planIdsWithCharges) : undefined), [planIdsWithCharges]);
+
 	const plansWithCharges = useMemo(() => {
 		return (
-			plans?.map((plan) => ({
-				label: plan.name,
-				value: plan.id,
-			})) ?? []
+			plans?.map((plan) => {
+				// While the price lookup is in flight, leave plans selectable to avoid a flicker lockout.
+				const hasCharges = !planIdsWithChargesSet || planIdsWithChargesSet.has(plan.id);
+				return {
+					label: plan.name,
+					value: plan.id,
+					disabled: !hasCharges,
+					...(!hasCharges ? { description: t('organisms.subscriptionForm.planNoCharges') } : {}),
+				};
+			}) ?? []
 		);
-	}, [plans]);
+	}, [plans, planIdsWithChargesSet, t]);
 
 	// Get available billing periods and currencies from selectedPlanPrices
 	const availableBillingPeriods = useMemo(() => {
@@ -251,6 +368,9 @@ const SubscriptionForm = ({
 			linkedCoupon: null,
 			lineItemCoupons: {},
 			inheritanceCustomers: [],
+			// Reset cadence opt-ins so the new plan's additional prices require fresh consent
+			// rather than silently attaching just because the cadence key happens to match.
+			optedInAdditionalCadences: [],
 		}));
 	};
 
@@ -331,6 +451,71 @@ const SubscriptionForm = ({
 	const [isAddChargeDialogOpen, setAddChargeDialogOpen] = useState(false);
 	// When set, dialog is in edit mode for this added line item (tempId)
 	const [editingAddedChargeTempId, setEditingAddedChargeTempId] = useState<string | null>(null);
+
+	// Stable identities so SubscriptionPriceTable's row memoization isn't invalidated by every
+	// unrelated SubscriptionForm re-render (was rebuilding every price row on any state change,
+	// e.g. applying a discount to a single line item re-rendered the whole table).
+	const handleLineItemCouponsChange = useCallback(
+		(priceId: string, coupon: Coupon | null) => {
+			setState((prev) => {
+				const newLineItemCoupons = { ...prev.lineItemCoupons };
+				if (coupon) {
+					newLineItemCoupons[priceId] = coupon;
+				} else {
+					delete newLineItemCoupons[priceId];
+				}
+				return {
+					...prev,
+					lineItemCoupons: newLineItemCoupons,
+				};
+			});
+		},
+		[setState],
+	);
+
+	const handleCommitmentChange = useCallback(
+		(priceId: string, config: LineItemCommitmentConfig | null, timeBuckets?: CommitmentTimeBucket[]) => {
+			if (config) {
+				overridePrice(priceId, {
+					commitment: config,
+					commitment_time_buckets: timeBuckets === undefined ? undefined : timeBuckets.length > 0 ? timeBuckets : undefined,
+				});
+			} else {
+				const currentOverride = overriddenPrices[priceId];
+				if (currentOverride) {
+					const restOverride = { ...currentOverride };
+					delete restOverride.commitment;
+					delete restOverride.commitment_time_buckets;
+					if (Object.keys(restOverride).length > 1) {
+						overridePrice(priceId, restOverride);
+					} else {
+						resetOverride(priceId);
+					}
+				}
+			}
+		},
+		[overridePrice, overriddenPrices, resetOverride],
+	);
+
+	const handleAddCharge = useCallback(() => {
+		setEditingAddedChargeTempId(null);
+		setAddChargeDialogOpen(true);
+	}, []);
+
+	const handleRemoveAddedCharge = useCallback(
+		(tempId: string) => {
+			setState((prev) => ({
+				...prev,
+				addedSubscriptionLineItems: (prev.addedSubscriptionLineItems ?? []).filter((i) => i.tempId !== tempId),
+			}));
+		},
+		[setState],
+	);
+
+	const handleEditAddedCharge = useCallback((item: AddedSubscriptionLineItem) => {
+		setEditingAddedChargeTempId(item.tempId);
+		setAddChargeDialogOpen(true);
+	}, []);
 
 	// Combine plan credit grants with user-added credit grants (all editable now)
 	const relevantCreditGrants = useMemo(() => {
@@ -480,8 +665,23 @@ const SubscriptionForm = ({
 	};
 
 	return (
-		<div className='p-6 rounded-[6px] border border-gray-300 space-y-6 bg-white'>
+		<div className='p-6 rounded-[6px] border border-line-strong space-y-6 bg-surface'>
 			<FormHeader title={t('organisms.subscriptionForm.subscriptionDetails')} variant='sub-header' />
+
+			{customerPicker && (
+				<div className='space-y-2'>
+					<CustomerSearchSelect
+						value={customerPicker.value}
+						onChange={customerPicker.onChange}
+						includeNoneOption={false}
+						display={{
+							label: t('subscriptionCreate.selectCustomerLabel'),
+							placeholder: t('subscriptionCreate.selectCustomerPlaceholder'),
+						}}
+					/>
+					{isCustomerSelectionPending && customerPicker.hint && <p className='text-sm text-muted-foreground'>{customerPicker.hint}</p>}
+				</div>
+			)}
 
 			{/* Plan Selection */}
 			{!plansLoading && (
@@ -491,7 +691,7 @@ const SubscriptionForm = ({
 						options={plansWithCharges}
 						onChange={handlePlanChange}
 						label={t('organisms.subscriptionForm.planRequired')}
-						disabled={isDisabled || isLoadingPlanDetails}
+						disabled={isDisabled || isLoadingPlanDetails || isCustomerSelectionPending}
 						placeholder={t('organisms.subscriptionForm.selectPlan')}
 						error={
 							plansError
@@ -502,7 +702,7 @@ const SubscriptionForm = ({
 						}
 					/>
 					{isLoadingPlanDetails && state.selectedPlan && (
-						<p className='text-sm text-gray-500'>{t('organisms.subscriptionForm.loadingPlanDetails')}</p>
+						<p className='text-sm text-content-muted'>{t('organisms.subscriptionForm.loadingPlanDetails')}</p>
 					)}
 				</div>
 			)}
@@ -625,71 +825,52 @@ const SubscriptionForm = ({
 					)}
 
 					{/* Subscription Level Price Table (always show in single-phase so Add charge is available) */}
-					<div className='mt-6 pt-6 border-t border-gray-200'>
+					<div className='mt-6 pt-6 border-t border-line'>
 						<SubscriptionPriceTable
 							data={currentPrices}
 							billingPeriod={state.billingPeriod}
+							billingPeriodCount={1}
 							currency={state.currency}
 							onPriceOverride={overridePrice}
 							onResetOverride={resetOverride}
 							overriddenPrices={overriddenPrices}
 							lineItemCoupons={state.lineItemCoupons}
-							onLineItemCouponsChange={(priceId, coupon) => {
-								setState((prev) => {
-									const newLineItemCoupons = { ...prev.lineItemCoupons };
-									if (coupon) {
-										newLineItemCoupons[priceId] = coupon;
-									} else {
-										delete newLineItemCoupons[priceId];
-									}
-									return {
-										...prev,
-										lineItemCoupons: newLineItemCoupons,
-									};
-								});
-							}}
-							onCommitmentChange={(priceId, config, timeBuckets) => {
-								if (config) {
-									overridePrice(priceId, {
-										commitment: config,
-										commitment_time_buckets: timeBuckets === undefined ? undefined : timeBuckets.length > 0 ? timeBuckets : undefined,
-									});
-								} else {
-									const currentOverride = overriddenPrices[priceId];
-									if (currentOverride) {
-										const restOverride = { ...currentOverride };
-										delete restOverride.commitment;
-										delete restOverride.commitment_time_buckets;
-										if (Object.keys(restOverride).length > 1) {
-											overridePrice(priceId, restOverride);
-										} else {
-											resetOverride(priceId);
-										}
-									}
-								}
-							}}
+							onLineItemCouponsChange={handleLineItemCouponsChange}
+							onCommitmentChange={handleCommitmentChange}
 							disabled={isDisabled}
 							subscriptionLevelCoupon={state.linkedCoupon}
 							addedLineItems={state.addedSubscriptionLineItems}
-							onAddCharge={() => {
-								setEditingAddedChargeTempId(null);
-								setAddChargeDialogOpen(true);
-							}}
-							onRemoveAddedCharge={(tempId) =>
-								setState((prev) => ({
-									...prev,
-									addedSubscriptionLineItems: (prev.addedSubscriptionLineItems ?? []).filter((i) => i.tempId !== tempId),
-								}))
-							}
-							onEditAddedCharge={(item) => {
-								setEditingAddedChargeTempId(item.tempId);
-								setAddChargeDialogOpen(true);
-							}}
+							onAddCharge={handleAddCharge}
+							onRemoveAddedCharge={handleRemoveAddedCharge}
+							onEditAddedCharge={handleEditAddedCharge}
 						/>
 					</div>
 
-					{/* Subscription Level Discounts */}
-					<div className='mt-6'>
+					{/* Hidden in phase mode — the phases branch of the create payload does not
+					    send include_price_ids, so any opt-in here would silently drop at submit. */}
+					{phases.length === 0 && additionalCadenceGroups.length > 0 && (
+						<div className='mt-6'>
+							<AdditionalPlanPricesSection
+								groups={additionalCadenceGroups}
+								optedInKeys={state.optedInAdditionalCadences}
+								onToggle={(key, included) => {
+									setState((prev) => {
+										const next = new Set(prev.optedInAdditionalCadences);
+										if (included) next.add(key);
+										else next.delete(key);
+										return { ...prev, optedInAdditionalCadences: [...next] };
+									});
+								}}
+								subPeriod={state.billingPeriod}
+								subCount={1}
+								disabled={isDisabled}
+							/>
+						</div>
+					)}
+
+					{/* Subscription Level Discounts — divider above so it reads as a peer section
+					    to Charges (and separates from the Also-available sub-section under Charges). */}
+					<div className='mt-6 pt-6 border-t border-line'>
 						<SubscriptionDiscountTable
 							coupon={state.linkedCoupon}
 							onChange={(coupon) => setState((prev) => ({ ...prev, linkedCoupon: coupon }))}
@@ -703,7 +884,7 @@ const SubscriptionForm = ({
 
 			{/* Subscription Phases Section - Show when phases exist OR as add phase button */}
 			{state.selectedPlan && !isLoadingPlanDetails && phases !== undefined && onPhasesChange && (
-				<div className='mt-6 pt-6 border-t border-gray-200'>
+				<div className='mt-6 pt-6 border-t border-line'>
 					<PhaseList
 						phases={phases}
 						onChange={onPhasesChange}
@@ -724,12 +905,20 @@ const SubscriptionForm = ({
 						onConvertToPhases={() => {
 							// Clear subscription-level data after conversion
 							// IMPORTANT: Clear endDate to avoid deadlock when adding more phases
+							// Phases have no equivalent of subscription-level "added charges" (AddSubscriptionChargeDialog
+							// is hidden once phases.length > 0, and the create payload's line_items is always omitted
+							// when phases are present - see CreateCustomerSubscriptionPage). Warn and clear them here
+							// instead of letting them silently vanish from the payload at submit time.
+							if ((state.addedSubscriptionLineItems?.length ?? 0) > 0) {
+								toast.error(t('organisms.subscriptionForm.addedChargesLostOnPhaseConversion'));
+							}
 							setState((prev) => ({
 								...prev,
 								endDate: undefined,
 								linkedCoupon: null,
 								lineItemCoupons: {},
 								priceOverrides: {},
+								addedSubscriptionLineItems: [],
 							}));
 						}}
 						onConvertBackToSubscription={(subscriptionData) => {
@@ -755,7 +944,7 @@ const SubscriptionForm = ({
 			{/* Commitment and Overage - Always visible */}
 			{state.selectedPlan && !isLoadingPlanDetails && (
 				<>
-					<div className='grid grid-cols-1 md:grid-cols-2 gap-4 mt-6 pt-6 border-t border-gray-200'>
+					<div className='grid grid-cols-1 md:grid-cols-2 gap-4 mt-6 pt-6 border-t border-line'>
 						<DecimalUsageInput
 							label={t('organisms.subscriptionForm.commitmentAmount')}
 							value={state.commitmentAmount}
@@ -769,6 +958,7 @@ const SubscriptionForm = ({
 							label={t('organisms.subscriptionForm.commitmentPeriod')}
 							value={state.commitmentDuration}
 							options={[
+								{ label: t('organisms.subscriptionForm.commitmentDaily'), value: 'DAILY' },
 								{ label: t('organisms.subscriptionForm.commitmentMonthly'), value: 'MONTHLY' },
 								{ label: t('organisms.subscriptionForm.commitmentQuarterly'), value: 'QUARTERLY' },
 								{ label: t('organisms.subscriptionForm.commitmentHalfYearly'), value: 'HALF_YEARLY' },
@@ -804,7 +994,7 @@ const SubscriptionForm = ({
 
 			{/* Credit Grants (Subscription Level) */}
 			{state.selectedPlan && !isLoadingPlanDetails && (
-				<div className='mt-6 pt-6 border-t border-gray-200'>
+				<div className='mt-6 pt-6 border-t border-line'>
 					<SubscriptionCreditGrantTable
 						getEmptyCreditGrant={() => getEmptyCreditGrant()}
 						data={relevantCreditGrants}
@@ -871,7 +1061,7 @@ const SubscriptionForm = ({
 
 			{/* Tax Rate Overrides */}
 			{state.selectedPlan && !isLoadingPlanDetails && (
-				<div className='mt-6 pt-6 border-t border-gray-200'>
+				<div className='mt-6 pt-6 border-t border-line'>
 					<SubscriptionTaxAssociationTable
 						data={state.tax_rate_overrides || []}
 						onChange={(data) => setState((prev) => ({ ...prev, tax_rate_overrides: data }))}
@@ -882,7 +1072,7 @@ const SubscriptionForm = ({
 
 			{/* Addons Section */}
 			{state.selectedPlan && !isLoadingPlanDetails && (
-				<div className='mt-6 pt-6 border-t border-gray-200'>
+				<div className='mt-6 pt-6 border-t border-line'>
 					<SubscriptionAddonTable
 						getEmptyAddon={getEmptyAddon}
 						data={state.addons || []}
@@ -898,9 +1088,9 @@ const SubscriptionForm = ({
 
 			{/* Entitlements Section */}
 			{state.selectedPlan && !isLoadingPlanDetails && allEntitlements.length > 0 && (
-				<div className='space-y-4 mt-4 pt-3 border-t border-gray-200'>
-					<FormHeader className='mb-0' title={t('organisms.subscriptionForm.entitlements')} variant='sub-header' />
-					<div className='rounded-[6px] border border-gray-300 space-y-6 mt-2'>
+				<div className='mt-6 pt-6 border-t border-line'>
+					<div className='space-y-4'>
+						<FormHeader className='mb-0' title={t('organisms.subscriptionForm.entitlements')} variant='sub-header' />
 						<EntitlementOverridesTable
 							entitlements={allEntitlements}
 							overrides={state.entitlementOverrides}
@@ -913,7 +1103,7 @@ const SubscriptionForm = ({
 
 			{/* Advanced Configuration */}
 			{state.selectedPlan && !isLoadingPlanDetails && (
-				<div className='mt-6 pt-6 border-t border-gray-200 space-y-6'>
+				<div className='mt-6 pt-6 border-t border-line space-y-6'>
 					<FormHeader title={t('organisms.subscriptionForm.billingConfiguration')} variant='sub-header' />
 					<div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
 						<Select
@@ -954,7 +1144,7 @@ const SubscriptionForm = ({
 
 					<Accordion
 						type='multiple'
-						className='overflow-hidden rounded-lg border border-zinc-200 bg-white shadow-[0_1px_3px_rgba(15,23,42,0.06)]'>
+						className='overflow-hidden rounded-lg border border-line-zinc bg-surface shadow-[0_1px_3px_rgba(15,23,42,0.06)]'>
 						<AccordionItem value='trial'>
 							<AccordionTrigger className='px-5 py-4'>
 								<span className='flex min-w-0 flex-1 items-center'>
@@ -967,7 +1157,7 @@ const SubscriptionForm = ({
 									</span>
 								</span>
 							</AccordionTrigger>
-							<AccordionContent className='border-t border-zinc-100 bg-white px-5 pb-5 pt-4'>
+							<AccordionContent className='border-t border-line-zinc-subtle bg-surface px-5 pb-5 pt-4'>
 								<div className='max-w-xs'>
 									<Input
 										id='subscription-billing-trial-days'
@@ -995,9 +1185,9 @@ const SubscriptionForm = ({
 									</span>
 								</span>
 							</AccordionTrigger>
-							<AccordionContent className='border-t border-zinc-100 bg-white px-5 pb-5 pt-4'>
+							<AccordionContent className='border-t border-line-zinc-subtle bg-surface px-5 pb-5 pt-4'>
 								<div className='flex flex-row items-center justify-between gap-4 w-full'>
-									<p className='text-[13px] leading-relaxed text-zinc-600 min-w-0 flex-1'>
+									<p className='text-[13px] leading-relaxed text-content-zinc-tertiary min-w-0 flex-1'>
 										{t('organisms.subscriptionForm.prorationInline')}
 									</p>
 									<Switch
@@ -1023,7 +1213,7 @@ const SubscriptionForm = ({
 									</span>
 								</span>
 							</AccordionTrigger>
-							<AccordionContent className='border-t border-zinc-100 bg-white px-5 pb-5 pt-4'>
+							<AccordionContent className='border-t border-line-zinc-subtle bg-surface px-5 pb-5 pt-4'>
 								<div className='flex-1 min-w-[12rem] max-w-md'>
 									<DecimalUsageInput
 										id='subscription-billing-auto-invoice-threshold-amount'

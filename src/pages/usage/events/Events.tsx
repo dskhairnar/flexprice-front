@@ -7,15 +7,7 @@ import { Event } from '@/models/Event';
 import EventsApi from '@/api/EventsApi';
 import { Skeleton } from '@/components/ui/skeleton';
 import { RefreshCw } from 'lucide-react';
-import {
-	FilterField,
-	FilterFieldType,
-	DEFAULT_OPERATORS_PER_DATA_TYPE,
-	DataType,
-	FilterOperator,
-	SortOption,
-	SortDirection,
-} from '@/types/common/QueryBuilder';
+import { FilterField, FilterFieldType, DataType, FilterOperator, SortOption, SortDirection } from '@/types/common/QueryBuilder';
 import useFilterSorting from '@/hooks/useFilterSorting';
 import usePagination from '@/hooks/usePagination';
 import { TypedBackendFilter } from '@/types/formatters/QueryBuilder';
@@ -95,8 +87,9 @@ const EventsPage: React.FC = () => {
 	const [hasMore, setHasMore] = useState(true);
 	const [loading, setLoading] = useState(false);
 	const [iterLastKey, setIterLastKey] = useState<string | undefined>(undefined);
-	const [propertyFilters, setPropertyFilters] = useState<PropertyFilterRow[]>(() => [createEmptyPropertyFilter()]);
+	const [propertyFilters, setPropertyFilters] = useState<PropertyFilterRow[]>([]);
 	const observer = useRef<IntersectionObserver | null>(null);
+	const requestIdRef = useRef(0);
 
 	const sortingOptions: SortOption[] = useMemo(
 		() => [
@@ -120,28 +113,28 @@ const EventsPage: React.FC = () => {
 				field: 'event_id',
 				label: t('events.queryBuilder.filters.eventId'),
 				fieldType: FilterFieldType.INPUT,
-				operators: DEFAULT_OPERATORS_PER_DATA_TYPE[DataType.STRING],
+				operators: [FilterOperator.EQUAL],
 				dataType: DataType.STRING,
 			},
 			{
 				field: 'event_name',
 				label: t('events.queryBuilder.filters.eventName'),
 				fieldType: FilterFieldType.INPUT,
-				operators: DEFAULT_OPERATORS_PER_DATA_TYPE[DataType.STRING],
+				operators: [FilterOperator.EQUAL],
 				dataType: DataType.STRING,
 			},
 			{
 				field: 'external_customer_id',
 				label: t('events.queryBuilder.filters.externalCustomerId'),
 				fieldType: FilterFieldType.INPUT,
-				operators: DEFAULT_OPERATORS_PER_DATA_TYPE[DataType.STRING],
+				operators: [FilterOperator.EQUAL],
 				dataType: DataType.STRING,
 			},
 			{
 				field: 'source',
 				label: t('events.queryBuilder.filters.source'),
 				fieldType: FilterFieldType.INPUT,
-				operators: DEFAULT_OPERATORS_PER_DATA_TYPE[DataType.STRING],
+				operators: [FilterOperator.EQUAL],
 				dataType: DataType.STRING,
 			},
 			{
@@ -165,46 +158,11 @@ const EventsPage: React.FC = () => {
 	const initialFilters = useMemo(() => {
 		return [
 			{
-				field: 'event_id',
-				operator: FilterOperator.EQUAL,
-				valueString: '',
-				dataType: DataType.STRING,
-				id: 'initial-event-id',
-			},
-			{
-				field: 'event_name',
-				operator: FilterOperator.EQUAL,
-				valueString: '',
-				dataType: DataType.STRING,
-				id: 'initial-event-name',
-			},
-			{
-				field: 'external_customer_id',
-				operator: FilterOperator.EQUAL,
-				valueString: '',
-				dataType: DataType.STRING,
-				id: 'initial-customer-id',
-			},
-			{
-				field: 'source',
-				operator: FilterOperator.EQUAL,
-				valueString: '',
-				dataType: DataType.STRING,
-				id: 'initial-source',
-			},
-			{
 				field: 'start_time',
 				operator: FilterOperator.AFTER,
 				valueDate: new Date(new Date().setDate(new Date().getDate() - 30)),
 				dataType: DataType.DATE,
 				id: 'initial-start-time',
-			},
-			{
-				field: 'end_time',
-				operator: FilterOperator.BEFORE,
-				valueDate: undefined,
-				dataType: DataType.DATE,
-				id: 'initial-end-time',
 			},
 		];
 	}, []);
@@ -249,10 +207,12 @@ const EventsPage: React.FC = () => {
 		return params;
 	}, [sanitizedFilters, propertyFilters]);
 
-	// Fetch events from API
+	// Fetch events from API. `force` bypasses the in-flight guard so a filter/sort
+	// change always supersedes a stale in-flight pagination request instead of being dropped by it.
 	const fetchEvents = useCallback(
-		async (iterLastKey?: string) => {
-			if (!hasMore || loading) return;
+		async (iterLastKey?: string, force = false) => {
+			if (!force && (!hasMore || loading)) return;
+			const requestId = ++requestIdRef.current;
 			setLoading(true);
 			try {
 				const response = await EventsApi.getRawEvents({
@@ -260,6 +220,8 @@ const EventsPage: React.FC = () => {
 					page_size: 10,
 					...apiParams,
 				});
+
+				if (requestIdRef.current !== requestId) return;
 
 				if (response.events) {
 					setEvents((prevEvents) => (iterLastKey ? [...prevEvents, ...response.events] : response.events));
@@ -269,23 +231,28 @@ const EventsPage: React.FC = () => {
 			} catch (error) {
 				logger.error('Error fetching events:', error);
 			} finally {
-				setLoading(false);
+				if (requestIdRef.current === requestId) setLoading(false);
 			}
 		},
 		[apiParams, hasMore, loading],
 	);
 
-	const refetchEvents = () => {
+	const resetFilters = () => {
+		setFilters(initialFilters);
+		setPropertyFilters([]);
+	};
+
+	// Re-fetch with the currently applied filters, unlike resetFilters which clears them - the
+	// standalone refresh button should refresh data, not reset the user's filter selections.
+	const refreshEvents = () => {
+		// Disconnect the pagination observer first: it holds the pre-refresh iterLastKey in its
+		// closure, and if it fires (e.g. the sentinel is still in view) after this forced refresh
+		// starts, it would append a stale page onto the freshly-refreshed first page.
+		observer.current?.disconnect();
 		setEvents([]);
 		setIterLastKey(undefined);
 		setHasMore(true);
-		fetchEvents(undefined);
-	};
-
-	const resetFilters = () => {
-		setFilters(initialFilters);
-		setPropertyFilters([createEmptyPropertyFilter()]);
-		refetchEvents();
+		fetchEvents(undefined, true);
 	};
 
 	// Reset pagination when filters change
@@ -298,13 +265,13 @@ const EventsPage: React.FC = () => {
 		setEvents([]);
 		setIterLastKey(undefined);
 		setHasMore(true);
-		fetchEvents(undefined);
+		fetchEvents(undefined, true);
 	}, [apiParams]);
 
 	return (
 		<Page heading={t('events.listPage.title')}>
 			<ApiDocsContent tags={API_DOCS_TAGS.Events} />
-			<div className='bg-white rounded-md flex items-start gap-4'>
+			<div className='bg-surface rounded-md flex items-start gap-4'>
 				<PropertyFilterQueryBuilder
 					filterOptions={filterOptions}
 					filters={filters}
@@ -320,11 +287,11 @@ const EventsPage: React.FC = () => {
 					}}
 					onFilterPopoverReset={resetFilters}
 				/>
-				<Button variant='outline' onClick={resetFilters}>
+				<Button variant='outline' onClick={refreshEvents}>
 					<RefreshCw />
 				</Button>
 			</div>
-			<div className='bg-white rounded-md '>
+			<div className='bg-surface rounded-md '>
 				<EventsTable data={events} />
 				<div ref={lastElementRef} />
 				{loading && (
@@ -335,7 +302,7 @@ const EventsPage: React.FC = () => {
 					</div>
 				)}
 				{!hasMore && events.length === 0 && (
-					<p className=' text-[#64748B] text-xs font-normal font-sans mt-4'>{t('events.list.noEventsFound')}</p>
+					<p className=' text-content-slate-muted text-xs font-normal font-sans mt-4'>{t('events.list.noEventsFound')}</p>
 				)}
 			</div>
 		</Page>

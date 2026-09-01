@@ -1,4 +1,18 @@
-import { AddButton, Button, Card, CardHeader, Chip, FormHeader, NoDataCard, Select, ShortPagination, Spacer } from '@/components/atoms';
+import {
+	AddButton,
+	Button,
+	Card,
+	CardHeader,
+	Chip,
+	FormHeader,
+	NoDataCard,
+	Select,
+	ShortPagination,
+	Spacer,
+	WalletAlertStatusBadge,
+	Tooltip as SimpleTooltip,
+} from '@/components/atoms';
+import { hasActiveWalletAlertStatus } from '@/utils/wallet/walletAlertUtils';
 import {
 	DropdownMenu,
 	DropdownMenuOption,
@@ -31,6 +45,7 @@ import { refetchQueries } from '@/core/services/tanstack/ReactQueryProvider';
 import { logger } from '@/utils/common/Logger';
 import { PremiumFeatureIcon } from '@/components/molecules/PremiumFeature/PremiumFeature';
 import { useTranslation } from 'react-i18next';
+import { useCurrentUserPermissions } from '@/hooks/useCurrentUserPermissions';
 
 const formatWalletStatus = (status?: string) => {
 	const statusMap: Record<string, string> = {
@@ -81,6 +96,9 @@ const CustomerWalletTab = () => {
 	const [metadata, setMetadata] = useState<Record<string, string>>({});
 
 	const { isArchived } = useOutletContext<{ isArchived: boolean }>();
+	const { can } = useCurrentUserPermissions();
+	const canWriteWallet = can('wallet', 'write');
+	const canWriteAlertSettings = can('alert_settings', 'write');
 
 	// Wallet Queries
 	const {
@@ -148,6 +166,8 @@ const CustomerWalletTab = () => {
 				icon: <WalletIcon />,
 				label: 'Create Wallet',
 				onSelect: () => setShowCreateWalletModal(true),
+				disabled: !canWriteWallet,
+				disabledReason: canWriteWallet ? undefined : t('tabPanels.wallet.writeDeniedTooltip'),
 			},
 			...(activeWallet
 				? [
@@ -155,26 +175,34 @@ const CustomerWalletTab = () => {
 							icon: <RefreshCw />,
 							label: 'Auto Topup',
 							onSelect: () => setShowAutoTopupModal(true),
+							disabled: !canWriteWallet,
+							disabledReason: canWriteWallet ? undefined : t('tabPanels.wallet.writeDeniedTooltip'),
 						},
 						{
 							icon: <Bell />,
 							label: 'Alert Settings',
 							onSelect: () => setShowAlertDialog(true),
+							disabled: !canWriteAlertSettings,
+							disabledReason: canWriteAlertSettings ? undefined : t('tabPanels.wallet.alertSettingsWriteDeniedTooltip'),
 						},
 						{
 							icon: <Minus />,
 							label: 'Manual Debit',
 							onSelect: () => setShowDebitModal(true),
+							disabled: !canWriteWallet,
+							disabledReason: canWriteWallet ? undefined : t('tabPanels.wallet.writeDeniedTooltip'),
 						},
 						{
 							icon: <Trash2 />,
 							label: 'Terminate',
 							onSelect: () => setShowTerminateModal(true),
+							disabled: !canWriteWallet,
+							disabledReason: canWriteWallet ? undefined : t('tabPanels.wallet.writeDeniedTooltip'),
 						},
 					]
 				: []),
 		],
-		[activeWallet],
+		[activeWallet, canWriteWallet, canWriteAlertSettings, t],
 	);
 
 	// Effect to set initial active wallet
@@ -310,7 +338,18 @@ const CustomerWalletTab = () => {
 				<NoDataCard
 					title={t('tabPanels.wallet.emptyTitle')}
 					subtitle={t('tabPanels.wallet.emptySubtitle')}
-					cta={!isArchived && <AddButton label={t('tabPanels.wallet.addWallet')} onClick={() => setShowCreateWalletModal(true)} />}
+					cta={
+						!isArchived &&
+						(canWriteWallet ? (
+							<AddButton label={t('tabPanels.wallet.addWallet')} onClick={() => setShowCreateWalletModal(true)} />
+						) : (
+							<SimpleTooltip content={t('tabPanels.wallet.writeDeniedTooltip')}>
+								<span tabIndex={0} className='inline-block'>
+									<AddButton label={t('tabPanels.wallet.addWallet')} disabled />
+								</span>
+							</SimpleTooltip>
+						))
+					}
 				/>
 			) : (
 				<>
@@ -332,12 +371,22 @@ const CustomerWalletTab = () => {
 						<div className='flex items-center space-x-2'>
 							{!isArchived && (
 								<>
-									{activeWallet && (
-										<Button onClick={() => setShowTopupModal(true)}>
-											<WalletIcon />
-											<span>{t('tabPanels.wallet.topupWallet')}</span>
-										</Button>
-									)}
+									{activeWallet &&
+										(canWriteWallet ? (
+											<Button onClick={() => setShowTopupModal(true)}>
+												<WalletIcon />
+												<span>{t('tabPanels.wallet.topupWallet')}</span>
+											</Button>
+										) : (
+											<SimpleTooltip content={t('tabPanels.wallet.writeDeniedTooltip')}>
+												<span tabIndex={0} className='inline-block'>
+													<Button disabled>
+														<WalletIcon />
+														<span>{t('tabPanels.wallet.topupWallet')}</span>
+													</Button>
+												</span>
+											</SimpleTooltip>
+										))}
 								</>
 							)}
 
@@ -353,7 +402,7 @@ const CustomerWalletTab = () => {
 						<div>
 							<DetailsCard
 								variant='stacked'
-								title={t('tabPanels.wallet.detailsTitle')}
+								childrenAtTop
 								data={[
 									{ label: 'Wallet Name', value: activeWallet?.name || 'Prepaid wallet' },
 									{
@@ -384,8 +433,19 @@ const CustomerWalletTab = () => {
 											<span>{`1 Credit = ${activeWallet?.topup_conversion_rate}${getCurrencySymbol(activeWallet?.currency ?? '')}`}</span>
 										),
 									},
-								]}
-							/>
+								]}>
+								<div className='flex flex-wrap items-center gap-2 mb-5'>
+									<p className='text-xl font-medium'>{t('tabPanels.wallet.detailsTitle')}</p>
+									{walletBalance &&
+										hasActiveWalletAlertStatus(parseFloat(walletBalance.real_time_balance), activeWallet?.alert_settings) && (
+											<WalletAlertStatusBadge
+												balance={parseFloat(walletBalance.real_time_balance)}
+												alertSettings={activeWallet?.alert_settings}
+												currency={activeWallet?.currency}
+											/>
+										)}
+								</div>
+							</DetailsCard>
 
 							<Spacer className='!h-4' />
 
@@ -398,7 +458,7 @@ const CustomerWalletTab = () => {
 										<Card key={index}>
 											<div className='flex justify-between items-center mb-4'>
 												<div className='flex items-center space-x-2'>
-													<span className='text-gray-600 text-sm font-medium'>
+													<span className='text-content-tertiary text-sm font-medium'>
 														{t('tabPanels.wallet.balanceLabel', {
 															type:
 																type === WALLET_BALANCE_TYPE.CURRENT
@@ -406,29 +466,31 @@ const CustomerWalletTab = () => {
 																	: t('tabPanels.wallet.ongoingBalanceShort'),
 														})}
 													</span>
-													<TooltipProvider delayDuration={0}>
-														<Tooltip>
-															<TooltipTrigger>
-																<Info className='size-4 text-gray-400 hover:text-gray-600 transition-colors' />
-															</TooltipTrigger>
-															<TooltipContent>
-																<p>
-																	{type === WALLET_BALANCE_TYPE.CURRENT
-																		? t('tabPanels.wallet.currentBalanceTooltip')
-																		: t('tabPanels.wallet.ongoingBalanceTooltip')}
-																</p>
-															</TooltipContent>
-														</Tooltip>
-													</TooltipProvider>
+													{type === WALLET_BALANCE_TYPE.CURRENT && (
+														<TooltipProvider delayDuration={0}>
+															<Tooltip>
+																<TooltipTrigger>
+																	<Info className='size-4 text-content-subtle hover:text-content-tertiary transition-colors' />
+																</TooltipTrigger>
+																<TooltipContent>
+																	<p>{t('tabPanels.wallet.currentBalanceTooltip')}</p>
+																</TooltipContent>
+															</Tooltip>
+														</TooltipProvider>
+													)}
 												</div>
 												<div className='opacity-50 group-hover:opacity-100 transition-opacity'>
-													{type === WALLET_BALANCE_TYPE.CURRENT ? <WalletIcon className='size-5 text-gray-500' /> : <PremiumFeatureIcon />}
+													{type === WALLET_BALANCE_TYPE.CURRENT ? (
+														<WalletIcon className='size-5 text-content-muted' />
+													) : (
+														<PremiumFeatureIcon />
+													)}
 												</div>
 											</div>
 
 											<div className='flex items-baseline space-x-2'>
-												<span className='text-gray-500 text-2xl font-medium'>{getCurrencySymbol(walletBalance?.currency ?? '')}</span>
-												<span className='text-4xl font-medium text-gray-900 leading-tight'>
+												<span className='text-content-muted text-2xl font-medium'>{getCurrencySymbol(walletBalance?.currency ?? '')}</span>
+												<span className='text-4xl font-medium text-content leading-tight'>
 													{type === WALLET_BALANCE_TYPE.CURRENT
 														? formatAmount(walletBalance?.balance.toString() ?? '0')
 														: formatAmount(walletBalance?.real_time_balance.toString() ?? '0')}
@@ -436,7 +498,7 @@ const CustomerWalletTab = () => {
 											</div>
 
 											<div className='flex justify-between items-center'>
-												<span className='text-sm text-gray-500'>
+												<span className='text-sm text-content-muted'>
 													{type === WALLET_BALANCE_TYPE.CURRENT
 														? formatAmount(walletBalance?.credit_balance.toString() ?? '0')
 														: formatAmount(walletBalance?.real_time_credit_balance.toString() ?? '0')}
@@ -480,11 +542,20 @@ const CustomerWalletTab = () => {
 								<CardHeader
 									title={t('tabPanels.common.metadata')}
 									cta={
-										!isArchived && (
+										!isArchived &&
+										(canWriteWallet ? (
 											<Button variant='outline' size='icon' onClick={() => setShowMetadataModal(true)}>
 												<Pencil className='size-5' />
 											</Button>
-										)
+										) : (
+											<SimpleTooltip content={t('tabPanels.wallet.writeDeniedTooltip')}>
+												<span tabIndex={0} className='inline-block'>
+													<Button disabled variant='outline' size='icon'>
+														<Pencil className='size-5' />
+													</Button>
+												</span>
+											</SimpleTooltip>
+										))
 									}
 								/>
 								{metadata && Object.keys(metadata).length > 0 ? (
@@ -499,8 +570,8 @@ const CustomerWalletTab = () => {
 									/>
 								) : (
 									<div className='text-center py-8'>
-										<h3 className='text-lg font-medium text-gray-900 mb-1'>{t('tabPanels.wallet.noMetadataTitle')}</h3>
-										<p className='text-sm text-gray-500 mb-4'>{t('tabPanels.wallet.noMetadataHint')}</p>
+										<h3 className='text-lg font-medium text-content mb-1'>{t('tabPanels.wallet.noMetadataTitle')}</h3>
+										<p className='text-sm text-content-muted mb-4'>{t('tabPanels.wallet.noMetadataHint')}</p>
 									</div>
 								)}
 							</Card>

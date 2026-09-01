@@ -51,6 +51,7 @@ const GroupDrawer: FC<Props> = ({ data, open, onOpenChange, trigger, refetchQuer
 	);
 
 	useEffect(() => {
+		if (!open) return;
 		if (data) {
 			setFormData({
 				id: data.id,
@@ -66,7 +67,7 @@ const GroupDrawer: FC<Props> = ({ data, open, onOpenChange, trigger, refetchQuer
 			});
 		}
 		setErrors({});
-	}, [data]);
+	}, [open, data]);
 
 	const validateForm = () => {
 		const newErrors: Partial<Record<keyof CreateGroupRequest, string>> = {};
@@ -88,12 +89,16 @@ const GroupDrawer: FC<Props> = ({ data, open, onOpenChange, trigger, refetchQuer
 			return;
 		}
 
-		const payload = {
-			id: isEdit ? formData.id : undefined,
-			name: formData.name.trim(),
-			lookup_key: formData.lookup_key,
-			entity_type: formData.entity_type,
-		};
+		const payload = isEdit
+			? {
+					id: formData.id,
+					name: formData.name.trim(),
+				}
+			: {
+					name: formData.name.trim(),
+					lookup_key: formData.lookup_key,
+					entity_type: formData.entity_type,
+				};
 		updateGroup(payload);
 	};
 
@@ -145,6 +150,7 @@ const GroupDrawer: FC<Props> = ({ data, open, onOpenChange, trigger, refetchQuer
 				value={formData.entity_type}
 				onChange={(value) => setFormData({ ...formData, entity_type: value as GROUP_ENTITY_TYPE })}
 				options={entityTypeOptions}
+				disabled={isEdit}
 				placeholder={t('catalog:groups.drawer.selectEntityType')}
 				description={t('catalog:groups.drawer.entityTypeHelp')}
 			/>

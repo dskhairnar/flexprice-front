@@ -24,7 +24,7 @@ export const CommandPaletteActionId = {
 	ContactUs: 'contact-us',
 	BookCall: 'book-call',
 	JoinSlackCommunity: 'join-slack-community',
-	/** Open Intercom messenger (IntercomMessenger subscribes). */
+	/** Open the support-chat messenger. Value stays `open-intercom` for backward compatibility. */
 	OpenIntercom: 'open-intercom',
 	/** Log out (SidebarFooter subscribes). */
 	Logout: 'logout',

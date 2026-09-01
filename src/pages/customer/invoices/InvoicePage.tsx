@@ -138,6 +138,7 @@ const InvoicesPage = () => {
 		const result = await InvoiceApi.listInvoices({
 			...params,
 			invoice_status: Object.values(INVOICE_STATUS),
+			skip_line_items: true,
 		});
 		const rawItems = result.items ?? [];
 		const hasMismatchOnPage = rawItems.some(invoiceHasDistinctSubscriptionCustomer);
@@ -297,7 +298,7 @@ const InvoicesPage = () => {
 				title: t('invoices.list.columns.invoiceNumber'),
 				render: (row: EnrichedInvoice) =>
 					row.invoice_status?.toUpperCase() === INVOICE_STATUS.DRAFT ? (
-						<span className='text-gray-400 italic text-[13px]'>{t('invoices.list.toBeGenerated')}</span>
+						<span className='text-content-subtle italic text-[13px]'>{t('invoices.list.toBeGenerated')}</span>
 					) : (
 						<span>{row.invoice_number || t('common:labels.na')}</span>
 					),
@@ -360,6 +361,7 @@ const InvoicesPage = () => {
 							offset: 0,
 							filters: [],
 							sort: [],
+							skip_line_items: true,
 						}),
 				}}
 				tableConfig={{

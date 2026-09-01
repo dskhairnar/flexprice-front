@@ -10,12 +10,10 @@ import CostSheetApi from '@/api/CostSheetApi';
 import FeatureApi from '@/api/FeatureApi';
 import { Feature } from '@/models';
 import { GetUsageAnalyticsRequest, GetCostAnalyticsRequest } from '@/types';
-import { RedirectCell } from '@/components/molecules';
+import { RedirectCell, MetricCard, CostDataTable } from '@/components/molecules';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/molecules/Table/Table';
 import { UsageAnalyticItem, PRICE_ENTITY_TYPE } from '@/models';
-import { formatNumber } from '@/utils';
-import { MetricCard, CostDataTable } from '@/components/molecules';
-import { getCurrencySymbol } from '@/utils';
+import { formatNumber, formatCurrencyAmount, getCurrencySymbol } from '@/utils';
 import { PriceTooltip } from '@/components/molecules/PriceTooltip';
 import { Skeleton } from '@/components/ui';
 import { ENTITY_STATUS } from '@/models/base';
@@ -30,6 +28,7 @@ const CHEVRON_DOWN_SVG = '/assets/svg/chevron-down-svgrepo-com.svg';
 import { cn } from '@/lib/utils';
 import { Checkbox as UiCheckbox } from '@/components/ui/checkbox';
 import { useTranslation } from 'react-i18next';
+import { mergeUsageAndCostAnalytics, type MergedUsageAnalyticRow } from '@/utils/analytics/mergeUsageAndCostAnalytics';
 
 const CustomerAnalyticsTab = () => {
 	const { t } = useTranslation('customers');
@@ -104,8 +103,12 @@ const CustomerAnalyticsTab = () => {
 			params.end_time = endDate.toISOString();
 		}
 
+		if (includeChildren) {
+			params.include_children = true;
+		}
+
 		return params;
-	}, [customer?.external_id, selectedFeatures, startDate, endDate]);
+	}, [customer?.external_id, selectedFeatures, startDate, endDate, includeChildren]);
 
 	// Debounced API parameters with 300ms delay
 	const [debouncedUsageParams, setDebouncedUsageParams] = useState<GetUsageAnalyticsRequest | null>(null);
@@ -220,6 +223,14 @@ const CustomerAnalyticsTab = () => {
 		};
 	}, [usageData]);
 
+	const { mergedUsageItems, unmatchedCostItems } = useMemo(() => {
+		if (!filteredUsageData?.items) {
+			return { mergedUsageItems: [], unmatchedCostItems: costData?.cost_analytics ?? [] };
+		}
+
+		return mergeUsageAndCostAnalytics(filteredUsageData.items, costData?.cost_analytics ?? []);
+	}, [filteredUsageData, costData?.cost_analytics]);
+
 	// Check if revenue metrics should be displayed
 	const hasRevenueData = useMemo(() => {
 		if (!costData) return false;
@@ -264,7 +275,7 @@ const CustomerAnalyticsTab = () => {
 		<div className='pt-9'>
 			<div className='grid grid-cols-2 md:grid-cols-4 gap-3'>
 				{[1, 2, 3, 4].map((i) => (
-					<div key={i} className='bg-white border border-[#E5E7EB] p-[25px] rounded-md'>
+					<div key={i} className='bg-surface border border-line p-[25px] rounded-md'>
 						<Skeleton className='h-5 w-20 mb-3' />
 						<Skeleton className='h-7 w-24' />
 					</div>
@@ -293,7 +304,7 @@ const CustomerAnalyticsTab = () => {
 
 	return (
 		<div className='space-y-6'>
-			<h3 className='text-lg font-medium flex items-center gap-2 text-gray-900 mb-8 mt-1'>
+			<h3 className='text-lg font-medium flex items-center gap-2 text-content mb-8 mt-1'>
 				<span>{t('tabPanels.analytics.heading')}</span>
 				<PremiumFeatureIcon />
 			</h3>
@@ -345,7 +356,7 @@ const CustomerAnalyticsTab = () => {
 							/>
 						</div>
 						<div className='ml-auto min-w-[200px]'>
-							<div className='mb-1 w-full text-start text-sm text-zinc-600'>{t('tabPanels.analytics.options')}</div>
+							<div className='mb-1 w-full text-start text-sm text-content-zinc-tertiary'>{t('tabPanels.analytics.options')}</div>
 							<label
 								htmlFor='include-children'
 								className={cn(
@@ -353,7 +364,7 @@ const CustomerAnalyticsTab = () => {
 									'cursor-pointer select-none',
 								)}>
 								<UiCheckbox id='include-children' checked={includeChildren} onCheckedChange={(v) => setIncludeChildren(Boolean(v))} />
-								<span className='text-sm font-medium text-zinc-900'>{t('tabPanels.analytics.includeChildren')}</span>
+								<span className='text-sm font-medium text-content-zinc-bold'>{t('tabPanels.analytics.includeChildren')}</span>
 							</label>
 						</div>
 					</>
@@ -434,16 +445,16 @@ const CustomerAnalyticsTab = () => {
 					)} */}
 
 					{/* Usage Data Table */}
-					{filteredUsageData && filteredUsageData.items.length > 0 && (
+					{filteredUsageData != null && (
 						<div className='!mt-10'>
-							<UsageDataTable items={filteredUsageData.items} />
+							<UsageDataTable items={mergedUsageItems} />
 						</div>
 					)}
 
-					{/* Cost Data Table */}
-					{costData && costData.cost_analytics && costData.cost_analytics.length > 0 && (
+					{/* Cost Data Table — only unmatched cost analytics (no usage meter match) */}
+					{unmatchedCostItems.length > 0 && (
 						<div className='pt-9'>
-							<CostDataTable items={costData.cost_analytics} />
+							<CostDataTable items={unmatchedCostItems} />
 						</div>
 					)}
 				</>
@@ -457,13 +468,15 @@ const UNGROUPED_KEY = '__ungrouped__';
 interface GroupBucket {
 	groupKey: string;
 	groupName: string;
-	items: UsageAnalyticItem[];
+	items: MergedUsageAnalyticRow[];
 }
 
 /** API sort field keys — not user-visible copy */
 const USAGE_BREAKDOWN_SORT_FIELDS = {
 	totalUsage: 'total_usage',
-	totalCost: 'total_cost',
+	revenue: 'total_cost',
+	cogs: 'cogs',
+	margin: 'margin',
 } as const;
 
 /** Unique key for a usage row (same feature can appear multiple times under different prices/meters). */
@@ -480,8 +493,8 @@ const GroupChildRows = React.memo(function GroupChildRows({ bucket, isExpanded }
 			{bucket.items.map((row, childIndex) => (
 				<TableRow
 					key={usageRowKey(row, childIndex)}
-					className='h-10 align-middle border-b border-gray-200 bg-white hover:bg-gray-50/50 transition-colors'>
-					<TableCell className='py-2.5 pl-4 font-normal text-gray-700 text-[13px] align-middle'>
+					className='h-10 align-middle border-b border-line bg-surface hover:bg-surface-subtle/50 transition-colors'>
+					<TableCell className='py-2.5 pl-4 font-normal text-content-secondary text-[13px] align-middle'>
 						{row.feature_id ? (
 							<RedirectCell target='_blank' redirectUrl={`${RouteNames.featureDetails}/${row.feature_id}`}>
 								{row.name}
@@ -490,8 +503,10 @@ const GroupChildRows = React.memo(function GroupChildRows({ bucket, isExpanded }
 							<span>{row.name || t('tabPanels.common.unknown')}</span>
 						)}
 					</TableCell>
-					<TableCell className='py-2.5 font-normal text-gray-600 text-[13px]'>{renderTotalUsage(row)}</TableCell>
-					<TableCell className='py-2.5 font-normal text-gray-600 text-[13px]'>{renderTotalCost(row)}</TableCell>
+					<TableCell className='py-2.5 font-normal text-content-tertiary text-[13px]'>{renderTotalUsage(row)}</TableCell>
+					<TableCell className='py-2.5 font-normal text-content-tertiary text-[13px]'>{renderRevenue(row)}</TableCell>
+					<TableCell className='py-2.5 font-normal text-content-tertiary text-[13px]'>{renderCogs(row)}</TableCell>
+					<TableCell className='py-2.5 font-normal text-content-tertiary text-[13px]'>{renderMargin(row)}</TableCell>
 				</TableRow>
 			))}
 		</>
@@ -523,7 +538,7 @@ function renderTotalUsage(row: UsageAnalyticItem) {
 	);
 }
 
-function renderTotalCost(row: UsageAnalyticItem) {
+function renderRevenue(row: UsageAnalyticItem) {
 	const cost = Number(row.total_cost);
 	if (cost === 0 || !row.currency) return '-';
 	const currency = getCurrencySymbol(row.currency);
@@ -539,9 +554,28 @@ function renderTotalCost(row: UsageAnalyticItem) {
 	);
 }
 
-const UsageDataTable: React.FC<{ items: UsageAnalyticItem[] }> = ({ items }) => {
+function renderCurrencyAmount(amount: number | null, currency?: string, options?: { showSign?: boolean }) {
+	if (amount == null || !currency) return '-';
+	return <span>{formatCurrencyAmount(amount, currency, { showSign: options?.showSign })}</span>;
+}
+
+function renderCogs(row: MergedUsageAnalyticRow) {
+	return renderCurrencyAmount(row.cogs, row.currency);
+}
+
+function renderMargin(row: MergedUsageAnalyticRow) {
+	return renderCurrencyAmount(row.margin, row.currency, { showSign: true });
+}
+
+function getUsageSortValue(row: MergedUsageAnalyticRow, field: 'total_usage' | 'total_cost' | 'cogs' | 'margin'): number {
+	if (field === 'total_usage') return Number(row.total_usage);
+	if (field === 'total_cost') return Number(row.total_cost);
+	return Number(row[field] ?? Number.NEGATIVE_INFINITY);
+}
+
+const UsageDataTable: React.FC<{ items: MergedUsageAnalyticRow[] }> = ({ items }) => {
 	const { t } = useTranslation('customers');
-	type UsageSortField = 'total_usage' | 'total_cost';
+	type UsageSortField = 'total_usage' | 'total_cost' | 'cogs' | 'margin';
 	type SortDirection = 'asc' | 'desc';
 
 	const [sortField, setSortField] = useState<UsageSortField>('total_cost');
@@ -560,11 +594,7 @@ const UsageDataTable: React.FC<{ items: UsageAnalyticItem[] }> = ({ items }) => 
 	const sortedItems = useMemo(() => {
 		const sorted = [...items];
 		const directionMultiplier = sortDirection === 'asc' ? 1 : -1;
-		sorted.sort((a, b) => {
-			const valueA = sortField === 'total_usage' ? Number(a.total_usage) : Number(a.total_cost);
-			const valueB = sortField === 'total_usage' ? Number(b.total_usage) : Number(b.total_cost);
-			return (valueA - valueB) * directionMultiplier;
-		});
+		sorted.sort((a, b) => (getUsageSortValue(a, sortField) - getUsageSortValue(b, sortField)) * directionMultiplier);
 		return sorted;
 	}, [items, sortDirection, sortField]);
 
@@ -617,16 +647,16 @@ const UsageDataTable: React.FC<{ items: UsageAnalyticItem[] }> = ({ items }) => 
 				type='button'
 				className={cn(
 					'group -ml-1 inline-flex h-7 items-center gap-1 rounded-md px-1.5 text-left transition-colors',
-					isActive ? 'text-gray-900' : 'text-gray-500 hover:text-gray-700',
+					isActive ? 'text-content' : 'text-content-muted hover:text-content-secondary',
 				)}
 				onClick={() => handleSortToggle(field)}>
 				<span className='leading-none'>{label}</span>
 				{sortDirection === 'asc' && isActive ? (
-					<ChevronUp className='h-3.5 w-3.5 shrink-0 text-gray-900' />
+					<ChevronUp className='h-3.5 w-3.5 shrink-0 text-content' />
 				) : isActive ? (
-					<ChevronDown className='h-3.5 w-3.5 shrink-0 text-gray-900' />
+					<ChevronDown className='h-3.5 w-3.5 shrink-0 text-content' />
 				) : (
-					<ChevronsUpDown className='h-3.5 w-3.5 shrink-0 text-gray-400 group-hover:text-gray-500' />
+					<ChevronsUpDown className='h-3.5 w-3.5 shrink-0 text-content-subtle group-hover:text-content-muted' />
 				)}
 			</button>
 		);
@@ -635,37 +665,47 @@ const UsageDataTable: React.FC<{ items: UsageAnalyticItem[] }> = ({ items }) => 
 	return (
 		<>
 			<div className='flex items-center justify-between mb-4'>
-				<h1 className='text-lg font-medium text-gray-900'>{t('tabPanels.analytics.usageBreakdown')}</h1>
+				<h1 className='text-lg font-medium text-content'>{t('tabPanels.analytics.usageBreakdown')}</h1>
 				{hasGroups && (
 					<button
 						type='button'
 						onClick={toggleExpandAll}
-						className='inline-flex items-center justify-center text-gray-600 hover:text-gray-900'
+						className='inline-flex items-center justify-center text-content-tertiary hover:text-content'
 						aria-label={allExpanded ? t('tabPanels.analytics.collapseAll') : t('tabPanels.analytics.expandAll')}>
 						<img src={allExpanded ? COLLAPSE_ALL_SVG : EXPAND_ALL_SVG} alt='' className='h-4 w-4' />
 					</button>
 				)}
 			</div>
 
-			<div className='rounded-md border border-gray-200 bg-white overflow-hidden shadow-sm'>
+			<div className='rounded-md border border-line bg-surface overflow-hidden shadow-sm'>
 				<Table>
-					<TableHeader className='h-10 bg-gray-50 border-b border-gray-200 rounded-t-md'>
-						<TableRow className='rounded-t-md border-b border-gray-200'>
-							<TableHead className='rounded-tl-md pl-4 font-semibold text-gray-700 text-[13px]'>
+					<TableHeader className='h-10 bg-surface-subtle border-b border-line rounded-t-md'>
+						<TableRow className='rounded-t-md border-b border-line'>
+							<TableHead className='rounded-tl-md pl-4 font-semibold text-content-secondary text-[13px]'>
 								{t('usageTable.columns.feature')}
 							</TableHead>
-							<TableHead className='font-semibold text-gray-700 text-[13px]'>
+							<TableHead className='font-semibold text-content-secondary text-[13px]'>
 								{renderSortableHeader(USAGE_BREAKDOWN_SORT_FIELDS.totalUsage, t('tabPanels.analytics.totalUsage'))}
 							</TableHead>
-							<TableHead className='rounded-tr-md font-semibold text-gray-700 text-[13px]'>
-								{renderSortableHeader(USAGE_BREAKDOWN_SORT_FIELDS.totalCost, t('tabPanels.analytics.totalCost'))}
+							<TableHead className='font-semibold text-content-secondary text-[13px]'>
+								{renderSortableHeader(USAGE_BREAKDOWN_SORT_FIELDS.revenue, t('tabPanels.analytics.metricRevenue'))}
+							</TableHead>
+							<TableHead className='font-semibold text-content-secondary text-[13px]'>
+								{renderSortableHeader(USAGE_BREAKDOWN_SORT_FIELDS.cogs, t('tabPanels.analytics.cogs'))}
+							</TableHead>
+							<TableHead className='rounded-tr-md font-semibold text-content-secondary text-[13px]'>
+								{renderSortableHeader(USAGE_BREAKDOWN_SORT_FIELDS.margin, t('tabPanels.analytics.metricMargin'))}
 							</TableHead>
 						</TableRow>
 					</TableHeader>
 					<TableBody>
 						{groupedBuckets.map((bucket) => {
 							const isExpanded = expandedGroupIds.has(bucket.groupKey);
-							const aggregateCost = bucket.items.reduce((sum, i) => sum + Number(i.total_cost), 0);
+							const aggregateRevenue = bucket.items.reduce((sum, i) => sum + Number(i.total_cost), 0);
+							const aggregateCogs = bucket.items.reduce((sum, i) => sum + (i.cogs ?? 0), 0);
+							const aggregateMargin = bucket.items.reduce((sum, i) => sum + (i.margin ?? 0), 0);
+							const hasCogs = bucket.items.some((i) => i.cogs != null);
+							const hasMargin = bucket.items.some((i) => i.margin != null);
 							const firstCurrency = bucket.items[0]?.currency;
 							return (
 								<React.Fragment key={bucket.groupKey}>
@@ -680,28 +720,27 @@ const UsageDataTable: React.FC<{ items: UsageAnalyticItem[] }> = ({ items }) => 
 											}
 										}}
 										className={cn(
-											'h-10 align-middle border-b border-gray-200 bg-white cursor-pointer hover:bg-gray-50/50 transition-colors',
+											'h-10 align-middle border-b border-line bg-surface cursor-pointer hover:bg-surface-subtle/50 transition-colors',
 											bucket.items.length === 0 && 'border-b-0',
 											bucket.items.length === 0 && 'cursor-default',
 										)}>
 										<TableCell className='pl-4 py-2.5 align-middle'>
 											<div className='inline-flex items-center gap-2 text-left'>
-												<span className='font-semibold text-gray-900 text-[13px]'>{bucket.groupName}</span>
+												<span className='font-semibold text-content text-[13px]'>{bucket.groupName}</span>
 												{bucket.items.length > 0 ? (
 													<img src={isExpanded ? CHEVRON_UP_SVG : CHEVRON_DOWN_SVG} alt='' className='h-4 w-4 shrink-0' aria-hidden />
 												) : null}
 											</div>
 										</TableCell>
-										<TableCell className='py-2.5 font-normal text-gray-700 text-[13px]'>—</TableCell>
-										<TableCell className='py-2.5 font-normal text-gray-600 text-[13px]'>
-											{firstCurrency ? (
-												<>
-													{getCurrencySymbol(firstCurrency)}
-													{formatNumber(aggregateCost, 2)}
-												</>
-											) : (
-												'—'
-											)}
+										<TableCell className='py-2.5 font-normal text-content-secondary text-[13px]'>—</TableCell>
+										<TableCell className='py-2.5 font-normal text-content-tertiary text-[13px]'>
+											{renderCurrencyAmount(aggregateRevenue, firstCurrency)}
+										</TableCell>
+										<TableCell className='py-2.5 font-normal text-content-tertiary text-[13px]'>
+											{hasCogs ? renderCurrencyAmount(aggregateCogs, firstCurrency) : '—'}
+										</TableCell>
+										<TableCell className='py-2.5 font-normal text-content-tertiary text-[13px]'>
+											{hasMargin ? renderCurrencyAmount(aggregateMargin, firstCurrency, { showSign: true }) : '—'}
 										</TableCell>
 									</TableRow>
 									<GroupChildRows bucket={bucket} isExpanded={isExpanded} />
@@ -711,8 +750,8 @@ const UsageDataTable: React.FC<{ items: UsageAnalyticItem[] }> = ({ items }) => 
 						{ungroupedItems.map((row, index) => (
 							<TableRow
 								key={`ungrouped:${usageRowKey(row, index)}`}
-								className='h-10 align-middle border-b border-gray-200 bg-white hover:bg-gray-50/50 transition-colors'>
-								<TableCell className='pl-4 py-2.5 font-normal text-gray-700 text-[13px]'>
+								className='h-10 align-middle border-b border-line bg-surface hover:bg-surface-subtle/50 transition-colors'>
+								<TableCell className='pl-4 py-2.5 font-normal text-content-secondary text-[13px]'>
 									{row.feature_id ? (
 										<RedirectCell target='_blank' redirectUrl={`${RouteNames.featureDetails}/${row.feature_id}`}>
 											{row.name}
@@ -721,13 +760,15 @@ const UsageDataTable: React.FC<{ items: UsageAnalyticItem[] }> = ({ items }) => 
 										<span>{row.name || t('tabPanels.common.unknown')}</span>
 									)}
 								</TableCell>
-								<TableCell className='py-2.5 font-normal text-gray-600 text-[13px]'>{renderTotalUsage(row)}</TableCell>
-								<TableCell className='py-2.5 font-normal text-gray-600 text-[13px]'>{renderTotalCost(row)}</TableCell>
+								<TableCell className='py-2.5 font-normal text-content-tertiary text-[13px]'>{renderTotalUsage(row)}</TableCell>
+								<TableCell className='py-2.5 font-normal text-content-tertiary text-[13px]'>{renderRevenue(row)}</TableCell>
+								<TableCell className='py-2.5 font-normal text-content-tertiary text-[13px]'>{renderCogs(row)}</TableCell>
+								<TableCell className='py-2.5 font-normal text-content-tertiary text-[13px]'>{renderMargin(row)}</TableCell>
 							</TableRow>
 						))}
 						{items.length === 0 && (
-							<TableRow className='bg-white'>
-								<TableCell colSpan={3} className='pl-4 py-4 font-normal text-gray-500 text-[13px]'>
+							<TableRow className='bg-surface'>
+								<TableCell colSpan={5} className='pl-4 py-4 font-normal text-content-muted text-[13px]'>
 									{t('tabPanels.analytics.tableEmpty')}
 								</TableCell>
 							</TableRow>

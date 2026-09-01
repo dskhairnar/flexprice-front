@@ -6,17 +6,21 @@ import {
 	SUBSCRIPTION_STATUS,
 } from '@/models/Subscription';
 import { useMutation } from '@tanstack/react-query';
-import { X, Plus, Pencil, Play } from 'lucide-react';
+import { X, Pencil, Play, Bell } from 'lucide-react';
 import React, { useState, useMemo } from 'react';
 import SubscriptionApi from '@/api/SubscriptionApi';
 import { DatePicker, Label, Modal, Input, Button, FormHeader, Spacer, Select, Toggle } from '@/components/atoms';
 import { toast } from 'react-hot-toast';
-import DropdownMenu, { DropdownMenuOption } from '@/components/molecules/DropdownMenu/DropdownMenu';
+import DropdownMenu, { DropdownMenuOption, getCopyIdOption } from '@/components/molecules/DropdownMenu/DropdownMenu';
+import { AlertSettingsDialog } from '@/components/molecules';
+import { ALERT_ENTITY_TYPE } from '@/models/AlertSetting';
 import { refetchQueries } from '@/core/services/tanstack/ReactQueryProvider';
+import { refetchSubscriptionQueries } from '@/core/services/tanstack/queryKeys';
 import { isInheritedSubscription } from '@/utils/subscription/isInheritedSubscription';
 import { useNavigate } from 'react-router';
 import { RouteNames } from '@/core/routes/Routes';
 import { useTranslation } from 'react-i18next';
+import { useCurrentUserPermissions } from '@/hooks/useCurrentUserPermissions';
 
 interface Props {
 	subscription: Subscription;
@@ -25,12 +29,16 @@ interface Props {
 const SubscriptionActionButton: React.FC<Props> = ({ subscription }) => {
 	const navigate = useNavigate();
 	const { t } = useTranslation(['customers', 'common']);
+	const { t: tc } = useTranslation('common');
+	const { can } = useCurrentUserPermissions();
+	const canWriteSubscription = can('subscription', 'write');
+	const canWriteAlertSettings = can('alert_settings', 'write');
 	const [state, setState] = useState({
 		// isPauseModalOpen: false,
 		// isResumeModalOpen: false,
 		isCancelModalOpen: false,
-		isAddPhaseModalOpen: false,
 		isActivateModalOpen: false,
+		isAlertSettingsOpen: false,
 		// pauseStartDate: new Date(),
 		// pauseDays: '',
 		// pauseReason: '',
@@ -117,8 +125,7 @@ const SubscriptionActionButton: React.FC<Props> = ({ subscription }) => {
 		onSuccess: async () => {
 			resetCancelState();
 			toast.success('Subscription cancelled successfully');
-			await refetchQueries(['subscriptionDetails']);
-			await refetchQueries(['subscriptions']);
+			await refetchSubscriptionQueries();
 		},
 		onError: (err: Error) => {
 			resetCancelState();
@@ -134,8 +141,7 @@ const SubscriptionActionButton: React.FC<Props> = ({ subscription }) => {
 		onSuccess: async () => {
 			setState((prev) => ({ ...prev, isActivateModalOpen: false }));
 			toast.success('Subscription activated successfully');
-			await refetchQueries(['subscriptionDetails']);
-			await refetchQueries(['subscriptions']);
+			await refetchSubscriptionQueries();
 			await refetchQueries(['subscriptionInvoices']);
 		},
 		onError: (error: Error) => {
@@ -143,19 +149,20 @@ const SubscriptionActionButton: React.FC<Props> = ({ subscription }) => {
 		},
 	});
 
-	const isPaused = subscription.subscription_status.toUpperCase() === 'PAUSED';
 	const isCancelled = subscription.subscription_status.toUpperCase() === 'CANCELLED';
 	const isDraft = subscription.subscription_status === SUBSCRIPTION_STATUS.DRAFT;
 	const readOnly = isInheritedSubscription(subscription);
 
 	const menuOptions: DropdownMenuOption[] = [
+		getCopyIdOption(subscription.id, tc, { entityType: 'Subscription' }),
 		...(isDraft
 			? [
 					{
 						label: 'Activate Subscription',
 						icon: <Play className='h-4 w-4' />,
 						onSelect: () => setState((prev) => ({ ...prev, isActivateModalOpen: true })),
-						disabled: readOnly,
+						disabled: readOnly || !canWriteSubscription,
+						disabledReason: !readOnly && !canWriteSubscription ? t('customers:organisms.subscriptionAction.writeDeniedTooltip') : undefined,
 					},
 				]
 			: []),
@@ -163,7 +170,17 @@ const SubscriptionActionButton: React.FC<Props> = ({ subscription }) => {
 			label: 'Edit Subscription',
 			icon: <Pencil className='h-4 w-4' />,
 			onSelect: () => navigate(`${RouteNames.subscriptions}/${subscription.id}/edit`),
-			disabled: isCancelled || readOnly,
+			disabled: isCancelled || readOnly || !canWriteSubscription,
+			disabledReason:
+				!isCancelled && !readOnly && !canWriteSubscription ? t('customers:organisms.subscriptionAction.writeDeniedTooltip') : undefined,
+		},
+		{
+			label: 'Alert Settings',
+			icon: <Bell className='h-4 w-4' />,
+			onSelect: () => setState((prev) => ({ ...prev, isAlertSettingsOpen: true })),
+			disabled: readOnly || !canWriteAlertSettings,
+			disabledReason:
+				!readOnly && !canWriteAlertSettings ? t('customers:organisms.subscriptionAction.alertSettingsWriteDeniedTooltip') : undefined,
 		},
 		...(!isCancelled && !isDraft
 			? [
@@ -173,12 +190,6 @@ const SubscriptionActionButton: React.FC<Props> = ({ subscription }) => {
 					// 	onSelect: () => setState((prev) => ({ ...prev, isPauseModalOpen: true })),
 					// 	disabled: isPaused || isCancelled || readOnly,
 					// },
-					{
-						label: 'Add Subscription Phase',
-						icon: <Plus className='h-4 w-4' />,
-						onSelect: () => setState((prev) => ({ ...prev, isAddPhaseModalOpen: true })),
-						disabled: isPaused || isCancelled || readOnly,
-					},
 				]
 			: []),
 		// ...(isPaused && !isCancelled
@@ -195,7 +206,9 @@ const SubscriptionActionButton: React.FC<Props> = ({ subscription }) => {
 			label: 'Cancel Subscription',
 			icon: <X className='h-4 w-4' />,
 			onSelect: () => setState((prev) => ({ ...prev, isCancelModalOpen: true })),
-			disabled: isCancelled || readOnly,
+			disabled: isCancelled || readOnly || !canWriteSubscription,
+			disabledReason:
+				!isCancelled && !readOnly && !canWriteSubscription ? t('customers:organisms.subscriptionAction.writeDeniedTooltip') : undefined,
 			className: 'text-destructive',
 		},
 	];
@@ -214,7 +227,7 @@ const SubscriptionActionButton: React.FC<Props> = ({ subscription }) => {
 					}
 					setState((prev) => ({ ...prev, isCancelModalOpen: open }));
 				}}
-				className='card bg-white w-[560px] max-w-[90vw]'>
+				className='card bg-surface w-[560px] max-w-[90vw]'>
 				<div className='space-y-4'>
 					<FormHeader
 						title={t('customers:organisms.subscriptionAction.cancelTitle')}
@@ -262,6 +275,7 @@ const SubscriptionActionButton: React.FC<Props> = ({ subscription }) => {
 									popoverContentClassName='!w-full'
 									placeholder={t('customers:organisms.subscriptionAction.selectCancellationDate')}
 									minDate={minCancelScheduledAt}
+									clearable
 								/>
 							</div>
 						)}
@@ -316,7 +330,7 @@ const SubscriptionActionButton: React.FC<Props> = ({ subscription }) => {
 			<Modal
 				isOpen={state.isActivateModalOpen}
 				onOpenChange={(open) => setState((prev) => ({ ...prev, isActivateModalOpen: open }))}
-				className='bg-white rounded-lg p-6 w-[560px] max-w-[90vw]'>
+				className='bg-surface rounded-lg p-6 w-[560px] max-w-[90vw]'>
 				<div className=''>
 					<FormHeader
 						title={t('customers:organisms.subscriptionAction.activateTitle')}
@@ -350,6 +364,15 @@ const SubscriptionActionButton: React.FC<Props> = ({ subscription }) => {
 					</div>
 				</div>
 			</Modal>
+
+			{/* Alert Settings Dialog */}
+			<AlertSettingsDialog
+				open={state.isAlertSettingsOpen}
+				onClose={() => setState((prev) => ({ ...prev, isAlertSettingsOpen: false }))}
+				entityType={ALERT_ENTITY_TYPE.SUBSCRIPTION}
+				entityId={subscription.id}
+				currency={subscription.currency}
+			/>
 		</>
 	);
 };

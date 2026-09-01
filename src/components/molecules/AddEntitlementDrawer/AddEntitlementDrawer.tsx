@@ -1,4 +1,8 @@
-import { Button, Checkbox, Dialog, FormHeader, Input, Select, SelectFeature, Sheet, Spacer, Toggle } from '@/components/atoms';
+import { Button, Checkbox, Dialog, FormHeader, Input, Select, SelectFeature, Spacer, Toggle } from '@/components/atoms';
+import { Sheet as ShadcnSheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '@/components/ui/sheet';
+import { useSheetOutsideDismissGuards } from '@/components/atoms/Sheet/Sheet';
+import { JsonObject } from '@/types/common';
+import { JsonEditor } from '@/components/molecules/JsonEditor';
 import { getFeatureIcon } from '@/components/atoms/SelectFeature/SelectFeature';
 import { AddChargesButton } from '@/components/organisms/PlanForm/SetupChargesSection';
 
@@ -9,12 +13,15 @@ import { METER_USAGE_RESET_PERIOD } from '@/models/Meter';
 import EntitlementApi from '@/api/EntitlementApi';
 import FeatureApi from '@/api/FeatureApi';
 import { CreateBulkEntitlementRequest, CreateEntitlementRequest } from '@/types/dto/Entitlement';
-import { useMutation, useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Calculator, X } from 'lucide-react';
 import { FC, useState, useEffect, useCallback, useMemo } from 'react';
 import toast from 'react-hot-toast';
 import type { TFunction } from 'i18next';
 import { Trans, useTranslation } from 'react-i18next';
+import { cn } from '@/lib/utils';
+import { useLocaleStore } from '@/store/useLocaleStore';
+import { Direction } from '@/config/branding';
 
 interface Props {
 	isOpen: boolean;
@@ -30,6 +37,7 @@ interface Props {
 interface ValidationErrors {
 	usage_limit?: string;
 	static_value?: string;
+	config_value?: string;
 	usage_reset_period?: string;
 	is_enabled?: string;
 	general?: string;
@@ -107,8 +115,14 @@ const validateEntitlement = (
 		case FEATURE_TYPE.STATIC:
 			return validateStaticFeature(tempEntitlement, t);
 		case FEATURE_TYPE.BOOLEAN:
-			// Boolean features don't need additional validation
 			return {};
+		case FEATURE_TYPE.CONFIG: {
+			const cv = tempEntitlement.config_value;
+			if (!cv || Object.keys(cv).length === 0) {
+				return { config_value: t('entitlements.addDrawer.configValueRequired') };
+			}
+			return {};
+		}
 		default:
 			return { feature: t('entitlements.validation.invalidFeatureType') };
 	}
@@ -205,10 +219,10 @@ const DisplayValueCalculatorDialog: FC<DisplayValueCalculatorDialogProps> = ({
 				/>
 
 				{computedUnitValue != null && (
-					<div className='rounded-md border border-gray-200 bg-white p-4'>
+					<div className='rounded-md border border-line bg-surface p-4'>
 						<p className='text-sm'>
-							<span className='font-medium text-gray-900'>{t('entitlements.displayCalculator.calculatedUsageLimit')}</span>{' '}
-							<span className='font-semibold text-blue-600'>{usageLimitDisplay}</span>{' '}
+							<span className='font-medium text-content'>{t('entitlements.displayCalculator.calculatedUsageLimit')}</span>{' '}
+							<span className='font-semibold text-info'>{usageLimitDisplay}</span>{' '}
 							<span className='text-muted-foreground text-xs'>{resolvedBasePlural}</span>
 						</p>
 					</div>
@@ -219,7 +233,7 @@ const DisplayValueCalculatorDialog: FC<DisplayValueCalculatorDialogProps> = ({
 						ns='catalog'
 						i18nKey='entitlements.displayCalculator.conversionFactor'
 						values={{ rate: reportingUnit.conversion_rate ?? emDash }}
-						components={{ rate: <span className='font-semibold text-blue-600' /> }}
+						components={{ rate: <span className='font-semibold text-info' /> }}
 					/>
 				</p>
 
@@ -249,6 +263,9 @@ const AddEntitlementDrawer: FC<Props> = ({
 	refetchQueryKeys,
 }) => {
 	const { t } = useTranslation('catalog');
+	const queryClient = useQueryClient();
+	const direction = useLocaleStore((s) => s.direction);
+	const sheetSide = direction === Direction.RTL ? 'left' : 'right';
 
 	const entitlementUsageResetOptions = useMemo(
 		() => [
@@ -301,12 +318,13 @@ const AddEntitlementDrawer: FC<Props> = ({
 		return [...new Set([...currentEntitlementFeatureIds, ...existingFeatureIds])];
 	}, [entitlements, existingFeatureIds]);
 
-	// Handle drawer close
-	const handleDrawerClose = (value: boolean) => {
-		if (!value) {
+	const outsideDismissGuards = useSheetOutsideDismissGuards(isOpen);
+
+	const handleDrawerClose = (open: boolean) => {
+		if (!open) {
 			resetState();
 		}
-		onOpenChange(value);
+		onOpenChange(open);
 	};
 
 	// Reset states when drawer opens/closes
@@ -342,6 +360,7 @@ const AddEntitlementDrawer: FC<Props> = ({
 				usage_reset_period: entitlement.usage_reset_period as ENTITLEMENT_USAGE_RESET_PERIOD | undefined,
 				is_soft_limit: entitlement.is_soft_limit,
 				static_value: entitlement.static_value,
+				config_value: entitlement.config_value ?? undefined,
 				entity_type: entityType,
 				entity_id: entityId,
 			}));
@@ -404,7 +423,8 @@ const AddEntitlementDrawer: FC<Props> = ({
 			feature: activeFeature,
 			feature_id: activeFeature.id,
 			feature_type: activeFeature.type,
-			is_enabled: activeFeature.type === FEATURE_TYPE.BOOLEAN ? true : undefined,
+			is_enabled: activeFeature.type === FEATURE_TYPE.BOOLEAN || activeFeature.type === FEATURE_TYPE.CONFIG ? true : undefined,
+			config_value: activeFeature.type === FEATURE_TYPE.CONFIG ? tempEntitlement.config_value : undefined,
 			entity_type: entityType,
 			entity_id: entityId || '',
 		};
@@ -412,6 +432,7 @@ const AddEntitlementDrawer: FC<Props> = ({
 		setEntitlements((prev) => [...prev, newEntitlement]);
 		setTempEntitlement({});
 		setActiveFeature(null);
+		setShowSelect(true);
 		setErrors({});
 		setIsCalculatorOpen(false);
 	}, [activeFeature, validateCurrentEntitlement, alreadyAddedFeatureIds, tempEntitlement, entityType, entityId, t]);
@@ -424,13 +445,13 @@ const AddEntitlementDrawer: FC<Props> = ({
 	// Memoized error display component
 	const ErrorDisplay = useMemo(() => {
 		if (!errors.general) return null;
-		return <div className='p-3 rounded-md bg-red-50 text-red-600 text-sm mb-4'>{errors.general}</div>;
+		return <div className='p-3 rounded-md bg-danger-muted text-danger text-sm mb-4'>{errors.general}</div>;
 	}, [errors.general]);
 
 	// Memoized feature error display component
 	const FeatureErrorDisplay = useMemo(() => {
 		if (!errors.feature) return null;
-		return <div className='p-3 rounded-md bg-red-50 text-red-600 text-sm mb-4'>{errors.feature}</div>;
+		return <div className='p-3 rounded-md bg-danger-muted text-danger text-sm mb-4'>{errors.feature}</div>;
 	}, [errors.feature]);
 
 	const handleCancel = useCallback(() => {
@@ -447,101 +468,197 @@ const AddEntitlementDrawer: FC<Props> = ({
 
 	return (
 		<div>
-			<Sheet
-				isOpen={isOpen}
-				onOpenChange={handleDrawerClose}
-				title={t('entitlements.addDrawer.title')}
-				description={t('entitlements.addDrawer.description')}>
-				<div className='space-y-4 mt-6'>
-					{ErrorDisplay}
+			<ShadcnSheet open={isOpen} onOpenChange={handleDrawerClose} modal={false}>
+				<SheetContent
+					side={sheetSide}
+					className={cn('h-screen overflow-y-auto rounded-[10px] sm:max-w-sm bg-surface')}
+					{...outsideDismissGuards}>
+					<SheetHeader>
+						<SheetTitle>{t('entitlements.addDrawer.title')}</SheetTitle>
+						<SheetDescription>{t('entitlements.addDrawer.description')}</SheetDescription>
+					</SheetHeader>
+					<div className='space-y-4 mt-6'>
+						{ErrorDisplay}
 
-					{entitlements.map((entitlement, index) => (
-						<div
-							key={`${entitlement.feature_id}-${index}`}
-							className='rounded-md border !p-2 !px-3 flex w-full justify-between items-center'>
-							<p className='text-[#18181B] text-sm font-medium'>{entitlement.feature?.name}</p>
-							<button
-								onClick={() => {
-									setEntitlements((prev) => prev.filter((_, i) => i !== index));
-									setSelectedFeatures((prev) => prev.filter((feature) => feature.id !== entitlement.feature?.id));
-								}}>
-								<X className='size-4' />
-							</button>
-						</div>
-					))}
-
-					{showSelect && (
-						<SelectFeature
-							disabledFeatures={alreadyAddedFeatureIds}
-							onChange={(feature) => {
-								if (feature.type === FEATURE_TYPE.BOOLEAN) {
-									// Automatically add boolean features
-									const booleanEntitlement: Partial<Entitlement> = {
-										feature: feature,
-										feature_id: feature.id,
-										feature_type: feature.type,
-										is_enabled: true,
-									};
-									setEntitlements((prev) => [...prev, booleanEntitlement]);
-									setSelectedFeatures((prev) => [...prev, feature]);
-									setShowSelect(true);
-									setErrors({});
-								} else {
-									// For non-boolean features, show the configuration form
-									setActiveFeature(feature);
-									setSelectedFeatures((prev) => [...prev, feature]);
-									setShowSelect(false);
-									setErrors({});
-								}
-							}}
-							label={t('entitlements.addDrawer.featuresLabel')}
-							placeholder={t('entitlements.addDrawer.selectFeaturePlaceholder')}
-							value={activeFeature?.id}
-						/>
-					)}
-
-					{activeFeature && (
-						<div className='card p-4'>
-							{FeatureErrorDisplay}
-							<div className='flex justify-between items-start gap-4'>
-								<FormHeader title={activeFeature?.name} variant='sub-header' />
-								<span className='mt-1'>{getFeatureIcon(activeFeature?.type)}</span>
+						{entitlements.map((entitlement, index) => (
+							<div
+								key={`${entitlement.feature_id}-${index}`}
+								className='rounded-md border !p-2 !px-3 flex w-full justify-between items-center'>
+								<p className='text-content-zinc-bold text-sm font-medium'>{entitlement.feature?.name}</p>
+								<button
+									onClick={() => {
+										setEntitlements((prev) => prev.filter((_, i) => i !== index));
+										setSelectedFeatures((prev) => prev.filter((feature) => feature.id !== entitlement.feature?.id));
+									}}>
+									<X className='size-4' />
+								</button>
 							</div>
+						))}
 
-							{/* metered feature */}
-							{activeFeature.type === FEATURE_TYPE.METERED && (
-								<div>
-									{/* {activeFeature.type === FeatureType.metered && activeFeature.meter_id && (
+						{showSelect && (
+							<SelectFeature
+								disabledFeatures={alreadyAddedFeatureIds}
+								onChange={(feature) => {
+									// Seed cache so SelectFeature can show the selected label immediately
+									// (it resolves display value via ['fetchFeatureById', id]).
+									queryClient.setQueryData(['fetchFeatureById', feature.id], feature);
+
+									if (feature.type === FEATURE_TYPE.BOOLEAN) {
+										// Automatically add boolean features
+										const booleanEntitlement: Partial<Entitlement> = {
+											feature: feature,
+											feature_id: feature.id,
+											feature_type: feature.type,
+											is_enabled: true,
+										};
+										setEntitlements((prev) => [...prev, booleanEntitlement]);
+										setSelectedFeatures((prev) => [...prev, feature]);
+										setShowSelect(true);
+										setErrors({});
+									} else {
+										// For non-boolean features, show the configuration form
+										setActiveFeature(feature);
+										setSelectedFeatures((prev) => [...prev, feature]);
+										setShowSelect(false);
+										setErrors({});
+									}
+								}}
+								label={t('entitlements.addDrawer.featuresLabel')}
+								placeholder={t('entitlements.addDrawer.selectFeaturePlaceholder')}
+								value={activeFeature?.id}
+							/>
+						)}
+
+						{activeFeature && (
+							<div className='card p-4'>
+								{FeatureErrorDisplay}
+								<div className='flex justify-between items-start gap-4'>
+									<FormHeader title={activeFeature?.name} variant='sub-header' />
+									<span className='mt-1'>{getFeatureIcon(activeFeature?.type)}</span>
+								</div>
+
+								{/* metered feature */}
+								{activeFeature.type === FEATURE_TYPE.METERED && (
+									<div>
+										{/* {activeFeature.type === FeatureType.metered && activeFeature.meter_id && (
 										<div className='w-full flex justify-between items-center'>
 											<span className='text-muted-foreground text-sm font-sans'>Meter</span>
-											<span className='text-[#09090B] text-sm font-sans'>{activeFeature.meter?.name}</span>
+											<span className='text-content-zinc text-sm font-sans'>{activeFeature.meter?.name}</span>
 										</div>
 									)} */}
-									{/* <Spacer className='!my-6' /> */}
-									<Input
-										error={errors.usage_limit}
-										label={t('entitlements.addDrawer.valueLabel')}
-										placeholder={t('entitlements.addDrawer.enterValuePlaceholder')}
-										disabled={tempEntitlement.usage_limit === null}
-										variant='formatted-number'
-										value={
-											tempEntitlement.usage_limit === null
-												? t('entitlements.addDrawer.unlimitedDisplay')
-												: tempEntitlement.usage_limit?.toString() || ''
-										}
-										onChange={(value) => {
-											const numValue = value === '' ? undefined : Number(value);
-											setTempEntitlement((prev) => ({
-												...prev,
-												usage_limit: numValue,
-											}));
-										}}
-										suffix={
-											<div className='flex items-center gap-1.5'>
-												<span className='text-muted-foreground text-xs font-sans'>
-													{featureForForm?.unit_plural?.trim() || t('entitlements.addDrawer.unitsFallback')}
-												</span>
-												{featureForForm?.reporting_unit != null && (
+										{/* <Spacer className='!my-6' /> */}
+										<Input
+											error={errors.usage_limit}
+											label={t('entitlements.addDrawer.valueLabel')}
+											placeholder={t('entitlements.addDrawer.enterValuePlaceholder')}
+											disabled={tempEntitlement.usage_limit === null}
+											variant='formatted-number'
+											value={
+												tempEntitlement.usage_limit === null
+													? t('entitlements.addDrawer.unlimitedDisplay')
+													: tempEntitlement.usage_limit?.toString() || ''
+											}
+											onChange={(value) => {
+												const numValue = value === '' ? undefined : Number(value);
+												setTempEntitlement((prev) => ({
+													...prev,
+													usage_limit: numValue,
+												}));
+											}}
+											suffix={
+												<div className='flex items-center gap-1.5'>
+													<span className='text-muted-foreground text-xs font-sans'>
+														{featureForForm?.unit_plural?.trim() || t('entitlements.addDrawer.unitsFallback')}
+													</span>
+													{featureForForm?.reporting_unit != null && (
+														<Button
+															type='button'
+															variant='ghost'
+															size='icon'
+															className='size-7 shrink-0 text-muted-foreground hover:text-foreground'
+															onClick={() => setIsCalculatorOpen(true)}
+															aria-label={t('entitlements.addDrawer.calculatorAriaLabel')}>
+															<Calculator className='size-4' />
+														</Button>
+													)}
+												</div>
+											}
+										/>
+										<Spacer className='!my-4' />
+										<Checkbox
+											id='set-infinite'
+											label={t('entitlements.addDrawer.setInfiniteLabel')}
+											checked={tempEntitlement.usage_limit === null}
+											onCheckedChange={(e) => {
+												setTempEntitlement((prev) => ({
+													...prev,
+													usage_limit: e ? null : undefined,
+													usage_reset_period: e ? null : undefined,
+												}));
+											}}
+										/>
+										<Spacer className='!my-4' />
+										<Select
+											disabled={tempEntitlement.usage_limit === null || activeFeature.meter?.reset_usage === METER_USAGE_RESET_PERIOD.NEVER}
+											error={errors.usage_reset_period}
+											label={t('entitlements.addDrawer.usageResetLabel')}
+											placeholder={t('entitlements.addDrawer.usageResetPlaceholder')}
+											options={entitlementUsageResetOptions}
+											description={t('entitlements.addDrawer.usageResetDescription')}
+											value={tempEntitlement.usage_reset_period ?? ''}
+											onChange={(value) => {
+												setTempEntitlement((prev) => ({
+													...prev,
+													usage_reset_period: value as ENTITLEMENT_USAGE_RESET_PERIOD,
+												}));
+											}}
+										/>
+										<Spacer className='!my-4' />
+										<Toggle
+											checked={tempEntitlement.is_soft_limit ?? false}
+											label={t('entitlements.addDrawer.softLimitLabel')}
+											description={t('entitlements.addDrawer.softLimitDescription')}
+											onChange={(value) => {
+												setTempEntitlement((prev) => ({
+													...prev,
+													is_soft_limit: value,
+												}));
+											}}
+										/>
+									</div>
+								)}
+
+								{/* config features */}
+								{activeFeature.type === FEATURE_TYPE.CONFIG && (
+									<div>
+										<Spacer height='12px' />
+										<JsonEditor
+											key={activeFeature.id}
+											value={(tempEntitlement.config_value as JsonObject) ?? null}
+											onChange={(parsed) => {
+												setTempEntitlement((prev) => ({ ...prev, config_value: parsed ?? undefined }));
+											}}
+										/>
+										{errors.config_value && <p className='text-xs text-danger-bright mt-1'>{errors.config_value}</p>}
+									</div>
+								)}
+
+								{/* static features */}
+								{activeFeature.type === FEATURE_TYPE.STATIC && (
+									<div>
+										<Input
+											error={errors.static_value}
+											label={t('entitlements.addDrawer.valueLabel')}
+											value={tempEntitlement.static_value === undefined ? '' : tempEntitlement.static_value.toString()}
+											placeholder={t('entitlements.addDrawer.enterValuePlaceholder')}
+											onChange={(value) => {
+												setTempEntitlement((prev) => ({
+													...prev,
+													static_value: value === '' ? undefined : value,
+												}));
+											}}
+											suffix={
+												featureForForm?.reporting_unit != null ? (
 													<Button
 														type='button'
 														variant='ghost'
@@ -551,104 +668,32 @@ const AddEntitlementDrawer: FC<Props> = ({
 														aria-label={t('entitlements.addDrawer.calculatorAriaLabel')}>
 														<Calculator className='size-4' />
 													</Button>
-												)}
-											</div>
-										}
-									/>
-									<Spacer className='!my-4' />
-									<Checkbox
-										id='set-infinite'
-										label={t('entitlements.addDrawer.setInfiniteLabel')}
-										checked={tempEntitlement.usage_limit === null}
-										onCheckedChange={(e) => {
-											setTempEntitlement((prev) => ({
-												...prev,
-												usage_limit: e ? null : undefined,
-												usage_reset_period: e ? null : undefined,
-											}));
-										}}
-									/>
-									<Spacer className='!my-4' />
-									<Select
-										disabled={tempEntitlement.usage_limit === null || activeFeature.meter?.reset_usage === METER_USAGE_RESET_PERIOD.NEVER}
-										error={errors.usage_reset_period}
-										label={t('entitlements.addDrawer.usageResetLabel')}
-										placeholder={t('entitlements.addDrawer.usageResetPlaceholder')}
-										options={entitlementUsageResetOptions}
-										description={t('entitlements.addDrawer.usageResetDescription')}
-										value={tempEntitlement.usage_reset_period ?? ''}
-										onChange={(value) => {
-											setTempEntitlement((prev) => ({
-												...prev,
-												usage_reset_period: value as ENTITLEMENT_USAGE_RESET_PERIOD,
-											}));
-										}}
-									/>
-									<Spacer className='!my-4' />
-									<Toggle
-										checked={tempEntitlement.is_soft_limit ?? false}
-										label={t('entitlements.addDrawer.softLimitLabel')}
-										description={t('entitlements.addDrawer.softLimitDescription')}
-										onChange={(value) => {
-											setTempEntitlement((prev) => ({
-												...prev,
-												is_soft_limit: value,
-											}));
-										}}
-									/>
-								</div>
-							)}
+												) : undefined
+											}
+										/>
+									</div>
+								)}
 
-							{/* static features */}
-							{activeFeature.type === FEATURE_TYPE.STATIC && (
-								<div>
-									<Input
-										error={errors.static_value}
-										label={t('entitlements.addDrawer.valueLabel')}
-										value={tempEntitlement.static_value === undefined ? '' : tempEntitlement.static_value.toString()}
-										placeholder={t('entitlements.addDrawer.enterValuePlaceholder')}
-										onChange={(value) => {
-											setTempEntitlement((prev) => ({
-												...prev,
-												static_value: value === '' ? undefined : value,
-											}));
-										}}
-										suffix={
-											featureForForm?.reporting_unit != null ? (
-												<Button
-													type='button'
-													variant='ghost'
-													size='icon'
-													className='size-7 shrink-0 text-muted-foreground hover:text-foreground'
-													onClick={() => setIsCalculatorOpen(true)}
-													aria-label={t('entitlements.addDrawer.calculatorAriaLabel')}>
-													<Calculator className='size-4' />
-												</Button>
-											) : undefined
-										}
-									/>
+								<div className='w-full mt-6 flex justify-end gap-2'>
+									<Button onClick={handleCancel} variant={'outline'}>
+										{t('entitlements.addDrawer.cancel')}
+									</Button>
+									<Button onClick={handleAdd}>{t('entitlements.addDrawer.add')}</Button>
 								</div>
-							)}
-
-							<div className='w-full mt-6 flex justify-end gap-2'>
-								<Button onClick={handleCancel} variant={'outline'}>
-									{t('entitlements.addDrawer.cancel')}
-								</Button>
-								<Button onClick={handleAdd}>{t('entitlements.addDrawer.add')}</Button>
 							</div>
-						</div>
-					)}
-				</div>
+						)}
+					</div>
 
-				<div className='!space-y-4 mt-4'>
-					{!showSelect && !activeFeature && (
-						<AddChargesButton onClick={() => setShowSelect(true)} label={t('entitlements.addDrawer.addAnotherFeature')} />
-					)}
-					<Button isLoading={isPending} onClick={handleSubmit} disabled={isPending || (!showSelect && !!activeFeature)}>
-						{t('entitlements.addDrawer.save')}
-					</Button>
-				</div>
-			</Sheet>
+					<div className='!space-y-4 mt-4'>
+						{!showSelect && !activeFeature && (
+							<AddChargesButton onClick={() => setShowSelect(true)} label={t('entitlements.addDrawer.addAnotherFeature')} />
+						)}
+						<Button isLoading={isPending} onClick={handleSubmit} disabled={isPending || (!showSelect && !!activeFeature)}>
+							{t('entitlements.addDrawer.save')}
+						</Button>
+					</div>
+				</SheetContent>
+			</ShadcnSheet>
 
 			<DisplayValueCalculatorDialog
 				isOpen={isCalculatorOpen}

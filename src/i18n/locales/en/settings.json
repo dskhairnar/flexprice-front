@@ -3,32 +3,93 @@
 		"settings": "Settings",
 		"billing": "Billing"
 	},
+	"info": {
+		"ariaLabel": "More information about {{field}}"
+	},
+	"superAdmin": {
+		"writeDeniedTooltip": "Only a Super Admin can change this setting. Ask a tenant admin for access."
+	},
 	"members": {
+		"writeDeniedTooltip": "You don't have permission to invite team members. Ask a tenant admin for access.",
 		"roleAdmin": "Admin",
+		"roleMember": "Member",
 		"errors": {
 			"userLimitReached": "User limit reached for this organization.",
 			"userAlreadyExists": "A user with this email already exists!",
 			"failedToAddUser": "Failed to add user",
-			"failedToLoadMembers": "Failed to load members",
+			"failedToLoadUsers": "Failed to load users",
 			"enterEmail": "Enter an email address",
 			"emailInvalid": "Please enter a valid email address",
 			"copyFailed": "Could not copy to clipboard",
 			"loginLinkCopied": "Login link copied – share it securely with the user.",
 			"credentialsCopied": "Credentials copied to clipboard.",
 			"credentialsDownloaded": "Credentials downloaded.",
-			"loadError": "Failed to load members. Please try again."
+			"loadError": "Failed to load users. Please try again."
 		},
 		"columns": {
 			"email": "Email",
-			"role": "Role"
+			"role": "Role",
+			"joined": "Joined"
 		},
-		"cardTitle": "Members",
+		"cardTitle": "Users",
+		"usersCount_one": "{{count}} user",
+		"usersCount_other": "{{count}} users",
+		"actions": {
+			"add": "Add",
+			"invite": "Invite",
+			"remove": "Remove",
+			"editRoles": "Edit roles"
+		},
+		"editRoles": {
+			"title": "Edit roles",
+			"description": "Manage access for this user.",
+			"submit": "Save roles",
+			"success": "Roles updated for {{email}}.",
+			"failedGeneric": "Failed to update roles.",
+			"activeKeysBody_one": "This user has {{count}} active API key that must be expired before their roles can change:",
+			"activeKeysBody_other": "This user has {{count}} active API keys that must be expired before their roles can change:",
+			"typeUser": "User",
+			"typeServiceAccount": "Service Account",
+			"noRoles": "No roles",
+			"userFetchFailed": "Couldn't refresh this user's latest data — showing the last known details."
+		},
+		"filters": {
+			"title": "Filter users",
+			"role": "Role",
+			"status": "Status",
+			"all": "All",
+			"joined": "Joined",
+			"pending": "Pending"
+		},
+		"joinedPending": "Pending",
 		"addMember": {
 			"title": "Add member",
 			"description": "Invite a new team member by email.",
 			"emailLabel": "Email",
 			"emailPlaceholder": "user@example.com",
-			"addUser": "Add user"
+			"addUser": "Add user",
+			"rolesLabel": "Roles",
+			"rolesHint": "Choose at least one role for this member. Selecting Super Admin grants full access and clears other selections.",
+			"rolesLoading": "Loading roles...",
+			"rolesUnavailable": "Couldn't load available roles.",
+			"rolesRetry": "Retry",
+			"rolesRequired": "Select at least one role"
+		},
+		"addUser": {
+			"title": "Add user",
+			"description": "Add a new user and generate login credentials.",
+			"nameLabel": "Name",
+			"namePlaceholder": "Jane Doe",
+			"emailLabel": "Email",
+			"emailPlaceholder": "user@example.com",
+			"submit": "Add user"
+		},
+		"invite": {
+			"title": "Invite user",
+			"description": "Invite a user by email and generate login credentials to share.",
+			"nameLabel": "Name",
+			"namePlaceholder": "Jane Doe",
+			"submit": "Invite user"
 		},
 		"credentials": {
 			"title": "Login Credentials",
@@ -53,7 +114,262 @@
 		"tabs": {
 			"team": "Team"
 		},
-		"unitMembers": "members"
+		"unitUsers_one": "user",
+		"unitUsers_other": "users"
+	},
+	"organization": {
+		"writeDeniedTooltip": "You don't have permission to edit the organization. Ask a tenant admin for access.",
+		"title": "Organization",
+		"workspaceOwner": "Workspace owner",
+		"editOrganization": "Edit organization"
+	},
+	"billing": {
+		"tabs": {
+			"billing": "Billing"
+		},
+		"actions": {
+			"resetToDefaults": "Reset to defaults"
+		},
+		"invoiceConfiguration": {
+			"title": "Invoice configuration",
+			"previewLabel": "Preview",
+			"nextInvoiceNumber": "Next invoice number",
+			"infoAria": "More information about {{field}}",
+			"saveSuccess": "Invoice configuration saved",
+			"saveError": "Failed to save invoice configuration",
+			"resetSuccess": "Invoice configuration reset to defaults",
+			"resetError": "Failed to reset invoice configuration",
+			"validation": {
+				"prefixRequired": "Prefix is required",
+				"timezoneRequired": "Timezone is required",
+				"invalidSequenceDigits": "Sequence digits must be a whole number",
+				"sequenceDigitsMin": "Sequence digits must be at least 1",
+				"sequenceDigitsMax": "Sequence digits cannot exceed 10"
+			},
+			"fields": {
+				"prefix": "Prefix",
+				"separator": "Separator",
+				"dateFormat": "Date format",
+				"timezone": "Timezone",
+				"startSequence": "Start sequence",
+				"sequenceDigits": "Sequence digits",
+				"paymentDueDays": "Payment due (days after issue)"
+			},
+			"hints": {
+				"prefix": "Non-empty string. E.g. INV, ACME, FP",
+				"separator": "Character between prefix, date, and sequence. Leave empty for no separator.",
+				"timezone": "IANA timezone name recommended (e.g. Asia/Kolkata)",
+				"dateFormat": "One of YYYYMM, YYYY, YYYYMMDD, YYMMDD, or YY. Used in the invoice number date segment.",
+				"startSequence": "Integer ≥ 0. Starting number for the sequence.",
+				"sequenceDigits": "1–10 digits, zero-padded. E.g. 5 → 00001",
+				"paymentDueDays": "Integer ≥ 0. Days after invoice creation to set due date. Default: 1."
+			},
+			"dateFormats": {
+				"YYYYMM": "YYYYMM — 202506",
+				"YYYY": "YYYY — 2025",
+				"YYYYMMDD": "YYYYMMDD — 20250629",
+				"YYMMDD": "YYMMDD — 250629",
+				"YY": "YY — 25"
+			}
+		},
+		"subscriptionConfiguration": {
+			"title": "Subscription configuration",
+			"previewLabel": "Configuration preview",
+			"saveSuccess": "Subscription configuration saved",
+			"saveError": "Failed to save subscription configuration",
+			"preview": {
+				"triggerColumn": "Trigger",
+				"gracePeriodColumn": "Grace period",
+				"actionColumn": "Action",
+				"triggerValue": "Invoice unpaid past due date",
+				"gracePeriodValue": "{{count}} days",
+				"actionEnabled": "Cancel subscription",
+				"actionDisabled": "Not enabled"
+			},
+			"fields": {
+				"autoCancellation": "Enable auto-cancellation",
+				"gracePeriodDays": "Grace period",
+				"gracePeriodSuffix": "days after due date"
+			},
+			"hints": {
+				"autoCancellation": "Cancel overdue subscriptions automatically",
+				"disabledState": "When enabled, subscriptions are cancelled automatically after the grace period.",
+				"gracePeriodDays": "Minimum 1 day. Default is 3."
+			},
+			"infoCallout": {
+				"title": "What happens when this triggers",
+				"description1": "Subscription is cancelled immediately - not at period end",
+				"description2": "A subscription.cancelled webhook fires so downstream systems stay in sync",
+				"description3": "Future credit grants are cancelled, a final invoice is generated for the partial period"
+			}
+		}
+	},
+	"customerPortal": {
+		"tabs": {
+			"customerPortal": "Customer Portal"
+		},
+		"portal": {
+			"title": "Portal",
+			"description": "Control which sections and tabs are visible to customers in the self-service portal.",
+			"showInvoices": "Show invoices",
+			"showInvoicesDescription": "Customers can view and download their invoices",
+			"showWalletBalance": "Show wallet balance",
+			"showWalletBalanceDescription": "Customers can see their credit balance and transaction history",
+			"showUsage": "Show usage",
+			"showUsageDescription": "Customers can view metered usage data for their subscription",
+			"showSubscriptions": "Show subscriptions",
+			"showSubscriptionsDescription": "Customers can view their active subscription details",
+			"saveSuccess": "Portal settings saved",
+			"saveError": "Failed to save portal settings"
+		}
+	},
+	"customerOnboarding": {
+		"tabs": {
+			"customerOnboarding": "Customer Onboarding"
+		},
+		"workflow": {
+			"title": "Customer onboarding",
+			"description": "Configure actions that run automatically after a customer is created. With no actions configured, onboarding is skipped.",
+			"summaryLabel": "Workflow status",
+			"noActionsConfigured": "No onboarding actions are configured.",
+			"actionConfigured": "{{count}} onboarding action configured",
+			"actionsConfigured": "{{count}} onboarding actions configured",
+			"advancedActionsPreserved": "This config contains advanced actions that are not editable here. They will be preserved when you save.",
+			"selectedPlanUnavailable": "This plan is saved in the workflow but is not in the current published plan list.",
+			"saveSuccess": "Customer onboarding settings saved",
+			"saveError": "Failed to save customer onboarding settings",
+			"resetSuccess": "Customer onboarding reset to defaults",
+			"resetError": "Failed to reset customer onboarding",
+			"validation": {
+				"walletCurrencyRequired": "Wallet currency is required",
+				"walletConversionRateInvalid": "Wallet conversion rate must be greater than 0",
+				"walletInitialCreditsInvalid": "Initial credits must be a number greater than or equal to 0",
+				"walletCreditsExpirationIncomplete": "Set both expiration duration and unit when expire credits is enabled",
+				"walletCreditsExpirationInvalid": "Expiration duration must be a positive whole number with a valid unit",
+				"walletCreditsExpirationWithoutCredits": "Expiration can only be set when initial credits are greater than 0",
+				"subscriptionPlanRequired": "Select a plan before enabling subscription creation",
+				"subscriptionStartDateInvalid": "Start date must be an ISO datetime like 2026-07-04T00:00:00Z, or left blank",
+				"customWorkflowNameRequired": "Each custom workflow needs a name",
+				"customWorkflowNameInvalid": "Custom workflow names must be 100 characters or fewer",
+				"customWorkflowNameDuplicate": "Custom workflow names must be unique"
+			},
+			"customWorkflows": {
+				"title": "Custom workflows",
+				"description": "Optional named workflows which can be used to trigger different onboarding flows for different customers.",
+				"empty": "No custom workflows yet.",
+				"add": "Add custom workflow",
+				"remove": "Remove custom workflow",
+				"name": "Name",
+				"nameHint": "Used as the workflow name. Up to 100 characters.",
+				"namePlaceholder": "Enterprise trial",
+				"untitled": "Untitled workflow",
+				"noActionsSummary": "No actions enabled",
+				"advancedCount": "{{count}} advanced action(s) preserved"
+			},
+			"wallet": {
+				"title": "Create wallet",
+				"description": "Create a wallet for every new customer.",
+				"type": "Wallet type",
+				"typeHint": "Pre-paid wallets deduct from a balance; post-paid wallets settle on invoices.",
+				"typePlaceholder": "Select wallet type",
+				"types": {
+					"prePaid": "Pre-Paid",
+					"prePaidHint": "Customers top up credits in advance. Usage deducts from a real-time balance.",
+					"postPaid": "Post-Paid",
+					"postPaidHint": "Credits are applied to invoices at the end of the billing cycle."
+				},
+				"currency": "Currency",
+				"currencyHint": "Currency for the wallet that will be created.",
+				"conversionRate": "Conversion rate",
+				"conversionRateHint": "Optional. Defaults to 1 when left blank.",
+				"initialCredits": "Initial credits",
+				"initialCreditsHint": "Optional welcome free credits. Leave blank or 0 for no free credits.",
+				"initialCreditsPlaceholder": "0",
+				"expireCredits": "Expire credits",
+				"expireCreditsHint": "When off, welcome credits never expire. When on, set a relative duration and unit.",
+				"expirationDuration": "Credits expiry duration",
+				"expirationDurationHint": "How long after grant before welcome credits expire. Required with unit when expiry is enabled.",
+				"expirationDurationPlaceholder": "30",
+				"expirationUnit": "Credits expiry unit",
+				"expirationUnitHint": "Unit for the expiry duration. Required with duration when expiry is enabled.",
+				"expirationUnitPlaceholder": "Select unit",
+				"expirationUnits": {
+					"day": "Day",
+					"week": "Week",
+					"month": "Month",
+					"year": "Year"
+				}
+			},
+			"subscription": {
+				"title": "Create subscription",
+				"description": "Create a subscription for every new customer.",
+				"plan": "Plan",
+				"planPlaceholder": "Select a plan",
+				"plansLoading": "Loading plans...",
+				"noPlans": "No published plans found",
+				"planHint": "The plan to subscribe newly created customers to.",
+				"billingCycle": "Billing cycle",
+				"billingCycleHint": "Anniversary bills relative to customer signup; calendar aligns to calendar periods.",
+				"startDate": "Start date",
+				"startDatePlaceholder": "2026-07-04T00:00:00Z",
+				"startDateHint": "Optional RFC3339 timestamp. Leave blank to omit start_date."
+			}
+		}
+	},
+	"alerts": {
+		"tabs": {
+			"alerts": "Alerts"
+		},
+		"walletAlerts": {
+			"title": "Wallet Alert Settings",
+			"description": "Monitor wallet balance against configured thresholds",
+			"thresholdValue": "Threshold Value ({{currency}})",
+			"condition": "Condition",
+			"remove": "Remove",
+			"add": "Add",
+			"amountPlaceholder": "0.00",
+			"saveChanges": "Save changes",
+			"saveSuccess": "Wallet alert settings saved",
+			"saveError": "Failed to save wallet alert settings",
+			"levels": {
+				"critical": "Critical",
+				"warning": "Warning",
+				"info": "Info"
+			},
+			"levelDescriptions": {
+				"critical": "Alert at critical level",
+				"warning": "Alert at warning level",
+				"info": "Alert at info level"
+			},
+			"conditions": {
+				"below": "Below",
+				"above": "Above"
+			},
+			"validation": {
+				"atLeastOneThreshold": "Please configure at least one threshold level when alerts are enabled",
+				"invalidCriticalThreshold": "Please enter a valid critical threshold value",
+				"invalidWarningThreshold": "Please enter a valid warning threshold value",
+				"invalidInfoThreshold": "Please enter a valid info threshold value",
+				"criticalRequiredForWarning": "A critical threshold is required when a warning threshold is set",
+				"warningMustBeLessThanCritical": "For \"Above\" alerts, the warning threshold must be less than the critical threshold",
+				"warningMustBeGreaterThanCritical": "For \"Below\" alerts, the warning threshold must be greater than the critical threshold",
+				"infoMustBeLessThanWarning": "For \"Above\" alerts, the info threshold must be less than the warning threshold",
+				"infoMustBeGreaterThanWarning": "For \"Below\" alerts, the info threshold must be greater than the warning threshold",
+				"infoMustBeLessThanCritical": "For \"Above\" alerts, the info threshold must be less than the critical threshold",
+				"infoMustBeGreaterThanCritical": "For \"Below\" alerts, the info threshold must be greater than the critical threshold"
+			}
+		}
+	},
+	"appearance": {
+		"tabs": {
+			"appearance": "Appearance"
+		},
+		"theme": {
+			"title": "Dark mode",
+			"description": "Switch the dashboard between the light and dark colour themes. The choice is saved on this device.",
+			"toggleAriaLabel": "Toggle dark mode",
+			"rolloutNote": "Dark mode is still being rolled out — some screens have not been converted yet and will keep their light styling for now."
+		}
 	},
 	"billingPage": {
 		"errorFetchBilling": "Error fetching billing details",
@@ -169,10 +485,18 @@
 			"uploadSuccess": "{{filename}} uploaded successfully",
 			"uploadFailed": "{{filename}} upload failed"
 		},
+		"errors": {
+			"notConfigured": "Import is not enabled for this environment. Please contact support.",
+			"invalidUploadId": "Something went wrong wiring up the uploader. Please refresh and try again.",
+			"missingTenantOrEnv": "Waiting for your tenant and environment to load…",
+			"downloadFailedHint": "We couldn't read the uploaded file. This usually happens if you clicked Import before the upload finished. Please try again."
+		},
 		"importFileLabel": "Import file",
-		"chooseFile": "Choose File to Upload"
+		"chooseFile": "Choose File to Upload",
+		"maxFileSizeHint": "Max 5 MB. Only .csv files are accepted."
 	},
 	"bulkImports": {
+		"writeDeniedTooltip": "You don't have permission to create import tasks. Ask a tenant admin for access.",
 		"title": "Bulk Imports",
 		"columns": {
 			"fileName": "File Name",
@@ -309,8 +633,105 @@
 		}
 	},
 	"connection": {
+		"awsMarketplace": {
+			"titleConnect": "Connect your AWS Marketplace account",
+			"titleEdit": "Edit AWS Marketplace Connection",
+			"description": "Sync your AWS Marketplace customers, subscriptions, and billing data securely using an IAM role. Flexprice only accesses the permissions you explicitly grant, and verifies the connection before enabling sync.",
+			"connectionNameLabel": "Connection Name",
+			"connectionNameInfo": "Choose a name to help identify this AWS Marketplace connection inside your workspace.",
+			"connectionNamePlaceholder": "Production AWS Marketplace",
+			"connectionNameHint": "A descriptive name for this connection.",
+			"step1Title": "Step 1 — Create an IAM role in AWS",
+			"step1Hint": "Create a new IAM role in your AWS account using the policies below. They grant Flexprice only the permissions required to sync your AWS Marketplace subscriptions, customers, and billing information.",
+			"iamPolicyLabel": "Permissions Policy",
+			"iamPolicyInfo": "Specifies exactly what AWS Marketplace resources Flexprice can access.",
+			"trustPolicyLabel": "Trust Relationship",
+			"trustPolicyInfo": "Allows Flexprice to securely assume this IAM role using the External ID below.",
+			"externalIdLabel": "External ID",
+			"externalIdInfo": "This unique identifier protects against the Confused Deputy security issue by ensuring only your Flexprice workspace can assume this IAM role. You don't need to copy it separately — it's already included in the Trust Relationship above.",
+			"accountIdLabel": "Flexprice AWS account ID",
+			"accountIdInfo": "Flexprice's AWS account that your IAM role will trust. It's already included in the Trust Relationship above.",
+			"accountIdMissing": "Not configured. Set VITE_FLEXPRICE_AWS_ACCOUNT_ID so the trust policy can be generated.",
+			"step2Title": "Step 2 — Enter your IAM Role ARN",
+			"roleArnLabel": "Role ARN",
+			"roleArnInfo": "Paste the full ARN of the IAM role created in your AWS account. We'll verify that it can be assumed before saving.",
+			"roleArnPlaceholder": "arn:aws:iam::<AWS_ACCOUNT_ID>:role/flexprice-marketplace-role",
+			"roleArnHint": "We'll validate the role before saving the connection.",
+			"regionLabel": "AWS Marketplace Region",
+			"regionInfo": "The AWS region your product's Marketplace Metering Service is enabled in. Defaults to us-east-1 — AWS Marketplace assigns this to every SaaS product unless you specifically requested a different region.",
+			"regionPlaceholder": "us-east-1",
+			"regionHint": "Only change this if AWS confirmed your product uses a different metering region.",
+			"variablesTitle": "Variables",
+			"variablesHint": "Copy each value to fill the matching {VARIABLE} placeholder in the Trust Relationship above. The values stay hidden here and are only revealed once pasted.",
+			"infoAriaLabel": "More information",
+			"copyIamPolicy": "Permissions policy copied to clipboard",
+			"copyTrustPolicy": "Trust relationship copied to clipboard",
+			"copyExternalId": "External ID copied to clipboard",
+			"copyAccountId": "Account ID copied to clipboard"
+		},
+		"gcpMarketplace": {
+			"titleConnect": "Connect to GCP Marketplace",
+			"titleEdit": "Edit GCP Marketplace Connection",
+			"description": "Run the setup script in your GCP project, then paste the resulting credentials JSON here. Flexprice verifies it before saving.",
+			"connectionNameLabel": "Connection name",
+			"connectionNameInfo": "Choose a name to help identify this GCP Marketplace connection inside your workspace.",
+			"connectionNamePlaceholder": "e.g. GCP Marketplace",
+			"connectionNameHint": "A descriptive name for this connection. Covers every product listed under the same GCP project.",
+			"step1Title": "1. Run this script in your GCP project's Cloud Shell",
+			"step1Hint": "It creates a Workload Identity Federation pool, a service account, and grants it exactly the permission needed to report usage. Expand to review before copying.",
+			"scriptLabel": "Setup script",
+			"scriptInfo": "Creates a Workload Identity Federation pool, provider, and service account in your GCP project, scoped to report usage only.",
+			"copyScript": "Setup script copied to clipboard",
+			"variablesTitle": "Variables",
+			"variablesHint": "Copy each value to fill the matching {VARIABLE} placeholder in the setup script above. The values stay hidden here and are only revealed once pasted.",
+			"accountIdInfo": "Flexprice's AWS account that your Workload Identity Federation provider trusts. It's already included in the setup script above.",
+			"roleNameInfo": "The AWS role name your Workload Identity Federation provider's attribute condition checks against. It's already included in the setup script above.",
+			"copyAccountId": "Account ID copied to clipboard",
+			"copyRoleName": "Role name copied to clipboard",
+			"infoAriaLabel": "More information",
+			"accountIdMissing": "Not configured. Set VITE_FLEXPRICE_AWS_ACCOUNT_ID and VITE_FLEXPRICE_AWS_ROLE_NAME so the script can be generated.",
+			"step2Title": "2. Paste the credentials JSON the script produced",
+			"credentialsJsonLabel": "Credentials JSON",
+			"credentialsJsonInfo": "The credentials file the script produced. Flexprice uses it to authenticate into your GCP project without storing a long-lived key.",
+			"credentialsJsonPlaceholder": "{\"type\": \"external_account\", ...}",
+			"credentialsJsonHint": "The full contents of the file the script wrote (flexprice-gcp-creds.json)",
+			"credentialsJsonRequired": "Credentials JSON is required",
+			"credentialsJsonInvalid": "This doesn't look like a Workload Identity Federation credentials file — it must have \"type\": \"external_account\""
+		},
+		"azureMarketplace": {
+			"titleConnect": "Connect to Azure Marketplace",
+			"titleEdit": "Edit Azure Marketplace Connection",
+			"description": "Sync your Azure Marketplace subscriptions and usage using an Entra ID app registered in your own tenant. Flexprice verifies the credentials before saving.",
+			"connectionNameLabel": "Connection name",
+			"connectionNameInfo": "Choose a name to help identify this Azure Marketplace connection inside your workspace.",
+			"connectionNamePlaceholder": "e.g. Azure Marketplace",
+			"connectionNameHint": "A descriptive name for this connection.",
+			"infoAriaLabel": "More information",
+			"step1Title": "Step 1. Register an app in your Microsoft Entra ID tenant",
+			"step1Hint": "Create an app registration in your own Microsoft Entra ID tenant and grant it access to your SaaS Marketplace resources.",
+			"technicalConfigWarning": "Use the same Entra tenant ID and application ID that you specified in the Partner Center Technical Configuration page of each offer you want usage reported for.",
+			"step2Title": "Step 2. Enter the app credentials",
+			"tenantIdLabel": "Tenant ID",
+			"tenantIdInfo": "The directory (tenant) ID of the Microsoft Entra ID tenant where the app is registered.",
+			"tenantIdPlaceholder": "Enter tenant ID",
+			"tenantIdHint": "Found on the app registration overview page in Azure.",
+			"tenantIdRequired": "Tenant ID is required",
+			"clientIdLabel": "Client ID",
+			"clientIdInfo": "The application (client) ID of the registered app.",
+			"clientIdPlaceholder": "Enter client ID",
+			"clientIdHint": "Found on the app registration overview page in Azure.",
+			"clientIdRequired": "Client ID is required",
+			"clientSecretLabel": "Client secret",
+			"clientSecretInfo": "A client secret generated for the app. Flexprice encrypts it and uses it only to request an access token.",
+			"clientSecretPlaceholder": "Enter client secret",
+			"clientSecretHint": "Generated under Certificates and secrets on the app registration.",
+			"clientSecretRequired": "Client secret is required"
+		},
 		"validation": {
 			"nameRequired": "Connection name is required",
+			"roleArnRequired": "Role ARN is required",
+			"roleArnInvalid": "Enter a valid IAM role ARN (arn:aws:iam::<account-id>:role/<name>)",
+			"regionRequired": "Region is required",
 			"awsAccessKeyRequired": "AWS Access Key ID is required",
 			"awsSecretRequired": "AWS Secret Access Key is required",
 			"accessTokenRequired": "Access token is required",
@@ -334,6 +755,7 @@
 			"updated": "{{provider}} connection updated successfully",
 			"failedToCreate": "Failed to create connection",
 			"failedToUpdate": "Failed to update connection",
+			"externalIdUnavailable": "Unable to create connection — tenant or environment is missing",
 			"webhookUrlCopied": "Webhook URL copied to clipboard!",
 			"redirectUriCopied": "Redirect URI copied to clipboard!",
 			"failedOAuth": "Failed to initiate OAuth",
@@ -507,9 +929,22 @@
 			"secretKey": "Secret Key",
 			"secretKeyPlaceholder": "sk_...",
 			"secretKeyHint": "Your Moyasar secret key from the API keys section",
+			"publishableKey": "Publishable Key",
+			"publishableKeyPlaceholder": "pk_live_... or pk_test_...",
+			"publishableKeyHint": "Used to render the secure card form for autopay. Find it in your Moyasar dashboard.",
+			"successUrl": "Success URL",
+			"successUrlPlaceholder": "https://your-app.com/billing/success",
+			"successUrlHint": "URL customers are redirected to after a successful payment (optional)",
+			"cancelUrl": "Cancel URL",
+			"cancelUrlPlaceholder": "https://your-app.com/billing/cancel",
+			"cancelUrlHint": "URL customers are redirected to if they cancel the payment (optional)",
 			"webhookIntro": "Set up this webhook URL in your Moyasar dashboard to receive event notifications:",
 			"webhookEventsIntro": "Subscribe to these events in your Moyasar dashboard:",
-			"webhookEventPaymentPaid": "payment_paid"
+			"webhookEventPaymentPaid": "payment_paid",
+			"webhookEventPaymentFailed": "payment_failed",
+			"webhookEventPaymentRefunded": "payment_refunded",
+			"webhookEventPaymentVoided": "payment_voided",
+			"webhookEventPaymentCaptured": "payment_captured"
 		},
 		"razorpay": {
 			"description": "Configure your Razorpay integration with the required credentials.",
@@ -537,8 +972,7 @@
 			"redirectUrlHint": "URL customers are redirected to after a successful payment (optional)",
 			"webhookSecretPlaceholder": "pdl_ntfset_...",
 			"webhookIntro": "Set up this webhook URL in your Paddle dashboard to receive event notifications:",
-			"webhookEventsIntro": "Subscribe to these events in your Paddle dashboard:",
-			"webhookEventTransactionsCompleted": "transactions.completed"
+			"webhookEventsIntro": "Subscribe to these events in your Paddle dashboard:"
 		},
 		"whop": {
 			"description": "Connect Flexprice to Whop to sync invoices.",
@@ -554,9 +988,19 @@
 			"productIdPlaceholder": "prod_... — leave blank to auto-create",
 			"productIdHint": "Whop product used for invoices. Leave blank to have Flexprice create one automatically.",
 			"invoiceSyncHint": "Push Flexprice invoices to Whop as send_invoice payments",
-			"webhookIntroPrefix": "Register this URL in your Whop dashboard under Webhooks. Flexprice will listen for",
-			"webhookEventName": "invoice.paid",
-			"webhookIntroSuffix": "events to automatically mark invoices as paid."
+			"webhookSecret": "Webhook Secret",
+			"webhookSecretPlaceholderCreate": "Webhook signing secret from Whop",
+			"webhookSecretPlaceholderEdit": "Leave blank to keep existing secret, or enter a new secret to rotate",
+			"webhookSecretDescCreate": "Required for webhook verification. Must match the secret configured in Whop. Stored encrypted.",
+			"webhookSecretDescEdit": "Stored encrypted. Leave blank to keep the current secret when updating."
+		},
+		"tabs": {
+			"description": "Configure your Tabs integration with the required credentials.",
+			"connectionPlaceholder": "e.g., Tabs Production, Tabs Test",
+			"connectionHint": "A friendly name to identify this Tabs connection",
+			"apiKeyPlaceholder": "Enter your Tabs API key",
+			"apiKeyHint": "Your Tabs API key (e.g., tabs_sk_...)",
+			"pushToTabs": "Push to Tabs"
 		}
 	},
 	"insightsTools": {
@@ -629,7 +1073,45 @@
 			"taskRunsHeading": "Task Runs",
 			"backToExportDetails": "Back to Export Details"
 		},
+		"usageSyncs": {
+			"pageHeading": "Usage Syncs",
+			"paginationUnit": "usage records",
+			"notSynced": "No syncs yet",
+			"entityName": "Usage Record",
+			"emptyDescription": "No usage records yet. Connect a cloud marketplace and link a subscription to start seeing usage syncs.",
+			"errors": {
+				"fetchFailed": "Failed to load usage records"
+			},
+			"columns": {
+				"subscription": "Subscription",
+				"customer": "Customer",
+				"plan": "Plan",
+				"amount": "Amount",
+				"currency": "Currency",
+				"periodStart": "Period Start",
+				"periodEnd": "Period End",
+				"syncs": "Syncs"
+			},
+			"filterLabels": {
+				"customerId": "Customer ID",
+				"subscriptionId": "Subscription ID",
+				"periodStart": "Period Start",
+				"periodEnd": "Period End"
+			},
+			"sortLabels": {
+				"createdAt": "Created At",
+				"periodStart": "Period Start",
+				"periodEnd": "Period End"
+			},
+			"drawer": {
+				"title": "Syncs",
+				"empty": "No syncs yet.",
+				"synced": "Synced",
+				"skipped": "Skipped"
+			}
+		},
 		"integrations": {
+			"writeDeniedTooltip": "You don't have permission to manage connections. Ask a tenant admin for access.",
 			"pageHeading": "Integrations",
 			"availableSection": "Available",
 			"premiumAddonsSection": "Premium add-ons",
@@ -664,7 +1146,9 @@
 					"customerService": "Customer Service",
 					"accounting": "Accounting",
 					"payment": "Payment",
-					"invoiceCustomer": "Invoice Customer"
+					"invoiceCustomer": "Invoice Customer",
+					"marketplace": "Marketplace",
+					"usageMetering": "Usage Metering"
 				},
 				"mode": {
 					"test": "Test Mode"
@@ -963,8 +1447,94 @@
 						"webhooks": {
 							"title": "Webhooks",
 							"paragraphs": [
-								"Register the Flexprice webhook URL in your Whop developer settings to receive invoice.paid events. When Whop fires this event, Flexprice automatically marks the corresponding invoice as paid and records the payment."
+								"Register the Flexprice webhook URL in your Whop developer settings, subscribe to invoice.paid, and use the same webhook signing secret in Flexprice. When Whop fires this event, Flexprice verifies the signature, marks the corresponding invoice as paid, and records the payment."
 							]
+						}
+					}
+				},
+				"tabs": {
+					"name": "Tabs",
+					"description": "Sync invoices to Tabs using your Tabs API key.",
+					"sections": {
+						"overview": {
+							"title": "Overview",
+							"paragraphs": [
+								"The Flexprice Tabs integration lets you push invoices directly to Tabs using your Tabs API key. Configure a connection name, API key, and invoice sync settings to get started."
+							]
+						},
+						"invoiceSync": {
+							"title": "Invoice Sync",
+							"paragraphs": ["When invoice sync is enabled, Flexprice automatically pushes finalized invoices to Tabs."]
+						}
+					}
+				},
+				"aws_marketplace": {
+					"name": "AWS Marketplace",
+					"description": "Report metered usage to AWS Marketplace so your AWS buyers are billed for what they consume.",
+					"sections": {
+						"overview": {
+							"title": "Overview",
+							"paragraphs": [
+								"Flexprice reports the usage you already meter to AWS Marketplace on your behalf. Connect the marketplace-metering IAM role from your own AWS account, and Flexprice takes care of sending BatchMeterUsage for each registered agreement."
+							]
+						},
+						"setup": {
+							"title": "Setup",
+							"paragraphs": [
+								"Create an IAM role in your AWS account using the IAM policy and trust policy shown in the connection panel. The trust policy grants Flexprice's AWS account permission to assume the role, scoped to a unique external ID. Paste the resulting Role ARN back into Flexprice and save — Flexprice verifies the role by assuming it before storing the connection."
+							]
+						},
+						"usageReporting": {
+							"title": "Usage Reporting",
+							"paragraphs": [
+								"Once connected, an hourly job aggregates usage per agreement and reports it to AWS via BatchMeterUsage, with a daily reconciliation pass as a backstop."
+							]
+						}
+					}
+				},
+				"gcp_marketplace": {
+					"name": "GCP Marketplace",
+					"description": "Report metered usage to GCP Marketplace so your GCP buyers are billed for what they consume.",
+					"sections": {
+						"overview": {
+							"title": "Overview",
+							"paragraphs": [
+								"Flexprice reports the usage you already meter to GCP Marketplace on your behalf. Flexprice authenticates to your GCP project using Workload Identity Federation — no long-lived GCP key is ever stored — and sends the usage report for each registered entitlement."
+							]
+						},
+						"setup": {
+							"title": "Setup",
+							"paragraphs": [
+								"Run the setup script shown in the connection panel from your GCP project's Cloud Shell. It creates a workload identity pool trusting Flexprice's AWS identity and a service account scoped to report usage only. Paste the resulting credentials file back into Flexprice and save — Flexprice verifies the connection by exchanging it for a live token before storing it."
+							]
+						},
+						"usageReporting": {
+							"title": "Usage Reporting",
+							"paragraphs": [
+								"Once connected, a scheduled job aggregates usage per entitlement and reports it to GCP via the Service Control API's services.report."
+							]
+						}
+					}
+				},
+				"azure_marketplace": {
+					"name": "Azure Marketplace",
+					"description": "Report metered usage to Azure Marketplace so your Azure buyers are billed for what they consume.",
+					"sections": {
+						"overview": {
+							"title": "Overview",
+							"paragraphs": [
+								"Flexprice reports the usage you already meter to Azure Marketplace on your behalf. Connect an Entra ID app registered in your own Azure tenant, and Flexprice sends the usage event for each registered subscription."
+							]
+						},
+						"setup": {
+							"title": "Setup",
+							"paragraphs": [
+								"Register an app in your own Microsoft Entra ID tenant and generate a client secret for it. Make sure this app's tenant ID and application ID are entered on the Technical Configuration page of every offer you want usage reported for. Paste the tenant ID, client ID, and client secret back into Flexprice and save. Flexprice verifies the credentials by requesting an access token before storing the connection."
+							]
+						},
+						"usageReporting": {
+							"title": "Usage Reporting",
+							"paragraphs": ["Once connected, a scheduled job reports usage per subscription to Azure Marketplace's usage event API."]
 						}
 					}
 				}
@@ -1016,6 +1586,7 @@
 			"labels": {
 				"plans": "Plans",
 				"invoices": "Invoices",
+				"prices": "Prices",
 				"subscriptions": "Subscriptions"
 			},
 			"toast": {
@@ -1112,7 +1683,8 @@
 			"copyEnvironment": "Copy Environment",
 			"renameAria": "Rename {{name}}",
 			"suspendedTitle": "Environment suspended",
-			"suspendedDescription": "This environment is temporarily closed. Contact us to continue."
+			"suspendedDescription": "This environment is temporarily closed. Contact us to continue.",
+			"writeDeniedTooltip": "You don't have permission to manage environments"
 		},
 		"restrictedBanner": {
 			"productionAccount": "production account",
@@ -1142,6 +1714,62 @@
 		"progress": "{{current}} of {{total}} events fired",
 		"streaming": "Streaming...",
 		"startStreaming": "Start Streaming"
+	},
+	"saml": {
+		"tabs": {
+			"saml": "SAML SSO"
+		},
+		"config": {
+			"title": "SAML single sign-on",
+			"description": "Let your team sign in through your identity provider instead of a password.",
+			"onboardingOrder": "Copy the metadata URL below into your identity provider and create the app there first, then fill in the fields below with the values it gives you.",
+			"metadataUrlLabel": "SP metadata URL",
+			"metadataUrlDescription": "Paste this into your identity provider when creating the app.",
+			"copyMetadataUrl": "Copy metadata URL",
+			"copiedMetadataUrl": "Metadata URL copied",
+			"enabled": "Enable SAML SSO",
+			"enabledDescription": "Turn on SSO for this tenant. Requires Flexprice approval before sign-in is available.",
+			"statusApproved": "Approved",
+			"statusPending": "Pending Flexprice approval",
+			"statusDescription": "Flexprice reviews and approves SSO access for each tenant. This is separate from the toggle above.",
+			"enforceSso": "Require SSO for sign-in",
+			"enforceSsoWarning": "Turning this on disables password login for everyone in this tenant except super admins.",
+			"idpEntityId": "IdP entity ID",
+			"idpEntityIdDescription": "Must match the Issuer in the SAML assertion.",
+			"idpEntityIdPlaceholder": "https://idp.example.com/metadata",
+			"idpSsoUrl": "IdP SSO URL",
+			"idpSsoUrlDescription": "Must be an absolute https:// URL. Plain http:// is only allowed for localhost / 127.0.0.1 / ::1.",
+			"idpSsoUrlPlaceholder": "https://idp.example.com/sso",
+			"idpCertificate": "IdP certificate",
+			"idpCertificateDescription": "PEM-encoded X.509 certificate, beginning with -----BEGIN CERTIFICATE-----.",
+			"idpCertificatePlaceholder": "-----BEGIN CERTIFICATE-----\n...\n-----END CERTIFICATE-----",
+			"emailAttribute": "Email attribute",
+			"emailAttributeDescription": "Assertion attribute holding the user's email. Leave blank to use the NameID.",
+			"emailAttributePlaceholder": "email",
+			"defaultRole": "Default role",
+			"defaultRoleDescription": "Role granted to users the first time they sign in through SSO.",
+			"defaultRolePlaceholder": "Select a role",
+			"roleAllReader": "All reader",
+			"roleAllWriter": "All writer",
+			"validation": {
+				"idpEntityIdRequired": "IdP entity ID is required when SAML SSO is enabled",
+				"idpSsoUrlRequired": "IdP SSO URL is required when SAML SSO is enabled",
+				"idpSsoUrlInvalid": "IdP SSO URL must be an absolute https:// URL (http:// is only allowed for localhost)",
+				"idpCertificateRequired": "IdP certificate is required when SAML SSO is enabled",
+				"defaultRoleRequired": "Default role is required when SAML SSO is enabled"
+			},
+			"saveSuccess": "SAML SSO settings saved",
+			"saveSuccessPendingApproval": "Saved. Awaiting Flexprice approval before sign-in is available.",
+			"saveError": "Failed to save SAML SSO settings",
+			"saveErrorForbidden": "SAML SSO can only be configured by a super admin user. A super admin API key cannot be used to change how people sign in.",
+			"saveErrorDisabled": "This deployment does not offer SSO.",
+			"ssoLoginUrlLabel": "SSO sign-in link",
+			"ssoLoginUrlDescription": "Share this link with your team. It takes them straight to your identity provider to sign in.",
+			"copySsoLoginUrl": "Copy SSO sign-in link",
+			"copiedSsoLoginUrl": "SSO sign-in link copied",
+			"unsupportedSigning": "Flexprice does not sign authentication requests or accept encrypted assertions. The certificate above is your identity provider's public certificate — Flexprice holds no signing key of its own. If your identity provider requires signed requests or assertion encryption, turn those options off for this application, or sign-in will fail.",
+			"saveConflict": "Someone else changed these settings while this page was open. The latest values have been loaded — review them and save again."
+		}
 	},
 	"region": {
 		"dataRegion": "Data region",

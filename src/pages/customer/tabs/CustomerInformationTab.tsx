@@ -19,6 +19,7 @@ import { CustomerResponse } from '@/types/dto';
 import { uniq } from 'lodash';
 import { Skeleton } from '@/components/ui';
 import { useTranslation } from 'react-i18next';
+import { ENTITY_STATUS } from '@/models';
 
 type ContextType = {
 	isArchived: boolean;
@@ -58,6 +59,7 @@ const CustomerInformationTab = () => {
 			SubscriptionApi.listSubscriptions({
 				invoicing_customer_ids: [customerId!],
 				limit: INVOICED_SUBSCRIPTIONS_LIMIT,
+				status: ENTITY_STATUS.PUBLISHED,
 				offset: 0,
 			}),
 		enabled: !!customerId,
@@ -152,6 +154,14 @@ const CustomerInformationTab = () => {
 			label: 'Email',
 			value: customer?.email || '--',
 		},
+		...(customer?.timezone?.trim()
+			? [
+					{
+						label: t('overview.labels.timezone'),
+						value: customer.timezone,
+					},
+				]
+			: []),
 		{
 			variant: 'divider',
 		},
@@ -188,8 +198,8 @@ const CustomerInformationTab = () => {
 
 	if (isLoading) {
 		return (
-			<div className='py-6 px-4 rounded-xl border border-gray-300'>
-				<p className='text-gray-600'>{t('overview.loadingCustomerDetails')}</p>
+			<div className='py-6 px-4 rounded-xl border border-line-strong'>
+				<p className='text-content-tertiary'>{t('overview.loadingCustomerDetails')}</p>
 			</div>
 		);
 	}
@@ -203,7 +213,7 @@ const CustomerInformationTab = () => {
 						<h3 className={getTypographyClass('card-header') + '!text-[16px]'}>{t('overview.cardTitle')}</h3>
 						<div className='flex gap-2'>
 							{!isArchived && hasStripeConnection && (
-								<Button variant='outline' size='sm' onClick={() => setShowSaveCardModal(true)} className='flex items-center gap-2'>
+								<Button variant='outline' size='sm' onClick={() => setShowSaveCardModal(true)} className='!h-9 flex items-center gap-2'>
 									<CreditCard className='size-4' />
 									{t('tabPanels.information.saveCardOnStripe')}
 								</Button>

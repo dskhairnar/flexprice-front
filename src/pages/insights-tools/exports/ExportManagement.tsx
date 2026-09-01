@@ -1,4 +1,5 @@
-import { FormHeader, Loader, Page, Button, AddButton } from '@/components/atoms';
+import { FormHeader, Loader, Page, Button, AddButton, Tooltip } from '@/components/atoms';
+import { useCurrentUserPermissions } from '@/hooks/useCurrentUserPermissions';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useParams, useNavigate } from 'react-router';
@@ -16,6 +17,8 @@ const ExportManagement = () => {
 	const { connectionId } = useParams<{ connectionId: string }>();
 	const navigate = useNavigate();
 	const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+	const { can } = useCurrentUserPermissions();
+	const canWriteTask = can('task', 'write');
 
 	// Fetch connection details
 	const { data: connection, isLoading: isLoadingConnection } = useQuery({
@@ -79,11 +82,19 @@ const ExportManagement = () => {
 					<ArrowLeft className='w-4 h-4' />
 					{t('insightsTools.exports.backToS3Connections')}
 				</Button>
-				<AddButton
-					onClick={() => {
-						setIsDrawerOpen(true);
-					}}
-				/>
+				{canWriteTask ? (
+					<AddButton
+						onClick={() => {
+							setIsDrawerOpen(true);
+						}}
+					/>
+				) : (
+					<Tooltip content={t('bulkImports.writeDeniedTooltip')}>
+						<span tabIndex={0} className='inline-block'>
+							<AddButton disabled />
+						</span>
+					</Tooltip>
+				)}
 			</div>
 
 			{/* Exports List */}
@@ -95,12 +106,12 @@ const ExportManagement = () => {
 							<div key={idx} className='flex items-center justify-between text-sm p-4 border-b last:border-b-0'>
 								<div className='flex-1'>
 									<div className='flex items-center gap-3'>
-										<div className={`w-3 h-3 rounded-full ${task.enabled ? 'bg-green-500' : 'bg-gray-400'}`} />
+										<div className={`w-3 h-3 rounded-full ${task.enabled ? 'bg-success-bright' : 'bg-surface-heavy'}`} />
 										<div>
-											<p className='text-gray-900 font-medium'>
+											<p className='text-content font-medium'>
 												{t('insightsTools.exports.entityExportSuffix', { entity: formatEntityType(task.entity_type) })}
 											</p>
-											<p className='text-xs text-gray-500'>
+											<p className='text-xs text-content-muted'>
 												{task.interval} • {task.job_config.bucket} • {task.job_config.region}
 											</p>
 										</div>
@@ -115,7 +126,7 @@ const ExportManagement = () => {
 										variant='outline'
 										size='icon'
 										onClick={() => handleDeleteTask(task.id, task.entity_type)}
-										disabled={isDeletingTask}
+										disabled={isDeletingTask || !canWriteTask}
 										isLoading={isDeletingTask}>
 										<Trash2 className='size-4' />
 									</Button>
@@ -126,18 +137,29 @@ const ExportManagement = () => {
 				</div>
 			) : (
 				<div className='card text-center !py-12'>
-					<div className='text-gray-500 mb-4'>
-						<h3 className='text-lg font-medium text-gray-900 mb-2'>{t('insightsTools.exports.noExportTasks')}</h3>
-						<p className='text-gray-500 mb-4 max-w-[500px] mx-auto'>{t('insightsTools.exports.noExportTasksHint')}</p>
-						<Button
-							variant='outline'
-							onClick={() => {
-								setIsDrawerOpen(true);
-							}}
-							className='!p-5 !bg-[#fbfbfb] !border-[#CFCFCF] flex items-center gap-2 mx-auto'>
-							<Plus className='w-4 h-4' />
-							{t('insightsTools.exports.addExportTask')}
-						</Button>
+					<div className='text-content-muted mb-4'>
+						<h3 className='text-lg font-medium text-content mb-2'>{t('insightsTools.exports.noExportTasks')}</h3>
+						<p className='text-content-muted mb-4 max-w-[500px] mx-auto'>{t('insightsTools.exports.noExportTasksHint')}</p>
+						{canWriteTask ? (
+							<Button
+								variant='outline'
+								onClick={() => {
+									setIsDrawerOpen(true);
+								}}
+								className='!p-5 !bg-surface-panel !border-line-muted flex items-center gap-2 mx-auto'>
+								<Plus className='w-4 h-4' />
+								{t('insightsTools.exports.addExportTask')}
+							</Button>
+						) : (
+							<Tooltip content={t('bulkImports.writeDeniedTooltip')}>
+								<span tabIndex={0} className='inline-block'>
+									<Button disabled variant='outline' className='!p-5 !bg-surface-panel !border-line-muted flex items-center gap-2 mx-auto'>
+										<Plus className='w-4 h-4' />
+										{t('insightsTools.exports.addExportTask')}
+									</Button>
+								</span>
+							</Tooltip>
+						)}
 					</div>
 				</div>
 			)}

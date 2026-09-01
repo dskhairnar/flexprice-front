@@ -11,8 +11,8 @@ import { getTotalPayableTextWithCoupons } from '@/utils/common/helper_functions'
 import { Price, PRICE_TYPE } from '@/models/Price';
 import { BILLING_PERIOD } from '@/constants/constants';
 import { getCurrentPriceAmount, ExtendedPriceOverride } from '@/utils/common/price_override_helpers';
-import { formatCommitmentSummary } from '@/utils/common/commitment_helpers';
 import { Coupon } from '@/models/Coupon';
+import { filterAddonPricesForSubscription } from '@/utils/subscription/addon_commitment_helpers';
 
 interface Props {
 	data: AddAddonToSubscriptionRequest[];
@@ -147,19 +147,8 @@ const SubscriptionAddonTable: React.FC<Props> = ({
 				title: t('subscriptionAddon.columnCharges'),
 				render: (row) => {
 					const addonDetails = getAddonDetails(row.addon_id);
-					const prices = addonDetails?.prices || [];
+					const prices = filterAddonPricesForSubscription(addonDetails?.prices || [], billingPeriod, currency);
 					return <span>{formatAddonCharges(prices, priceOverrides, coupons, t)}</span>;
-				},
-			},
-			{
-				title: t('subscriptionAddon.columnCommitment'),
-				render: (row) => {
-					const commitments = row.line_item_commitments;
-					if (!commitments || Object.keys(commitments).length === 0) {
-						return <span className='text-gray-400'>—</span>;
-					}
-					const summaries = Object.values(commitments).map((config) => formatCommitmentSummary(config));
-					return <span className='text-sm text-gray-600'>{summaries.join(' · ')}</span>;
 				},
 			},
 			// {
@@ -178,6 +167,7 @@ const SubscriptionAddonTable: React.FC<Props> = ({
 					return (
 						<ActionButton
 							id={row.addon_id}
+							copyId={{ entityType: 'Addon' }}
 							deleteMutationFn={() => handleDelete(row.internal_id)}
 							refetchQueryKey='addons'
 							entityName={addonDetails?.name || row.addon_id}
@@ -194,7 +184,7 @@ const SubscriptionAddonTable: React.FC<Props> = ({
 				},
 			},
 		],
-		[disabled, getAddonDetails, handleDelete, handleEdit, priceOverrides, coupons, t],
+		[disabled, getAddonDetails, handleDelete, handleEdit, priceOverrides, coupons, billingPeriod, currency, t],
 	);
 
 	return (
@@ -217,7 +207,7 @@ const SubscriptionAddonTable: React.FC<Props> = ({
 					<FormHeader className='mb-0' title={t('labels.addons')} variant='sub-header' />
 					<AddButton onClick={handleOpenCreate} disabled={disabled} />
 				</div>
-				<div className='rounded-[6px] border border-gray-300'>
+				<div className='rounded-[6px] border border-line-strong'>
 					<FlexpriceTable data={extendedData} columns={columns} showEmptyRow />
 				</div>
 			</div>

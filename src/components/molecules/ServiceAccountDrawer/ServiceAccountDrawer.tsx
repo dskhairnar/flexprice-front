@@ -32,8 +32,8 @@ const ServiceAccountDrawer: FC<Props> = ({ isOpen, onOpenChange, data }) => {
 		isLoading: isLoadingRoles,
 		isError: isRolesError,
 	} = useQuery<RbacRole[]>({
-		queryKey: ['rbac-roles'],
-		queryFn: () => RbacApi.getAllRoles(),
+		queryKey: ['rbac-roles', 'service_account'],
+		queryFn: () => RbacApi.getAllRoles('service_account'),
 		enabled: isOpen && !isEditMode,
 		retry: false,
 	});
@@ -54,8 +54,19 @@ const ServiceAccountDrawer: FC<Props> = ({ isOpen, onOpenChange, data }) => {
 		}
 	}, [isOpen, data, isEditMode]);
 
+	const isSuperAdminSelected = selectedRoles.includes('super_admin');
+
 	const toggleRole = (roleValue: string) => {
-		setSelectedRoles((prev) => (prev.includes(roleValue) ? prev.filter((r) => r !== roleValue) : [...prev, roleValue]));
+		setSelectedRoles((prev) => {
+			if (prev.includes(roleValue)) {
+				return prev.filter((r) => r !== roleValue);
+			}
+			// Selecting super_admin clears all other roles
+			if (roleValue === 'super_admin') {
+				return ['super_admin'];
+			}
+			return [...prev, roleValue];
+		});
 	};
 
 	// --- Create mutation ---
@@ -120,10 +131,10 @@ const ServiceAccountDrawer: FC<Props> = ({ isOpen, onOpenChange, data }) => {
 			title={t('developers:serviceAccountDrawer.title')}
 			description={t('developers:serviceAccountDrawer.description')}>
 			<div className='flex flex-col gap-5 mt-2'>
-				<div className='bg-blue-50 border border-blue-200 rounded-md p-3'>
+				<div className='bg-info-muted border border-info-line rounded-md p-3'>
 					<div className='flex items-start gap-2'>
-						<Info className='w-4 h-4 text-blue-600 shrink-0 mt-0.5' />
-						<div className='text-sm text-blue-800'>
+						<Info className='w-4 h-4 text-info shrink-0 mt-0.5' />
+						<div className='text-sm text-info-deep'>
 							<p className='font-medium mb-1'>{t('developers:serviceAccountDrawer.intro.title')}</p>
 							<p>{t('developers:serviceAccountDrawer.intro.body')}</p>
 						</div>
@@ -138,10 +149,10 @@ const ServiceAccountDrawer: FC<Props> = ({ isOpen, onOpenChange, data }) => {
 				/>
 
 				{isRolesError ? (
-					<div className='bg-amber-50 border border-amber-200 rounded-md p-3'>
+					<div className='bg-warning-muted border border-warning-line rounded-md p-3'>
 						<div className='flex items-start gap-2'>
-							<AlertTriangle className='w-4 h-4 text-amber-500 shrink-0 mt-0.5' />
-							<div className='text-sm text-amber-800'>
+							<AlertTriangle className='w-4 h-4 text-warning-bright shrink-0 mt-0.5' />
+							<div className='text-sm text-warning-deep'>
 								<p className='font-medium mb-1'>{t('developers:serviceAccountDrawer.rolesUnavailable.title')}</p>
 								<p>{t('developers:serviceAccountDrawer.rolesUnavailable.body')}</p>
 							</div>
@@ -149,30 +160,33 @@ const ServiceAccountDrawer: FC<Props> = ({ isOpen, onOpenChange, data }) => {
 					</div>
 				) : (
 					<div className='flex flex-col gap-2'>
-						<label className='block text-sm font-medium text-gray-700'>
-							{t('developers:labels.roleRequiredHint')} <span className='text-red-500'>*</span>
+						<label className='block text-sm font-medium text-content-secondary'>
+							{t('developers:labels.roleRequiredHint')} <span className='text-danger-bright'>*</span>
 						</label>
-						<p className='text-sm text-gray-500'>{t('developers:serviceAccountDrawer.rolesHint')}</p>
-						<div className='border rounded-md p-4 flex flex-col gap-3 bg-white'>
+						<p className='text-sm text-content-muted'>{t('developers:serviceAccountDrawer.rolesHint')}</p>
+						<div className='border rounded-md p-4 flex flex-col gap-3 bg-surface'>
 							{isLoadingRoles ? (
-								<p className='text-sm text-gray-500'>{t('developers:serviceAccountDrawer.loadingRoles')}</p>
+								<p className='text-sm text-content-muted'>{t('developers:serviceAccountDrawer.loadingRoles')}</p>
 							) : roleOptions.length === 0 ? (
-								<p className='text-sm text-gray-500'>{t('developers:serviceAccountDrawer.noRolesAvailable')}</p>
+								<p className='text-sm text-content-muted'>{t('developers:serviceAccountDrawer.noRolesAvailable')}</p>
 							) : (
-								roleOptions.map((role) => (
-									<div key={role.value} className='flex items-center space-x-2'>
-										<Checkbox
-											id={`role-${role.value}`}
-											checked={selectedRoles.includes(role.value)}
-											onCheckedChange={() => toggleRole(role.value)}
-										/>
-										<label
-											htmlFor={`role-${role.value}`}
-											className='text-sm font-medium leading-none cursor-pointer peer-disabled:cursor-not-allowed peer-disabled:opacity-70'>
-											{role.label}
-										</label>
-									</div>
-								))
+								roleOptions.map((role) => {
+									const isDisabled = isSuperAdminSelected && role.value !== 'super_admin';
+									return (
+										<div key={role.value} className={`flex items-center space-x-2 ${isDisabled ? 'opacity-40 pointer-events-none' : ''}`}>
+											<Checkbox
+												id={`role-${role.value}`}
+												checked={selectedRoles.includes(role.value)}
+												onCheckedChange={() => toggleRole(role.value)}
+											/>
+											<label
+												htmlFor={`role-${role.value}`}
+												className={`text-sm font-medium leading-none ${isDisabled ? 'cursor-not-allowed' : 'cursor-pointer'}`}>
+												{role.label}
+											</label>
+										</div>
+									);
+								})
 							)}
 						</div>
 					</div>
@@ -180,10 +194,12 @@ const ServiceAccountDrawer: FC<Props> = ({ isOpen, onOpenChange, data }) => {
 
 				{selectedRoles.length > 0 && (
 					<div className='flex flex-col gap-1.5'>
-						<label className='block text-sm font-medium text-gray-700'>{t('developers:labels.selectedRoles')}</label>
+						<label className='block text-sm font-medium text-content-secondary'>{t('developers:labels.selectedRoles')}</label>
 						<div className='flex flex-wrap gap-1'>
 							{selectedRoles.map((role) => (
-								<span key={role} className='inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800'>
+								<span
+									key={role}
+									className='inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-info-muted-strong text-info-deep'>
 									{roleOptions.find((r) => r.value === role)?.label || role}
 								</span>
 							))}

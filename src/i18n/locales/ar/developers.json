@@ -54,6 +54,7 @@
 		}
 	},
 	"apiKeys": {
+		"writeDeniedTooltip": "ليس لديك صلاحية إدارة مفاتيح API. اطلب الوصول من مسؤول المستأجر.",
 		"toastFetchError": "خطأ في جلب المفاتيح السرية",
 		"paginationUnit": "مفاتيح سرية",
 		"emptyCard": {
@@ -77,6 +78,7 @@
 		}
 	},
 	"serviceAccounts": {
+		"writeDeniedTooltip": "ليس لديك صلاحية إدارة حسابات الخدمة. اطلب الوصول من مسؤول المستأجر.",
 		"toastFetchError": "خطأ في جلب حسابات الخدمة",
 		"paginationUnit": "حسابات الخدمة",
 		"noRoles": "لا أدوار",
@@ -148,6 +150,19 @@
 		"disabled": {
 			"heading": "الويب هوكس",
 			"description": "الويب هوكس غير مفعّلة. يرجى التواصل مع الدعم لتفعيلها."
+		},
+		"endpoints": {
+			"form": {
+				"urlHintPrefix": "قم بإعداد نقطة نهاية أو اختبر",
+				"svixPlayLink": "باستخدام Svix Play",
+				"svixPlayTooltip": "يمنحكم Svix Play فوراً نقطة نهاية فريدة لاستقبال وفحص الويب هوكس الواردة.",
+				"svixPlayTooltipAria": "حول Svix Play",
+				"svixPlayGenerating": "جارٍ الإنشاء…",
+				"svixPlayFailed": "تعذّر إنشاء رابط Svix Play"
+			}
+		},
+		"activity": {
+			"loadFailed": "تعذّر تحميل النشاط"
 		}
 	},
 	"workflows": {

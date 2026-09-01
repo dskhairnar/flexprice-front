@@ -78,7 +78,14 @@ export function billingModelSelectValueFromPrice(price?: BucketPriceSource): Bil
 	if (hasTiers) {
 		return tierMode === TIER_MODE.SLAB ? 'SLAB_TIERED' : BILLING_MODEL.TIERED;
 	}
-	if (price.billing_model === BILLING_MODEL.PACKAGE || price.transform_quantity?.divide_by) {
+	if (price.billing_model === BILLING_MODEL.PACKAGE) {
+		return BILLING_MODEL.PACKAGE;
+	}
+	if (price.billing_model === BILLING_MODEL.FLAT_FEE) {
+		return BILLING_MODEL.FLAT_FEE;
+	}
+	// Legacy prices may omit billing_model but include transform_quantity
+	if (price.transform_quantity?.divide_by) {
 		return BILLING_MODEL.PACKAGE;
 	}
 
@@ -146,25 +153,15 @@ export function buildCommitmentTimeBucketDefaults(
 }
 
 export function bucketDefaultsFromPrice(price?: BucketPriceSource): CommitmentTimeBucketDefaults {
-	const billing_model = billingModelSelectValueFromPrice(price);
-
 	return {
-		billing_model,
+		billing_model: BILLING_MODEL.FLAT_FEE,
 		bucket_amount: price?.amount,
-		transform_quantity_divide_by: price?.transform_quantity?.divide_by ? String(price.transform_quantity.divide_by) : undefined,
-		bucket_tiers: isTieredBillingModel(billing_model)
-			? (price?.tiers ?? []).map((tier) => ({
-					up_to: tier.up_to ?? null,
-					unit_amount: tier.unit_amount ?? '',
-					flat_amount: tier.flat_amount ?? '0',
-				}))
-			: undefined,
 	};
 }
 
 export function createDefaultSlabTiers(): BucketTierDraft[] {
 	return [
-		{ up_to: 5, unit_amount: '', flat_amount: '0' },
+		{ up_to: 1, unit_amount: '', flat_amount: '0' },
 		{ up_to: null, unit_amount: '', flat_amount: '0' },
 	];
 }
@@ -223,7 +220,7 @@ export function createEmptyTimeBucketDraft(defaults?: CommitmentTimeBucketDefaul
 		end: { hour: UNSET_TIME_VALUE, minute: UNSET_TIME_VALUE },
 		commitment_type: defaults?.commitment_type ?? CommitmentType.AMOUNT,
 		commitment_value: commitmentValue,
-		overage_factor: defaults?.overage_factor ?? '1.0',
+		overage_factor: defaults?.overage_factor ?? '',
 		true_up_enabled: defaults?.true_up_enabled ?? false,
 		bucket_amount: defaults?.bucket_amount,
 		billing_model,

@@ -1,5 +1,6 @@
-import { AddButton, Page, ActionButton, Chip } from '@/components/atoms';
+import { AddButton, Page, ActionButton, Chip, Tooltip } from '@/components/atoms';
 import { ApiDocsContent, GroupDrawer } from '@/components/molecules';
+import { useCurrentUserPermissions } from '@/hooks/useCurrentUserPermissions';
 import { ColumnData } from '@/components/molecules/Table';
 import { QueryableDataArea } from '@/components/organisms';
 import { useNavigate } from 'react-router';
@@ -24,7 +25,10 @@ const GroupsPage = () => {
 	const { t: tGuide } = useTranslation('guides');
 	const guides = useMemo(() => buildGuides(tGuide), [tGuide]);
 	const navigate = useNavigate();
+	const [activeGroup, setActiveGroup] = useState<Group | null>(null);
 	const [groupDrawerOpen, setGroupDrawerOpen] = useState(false);
+	const { can } = useCurrentUserPermissions();
+	const canWriteGroup = can('group', 'write');
 
 	const groupsQueryBuilderConfig = useMemo(
 		() => ({
@@ -36,6 +40,12 @@ const GroupsPage = () => {
 	);
 
 	const handleOnAdd = () => {
+		setActiveGroup(null);
+		setGroupDrawerOpen(true);
+	};
+
+	const handleEdit = (group: Group) => {
+		setActiveGroup(group);
 		setGroupDrawerOpen(true);
 	};
 
@@ -72,21 +82,43 @@ const GroupsPage = () => {
 				render: (row) => (
 					<ActionButton
 						id={row.id}
+						copyId={{ entityType: 'Group' }}
 						deleteMutationFn={(id) => GroupApi.deleteGroup(id)}
 						refetchQueryKey='fetchGroups'
 						entityName={t('groups.table.entityName')}
-						edit={{ enabled: false }}
-						archive={{ enabled: row.status === ENTITY_STATUS.PUBLISHED }}
+						edit={{
+							enabled: true,
+							onClick: () => handleEdit(row),
+							disabled: !canWriteGroup,
+							disabledReason: canWriteGroup ? undefined : t('groups.writeDeniedTooltip'),
+						}}
+						archive={{
+							enabled: row.status === ENTITY_STATUS.PUBLISHED,
+							disabled: !canWriteGroup,
+							disabledReason: canWriteGroup ? undefined : t('groups.writeDeniedTooltip'),
+						}}
 					/>
 				),
 			},
 		],
-		[t],
+		[t, canWriteGroup],
 	);
 
 	return (
-		<Page heading={t('groups.listPage.title')} headingCTA={<AddButton onClick={handleOnAdd} />}>
-			<GroupDrawer data={null} open={groupDrawerOpen} onOpenChange={setGroupDrawerOpen} refetchQueryKeys={['fetchGroups']} />
+		<Page
+			heading={t('groups.listPage.title')}
+			headingCTA={
+				canWriteGroup ? (
+					<AddButton onClick={handleOnAdd} />
+				) : (
+					<Tooltip content={t('groups.writeDeniedTooltip')}>
+						<span tabIndex={0} className='inline-block'>
+							<AddButton disabled onClick={handleOnAdd} />
+						</span>
+					</Tooltip>
+				)
+			}>
+			<GroupDrawer data={activeGroup} open={groupDrawerOpen} onOpenChange={setGroupDrawerOpen} refetchQueryKeys={['fetchGroups']} />
 			<ApiDocsContent tags={API_DOCS_TAGS.Groups} />
 			<div className='space-y-6'>
 				<QueryableDataArea<Group>
@@ -135,6 +167,8 @@ const GroupsPage = () => {
 						description: t('groups.listPage.emptyState.description'),
 						buttonLabel: t('groups.listPage.emptyState.createButton'),
 						buttonAction: handleOnAdd,
+						buttonDisabled: !canWriteGroup,
+						buttonDisabledReason: canWriteGroup ? undefined : t('groups.writeDeniedTooltip'),
 						tags: API_DOCS_TAGS.Groups,
 						tutorials: guides.groups.tutorials,
 					}}

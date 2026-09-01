@@ -1,5 +1,6 @@
-import { AddButton, Page, ActionButton, Chip } from '@/components/atoms';
+import { AddButton, Page, ActionButton, Chip, Tooltip } from '@/components/atoms';
 import { ApiDocsContent, CostSheetDrawer } from '@/components/molecules';
+import { useCurrentUserPermissions } from '@/hooks/useCurrentUserPermissions';
 import { ColumnData } from '@/components/molecules/Table';
 import { QueryableDataArea } from '@/components/organisms';
 import CostSheet from '@/models/CostSheet';
@@ -47,6 +48,11 @@ const CostSheetsPage = () => {
 	const [activeCostSheet, setActiveCostSheet] = useState<CostSheet | null>(null);
 	const [costSheetDrawerOpen, setCostSheetDrawerOpen] = useState(false);
 	const navigate = useNavigate();
+	const { can, isLoading: permissionsLoading } = useCurrentUserPermissions();
+	// Optimistic during the loading window rather than gated behind a page-level Loader — the write
+	// controls would otherwise briefly evaluate against an empty role catalog and flash a false
+	// "denied" state for authorized users; can() settles to the real value once roles arrive.
+	const canWriteCostSheet = permissionsLoading || can('costsheet', 'write');
 
 	const sortingOptions: SortOption[] = useMemo(
 		() => [
@@ -158,6 +164,7 @@ const CostSheetsPage = () => {
 					return (
 						<ActionButton
 							id={row?.id}
+							copyId={{ entityType: 'Cost Sheet' }}
 							deleteMutationFn={async () => {
 								return await CostSheetApi.DeleteCostSheet(row?.id);
 							}}
@@ -166,20 +173,36 @@ const CostSheetsPage = () => {
 							edit={{
 								enabled: true,
 								onClick: () => handleEdit(row),
+								disabled: !canWriteCostSheet,
+								disabledReason: canWriteCostSheet ? undefined : t('costSheets.writeDeniedTooltip'),
 							}}
 							archive={{
 								enabled: row?.status !== ENTITY_STATUS.ARCHIVED,
+								disabled: !canWriteCostSheet,
+								disabledReason: canWriteCostSheet ? undefined : t('costSheets.writeDeniedTooltip'),
 							}}
 						/>
 					);
 				},
 			},
 		],
-		[t],
+		[t, canWriteCostSheet],
 	);
 
 	return (
-		<Page heading={t('costSheets.listPage.title')} headingCTA={<AddButton onClick={handleOnAdd} />}>
+		<Page
+			heading={t('costSheets.listPage.title')}
+			headingCTA={
+				canWriteCostSheet ? (
+					<AddButton onClick={handleOnAdd} />
+				) : (
+					<Tooltip content={t('costSheets.writeDeniedTooltip')}>
+						<span tabIndex={0} className='inline-block'>
+							<AddButton disabled onClick={handleOnAdd} />
+						</span>
+					</Tooltip>
+				)
+			}>
 			<CostSheetDrawer
 				data={activeCostSheet}
 				open={costSheetDrawerOpen}
@@ -223,6 +246,8 @@ const CostSheetsPage = () => {
 						description: t('costSheets.listPage.emptyState.description'),
 						buttonLabel: t('costSheets.listPage.emptyState.createButton'),
 						buttonAction: handleOnAdd,
+						buttonDisabled: !canWriteCostSheet,
+						buttonDisabledReason: canWriteCostSheet ? undefined : t('costSheets.writeDeniedTooltip'),
 						tags: API_DOCS_TAGS.Costs,
 						tutorials: guides.features.tutorials,
 					}}

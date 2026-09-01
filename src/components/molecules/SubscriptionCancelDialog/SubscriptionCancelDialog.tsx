@@ -1,6 +1,7 @@
 import SubscriptionApi from '@/api/SubscriptionApi';
 import { Button, DatePicker, FormHeader, Input, Label, Modal, Select, Toggle } from '@/components/atoms';
 import { refetchQueries } from '@/core/services/tanstack/ReactQueryProvider';
+import { refetchSubscriptionQueries } from '@/core/services/tanstack/queryKeys';
 import {
 	SUBSCRIPTION_CANCELLATION_TYPE,
 	SUBSCRIPTION_CANCEL_IMMEDIATELY_INVOICE_POLICY,
@@ -64,6 +65,7 @@ const SubscriptionCancelDialog = ({ isOpen, onOpenChange, subscriptionId, curren
 			onOpenChange(false);
 			resetState();
 			toast.success(t('subscriptions.cancelDialog.toastSuccess'));
+			await refetchSubscriptionQueries();
 			await Promise.all(refetchQueryKeys.map((key) => refetchQueries(key)));
 		},
 		onError: (error: Error) => {
@@ -82,7 +84,7 @@ const SubscriptionCancelDialog = ({ isOpen, onOpenChange, subscriptionId, curren
 					resetState();
 				}
 			}}
-			className='card bg-white w-[620px] max-w-[90vw]'>
+			className='card bg-surface w-[620px] max-w-[90vw]'>
 			<div className='space-y-5'>
 				<FormHeader
 					title={t('subscriptions.cancelSubscription')}
@@ -149,6 +151,7 @@ const SubscriptionCancelDialog = ({ isOpen, onOpenChange, subscriptionId, curren
 								setDate={setCancelAtDate}
 								placeholder={t('subscriptions.selectCancellationDate')}
 								minDate={minCancelAtDate}
+								clearable
 								className='!w-full'
 								popoverClassName='!w-full'
 								popoverTriggerClassName='!w-full'

@@ -33,6 +33,7 @@ export { default as TaskApi } from './TaskApi';
 export { default as TaskRunApi } from './TaskRunApi';
 export { default as TaxApi } from './TaxApi';
 export { default as TenantApi } from './TenantApi';
+export { default as UsageRecordApi } from './UsageRecordApi';
 export { UserApi } from './UserApi';
 export { default as WalletApi } from './WalletApi';
 export { default as WorkflowApi } from './WorkflowApi';

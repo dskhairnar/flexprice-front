@@ -8,6 +8,7 @@ import { SortDirection } from '@/types/common/QueryBuilder';
 import { INVOICE_STATUS } from '@/models/Invoice';
 import {
 	GetInvoicesResponse,
+	GetInvoicesListResponse,
 	InvoiceFilter,
 	UpdatePaymentStatusPayload,
 	UpdateInvoiceStatusPayload,
@@ -21,20 +22,27 @@ import { downloadInvoiceLineItemsCsv } from '@/utils/invoices/downloadInvoiceLin
 class InvoiceApi {
 	private static baseurl = '/invoices';
 
-	/** List/search invoices by filter. Always POSTs to /invoices/search with filter as JSON body. */
+	/**
+	 * List/search invoices by filter. Always POSTs to /invoices/search with filter as JSON body.
+	 * Note: passing `skip_line_items: true` makes the backend omit `line_items` on each returned
+	 * invoice even though this method's return type doesn't reflect that — prefer
+	 * `getCustomerInvoices` (typed via `GetInvoicesListResponse`) for that case, or treat
+	 * `items[].line_items` as possibly absent when calling this directly with that flag.
+	 */
 	public static async listInvoices(filter: InvoiceFilter = {}): Promise<GetInvoicesResponse> {
 		return await AxiosClient.post<GetInvoicesResponse>(`${this.baseurl}/search`, filter);
 	}
 
-	/** List invoices for a single customer. Uses listInvoices with customer_id filter. */
+	/** List invoices for a single customer. Uses listInvoices with customer_id filter and skip_line_items — line_items is omitted on each returned invoice. */
 	public static async getCustomerInvoices(
 		customerId: string,
 		pagination?: { limit: number; offset: number },
-	): Promise<GetInvoicesResponse> {
-		return await this.listInvoices({
+	): Promise<GetInvoicesListResponse> {
+		return await AxiosClient.post<GetInvoicesListResponse>(`${this.baseurl}/search`, {
 			customer_id: customerId,
 			// Explicitly include all known invoice statuses; backend defaults may exclude some (e.g. SKIPPED).
 			invoice_status: Object.values(INVOICE_STATUS),
+			skip_line_items: true,
 			sort: [
 				{
 					field: 'period_start',

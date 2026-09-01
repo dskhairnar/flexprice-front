@@ -1,7 +1,7 @@
 import { FC, useCallback, useMemo, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { ExternalLink } from 'lucide-react';
-import { BsThreeDotsVertical } from 'react-icons/bs';
+import { BsThreeDots } from 'react-icons/bs';
 import toast from 'react-hot-toast';
 import { useTranslation } from 'react-i18next';
 import { Button, Card, CardHeader, Dialog, Input } from '@/components/atoms';
@@ -11,14 +11,25 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import IntegrationMappingApi, { IntegrationConfigItem, IntegrationMappingItem } from '@/api/IntegrationMappingApi';
 import { integrationCatalogSpecs } from '@/pages/insights-tools/integrations/integrationsData';
 import formatDate from '@/utils/common/format_date';
+import { cn } from '@/lib/utils';
+import { CONNECTION_PROVIDER_TYPE } from '@/models/Connection';
+import PaymentApi from '@/api/PaymentApi';
+import ConnectionApi from '@/api/ConnectionApi';
+import { IntegrationEntityType } from '@/types/dto';
 
 const PROVIDER_ID_MAP: Record<string, string> = {
 	zoho_books: 'zoho',
 };
+const CONNECTION_DRIVEN_PROVIDERS: Record<string, IntegrationEntityType[]> = {
+	[CONNECTION_PROVIDER_TYPE.AWS_MARKETPLACE]: ['customer', 'subscription', 'plan'],
+	[CONNECTION_PROVIDER_TYPE.GCP_MARKETPLACE]: ['customer', 'subscription', 'plan'],
+	[CONNECTION_PROVIDER_TYPE.AZURE_MARKETPLACE]: ['customer', 'subscription', 'plan'],
+};
 
-const providerLogoMap = new Map(integrationCatalogSpecs.map((spec) => [spec.id, spec.logo]));
+/** Both marks per provider — a few brands draw in a deep navy that vanishes on a dark surface. */
+const providerLogoMap = new Map(integrationCatalogSpecs.map((spec) => [spec.id, { logo: spec.logo, logoDark: spec.logoDark }]));
 
-const getProviderLogo = (providerType: string): string | undefined => {
+const getProviderLogo = (providerType: string): { logo: string; logoDark?: string } | undefined => {
 	const mappedId = PROVIDER_ID_MAP[providerType] ?? providerType;
 	return providerLogoMap.get(mappedId);
 };
@@ -47,7 +58,7 @@ interface IntegrationRow {
 }
 
 interface IntegrationMappingCardProps {
-	entityType: 'customer' | 'invoice';
+	entityType: IntegrationEntityType;
 	entityId: string;
 	entityIdColumnTitle?: string;
 	isActionDisabled?: boolean;
@@ -61,7 +72,6 @@ const IntegrationMappingCard: FC<IntegrationMappingCardProps> = ({
 }) => {
 	const { t } = useTranslation('common');
 	const queryClient = useQueryClient();
-
 	const [dropdownOpen, setDropdownOpen] = useState<string | null>(null);
 	const [linkDialogOpen, setLinkDialogOpen] = useState(false);
 	const [linkTarget, setLinkTarget] = useState<IntegrationRow | null>(null);
@@ -76,23 +86,55 @@ const IntegrationMappingCard: FC<IntegrationMappingCardProps> = ({
 
 	const hasIntegrationConfig = (integrationConfigData?.integrations?.length ?? 0) > 0;
 
+	// Providers surfaced purely because a published connection exists (e.g. AWS Marketplace),
+	// even when they're absent from `/integrations/config`.
+	const { data: publishedConnectionsData } = useQuery({
+		queryKey: ['publishedConnections'],
+		queryFn: () => ConnectionApi.ListPublished(),
+	});
+
+	const connectionDrivenProviders = useMemo<string[]>(() => {
+		const connections = publishedConnectionsData?.connections ?? [];
+		const providers: string[] = [];
+		for (const conn of connections) {
+			const supportedEntities = CONNECTION_DRIVEN_PROVIDERS[conn.provider_type];
+			if (supportedEntities?.includes(entityType) && !providers.includes(conn.provider_type)) {
+				providers.push(conn.provider_type);
+			}
+		}
+		return providers;
+	}, [publishedConnectionsData?.connections, entityType]);
+
+	const hasContent = hasIntegrationConfig || connectionDrivenProviders.length > 0;
+
 	const { data: integrationMappingsData, isPending: isMappingsPending } = useQuery({
 		queryKey: ['integrationMappings', entityType, entityId],
 		queryFn: () => IntegrationMappingApi.getIntegrationMappings(entityType, entityId),
-		enabled: !!entityId && hasIntegrationConfig,
+		enabled: !!entityId && hasContent,
 	});
 
 	const integrationRows = useMemo<IntegrationRow[]>(() => {
 		const configs = integrationConfigData?.integrations ?? [];
 		const mappings = integrationMappingsData?.items ?? [];
 		const mappingByProvider = new Map(mappings.map((m) => [m.provider_type, m]));
-		return configs.map((cfg: IntegrationConfigItem) => ({
+		const rows: IntegrationRow[] = configs.map((cfg: IntegrationConfigItem) => ({
 			provider_type: cfg.provider,
 			mapping: mappingByProvider.get(cfg.provider) ?? null,
 			syncOutboundEnabled: !!cfg.current_config?.[entityType]?.outbound,
 			syncInboundEnabled: !!cfg.current_config?.[entityType]?.inbound,
 		}));
-	}, [integrationConfigData?.integrations, integrationMappingsData?.items, entityType]);
+		const configuredProviders = new Set(configs.map((cfg) => cfg.provider));
+		for (const provider of connectionDrivenProviders) {
+			if (configuredProviders.has(provider)) continue;
+			rows.push({
+				provider_type: provider,
+				mapping: mappingByProvider.get(provider) ?? null,
+				syncOutboundEnabled: false,
+				syncInboundEnabled: false,
+			});
+		}
+		return rows;
+	}, [integrationConfigData?.integrations, integrationMappingsData?.items, entityType, connectionDrivenProviders]);
 
 	const { mutate: syncIntegration, isPending: isSyncing } = useMutation({
 		mutationFn: (method: 'push' | 'pull') =>
@@ -147,6 +189,12 @@ const IntegrationMappingCard: FC<IntegrationMappingCardProps> = ({
 		},
 	});
 
+	const { mutate: setupMoyasarAutopay } = useMutation({
+		mutationFn: () => PaymentApi.getMoyasarSetupIntent(entityId, window.location.href),
+		onSuccess: (res) => window.open(res.checkout_url, '_blank'),
+		onError: (error: Error) => toast.error(error.message || 'Failed to start autopay setup'),
+	});
+
 	const handleLinkClick = useCallback((row: IntegrationRow) => {
 		setLinkTarget(row);
 		setProviderEntityId('');
@@ -186,10 +234,17 @@ const IntegrationMappingCard: FC<IntegrationMappingCardProps> = ({
 			{
 				title: 'Integration',
 				render: (row: IntegrationRow) => {
-					const logo = getProviderLogo(row.provider_type);
+					const marks = getProviderLogo(row.provider_type);
 					return (
 						<div className='flex items-center gap-2'>
-							{logo && <img src={logo} alt={row.provider_type} className='size-5 object-contain' />}
+							{marks && (
+								<>
+									<img src={marks.logo} alt={row.provider_type} className={cn('size-5 object-contain', marks.logoDark && 'dark:hidden')} />
+									{marks.logoDark && (
+										<img src={marks.logoDark} alt={row.provider_type} className='size-5 hidden object-contain dark:block' />
+									)}
+								</>
+							)}
 							<span className='font-medium text-foreground'>{formatProviderName(row.provider_type)}</span>
 						</div>
 					);
@@ -223,7 +278,7 @@ const IntegrationMappingCard: FC<IntegrationMappingCardProps> = ({
 							target='_blank'
 							rel='noopener noreferrer'
 							data-interactive='true'
-							className='inline-flex items-center text-primary hover:text-primary/80'>
+							className='inline-flex items-center text-primary dark:text-info hover:text-primary dark:hover:text-info/80'>
 							<ExternalLink className='size-4' />
 						</a>
 					) : null,
@@ -244,7 +299,7 @@ const IntegrationMappingCard: FC<IntegrationMappingCardProps> = ({
 										type='button'
 										aria-label={t('integrations.actions')}
 										className='rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring'>
-										<BsThreeDotsVertical className='text-base text-muted-foreground hover:text-foreground transition-colors' />
+										<BsThreeDots className='text-base text-muted-foreground hover:text-foreground transition-colors' />
 									</button>
 								</DropdownMenuTrigger>
 								<DropdownMenuContent align='end'>
@@ -266,6 +321,18 @@ const IntegrationMappingCard: FC<IntegrationMappingCardProps> = ({
 										className='cursor-pointer text-destructive focus:text-destructive'>
 										{t('actions.unlink')}
 									</DropdownMenuItem>
+									{entityType === 'customer' && row.provider_type === CONNECTION_PROVIDER_TYPE.MOYASAR && (
+										<DropdownMenuItem
+											disabled={isActionDisabled}
+											onSelect={(e) => {
+												e.preventDefault();
+												setDropdownOpen(null);
+												setupMoyasarAutopay();
+											}}
+											className='cursor-pointer'>
+											{t('tabPanels.information.setupAutopayMoyasar', { ns: 'customers' })}
+										</DropdownMenuItem>
+									)}
 									<DropdownMenuItem
 										disabled={isMappingsPending || isSyncing || !row.syncOutboundEnabled || isActionDisabled}
 										onSelect={(e) => {
@@ -304,16 +371,18 @@ const IntegrationMappingCard: FC<IntegrationMappingCardProps> = ({
 			handleSyncClick,
 			handleDelinkClick,
 			t,
+			entityType,
+			setupMoyasarAutopay,
 		],
 	);
 
-	if (!hasIntegrationConfig) {
+	if (!hasContent) {
 		return null;
 	}
 
 	return (
 		<>
-			<Card variant='notched'>
+			<Card variant='notched' className='bg-transparent'>
 				<CardHeader title={t('integrations.title')} titleClassName='font-semibold' />
 				<FlexpriceTable data={integrationRows} columns={integrationColumns} showEmptyRow variant='no-bordered' />
 			</Card>

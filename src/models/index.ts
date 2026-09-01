@@ -2,6 +2,10 @@
 export type { BaseModel, Metadata } from './base';
 export { ENTITY_STATUS } from './base';
 
+// AlertSetting
+export type { AlertSetting, AlertSettingsConfig, SpendAlertThreshold } from './AlertSetting';
+export { SpendAlertLevel, ALERT_ENTITY_TYPE } from './AlertSetting';
+
 // Addon
 export type { default as Addon } from './Addon';
 
@@ -18,6 +22,7 @@ export { CONNECTION_PROVIDER_TYPE, CONNECTION_STATUS } from './Connection';
 
 // Coupon
 export type { Coupon } from './Coupon';
+export type { CouponAssociation } from './CouponAssociation';
 
 // CreditGrant
 export type { CreditGrant } from './CreditGrant';
@@ -103,7 +108,7 @@ export {
 } from './Invoice';
 
 // Meter
-export type { Meter } from './Meter';
+export type { Meter, PriceBucketSize } from './Meter';
 export { METER_USAGE_RESET_PERIOD, METER_AGGREGATION_TYPE, BUCKET_SIZE } from './Meter';
 
 // Pagination
@@ -113,8 +118,11 @@ export type { Pagination } from './Pagination';
 export type { Payment, Attempt } from './Payment';
 export { PAYMENT_METHOD_TYPE, PAYMENT_DESTINATION_TYPE } from './Payment';
 
+// UsageRecord
+export type { UsageRecord, UsageRecordSyncEntry } from './UsageRecord';
+
 // Plan
-export type { Plan } from './Plan';
+export type { Plan, PlanPriceSyncStatus } from './Plan';
 
 // Price
 export type { Price, Tier, TransformQuantity, PriceUnitConfig, CreatePriceTier } from './Price';
@@ -145,6 +153,8 @@ export {
 	SUBSCRIPTION_HIERARCHY_DISPLAY_KIND,
 	SUBSCRIPTION_MODIFY_TYPE,
 	GROUPED_INVOICING_MODIFY_ACTION,
+	SUB_MODIFY_COUPON_ACTION,
+	SUB_MODIFY_TAX_ACTION,
 	SUBSCRIPTION_MODIFY_LINE_ITEM_ACTION,
 	SUBSCRIPTION_MODIFY_SUBSCRIPTION_RESOURCE_ACTION,
 	SUBSCRIPTION_MODIFY_INVOICE_RESOURCE_ACTION,
@@ -174,7 +184,7 @@ export { TenantMetadataKey } from './Tenant';
 export type { User } from './User';
 
 // Wallet
-export type { Wallet, WalletAlertSettings, WalletAlertThreshold, WalletAlertState } from './Wallet';
+export type { Wallet, WalletAlertSettings, WalletAlertThreshold, WalletAlertState, DurationUnit, Duration, AutoTopup } from './Wallet';
 export {
 	WALLET_STATUS,
 	WALLET_TX_REFERENCE_TYPE,

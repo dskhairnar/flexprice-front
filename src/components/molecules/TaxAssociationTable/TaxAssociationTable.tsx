@@ -1,22 +1,83 @@
-import { FC } from 'react';
+import { FC, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import FlexpriceTable, { ColumnData, RedirectCell } from '../Table';
 import { TaxAssociationResponse } from '@/types/dto/tax';
-import { Chip, ActionButton } from '@/components/atoms';
+import { Chip, ActionButton, Card, CardHeader, AddButton, NoDataCard, Tooltip } from '@/components/atoms';
+import { DropdownMenu, getCopyIdOption } from '@/components/molecules';
 import { formatDateShort } from '@/utils/common/helper_functions';
 import TaxApi from '@/api/TaxApi';
-import formatChips from '@/utils/common/format_chips';
 import { RouteNames } from '@/core/routes/Routes';
 import { TrashIcon } from 'lucide-react';
+import { useCurrentUserPermissions } from '@/hooks/useCurrentUserPermissions';
 
 interface Props {
 	data: TaxAssociationResponse[];
+	onAdd?: () => void;
 	showDelete?: boolean;
 	refetchQueryKey?: string;
+	onRemove?: (association: TaxAssociationResponse) => void;
 }
 
-const TaxAssociationTable: FC<Props> = ({ data, showDelete = true, refetchQueryKey = 'fetchTaxAssociations' }) => {
+interface RowActionsProps {
+	row: TaxAssociationResponse;
+	onRemove: (row: TaxAssociationResponse) => void;
+}
+
+const RowActions: FC<RowActionsProps> = ({ row, onRemove }) => {
 	const { t } = useTranslation('common');
+	const { can } = useCurrentUserPermissions();
+	const canWriteTax = can('tax', 'write');
+	const [isOpen, setIsOpen] = useState(false);
+	const handleClick = (e: React.MouseEvent) => {
+		e.preventDefault();
+		e.stopPropagation();
+		setIsOpen((v) => !v);
+	};
+	return (
+		<div data-interactive='true' onClick={handleClick}>
+			<DropdownMenu
+				isOpen={isOpen}
+				onOpenChange={setIsOpen}
+				options={[
+					getCopyIdOption(row.id, t, { entityType: 'Tax Association' }),
+					{
+						label: t('form.remove'),
+						icon: <TrashIcon />,
+						onSelect: (e: Event) => {
+							e.preventDefault();
+							setIsOpen(false);
+							onRemove(row);
+						},
+						disabled: !canWriteTax,
+						disabledReason: canWriteTax ? undefined : t('labels.taxWriteDeniedTooltip'),
+					},
+				]}
+			/>
+		</div>
+	);
+};
+
+const TaxAssociationTable: FC<Props> = ({ data, onAdd, showDelete = true, refetchQueryKey = 'fetchTaxAssociations', onRemove }) => {
+	const { t } = useTranslation('common');
+	const { can } = useCurrentUserPermissions();
+	const canWriteTax = can('tax', 'write');
+
+	const rows = useMemo(() => {
+		const now = new Date();
+		return data.filter((a) => !a.valid_to || new Date(a.valid_to) > now);
+	}, [data]);
+
+	const addButton = !onAdd ? undefined : canWriteTax ? (
+		<AddButton onClick={onAdd} />
+	) : (
+		<Tooltip content={t('labels.taxWriteDeniedTooltip')}>
+			<span tabIndex={0} className='inline-block'>
+				<AddButton disabled />
+			</span>
+		</Tooltip>
+	);
+	const title = t('subscriptionEdit.taxAssociations', 'Tax Associations');
+
 	const columns: ColumnData<TaxAssociationResponse>[] = [
 		{
 			title: 'Tax ID',
@@ -33,26 +94,24 @@ const TaxAssociationTable: FC<Props> = ({ data, showDelete = true, refetchQueryK
 			render: (row) => <Chip variant={row.auto_apply ? 'success' : 'default'} label={row.auto_apply ? t('labels.yes') : t('labels.no')} />,
 		},
 		{
-			title: 'Currency',
-			render: (row) => row.currency,
+			title: 'Valid From',
+			render: (row) => (row.valid_from ? formatDateShort(row.valid_from) : '—'),
 		},
 		{
-			title: 'Status',
-			render: (row) => {
-				const label = formatChips(row?.status);
-				return <Chip variant={label === 'Active' ? 'success' : 'default'} label={label} />;
-			},
-		},
-		{
-			title: 'Created',
-			render: (row) => formatDateShort(row.created_at),
+			title: 'Valid To',
+			render: (row) => (row.valid_to ? formatDateShort(row.valid_to) : 'Forever'),
 		},
 		{
 			fieldVariant: 'interactive',
+			width: '48px',
 			render(row) {
+				if (onRemove) {
+					return <RowActions row={row} onRemove={onRemove} />;
+				}
 				return (
 					<ActionButton
 						id={row?.id}
+						copyId={{ entityType: 'Tax Association' }}
 						deleteMutationFn={async () => {
 							return await TaxApi.deleteTaxAssociation(row?.id);
 						}}
@@ -63,6 +122,8 @@ const TaxAssociationTable: FC<Props> = ({ data, showDelete = true, refetchQueryK
 							enabled: showDelete,
 							icon: <TrashIcon className='h-4 w-4' />,
 							text: t('actions.delete'),
+							disabled: !canWriteTax,
+							disabledReason: canWriteTax ? undefined : t('labels.taxWriteDeniedTooltip'),
 						}}
 					/>
 				);
@@ -70,10 +131,15 @@ const TaxAssociationTable: FC<Props> = ({ data, showDelete = true, refetchQueryK
 		},
 	];
 
+	if (rows.length === 0) {
+		return <NoDataCard title={title} subtitle={t('tax.noAssociations', 'No taxes applied to this subscription yet')} cta={addButton} />;
+	}
+
 	return (
-		<div>
-			<FlexpriceTable showEmptyRow={true} columns={columns} data={data} />
-		</div>
+		<Card variant='notched'>
+			<CardHeader title={title} cta={addButton} />
+			<FlexpriceTable columns={columns} data={rows} variant='no-bordered' />
+		</Card>
 	);
 };
 

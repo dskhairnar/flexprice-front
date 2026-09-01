@@ -136,6 +136,8 @@
 	},
 	"creditNotes": {
 		"title": "Credit Notes",
+		"writeDeniedTooltip": "You don't have permission to create credit notes. Ask a tenant admin for access.",
+		"addCreditNote": "Add Credit Note",
 		"empty": "No credit notes found",
 		"toast": {
 			"fetchListError": "Error fetching credit notes"
@@ -255,6 +257,7 @@
 			},
 			"inheritedReadOnlyTooltip": "Inherited subscriptions are read-only. Make changes on the parent subscription.",
 			"cancelAction": "Cancel",
+			"writeDeniedTooltip": "You don't have permission to manage subscriptions. Ask a tenant admin for access.",
 			"entityNameForActions": "Subscription"
 		},
 		"empty": "No subscriptions found",
@@ -372,7 +375,8 @@
 			"columns": {
 				"charge": "Charge",
 				"type": "Type",
-				"commitment": "Commitment"
+				"commitment": "Commitment",
+				"price": "Price"
 			},
 			"chargeFallback": "Charge",
 			"commitmentNotAvailable": "Not available",
@@ -402,6 +406,7 @@
 			"billingCycle": "Billing Cycle",
 			"startDate": "Start Date",
 			"currentPeriodEnd": "Current Period End",
+			"timezone": "Timezone",
 			"commitmentAmount": "Commitment Amount",
 			"overageFactor": "Overage Factor",
 			"parentSubscription": "Parent subscription",
@@ -415,6 +420,50 @@
 			"change": "Change",
 			"remove": "Remove",
 			"emptyState": "No subscription coupon applied"
+		},
+		"tax": {
+			"remove": "Remove"
+		},
+		"modifyDialog": {
+			"previewHeading": "Preview",
+			"noBillingImpact": "No billing impact",
+			"invoicesAffected": "Invoices affected",
+			"lineItemsAffected": "Line items affected"
+		},
+		"applyCouponDialog": {
+			"title": "Apply Coupon",
+			"couponCodeLabel": "Coupon Code",
+			"couponCodePlaceholder": "e.g. SUMMER20",
+			"applyToLabel": "Apply To",
+			"subscriptionLevel": "Subscription level",
+			"lineItemLevel": "Line item level",
+			"lineItemLabel": "Line Item",
+			"selectLineItemPlaceholder": "Select a line item",
+			"startDateOptional": "Start Date (optional)",
+			"pickStartDate": "Pick a start date",
+			"endDateOptional": "End Date (optional)",
+			"pickEndDate": "Pick an end date"
+		},
+		"removeCouponDialog": {
+			"title": "Remove Coupon",
+			"confirmMessage": "Remove <bold>{{name}}</bold> from this subscription?",
+			"confirmMessageWithCode": "Remove <bold>{{name}}</bold> ({{code}}) from this subscription?"
+		},
+		"removeTaxDialog": {
+			"title": "Remove Tax",
+			"confirmMessage": "Remove tax <bold>{{name}}</bold> from this subscription?"
+		},
+		"applyTaxDialog": {
+			"title": "Apply Tax",
+			"taxRateLabel": "Tax Rate",
+			"selectTaxRatePlaceholder": "Select a tax rate",
+			"effectiveDateOptional": "Effective Date (optional)",
+			"pickDate": "Pick a date"
+		},
+		"configureAddonDialog": {
+			"title": "Configure Addon",
+			"empty": "No charges found for this addon.",
+			"loadError": "Could not load this addon’s charges."
 		}
 	},
 	"payments": {
@@ -487,6 +536,7 @@
 		}
 	},
 	"taxes": {
+		"writeDeniedTooltip": "You don't have permission to manage tax rates. Ask a tenant admin for access.",
 		"title": "Taxes",
 		"empty": "No taxes found",
 		"taxRateDetails": "Tax Rate Details",
@@ -642,7 +692,7 @@
 		"addCharge": {
 			"selectMeterForBuckets": "Select a metered feature to configure window commitment time buckets.",
 			"loadingMeter": "Loading meter details…",
-			"meterNotSupported": "This meter does not support window commitment. Configure a bucket size on the meter first."
+			"meterNotSupported": "This charge does not support window commitment. Configure a bucket size on the price first."
 		},
 		"timeBuckets": {
 			"bucketCount": "{{count}} time bucket(s)",
@@ -671,16 +721,27 @@
 			"unitsPerPackage": "Units per package",
 			"pricingFlat": "Flat",
 			"pricingSlab": "Slab",
+			"volumeTiers": "Volume tiers",
 			"slabTiers": "Slab tiers",
 			"upTo": "Up to",
 			"unitAmount": "Unit amount",
 			"lookupKey": "Lookup key",
 			"overageFactor": "Overage",
 			"trueUpEnabled": "True up",
+			"bucketAmountHint": "Unit price applied during this time window",
+			"bucketAmountVolumeTieredHint": "Pricing is defined in the volume tiers below",
+			"bucketAmountSlabTieredHint": "Pricing is defined in the slab tiers below",
+			"bucketAmountTieredHint": "Pricing is defined in the slab tiers below",
+			"billingModelHint": "How usage in this window is billed",
+			"unitsPerPackageHint": "Number of units included in each package",
 			"errors": {
 				"sameTime": "Start and end time cannot be the same",
 				"incomplete": "Please select start and end times for all time buckets",
-				"incompleteCommitment": "Please complete commitment fields for all time buckets"
+				"incompleteCommitment": "Please complete commitment fields for all time buckets",
+				"fieldRequired": "This field is required",
+				"overageRequired": "Enter a value of 1 or more",
+				"priceRequired": "Enter a price for this bucket",
+				"tiersRequired": "Add at least one tier"
 			}
 		},
 		"existingNotice": "This price already has a commitment configuration. Your changes will update it.",
@@ -689,6 +750,7 @@
 		"saveCommitment": "Save Commitment",
 		"updateCommitment": "Update Commitment",
 		"billingPeriodLabels": {
+			"DAILY": "Daily",
 			"MONTHLY": "Monthly",
 			"QUARTERLY": "Quarterly",
 			"HALF_YEARLY": "Half-Yearly",
@@ -857,7 +919,21 @@
 			"infoDescription": "Alert when balance reaches info level",
 			"cancel": "Cancel",
 			"saving": "Saving...",
-			"saveChanges": "Save Changes"
+			"saveChanges": "Save Changes",
+			"statusBadgeLabel": "balance {{condition}} {{threshold}}",
+			"validation": {
+				"atLeastOneThreshold": "Please configure at least one threshold level when alerts are enabled",
+				"invalidCriticalThreshold": "Please enter a valid critical threshold value",
+				"invalidWarningThreshold": "Please enter a valid warning threshold value",
+				"invalidInfoThreshold": "Please enter a valid info threshold value",
+				"criticalRequiredForWarning": "A critical threshold is required when a warning threshold is set",
+				"warningMustBeLessThanCritical": "For \"Above\" alerts, the warning threshold must be less than the critical threshold",
+				"warningMustBeGreaterThanCritical": "For \"Below\" alerts, the warning threshold must be greater than the critical threshold",
+				"infoMustBeLessThanWarning": "For \"Above\" alerts, the info threshold must be less than the warning threshold",
+				"infoMustBeGreaterThanWarning": "For \"Below\" alerts, the info threshold must be greater than the warning threshold",
+				"infoMustBeLessThanCritical": "For \"Above\" alerts, the info threshold must be less than the critical threshold",
+				"infoMustBeGreaterThanCritical": "For \"Below\" alerts, the info threshold must be greater than the critical threshold"
+			}
 		},
 		"autoTopup": {
 			"dialogTitle": "Auto Top-Up Settings",
@@ -870,12 +946,33 @@
 			"amountLabel": "Top-Up Amount (Credits)",
 			"amountPlaceholder": "0.00",
 			"amountDescription": "Number of credits to add when auto top-up is triggered",
+			"cooldownTitle": "Cooloff",
+			"cooldownLabel": "Wait before next auto top-up",
+			"cooldownValueLabel": "Duration",
+			"cooldownValuePlaceholder": "e.g. 1",
+			"cooldownUnitLabel": "Unit",
+			"cooldownUnitPlaceholder": "Select unit",
+			"cooldownDescription": "After a successful auto top-up, the system will not auto top-up again until this window ends, even if the balance is still below the threshold.",
+			"cooldownBurstDescription": "When cooloff is off and invoice payment is not required, the system may top up repeatedly until the balance exceeds the threshold.",
+			"cooldownOptionalDescription": "When cooloff is off, there is no wait between auto top-ups.",
+			"cooldownUnits": {
+				"SECOND": "Second",
+				"MINUTE": "Minute",
+				"HOUR": "Hour",
+				"DAY": "Day"
+			},
 			"invoiceTitle": "Require Invoice Payment",
 			"invoiceLabel": "Create invoice for auto top-up (requires payment before credits are added)",
 			"invoiceDescriptionWhenInvoiced": "Credits will be added only after the invoice is paid. An invoice will be created in PENDING state when auto top-up is triggered.",
 			"invoiceDescriptionImmediate": "Credits will be added immediately when auto top-up is triggered.",
 			"cancel": "Cancel",
-			"saveChanges": "Save Changes"
+			"saveChanges": "Save Changes",
+			"errors": {
+				"invalidThreshold": "Please enter a valid threshold value",
+				"invalidAmount": "Please enter a valid amount value greater than 0",
+				"cooldownIncomplete": "Enter both a cooloff value and unit, or turn cooloff off",
+				"cooldownInvalidValue": "Cooloff value must be a positive integer"
+			}
 		},
 		"terminate": {
 			"title": "Terminate Wallet",
@@ -912,5 +1009,30 @@
 		"copied": "Copied!",
 		"copyLink": "Copy Link",
 		"close": "Close"
+	},
+	"spendAlerts": {
+		"remove": "Remove",
+		"add": "Add",
+		"thresholdValueLabel": "Threshold Value{{currencySuffix}}",
+		"amountPlaceholder": "0.00",
+		"conditionLabel": "Condition",
+		"conditionAbove": "Above",
+		"subscriptionDialogTitle": "Subscription Alert Settings",
+		"lineItemDialogTitle": "Line Item Alert Settings",
+		"enableTitle": "Enable Alerts",
+		"subscriptionEnableLabel": "Monitor total subscription spend against configured thresholds",
+		"lineItemEnableLabel": "Monitor this line item's spend against configured thresholds",
+		"enableDescription": "Get notified when spend crosses configured thresholds for the current billing period",
+		"criticalTitle": "Critical Threshold",
+		"criticalDescription": "Alert when spend reaches critical level",
+		"warningTitle": "Warning Threshold",
+		"warningDescription": "Alert when spend reaches warning level",
+		"infoTitle": "Info Threshold",
+		"infoDescription": "Alert when spend reaches info level",
+		"cancel": "Cancel",
+		"saving": "Saving...",
+		"saveChanges": "Save Changes",
+		"saveSuccess": "Alert settings saved successfully",
+		"saveError": "Failed to save alert settings"
 	}
 }

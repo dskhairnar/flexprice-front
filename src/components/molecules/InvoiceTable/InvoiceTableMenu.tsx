@@ -1,8 +1,10 @@
 import { Invoice, INVOICE_STATUS, INVOICE_TYPE } from '@/models/Invoice';
+import { InvoiceListItem } from '@/types/dto';
 import { FC, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { DropdownMenu, RecordPaymentTopup } from '..';
 import InvoiceDownloadFormatDialog from '../InvoiceDownloadFormatDialog/InvoiceDownloadFormatDialog';
-import { DropdownMenuOption } from '../DropdownMenu/DropdownMenu';
+import { DropdownMenuOption, getCopyIdOption } from '../DropdownMenu/DropdownMenu';
 import { useMutation } from '@tanstack/react-query';
 import InvoiceApi from '@/api/InvoiceApi';
 import toast from 'react-hot-toast';
@@ -10,16 +12,22 @@ import InvoiceStatusModal from './InvoiceStatusModal';
 import InvoicePaymentStatusModal from './InvoicePaymentStatusModal';
 import { useNavigate } from 'react-router';
 import { refetchQueries } from '@/core/services/tanstack/ReactQueryProvider';
+import { refetchInvoiceQueries } from '@/core/services/tanstack/queryKeys';
 import { PAYMENT_DESTINATION_TYPE } from '@/models/Payment';
 import { PAYMENT_STATUS } from '@/constants';
 import { RouteNames } from '@/core/routes/Routes';
+import { useCurrentUserPermissions } from '@/hooks/useCurrentUserPermissions';
 
 interface Props {
-	data: Invoice;
+	data: InvoiceListItem;
 }
 
 const InvoiceTableMenu: FC<Props> = ({ data }) => {
 	const navigate = useNavigate();
+	const { t: tc } = useTranslation('common');
+	const { can } = useCurrentUserPermissions();
+	const canWrite = can('invoice', 'write');
+	const writeDeniedReason = canWrite ? undefined : "You don't have permission to modify invoices";
 
 	const { mutate: triggerCommunication } = useMutation({
 		mutationFn: async (invoice_id: string) => {
@@ -27,9 +35,7 @@ const InvoiceTableMenu: FC<Props> = ({ data }) => {
 		},
 		onSuccess: () => {
 			toast.success('Communication triggered');
-			refetchQueries(['fetchInvoice', data.id]);
-			refetchQueries(['fetchInvoices']);
-			refetchQueries(['invoice', data.customer_id]);
+			void refetchInvoiceQueries();
 		},
 		onError: (error: Error) => {
 			toast.error(error.message || 'Unable to trigger communication');
@@ -48,15 +54,30 @@ const InvoiceTableMenu: FC<Props> = ({ data }) => {
 		},
 	});
 
+	const { mutateAsync: downloadInvoiceCsvAsync, isPending: isCsvDownloadPending } = useMutation({
+		mutationFn: async (invoice: InvoiceListItem) => {
+			const fullInvoice: Invoice = invoice.line_items?.length ? (invoice as Invoice) : await InvoiceApi.getInvoiceById(invoice.id);
+			return InvoiceApi.downloadInvoiceCsv(fullInvoice);
+		},
+		onSuccess: (rows) => {
+			if (rows === 0) {
+				toast.error('No billable line items to export');
+			} else {
+				toast.success('Invoice CSV downloaded');
+			}
+		},
+		onError: (error: Error) => {
+			toast.error(error.message || 'Unable to download invoice CSV');
+		},
+	});
+
 	const { mutate: recalculateInvoice, isPending: isRecalculating } = useMutation({
 		mutationFn: async (invoice_id: string) => {
 			return await InvoiceApi.recalculateInvoice(invoice_id);
 		},
 		onSuccess: () => {
 			toast.success('Invoice recalculation has been triggered. The replacement invoice will be available once the process completes.');
-			refetchQueries(['fetchInvoice', data.id]);
-			refetchQueries(['fetchInvoices']);
-			refetchQueries(['invoice', data.customer_id]);
+			void refetchInvoiceQueries();
 		},
 		onError: (error: Error) => {
 			toast.error(error.message || 'Unable to recalculate invoice');
@@ -69,7 +90,7 @@ const InvoiceTableMenu: FC<Props> = ({ data }) => {
 		isPaymentModalOpen: boolean;
 		isStatusModalOpen: boolean;
 		isRecordPaymentDrawerOpen: boolean;
-		activeInvoice?: Invoice;
+		activeInvoice?: InvoiceListItem;
 	}>({
 		isPaymentModalOpen: false,
 		isStatusModalOpen: false,
@@ -77,6 +98,7 @@ const InvoiceTableMenu: FC<Props> = ({ data }) => {
 	});
 
 	const menuOptions: DropdownMenuOption[] = [
+		getCopyIdOption(data.id, tc, { entityType: 'Invoice' }),
 		{
 			label: 'Download Invoice',
 			group: 'Actions',
@@ -90,6 +112,8 @@ const InvoiceTableMenu: FC<Props> = ({ data }) => {
 			onSelect: () => {
 				triggerCommunication(data.id);
 			},
+			disabled: !canWrite,
+			disabledReason: writeDeniedReason,
 		},
 		{
 			label: 'Record Payment',
@@ -102,9 +126,11 @@ const InvoiceTableMenu: FC<Props> = ({ data }) => {
 				});
 			},
 			disabled:
+				!canWrite ||
 				data?.payment_status === PAYMENT_STATUS.SUCCEEDED ||
 				data?.invoice_status === INVOICE_STATUS.VOIDED ||
 				(data?.amount_remaining ?? 0) === 0,
+			disabledReason: writeDeniedReason,
 		},
 		{
 			label: 'Update Invoice Status',
@@ -116,6 +142,8 @@ const InvoiceTableMenu: FC<Props> = ({ data }) => {
 					activeInvoice: data,
 				});
 			},
+			disabled: !canWrite,
+			disabledReason: writeDeniedReason,
 		},
 		{
 			label: 'Update Payment Status',
@@ -127,11 +155,14 @@ const InvoiceTableMenu: FC<Props> = ({ data }) => {
 					activeInvoice: data,
 				});
 			},
+			disabled: !canWrite,
+			disabledReason: writeDeniedReason,
 		},
 		{
 			label: 'Issue a Credit Note',
 			group: 'Actions',
-			disabled: data?.invoice_status !== 'FINALIZED' || data?.payment_status === 'REFUNDED',
+			disabled: !canWrite || data?.invoice_status !== 'FINALIZED' || data?.payment_status === 'REFUNDED',
+			disabledReason: writeDeniedReason,
 			onSelect: () => {
 				navigate(`${RouteNames.customers}/${data?.customer_id}/invoice/${data?.id}/credit-note`);
 			},
@@ -140,10 +171,12 @@ const InvoiceTableMenu: FC<Props> = ({ data }) => {
 			label: 'Recalculate Invoice',
 			group: 'Actions',
 			disabled:
-				data?.invoice_status !== INVOICE_STATUS.VOIDED ||
+				!canWrite ||
+				data?.invoice_status === INVOICE_STATUS.DRAFT ||
 				data?.invoice_type !== INVOICE_TYPE.SUBSCRIPTION ||
 				!!data?.recalculated_invoice_id ||
 				isRecalculating,
+			disabledReason: writeDeniedReason,
 			onSelect: () => {
 				recalculateInvoice(data.id);
 			},
@@ -164,10 +197,8 @@ const InvoiceTableMenu: FC<Props> = ({ data }) => {
 		},
 	];
 	const handlePaymentSuccess = () => {
-		refetchQueries(['fetchInvoice', data.id]);
-		refetchQueries(['payments', data.id]);
-		refetchQueries(['fetchInvoices']);
-		refetchQueries(['invoice', data.customer_id]);
+		void refetchInvoiceQueries();
+		void refetchQueries(['payments', data.id]);
 	};
 	return (
 		<div>
@@ -177,13 +208,9 @@ const InvoiceTableMenu: FC<Props> = ({ data }) => {
 				isPdfPending={isPdfDownloadPending}
 				onSelectPdf={() => downloadInvoicePdfAsync(data.id)}
 				onSelectCsv={() => {
-					const rows = InvoiceApi.downloadInvoiceCsv(data);
-					if (rows === 0) {
-						toast.error('No billable line items to export');
-					} else {
-						toast.success('Invoice CSV downloaded');
-					}
+					void downloadInvoiceCsvAsync(data).catch(() => undefined);
 				}}
+				isCsvPending={isCsvDownloadPending}
 			/>
 			<InvoiceStatusModal
 				invoice={state.activeInvoice}

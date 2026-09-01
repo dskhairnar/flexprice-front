@@ -5,8 +5,14 @@ import { useNavigate } from 'react-router';
 import { defaultFilter } from 'cmdk';
 import { CommandPaletteDialog, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command-palette';
 
-import { commandPaletteCommands, COMMAND_PALETTE_INITIAL_SUGGESTED_IDS, CommandPaletteGroup } from '@/config/command-palette';
-import { isIntercomMessengerAvailable } from '@/config/intercom';
+import {
+	commandPaletteCommands,
+	COMMAND_PALETTE_INITIAL_SUGGESTED_IDS,
+	CommandPaletteCommandId,
+	CommandPaletteGroup,
+} from '@/config/command-palette';
+import { isSupportChatAvailable } from '@/config/support-chat';
+import { config } from '@/config/config';
 import {
 	dispatchCommandPaletteAction,
 	getCommandPaletteActionEventName,
@@ -67,7 +73,10 @@ const CommandPalette = () => {
 	const visibleCommands = useMemo(() => {
 		return commandPaletteCommands.filter((cmd) => {
 			if (cmd.actionId && isCommandPaletteActionDevOnly(cmd.actionId)) return isDevelopment;
-			if (cmd.actionId === CommandPaletteActionId.OpenIntercom && !isIntercomMessengerAvailable()) {
+			if (cmd.actionId === CommandPaletteActionId.OpenIntercom && !isSupportChatAvailable()) {
+				return false;
+			}
+			if (cmd.id === CommandPaletteCommandId.navToolsRevenue && !config.platform.revenue.enabled) {
 				return false;
 			}
 			return true;
@@ -132,6 +141,8 @@ const CommandPalette = () => {
 
 	const isMac = typeof navigator !== 'undefined' && /Mac|iPod|iPhone|iPad/.test(navigator.platform);
 	const shortcutHint = isMac ? '⌘K' : 'Ctrl+K';
+	const kbdClass =
+		'inline-flex h-5 min-w-5 items-center justify-center rounded border border-border/70 bg-surface px-1.5 font-sans text-[11px] font-medium text-foreground/70 shadow-sm dark:bg-surface/20';
 
 	return (
 		<CommandPaletteDialog open={open} onOpenChange={handleOpenChange} value={search} onValueChange={setSearch} filter={filter}>
@@ -147,13 +158,9 @@ const CommandPalette = () => {
 								const Icon = command.icon;
 								const searchValue = [command.label, command.group, ...(command.keywords ?? [])].join(' ');
 								return (
-									<CommandItem
-										key={command.id}
-										value={searchValue}
-										onSelect={() => handleSelect(command)}
-										className='my-1 mx-2 p-2 !rounded-xl'>
-										{Icon && <Icon className='!size-[11px] shrink-0 text-muted-foreground mx-2' />}
-										<span className='!text-[13px] text-black/70 !font-normal'>{command.label}</span>
+									<CommandItem key={command.id} value={searchValue} onSelect={() => handleSelect(command)} className='my-0.5 !rounded-xl'>
+										{Icon && <Icon className='!size-4 shrink-0 text-muted-foreground' />}
+										<span className='!text-[13px] text-content-black/70 !font-normal'>{command.label}</span>
 									</CommandItem>
 								);
 							})}
@@ -161,10 +168,30 @@ const CommandPalette = () => {
 					);
 				})}
 			</CommandList>
-			<p className='px-3 py-2 text-[11px] text-muted-foreground/80 border-t border-border/80 bg-muted/30'>
-				<span className='sr-only'>{t('commandPalette.keyboardShortcutsSrOnly')} </span>
-				{t('commandPalette.keyboardShortcutsHint', { shortcut: shortcutHint })}
-			</p>
+			<div className='flex items-center justify-between gap-4 border-t border-border/60 bg-muted/40 px-4 py-3.5 text-[12px] text-muted-foreground shadow-[0_-6px_16px_-8px_rgba(0,0,0,0.08)] dark:shadow-[0_-6px_16px_-8px_rgba(0,0,0,0.35)]'>
+				<span className='sr-only'>{t('commandPalette.keyboardShortcutsSrOnly')}</span>
+				<div className='flex flex-wrap items-center gap-x-3 gap-y-1.5'>
+					<span className='inline-flex items-center gap-1.5'>
+						<span className='inline-flex items-center gap-0.5'>
+							<kbd className={kbdClass}>↑</kbd>
+							<kbd className={kbdClass}>↓</kbd>
+						</span>
+						<span>{t('commandPalette.footerNavigate')}</span>
+					</span>
+					<span className='inline-flex items-center gap-1.5'>
+						<kbd className={kbdClass}>{t('commandPalette.keyEnter')}</kbd>
+						<span>{t('commandPalette.footerSelect')}</span>
+					</span>
+					<span className='inline-flex items-center gap-1.5'>
+						<kbd className={kbdClass}>{t('commandPalette.keyEscape')}</kbd>
+						<span>{t('commandPalette.footerClose')}</span>
+					</span>
+				</div>
+				<span className='inline-flex shrink-0 items-center gap-1.5'>
+					<kbd className={kbdClass}>{shortcutHint}</kbd>
+					<span>{t('commandPalette.footerOpenAnytime')}</span>
+				</span>
+			</div>
 		</CommandPaletteDialog>
 	);
 };

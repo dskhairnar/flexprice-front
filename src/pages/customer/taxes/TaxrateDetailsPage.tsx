@@ -1,4 +1,5 @@
-import { Button, CardHeader, Chip, Loader, Page, Spacer, Card } from '@/components/atoms';
+import { Button, CardHeader, Chip, Loader, Page, Spacer, Card, Tooltip } from '@/components/atoms';
+import { useCurrentUserPermissions } from '@/hooks/useCurrentUserPermissions';
 import { ApiDocsContent, DetailsCard } from '@/components/molecules';
 import { API_DOCS_TAGS } from '@/constants/apiDocsTags';
 import { RouteNames } from '@/core/routes/Routes';
@@ -26,6 +27,8 @@ const TaxrateDetailsPage = () => {
 	const { t } = useTranslation(['billing', 'common']);
 	const { taxrateId } = useParams<Params>();
 	const [taxDrawerOpen, setTaxDrawerOpen] = useState(false);
+	const { can } = useCurrentUserPermissions();
+	const canWriteTax = can('tax', 'write');
 
 	const {
 		data: taxData,
@@ -130,19 +133,41 @@ const TaxrateDetailsPage = () => {
 			heading={taxData?.name}
 			headingCTA={
 				<>
-					<Button onClick={() => setTaxDrawerOpen(true)} variant={'outline'} className='flex gap-2'>
-						<Pencil />
-						{t('common:actions.edit')}
-					</Button>
+					{canWriteTax ? (
+						<Button onClick={() => setTaxDrawerOpen(true)} variant={'outline'} className='flex gap-2'>
+							<Pencil />
+							{t('common:actions.edit')}
+						</Button>
+					) : (
+						<Tooltip content={t('taxes.writeDeniedTooltip')}>
+							<span tabIndex={0} className='inline-block'>
+								<Button disabled variant={'outline'} className='flex gap-2'>
+									<Pencil />
+									{t('common:actions.edit')}
+								</Button>
+							</span>
+						</Tooltip>
+					)}
 
-					<Button
-						onClick={() => archiveTaxRate()}
-						disabled={taxData?.status === ENTITY_STATUS.ARCHIVED}
-						variant={'outline'}
-						className='flex gap-2'>
-						<EyeOff />
-						{t('common:actions.archive')}
-					</Button>
+					{canWriteTax ? (
+						<Button
+							onClick={() => archiveTaxRate()}
+							disabled={taxData?.status === ENTITY_STATUS.ARCHIVED}
+							variant={'outline'}
+							className='flex gap-2'>
+							<EyeOff />
+							{t('common:actions.archive')}
+						</Button>
+					) : (
+						<Tooltip content={t('taxes.writeDeniedTooltip')}>
+							<span tabIndex={0} className='inline-block'>
+								<Button disabled variant={'outline'} className='flex gap-2'>
+									<EyeOff />
+									{t('common:actions.archive')}
+								</Button>
+							</span>
+						</Tooltip>
+					)}
 				</>
 			}>
 			<TaxDrawer data={taxData as TaxRate} open={taxDrawerOpen} onOpenChange={setTaxDrawerOpen} refetchQueryKeys={['fetchTaxRate']} />
@@ -159,7 +184,7 @@ const TaxrateDetailsPage = () => {
 							<div className='grid grid-cols-2 gap-4'>
 								{Object.entries(taxData.metadata).map(([key, value]) => (
 									<div key={key} className='flex flex-col'>
-										<span className='text-sm text-gray-500'>{key}</span>
+										<span className='text-sm text-content-muted'>{key}</span>
 										<span className='text-sm font-medium'>{value}</span>
 									</div>
 								))}

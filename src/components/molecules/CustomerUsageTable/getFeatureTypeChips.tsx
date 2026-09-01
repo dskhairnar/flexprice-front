@@ -28,8 +28,8 @@ export const getFeatureTypeChips = ({
 		case FEATURE_TYPE.METERED:
 			return (
 				<Chip
-					textColor='#1E3A8A'
-					bgColor='#F0F9FF'
+					textColor='rgb(var(--fp-chip-type-metered-text))'
+					bgColor='rgb(var(--fp-chip-type-metered-bg))'
 					icon={showIcon && icon}
 					label={showLabel ? i18n.t('usageTable.featureTypes.metered', { ns: CUSTOMERS_NS }) : undefined}
 				/>
@@ -37,17 +37,26 @@ export const getFeatureTypeChips = ({
 		case FEATURE_TYPE.BOOLEAN:
 			return (
 				<Chip
-					textColor='#075985'
-					bgColor='#F0F9FF'
+					textColor='rgb(var(--fp-chip-type-boolean-text))'
+					bgColor='rgb(var(--fp-chip-type-boolean-bg))'
 					icon={showIcon && icon}
 					label={showLabel ? i18n.t('usageTable.featureTypes.boolean', { ns: CUSTOMERS_NS }) : undefined}
+				/>
+			);
+		case FEATURE_TYPE.CONFIG:
+			return (
+				<Chip
+					textColor='rgb(var(--fp-chip-type-config-text))'
+					bgColor='rgb(var(--fp-chip-type-config-bg))'
+					icon={showIcon && icon}
+					label={showLabel ? i18n.t('usageTable.featureTypes.config', { ns: CUSTOMERS_NS, defaultValue: 'Config' }) : undefined}
 				/>
 			);
 		default:
 			return (
 				<Chip
-					textColor='#075985'
-					bgColor='#F0F9FF'
+					textColor='rgb(var(--fp-chip-type-default-text))'
+					bgColor='rgb(var(--fp-chip-type-default-bg))'
 					icon={showIcon && icon}
 					label={showLabel ? i18n.t('usageTable.featureTypes.dash', { ns: CUSTOMERS_NS }) : undefined}
 				/>

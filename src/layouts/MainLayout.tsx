@@ -1,14 +1,14 @@
 import { config } from '@/config/config';
-import { Outlet, useNavigate } from 'react-router';
+import { useNavigate } from 'react-router';
 import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar';
 import { Sidebar } from '@/components/molecules/Sidebar';
-import { BreadCrumbs, DebugMenu, FundingStrip, RestrictedEnvBanner } from '@/components/molecules';
+import { BreadCrumbs, DebugMenu, RestrictedEnvBanner } from '@/components/molecules';
 import { CommandPalette } from '@/components/organisms';
 import AppPrefetcher from '@/components/organisms/AppPrefetcher';
 import useUser from '@/hooks/useUser';
 import posthog from 'posthog-js';
 import { useEffect } from 'react';
-import * as Sentry from '@sentry/react';
+import RouteGuard from '@/core/routes/RouteGuard';
 
 const MainLayout: React.FC = () => {
 	const { user } = useUser();
@@ -25,20 +25,6 @@ const MainLayout: React.FC = () => {
 			tenant_name: user.tenant?.name,
 		});
 
-		Sentry.setUser({
-			id: user.id,
-			email: user.email,
-			name: user.tenant?.name,
-			tenant_id: user.tenant?.id,
-			tenant_name: user.tenant?.name,
-		});
-
-		Sentry.setContext('tenant', {
-			created_at: user.tenant?.created_at,
-			tenant_id: user.tenant?.id,
-			tenant_name: user.tenant?.name,
-		});
-
 		if (window.Reo) {
 			window.Reo.identify({
 				username: user.email,
@@ -51,25 +37,23 @@ const MainLayout: React.FC = () => {
 
 	useEffect(() => {
 		if (!user && config.app.isProd) {
-			Sentry.setUser(null);
 			posthog.reset();
 		}
 	}, [user]);
 
 	return (
-		<SidebarProvider className='flex h-screen bg-gray-100 relative'>
+		<SidebarProvider className='flex h-screen bg-surface-shell relative'>
 			<AppPrefetcher />
 			<CommandPalette />
 			{/* Sidebar */}
 			<Sidebar />
 			{/* Right Layout */}
-			<SidebarInset className='flex flex-col flex-1 bg-white h-screen relative'>
-				<FundingStrip />
+			<SidebarInset className='flex flex-col flex-1 bg-surface-canvas h-screen relative'>
 				<BreadCrumbs />
 				<RestrictedEnvBanner />
 				{/* Main Content */}
 				<main className='flex-1 px-4 relative overflow-y-auto '>
-					<Outlet />
+					<RouteGuard />
 					<DebugMenu />
 				</main>
 			</SidebarInset>

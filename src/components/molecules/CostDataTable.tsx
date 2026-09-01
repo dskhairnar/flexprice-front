@@ -2,7 +2,7 @@ import { useTranslation } from 'react-i18next';
 import React from 'react';
 import { FlexpriceTable, type ColumnData } from '@/components/molecules';
 import { CostAnalyticItem } from '@/types';
-import { formatNumber, getCurrencySymbol } from '@/utils';
+import { formatNumber, formatCurrencyAmount } from '@/utils';
 
 interface CostDataTableProps {
 	items: CostAnalyticItem[];
@@ -26,13 +26,8 @@ export const CostDataTable: React.FC<CostDataTableProps> = ({ items }) => {
 		{
 			title: t('catalog:costAnalytics.table.totalCost'),
 			render: (row: CostAnalyticItem) => {
-				const currency = getCurrencySymbol(row.currency);
-				return (
-					<span>
-						{currency}
-						{formatNumber(parseFloat(row.total_cost || '0'), 2)}
-					</span>
-				);
+				const amount = parseFloat(row.total_cost || '0');
+				return <span>{formatCurrencyAmount(amount, row.currency)}</span>;
 			},
 		},
 	];
@@ -50,7 +45,7 @@ export const CostDataTable: React.FC<CostDataTableProps> = ({ items }) => {
 
 	return (
 		<>
-			<h1 className='text-lg font-medium text-gray-900 mb-4'>{t('common:labels.costBreakdown')}</h1>
+			<h1 className='text-lg font-medium text-content mb-4'>{t('common:labels.costBreakdown')}</h1>
 			<FlexpriceTable columns={columns} data={tableData} showEmptyRow />
 		</>
 	);

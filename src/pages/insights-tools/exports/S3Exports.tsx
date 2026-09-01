@@ -1,4 +1,5 @@
-import { FormHeader, Loader, Page, Button } from '@/components/atoms';
+import { FormHeader, Loader, Page, Button, Tooltip } from '@/components/atoms';
+import { useCurrentUserPermissions } from '@/hooks/useCurrentUserPermissions';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router';
@@ -16,6 +17,8 @@ const S3Exports = () => {
 	const { i18n } = useTranslation();
 	const navigate = useNavigate();
 	const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+	const { can } = useCurrentUserPermissions();
+	const canWriteConnection = can('connection', 'write');
 
 	// Fetch S3 connections
 	const {
@@ -93,14 +96,25 @@ const S3Exports = () => {
 					<ArrowLeft className='w-4 h-4' />
 					{t('insightsTools.exports.backToExports')}
 				</Button>
-				<Button
-					onClick={() => {
-						setIsDrawerOpen(true);
-					}}
-					className='flex items-center gap-2'>
-					<Plus className='w-4 h-4' />
-					{i18n.t('actions.add', { ns: 'common' })}
-				</Button>
+				{canWriteConnection ? (
+					<Button
+						onClick={() => {
+							setIsDrawerOpen(true);
+						}}
+						className='flex items-center gap-2'>
+						<Plus className='w-4 h-4' />
+						{i18n.t('actions.add', { ns: 'common' })}
+					</Button>
+				) : (
+					<Tooltip content={t('insightsTools.integrations.writeDeniedTooltip')}>
+						<span tabIndex={0} className='inline-block'>
+							<Button disabled className='flex items-center gap-2'>
+								<Plus className='w-4 h-4' />
+								{i18n.t('actions.add', { ns: 'common' })}
+							</Button>
+						</span>
+					</Tooltip>
+				)}
 			</div>
 
 			{/* Connections List */}
@@ -112,12 +126,12 @@ const S3Exports = () => {
 							<div key={idx} className='flex items-center justify-between text-sm p-4 border-b last:border-b-0'>
 								<div className='flex-1'>
 									<div className='flex items-center gap-3'>
-										<div className='w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center'>
-											<Settings className='w-5 h-5 text-orange-600' />
+										<div className='w-10 h-10 bg-accent-orange-muted rounded-lg flex items-center justify-center'>
+											<Settings className='w-5 h-5 text-accent-orange' />
 										</div>
 										<div>
-											<p className='text-gray-900 font-medium'>{connection.name}</p>
-											<p className='text-xs text-gray-500 capitalize'>
+											<p className='text-content font-medium'>{connection.name}</p>
+											<p className='text-xs text-content-muted capitalize'>
 												{connection.connection_status} • {t('insightsTools.exports.providerS3Suffix')}
 											</p>
 										</div>
@@ -125,7 +139,7 @@ const S3Exports = () => {
 								</div>
 								<div className='flex items-center gap-10'>
 									{/* Export Count */}
-									<div className='flex items-center gap-2 text-sm text-gray-600'>
+									<div className='flex items-center gap-2 text-sm text-content-tertiary'>
 										<BarChart3 className='w-4 h-4' />
 										<span>
 											{(exportCounts?.[connection.id] ?? 0) === 1
@@ -147,7 +161,7 @@ const S3Exports = () => {
 											variant='outline'
 											size='icon'
 											onClick={() => handleDeleteConnection(connection.id, connection.name)}
-											disabled={isDeletingConnection}
+											disabled={isDeletingConnection || !canWriteConnection}
 											isLoading={isDeletingConnection}>
 											<Trash2 className='size-4' />
 										</Button>
@@ -159,41 +173,52 @@ const S3Exports = () => {
 				</div>
 			) : (
 				<div className='card text-center !py-12'>
-					<div className='text-gray-500 mb-4'>
-						<h3 className='text-lg font-medium text-gray-900 mb-2'>{t('insightsTools.exports.noS3Connections')}</h3>
-						<p className='text-gray-500 mb-6'>{t('insightsTools.exports.noS3ConnectionsHint')}</p>
-						<Button
-							variant='outline'
-							onClick={() => {
-								setIsDrawerOpen(true);
-							}}
-							className='flex items-center gap-2 mx-auto'>
-							<Plus className='w-4 h-4' />
-							{t('insightsTools.exports.addS3Connection')}
-						</Button>
+					<div className='text-content-muted mb-4'>
+						<h3 className='text-lg font-medium text-content mb-2'>{t('insightsTools.exports.noS3Connections')}</h3>
+						<p className='text-content-muted mb-6'>{t('insightsTools.exports.noS3ConnectionsHint')}</p>
+						{canWriteConnection ? (
+							<Button
+								variant='outline'
+								onClick={() => {
+									setIsDrawerOpen(true);
+								}}
+								className='flex items-center gap-2 mx-auto'>
+								<Plus className='w-4 h-4' />
+								{t('insightsTools.exports.addS3Connection')}
+							</Button>
+						) : (
+							<Tooltip content={t('insightsTools.integrations.writeDeniedTooltip')}>
+								<span tabIndex={0} className='inline-block'>
+									<Button disabled variant='outline' className='flex items-center gap-2 mx-auto'>
+										<Plus className='w-4 h-4' />
+										{t('insightsTools.exports.addS3Connection')}
+									</Button>
+								</span>
+							</Tooltip>
+						)}
 					</div>
 				</div>
 			)}
 
 			{/* Overview Section */}
 			<div className='card space-y-6 mt-8'>
-				<h3 className='text-xl font-semibold text-gray-900'>{t('insightsTools.exports.s3FeaturesTitle')}</h3>
+				<h3 className='text-xl font-semibold text-content'>{t('insightsTools.exports.s3FeaturesTitle')}</h3>
 				<div className='space-y-4'>
 					<div>
-						<h4 className='text-sm font-semibold text-gray-900 mb-1'>{t('insightsTools.exports.s3FeatureDataExportTitle')}</h4>
-						<p className='text-xs text-gray-600'>{t('insightsTools.exports.s3FeatureDataExportBody')}</p>
+						<h4 className='text-sm font-semibold text-content mb-1'>{t('insightsTools.exports.s3FeatureDataExportTitle')}</h4>
+						<p className='text-xs text-content-tertiary'>{t('insightsTools.exports.s3FeatureDataExportBody')}</p>
 					</div>
 					<div>
-						<h4 className='text-sm font-semibold text-gray-900 mb-1'>{t('insightsTools.exports.s3FeatureSchedulingTitle')}</h4>
-						<p className='text-xs text-gray-600'>{t('insightsTools.exports.s3FeatureSchedulingBody')}</p>
+						<h4 className='text-sm font-semibold text-content mb-1'>{t('insightsTools.exports.s3FeatureSchedulingTitle')}</h4>
+						<p className='text-xs text-content-tertiary'>{t('insightsTools.exports.s3FeatureSchedulingBody')}</p>
 					</div>
 					<div>
-						<h4 className='text-sm font-semibold text-gray-900 mb-1'>{t('insightsTools.exports.s3FeatureSecureTitle')}</h4>
-						<p className='text-xs text-gray-600'>{t('insightsTools.exports.s3FeatureSecureBody')}</p>
+						<h4 className='text-sm font-semibold text-content mb-1'>{t('insightsTools.exports.s3FeatureSecureTitle')}</h4>
+						<p className='text-xs text-content-tertiary'>{t('insightsTools.exports.s3FeatureSecureBody')}</p>
 					</div>
 					<div>
-						<h4 className='text-sm font-semibold text-gray-900 mb-1'>{t('insightsTools.exports.s3FeatureFormatsTitle')}</h4>
-						<p className='text-xs text-gray-600'>{t('insightsTools.exports.s3FeatureFormatsBody')}</p>
+						<h4 className='text-sm font-semibold text-content mb-1'>{t('insightsTools.exports.s3FeatureFormatsTitle')}</h4>
+						<p className='text-xs text-content-tertiary'>{t('insightsTools.exports.s3FeatureFormatsBody')}</p>
 					</div>
 				</div>
 			</div>

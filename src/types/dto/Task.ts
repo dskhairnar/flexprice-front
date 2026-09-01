@@ -11,10 +11,15 @@ import {
 export interface AddTaskPayload {
 	entity_type: string;
 	file_type: string;
-	file_url: string;
 	task_type: string;
 	file_name?: string;
 	metadata?: Metadata;
+	// Legacy: pre-signed/hosted URL flow. Kept for non-csvbox providers.
+	file_url?: string;
+	// Backend derives the S3 key from `upload_id` + the authenticated tenant/env,
+	// so nothing else about the object is sent from the client.
+	file_provider?: 'csvbox';
+	upload_id?: string;
 }
 
 export interface GetTasksPayload {

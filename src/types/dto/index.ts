@@ -1,6 +1,16 @@
 export type {
+	CreateAlertSettingsRequest,
+	UpdateAlertSettingsRequest,
+	AlertSettingResponse,
+	AlertSettingsFilter,
+	SearchAlertSettingsRequest,
+	SearchAlertSettingsResponse,
+} from './AlertSetting';
+
+export type {
 	CreateFeatureRequest,
 	UpdateFeatureRequest,
+	FeatureFormData,
 	FeatureResponse,
 	ListFeaturesResponse,
 	FeatureFilter,
@@ -57,6 +67,8 @@ export type {
 	ForceRunPayload,
 	DownloadTaskFileResponse,
 } from './Task';
+
+export type { UsageRecordFilter, ListUsageRecordsResponse } from './UsageRecord';
 
 export type { SignupData, LoginData, LocalUser } from './Auth';
 
@@ -128,6 +140,8 @@ export type {
 
 export type {
 	GetInvoicesResponse,
+	GetInvoicesListResponse,
+	InvoiceListItem,
 	InvoiceFilter,
 	UpdatePaymentStatusPayload,
 	UpdateInvoiceStatusPayload,
@@ -162,6 +176,9 @@ export type {
 	ListSubscriptionsPayload,
 	ListSubscriptionsResponse,
 	EntitlementOverrideRequest,
+	GetSubscriptionEntitlementsResponse,
+	SubscriptionEntitlementFeature,
+	SubscriptionEntitlementSource,
 	SubscriptionPriceCreateRequest,
 	SubModifyInheritanceRequest,
 	LineItemQuantityChange,
@@ -176,6 +193,9 @@ export type {
 	SubscriptionLineItemFilter,
 	ListSubscriptionLineItemsResponse,
 	SubscriptionLineItemListItem,
+	SubscriptionCouponInput,
+	SubModifyCouponParams,
+	SubModifyTaxParams,
 } from './Subscription';
 
 export type { SubscriptionModifyType } from '@/models';
@@ -185,6 +205,8 @@ export {
 	SUBSCRIPTION_MODIFY_LINE_ITEM_ACTION,
 	SUBSCRIPTION_MODIFY_SUBSCRIPTION_RESOURCE_ACTION,
 	SUBSCRIPTION_MODIFY_INVOICE_RESOURCE_ACTION,
+	SUB_MODIFY_COUPON_ACTION,
+	SUB_MODIFY_TAX_ACTION,
 } from '@/models';
 
 export type { GetBillingdetailsResponse, UpdateTenantRequest } from './Tenant';
@@ -241,6 +263,8 @@ export type {
 } from './Plan';
 
 export type { CreateCouponRequest, UpdateCouponRequest, GetCouponResponse, ListCouponsResponse, CouponFilter } from './Coupon';
+
+export type { CouponAssociationFilter, ListCouponAssociationsResponse } from './CouponAssociation';
 
 export type {
 	CreateAddonRequest,
@@ -320,8 +344,11 @@ export { NomodWebhookEvents, getDefaultNomodWebhookEvents } from '../enums/Nomod
 
 export { QuickBooksWebhookEvents, getDefaultQuickBooksWebhookEvents } from '../enums/QuickBooksWebhookEvents';
 
+export { PaddleWebhookEvents, getDefaultPaddleWebhookEvents } from '../enums/PaddleWebhookEvents';
+
 // Additional DTO types
 export type { Testimonial } from './Testimonial';
+export type { CustomerLogo } from './CustomerLogo';
 
 export type {
 	CreateGroupRequest,

@@ -179,8 +179,9 @@ const PropertyFilterPopover: React.FC<Props> = ({
 						date={filter.valueDate}
 						{...inputProps}
 						popoverContentClassName='w-full !z-[110]'
-						className={cn(inputProps.className, 'h-9 min-w-[182px] text-xs')}
+						className={cn(inputProps.className, 'h-9 text-xs')}
 						placeholder={t('queryBuilder.selectDate')}
+						clearable
 					/>
 				),
 				[FilterFieldType.RADIO]: (
@@ -300,10 +301,10 @@ const PropertyFilterPopover: React.FC<Props> = ({
 			</PopoverTrigger>
 			<PopoverContent
 				align='start'
-				className={cn('w-screen border-border/70 shadow-lg bg-[#fbfbfb]', POPOVER_PADDING)}
+				className={cn('w-screen border-border/70 shadow-lg bg-surface-panel', POPOVER_PADDING)}
 				style={{ maxWidth: '600px', minWidth: MIN_POPOVER_WIDTH }}>
 				<div className='flex flex-col gap-1.5'>
-					{value.length === 0 ? (
+					{value.length === 0 && (!propertyFilters || propertyFilters.rows.length === 0) ? (
 						<div className='flex flex-col gap-2 p-2'>
 							<div className='flex justify-between items-start'>
 								<div className='flex flex-col gap-1'>
@@ -318,14 +319,26 @@ const PropertyFilterPopover: React.FC<Props> = ({
 								<Button size='sm' onClick={handleAddFilter} className='w-fit h-9 text-sm px-2.5'>
 									{t('queryBuilder.addFilter')}
 								</Button>
+								{propertyFilters && (
+									<Button
+										variant='outline'
+										size='sm'
+										onClick={() => propertyFilters.setRows((prev) => [...prev, propertyFilters.createEmpty()])}
+										className='h-9 text-sm px-2.5'>
+										{t('queryBuilder.addPropertyFilter')}
+									</Button>
+								)}
 								{(onResetCallback != null || propertyFilters != null) && (
 									<Button
 										variant='outline'
 										size='sm'
 										onClick={() => {
-											onChange([]);
-											if (propertyFilters) propertyFilters.setRows([propertyFilters.createEmpty()]);
-											onResetCallback?.();
+											if (onResetCallback) {
+												onResetCallback();
+											} else {
+												onChange([]);
+											}
+											if (propertyFilters) propertyFilters.setRows([]);
 										}}
 										className='h-9 text-sm px-2.5'>
 										{t('queryBuilder.resetFilters')}
@@ -424,7 +437,7 @@ const PropertyFilterPopover: React.FC<Props> = ({
 									</SortableOverlay>
 								</Sortable>
 
-								{propertyFilters ? (
+								{propertyFilters && propertyFilters.rows.length > 0 ? (
 									<div className='pt-3 mt-2 border-t border-border flex flex-col gap-1.5'>
 										<h4 className='text-sm font-medium leading-none'>{t('queryBuilder.propertyFiltersHeading')}</h4>
 										<div className='space-y-3'>
@@ -454,9 +467,7 @@ const PropertyFilterPopover: React.FC<Props> = ({
 														variant='ghost'
 														size='icon'
 														className='h-7 w-7 shrink-0 hover:bg-destructive/10 hover:text-destructive'
-														onClick={() =>
-															propertyFilters.setRows((prev) => (prev.length > 1 ? prev.filter((r) => r.id !== row.id) : prev))
-														}
+														onClick={() => propertyFilters.setRows((prev) => prev.filter((r) => r.id !== row.id))}
 														aria-label={t('queryBuilder.removePropertyFilterAria')}>
 														<Trash2 className='h-3.5 w-3.5' />
 													</Button>
@@ -484,9 +495,12 @@ const PropertyFilterPopover: React.FC<Props> = ({
 									variant='outline'
 									size='sm'
 									onClick={() => {
-										onChange([]);
-										if (propertyFilters) propertyFilters.setRows([propertyFilters.createEmpty()]);
-										onResetCallback?.();
+										if (onResetCallback) {
+											onResetCallback();
+										} else {
+											onChange([]);
+										}
+										if (propertyFilters) propertyFilters.setRows([]);
 									}}
 									className='h-9 text-sm px-2.5'>
 									{t('queryBuilder.resetFilters')}

@@ -23,7 +23,7 @@ const tutorials: TutorialItem[] = [
 	{
 		title: 'Set Up Pricing Plans',
 		description: 'Create and configure your first pricing plan',
-		onClick: () => window.open('https://docs.flexprice.io/guides/plan/pricing-plan-create', '_blank'),
+		onClick: () => window.open('https://docs.flexprice.io/docs/product-catalogue/plans/pricing', '_blank'),
 	},
 	{
 		title: 'Define Usage Metering',
@@ -33,7 +33,7 @@ const tutorials: TutorialItem[] = [
 	{
 		title: 'Configure Credits & Wallets',
 		description: 'Manage prepaid wallets, free credits, and top-ups',
-		onClick: () => window.open('https://docs.flexprice.io/guides/wallet/customers-wallet', '_blank'),
+		onClick: () => window.open('https://docs.flexprice.io/docs/wallet/create', '_blank'),
 	},
 	{
 		title: 'Billing',
@@ -43,7 +43,7 @@ const tutorials: TutorialItem[] = [
 	{
 		title: 'Self-Hosting & Configuration',
 		description: 'Set up and deploy Flexprice on your own infrastructure',
-		onClick: () => window.open('https://docs.flexprice.io/guides/self-hosted/guide', '_blank'),
+		onClick: () => window.open('https://docs.flexprice.io/docs/getting-started/self-hosting-guide', '_blank'),
 	},
 ];
 
@@ -74,9 +74,11 @@ const OnboardingPage = () => {
 	return (
 		<>
 			{showVideoModal && (
-				<div className='flex fixed inset-0 z-50 justify-center items-center bg-black/70'>
+				<div className='flex fixed inset-0 z-50 justify-center items-center bg-surface-scrim/70'>
 					<div className='relative w-full max-w-4xl aspect-video'>
-						<button onClick={handleCloseModal} className='absolute right-0 -top-10 text-white hover:text-gray-300 z-60'>
+						<button
+							onClick={handleCloseModal} /* On the scrim, which is black in both themes — literal white, not content-inverse. */
+							className='absolute right-0 -top-10 text-white hover:text-gray-300 z-60'>
 							<X className='w-6 h-6' />
 						</button>
 						<iframe
@@ -92,11 +94,11 @@ const OnboardingPage = () => {
 				<ApiDocsContent tags={API_DOCS_TAGS.Events} />
 				<div className='flex gap-6 mb-16 w-full'>
 					{/* Welcome Container */}
-					<div className='flex-1 w-[70%] flex-grow rounded bg-[#dde1eb] p-8'>
+					<div className='flex-1 w-[70%] flex-grow rounded bg-surface-cool-strong p-8'>
 						<div className='flex justify-between items-start w-full'>
 							<div className='w-[60%]'>
 								<h1 className='mb-2 text-xl font-semibold tracking-tight'>{t('onboardingLanding.welcomeHeading')}</h1>
-								<p className='mb-6 text-sm text-slate-800'>{t('onboardingLanding.welcomeSubtext')}</p>
+								<p className='mb-6 text-sm text-content-slate-strong'>{t('onboardingLanding.welcomeSubtext')}</p>
 								<div className='flex gap-4'>
 									<Button
 										onClick={() => {
@@ -112,7 +114,7 @@ const OnboardingPage = () => {
 						</div>
 					</div>
 					{/* Learn More Container */}
-					<div className='flex-1 max-w-[35%] bg-[#0B1121] rounded relative overflow-hidden'>
+					<div className='flex-1 max-w-[35%] bg-surface-avatar-navy rounded relative overflow-hidden'>
 						<iframe
 							src='https://www.loom.com/embed/60d8308781254fe0bc5be341501f9fd5?sid=c034e9a8-e243-4def-ab50-976f08d56cee&amp;hideEmbedTopBar=true&amp;hide_title=true&amp;hide_owner=true&amp;hide_speed=true&amp;hide_share=true'
 							allowFullScreen
@@ -121,25 +123,25 @@ const OnboardingPage = () => {
 				</div>
 				{/* Quick Start Section */}
 				<div className='w-full'>
-					<h2 className='mb-6 text-2xl font-semibold text-slate-900'>{t('onboardingLanding.quickStart')}</h2>
+					<h2 className='mb-6 text-2xl font-semibold text-content-slate'>{t('onboardingLanding.quickStart')}</h2>
 					<div className='grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3'>
 						{tutorials.map((tutorial, index) => (
 							<motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }} key={index}>
 								<Card
-									className='p-6 h-full bg-white rounded-lg border shadow-sm transition-all duration-200 cursor-pointer group border-slate-100 hover:border-blue-100 hover:bg-slate-50 hover:shadow-lg hover:shadow-blue-600/5'
+									className='p-6 h-full bg-surface rounded-lg border shadow-sm transition-all duration-200 cursor-pointer group border-line-slate-subtle hover:border-info-muted-strong hover:bg-surface-cool hover:shadow-lg hover:shadow-info/5'
 									onClick={tutorial.onClick}>
 									<div className='flex gap-4'>
 										<div className='flex-shrink-0 mt-1'>
-											<AlignJustify className='w-5 h-5 transition-colors duration-200 text-slate-400 group-hover:text-blue-600' />
+											<AlignJustify className='w-5 h-5 transition-colors duration-200 text-content-slate-subtle group-hover:text-info' />
 										</div>
 
 										<div className='flex-1 min-w-0'>
-											<h3 className='mb-2 text-base font-medium transition-colors duration-200 text-slate-800 group-hover:text-blue-600'>
+											<h3 className='mb-2 text-base font-medium transition-colors duration-200 text-content-slate-strong group-hover:text-info'>
 												{tutorial.title}
 											</h3>
-											<p className='text-sm leading-relaxed text-slate-500'>{tutorial.description}</p>
+											<p className='text-sm leading-relaxed text-content-slate-muted'>{tutorial.description}</p>
 
-											<div className='flex gap-1 items-center mt-4 transition-all duration-200 text-slate-400 group-hover:text-blue-600'>
+											<div className='flex gap-1 items-center mt-4 transition-all duration-200 text-content-slate-subtle group-hover:text-info'>
 												<span className='text-xs font-medium'>{t('onboardingLanding.learnMore')}</span>
 												<ArrowRight className='w-4 h-4 transition-transform duration-200 transform group-hover:translate-x-1' />
 											</div>

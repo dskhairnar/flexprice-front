@@ -13,20 +13,26 @@ const DialogPortal = DialogPrimitive.Portal;
 
 const DialogClose = DialogPrimitive.Close;
 
-const DialogOverlay = React.forwardRef<
-	React.ElementRef<typeof DialogPrimitive.Overlay>,
-	React.ComponentPropsWithoutRef<typeof DialogPrimitive.Overlay>
->(({ className, ...props }, ref) => (
-	<DialogPrimitive.Overlay
+/**
+ * A plain div, deliberately NOT `DialogPrimitive.Overlay`.
+ *
+ * Dialog uses `modal={false}` so portaled comboboxes/selects nested inside it stay clickable (see
+ * Dialog.tsx) — the same reasoning as SheetOverlay in ui/sheet.tsx. Radix's own overlay is written
+ * as `context.modal ? <Presence>… : null`, so in non-modal mode it renders nothing and the scrim
+ * silently vanishes. Rendering it ourselves restores the look without giving up non-modal
+ * behaviour. `pointer-events-none` is load-bearing: the overlay must not swallow clicks, or it
+ * would re-break the very dropdowns `modal={false}` exists to fix. Dismiss-on-outside-click still
+ * comes from Radix's dismissable layer, not from the overlay.
+ */
+const DialogOverlay = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(({ className, ...props }, ref) => (
+	<div
 		ref={ref}
-		className={cn(
-			'fixed inset-0 z-50 bg-black/50 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0',
-			className,
-		)}
+		aria-hidden
+		className={cn('pointer-events-none fixed inset-0 z-50 bg-surface-scrim/50 animate-in fade-in-0', className)}
 		{...props}
 	/>
 ));
-DialogOverlay.displayName = DialogPrimitive.Overlay.displayName;
+DialogOverlay.displayName = 'DialogOverlay';
 
 const DialogContent = React.forwardRef<
 	React.ElementRef<typeof DialogPrimitive.Content>,

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { Button, Page, Select } from '@/components/atoms';
 import { ApiDocsContent, QueryBuilder } from '@/components/molecules';
 import { API_DOCS_TAGS } from '@/constants/apiDocsTags';
@@ -84,6 +84,9 @@ const QueryPage: React.FC = () => {
 	const [selectedMeter, setSelectedMeter] = useState<string | undefined>(undefined);
 	const [selectedFeature, setSelectedFeature] = useState<Feature | undefined>(undefined);
 	const [windowSize, setWindowSize] = useState<string>('MINUTE');
+	// Guards against the refresh button racing the filter-change effect (or another refresh): a
+	// slower response for older params could otherwise overwrite usageData after a newer one lands.
+	const requestIdRef = useRef(0);
 
 	const windowSizeOptions = useMemo(() => WINDOW_SIZE_KEYS.map((value) => ({ value, label: t(`usage.query.windowSizes.${value}`) })), [t]);
 
@@ -171,6 +174,8 @@ const QueryPage: React.FC = () => {
 	const { mutate: fetchUsage, isPending } = useMutation({
 		mutationKey: ['fetchUsage', apiParams],
 		mutationFn: async () => {
+			const requestId = ++requestIdRef.current;
+
 			if (!apiParams.meter_id) {
 				throw new Error('Meter ID is required');
 			}
@@ -189,17 +194,15 @@ const QueryPage: React.FC = () => {
 				payload.end_time = getNext24HoursDate(new Date(apiParams.end_time)).toISOString();
 			}
 
-			return await EventsApi.getUsageByMeter(payload);
+			const data = await EventsApi.getUsageByMeter(payload);
+			return { requestId, data };
 		},
-		onSuccess: (data) => {
+		onSuccess: ({ requestId, data }) => {
+			if (requestId !== requestIdRef.current) return; // a newer request has since started
 			setUsageData(data);
 		},
 		onError: (error: Error) => toast.error(error.message || 'Error fetching usage data'),
 	});
-
-	const resetFilters = () => {
-		setFilters(initialFilters);
-	};
 
 	// Fetch usage when filters change
 	useEffect(() => {
@@ -224,7 +227,7 @@ const QueryPage: React.FC = () => {
 	return (
 		<Page heading={t('usage.query.pageTitle')}>
 			<ApiDocsContent tags={API_DOCS_TAGS.Events} />
-			<div className='bg-white rounded-md flex items-start gap-4'>
+			<div className='bg-surface rounded-md flex items-start gap-4'>
 				<QueryBuilder
 					filterOptions={filterOptions}
 					filters={filters}
@@ -257,7 +260,7 @@ const QueryPage: React.FC = () => {
 						options={windowSizeOptions.map((option) => ({ label: option.label, value: option.value }))}
 					/>
 				</div>
-				<Button variant='outline' onClick={resetFilters}>
+				<Button variant='outline' onClick={() => fetchUsage()}>
 					<RefreshCw />
 				</Button>
 			</div>
@@ -281,26 +284,26 @@ const QueryPage: React.FC = () => {
 											]
 								}
 								margin={{ top: 20, right: 30, left: 0, bottom: 20 }}>
-								<CartesianGrid strokeDasharray='3 3' stroke='#e5e7eb' />
-								<XAxis dataKey='date' tickLine={false} axisLine={false} tickMargin={10} className='text-gray-500' />
-								<YAxis tickLine={false} axisLine={false} className='text-gray-500' />
+								<CartesianGrid strokeDasharray='3 3' stroke='rgb(var(--fp-line))' />
+								<XAxis dataKey='date' tickLine={false} axisLine={false} tickMargin={10} className='text-content-muted' />
+								<YAxis tickLine={false} axisLine={false} className='text-content-muted' />
 
 								{(formattedData?.length ?? 0) > 0 ? (
 									<>
 										<RechartsTooltip
-											itemStyle={{ zIndex: 999, backgroundColor: '#fff' }}
+											itemStyle={{ zIndex: 999, backgroundColor: 'rgb(var(--fp-surface))' }}
 											labelFormatter={(value) => `${value}`}
 											content={<ChartTooltipContent />}
-											cursor={{ stroke: '#ccc' }}
-											contentStyle={{ backgroundColor: '#fff', border: '1px solid #ccc', zIndex: 999 }}
+											cursor={{ stroke: 'rgb(var(--fp-chart-axis))' }}
+											contentStyle={{ backgroundColor: 'rgb(var(--fp-surface))', border: '1px solid #ccc', zIndex: 999 }}
 											wrapperStyle={{ backgroundColor: 'white', borderStyle: 'ridge', paddingLeft: '10px', paddingRight: '10px' }}
 										/>
 										<Line
 											type='monotone'
 											dataKey='value'
-											stroke='#18181B'
+											stroke='rgb(var(--fp-content-zinc-bold))'
 											strokeWidth={1}
-											dot={apiParams.window_size === 'DAY' ? { r: 2, fill: '#18181B' } : false}
+											dot={apiParams.window_size === 'DAY' ? { r: 2, fill: 'rgb(var(--fp-content-zinc-bold))' } : false}
 											activeDot={apiParams.window_size === 'DAY' ? { r: 3, strokeWidth: 1 } : false}
 										/>
 									</>
@@ -309,7 +312,7 @@ const QueryPage: React.FC = () => {
 										type='monotone'
 										dataKey='value'
 										strokeWidth={0}
-										dot={{ r: 0, fill: '#18181B' }}
+										dot={{ r: 0, fill: 'rgb(var(--fp-content-zinc-bold))' }}
 										activeDot={{ r: 0, strokeWidth: 0 }}
 									/>
 								)}

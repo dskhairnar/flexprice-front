@@ -1,5 +1,6 @@
-import { AddButton, Button, Dialog, Page, Chip } from '@/components/atoms';
-import { ApiDocsContent, DropdownMenu, DuplicatePlanDialog, PlanDrawer } from '@/components/molecules';
+import { AddButton, Button, Dialog, Page, Chip, Tooltip } from '@/components/atoms';
+import { useCurrentUserPermissions } from '@/hooks/useCurrentUserPermissions';
+import { ApiDocsContent, DropdownMenu, DuplicatePlanDialog, PlanDrawer, getCopyIdOption } from '@/components/molecules';
 import type { DropdownMenuOption } from '@/components/molecules';
 import { ColumnData } from '@/components/molecules/Table';
 import { Plan } from '@/models/Plan';
@@ -24,7 +25,8 @@ import { useNavigate } from 'react-router';
 import { RouteNames } from '@/core/routes/Routes';
 import formatDate from '@/utils/common/format_date';
 import toast from 'react-hot-toast';
-import { Copy, EllipsisVertical, EyeOff, Pencil, WandSparkles } from 'lucide-react';
+import { Copy, EyeOff, Pencil, WandSparkles } from 'lucide-react';
+import { BsThreeDots } from 'react-icons/bs';
 import { refetchQueries } from '@/core/services/tanstack/ReactQueryProvider';
 import { useTranslation } from 'react-i18next';
 
@@ -55,6 +57,7 @@ const initialFilters: FilterCondition[] = [
 const PlansPage = () => {
 	const { t, i18n } = useTranslation(['catalog', 'common']);
 	const { t: tGuide } = useTranslation('guides');
+	const { t: tc } = useTranslation('common');
 	const guides = useMemo(() => buildGuides(tGuide), [tGuide]);
 	const [activePlan, setActivePlan] = useState<Plan | null>(null);
 	const [planDrawerOpen, setPlanDrawerOpen] = useState(false);
@@ -63,6 +66,14 @@ const PlansPage = () => {
 	const [archiveDialogOpen, setArchiveDialogOpen] = useState(false);
 	const [planToArchive, setPlanToArchive] = useState<Plan | null>(null);
 	const navigate = useNavigate();
+	const { can } = useCurrentUserPermissions();
+	// Computed once and reused everywhere on this page that needs the same
+	// decision, rather than each control independently re-deriving it.
+	const canWritePlan = can('plan', 'write');
+	// The AI pricing flow also creates features alongside the plan itself, so its entry
+	// CTA needs both permissions — plan:write alone lets a user start a flow that then
+	// fails partway through on the feature-creation step.
+	const canUseAiPricing = canWritePlan && can('feature', 'write');
 
 	const sortingOptions: SortOption[] = useMemo(
 		() => [
@@ -174,28 +185,36 @@ const PlansPage = () => {
 	}, []);
 
 	const getRowDropdownOptions = useCallback(
-		(row: Plan): DropdownMenuOption[] => [
-			{
-				label: t('plans.listPage.rowActions.edit'),
-				icon: <Pencil />,
-				onSelect: () => handleEdit(row),
-			},
-			{
-				label: t('plans.listPage.rowActions.duplicate'),
-				icon: <Copy />,
-				onSelect: () => handleDuplicate(row),
-			},
-			{
-				label: t('plans.listPage.rowActions.archive'),
-				icon: <EyeOff />,
-				onSelect: () => {
-					setPlanToArchive(row);
-					setArchiveDialogOpen(true);
+		(row: Plan): DropdownMenuOption[] => {
+			return [
+				getCopyIdOption(row.id, tc, { entityType: 'Plan' }),
+				{
+					label: t('plans.listPage.rowActions.edit'),
+					icon: <Pencil />,
+					onSelect: () => handleEdit(row),
+					disabled: !canWritePlan,
+					disabledReason: canWritePlan ? undefined : t('plans.listPage.writeDeniedTooltip'),
 				},
-				disabled: row.status !== ENTITY_STATUS.PUBLISHED,
-			},
-		],
-		[t, handleEdit, handleDuplicate],
+				{
+					label: t('plans.listPage.rowActions.duplicate'),
+					icon: <Copy />,
+					onSelect: () => handleDuplicate(row),
+					disabled: !canWritePlan,
+					disabledReason: canWritePlan ? undefined : t('plans.listPage.writeDeniedTooltip'),
+				},
+				{
+					label: t('plans.listPage.rowActions.archive'),
+					icon: <EyeOff />,
+					onSelect: () => {
+						setPlanToArchive(row);
+						setArchiveDialogOpen(true);
+					},
+					disabled: row.status !== ENTITY_STATUS.PUBLISHED || !canWritePlan,
+					disabledReason: canWritePlan ? undefined : t('plans.listPage.writeDeniedTooltip'),
+				},
+			];
+		},
+		[t, tc, handleEdit, handleDuplicate, canWritePlan],
 	);
 
 	const columns: ColumnData<Plan>[] = useMemo(
@@ -225,7 +244,7 @@ const PlansPage = () => {
 						options={getRowDropdownOptions(row)}
 						trigger={
 							<Button variant='ghost' size='icon' className='size-8'>
-								<EllipsisVertical className='size-4' />
+								<BsThreeDots className='size-4' />
 							</Button>
 						}
 					/>
@@ -237,23 +256,37 @@ const PlansPage = () => {
 
 	const emptyStateCustom = useMemo(
 		() => (
-			<div className='mx-auto flex h-[360px] w-full flex-col items-center justify-center rounded-[6px] border border-[#E9E9E9] bg-[#fafafa] px-4'>
-				<div className='mb-4 text-center text-[20px] font-medium leading-normal text-gray-700'>
+			<div className='mx-auto flex h-[360px] w-full flex-col items-center justify-center rounded-[6px] border border-line-hairline bg-surface-faint px-4 dark:border-line dark:bg-surface'>
+				<div className='mb-4 text-center text-[20px] font-medium leading-normal text-content-secondary'>
 					{t('plans.listPage.emptyStateCustom.heading')}
 				</div>
-				<div className='mb-8 max-w-[350px] bg-[#F9F9F9] text-center text-[16px] font-normal leading-normal text-gray-400'>
+				<div className='mb-8 max-w-[350px] bg-surface-faint-inner text-center text-[16px] font-normal leading-normal text-content-subtle dark:bg-transparent'>
 					{t('plans.listPage.emptyStateCustom.description')}
 				</div>
-				<Button
-					variant='outline'
-					prefixIcon={<WandSparkles className='text-black' />}
-					onClick={() => navigate(RouteNames.pricingSetup, { state: { from: 'plans' } })}
-					className='!border-indigo-200 !bg-white !p-5 text-indigo-600 hover:bg-indigo-50 hover:text-indigo-700'>
-					<span className='analyzing-prompt-shimmer text-sm font-medium'>{t('plans.listPage.createWithAi')}</span>
-				</Button>
+				{canUseAiPricing ? (
+					<Button
+						variant='outline'
+						prefixIcon={<WandSparkles className='text-content-black' />}
+						onClick={() => navigate(RouteNames.pricingSetup, { state: { from: 'plans' } })}
+						className='!border-accent-indigo-line !bg-surface !p-5 text-accent-indigo hover:bg-accent-indigo-muted hover:text-accent-indigo-strong'>
+						<span className='analyzing-prompt-shimmer text-sm font-medium'>{t('plans.listPage.createWithAi')}</span>
+					</Button>
+				) : (
+					<Tooltip content={t('plans.listPage.aiPricingWriteDeniedTooltip')}>
+						<span tabIndex={0} className='inline-block cursor-not-allowed'>
+							<Button
+								disabled
+								variant='outline'
+								prefixIcon={<WandSparkles className='text-content-black' />}
+								className='!border-accent-indigo-line !bg-surface !p-5 text-accent-indigo'>
+								<span className='text-sm font-medium'>{t('plans.listPage.createWithAi')}</span>
+							</Button>
+						</span>
+					</Tooltip>
+				)}
 			</div>
 		),
-		[t, navigate],
+		[t, navigate, canUseAiPricing],
 	);
 
 	return (
@@ -261,16 +294,37 @@ const PlansPage = () => {
 			heading={t('plans.listPage.title')}
 			headingCTA={
 				<div className='flex items-center gap-2'>
-					{hasAnyPlanInSystem ? (
-						<Button
-							variant='outline'
-							prefixIcon={<WandSparkles className='text-indigo-600' />}
-							onClick={() => navigate(RouteNames.pricingSetup, { state: { from: 'plans' } })}
-							className='border-indigo-200 text-indigo-600 hover:bg-indigo-50 hover:text-indigo-700'>
-							<span className='analyzing-prompt-shimmer font-medium'>{t('plans.listPage.createWithAi')}</span>
-						</Button>
-					) : null}
-					<AddButton onClick={handleOnAdd} />
+					{hasAnyPlanInSystem &&
+						(canUseAiPricing ? (
+							<Button
+								variant='outline'
+								prefixIcon={<WandSparkles className='text-accent-indigo' />}
+								onClick={() => navigate(RouteNames.pricingSetup, { state: { from: 'plans' } })}
+								className='border-accent-indigo-line text-accent-indigo hover:bg-accent-indigo-muted hover:text-accent-indigo-strong'>
+								<span className='analyzing-prompt-shimmer font-medium'>{t('plans.listPage.createWithAi')}</span>
+							</Button>
+						) : (
+							<Tooltip content={t('plans.listPage.aiPricingWriteDeniedTooltip')}>
+								<span tabIndex={0} className='inline-block cursor-not-allowed'>
+									<Button
+										disabled
+										variant='outline'
+										prefixIcon={<WandSparkles className='text-accent-indigo' />}
+										className='border-accent-indigo-line text-accent-indigo'>
+										<span className='font-medium'>{t('plans.listPage.createWithAi')}</span>
+									</Button>
+								</span>
+							</Tooltip>
+						))}
+					{canWritePlan ? (
+						<AddButton onClick={handleOnAdd} />
+					) : (
+						<Tooltip content={t('plans.listPage.writeDeniedTooltip')}>
+							<span tabIndex={0} className='inline-block cursor-not-allowed'>
+								<AddButton disabled onClick={handleOnAdd} />
+							</span>
+						</Tooltip>
+					)}
 				</div>
 			}>
 			<PlanDrawer data={activePlan} open={planDrawerOpen} onOpenChange={setPlanDrawerOpen} refetchQueryKeys={['fetchPlans']} />

@@ -1,6 +1,7 @@
 import { Button, CheckboxRadioGroupItem, FormHeader, Modal, Select, Spacer } from '@/components/atoms';
-import { refetchQueries } from '@/core/services/tanstack/ReactQueryProvider';
-import { Invoice, INVOICE_STATUS } from '@/models/Invoice';
+import { refetchInvoiceQueries } from '@/core/services/tanstack/queryKeys';
+import { INVOICE_STATUS } from '@/models/Invoice';
+import { InvoiceListItem } from '@/types/dto';
 import InvoiceApi from '@/api/InvoiceApi';
 import { useMutation } from '@tanstack/react-query';
 import { FC, useEffect, useMemo, useState } from 'react';
@@ -10,7 +11,7 @@ import { useTranslation } from 'react-i18next';
 interface Props {
 	isOpen: boolean;
 	onOpenChange: (open: boolean) => void;
-	invoice?: Invoice;
+	invoice?: InvoiceListItem;
 }
 
 /**
@@ -74,8 +75,7 @@ const InvoicePaymentStatusModal: FC<Props> = ({ isOpen, onOpenChange, invoice })
 		},
 		async onSuccess() {
 			toast.success(t('invoices.details.paymentStatusModal.toastSuccess'));
-			await refetchQueries(['fetchInvoices']);
-			await refetchQueries(['fetchInvoice']);
+			await refetchInvoiceQueries();
 		},
 		onError(error: Error) {
 			toast.error(error.message || t('invoices.details.paymentStatusModal.toastError'));
@@ -84,7 +84,7 @@ const InvoicePaymentStatusModal: FC<Props> = ({ isOpen, onOpenChange, invoice })
 
 	return (
 		<Modal isOpen={isOpen} onOpenChange={onOpenChange}>
-			<div className='card bg-white max-w-lg'>
+			<div className='card bg-surface max-w-lg'>
 				<FormHeader
 					title={t('invoices.details.updatePaymentStatus')}
 					variant='sub-header'

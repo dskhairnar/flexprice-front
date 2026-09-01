@@ -42,16 +42,16 @@ const SectionHeader: FC<Props> = ({
 }) => {
 	return (
 		<div className={cn('w-full py-6  flex items-center justify-between', className)}>
-			<p className={cn(getTypographyClass('form-title'), titleClassName)}>{title}</p>
+			<div className={cn(getTypographyClass('form-title'), titleClassName)}>{title}</div>
 			<div className={cn('flex gap-2 items-center', optionsClassName)}>
 				{showSearch && (
 					<button onClick={onSearchClick} className='px-2 py-1'>
-						<IoSearch className='size-4 font-extralight text-zinc-950' />
+						<IoSearch className='size-4 font-extralight text-content-zinc' />
 					</button>
 				)}
 				{showFilter && (
 					<button onClick={onFilterClick} className='px-2 py-1'>
-						<SlidersHorizontal className='size-4 text-zinc-950' />
+						<SlidersHorizontal className='size-4 text-content-zinc' />
 					</button>
 				)}
 				{showButton && (

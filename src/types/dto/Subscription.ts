@@ -26,9 +26,10 @@ import {
 	PRICE_TYPE,
 	PRICE_UNIT_TYPE,
 	INVOICE_CADENCE,
+	PriceBucketSize,
 } from '@/models';
 import { PriceUnitConfig, PriceResponse } from '@/types/dto/Price';
-import { BILLING_PERIOD } from '@/constants/constants';
+import { BILLING_PERIOD, BUCKET_SIZE_NONE } from '@/constants/constants';
 import { QueryFilter, TimeRangeFilter } from './base';
 import { AddAddonToSubscriptionRequest, ADDON_CADENCE, ADDON_PRORATION_BEHAVIOR } from './Addon';
 export { ADDON_CADENCE as AddonCadence, ADDON_PRORATION_BEHAVIOR as ProrationBehavior } from './Addon';
@@ -36,6 +37,7 @@ import { Invoice } from '@/models/Invoice';
 import type { WalletTransaction } from '@/models/WalletTransaction';
 import { Coupon } from '@/models/Coupon';
 import Customer from '@/models/Customer';
+import { JsonObject } from '@/types/common';
 
 // Re-export existing enums for convenience
 export { BILLING_PERIOD } from '@/constants/constants';
@@ -70,6 +72,33 @@ import { LineItemCommitmentsMap } from './LineItemCommitmentConfig';
 import type { CommitmentTimeBucket } from './CommitmentTimeBucket';
 import { AddonResponse } from './Addon';
 import { ADDON_ASSOCIATION_STATUS } from '@/models/AddonAssociation';
+
+// New unified coupon input for subscription creation
+export interface SubscriptionCouponInput {
+	coupon_code: string;
+	start_date?: string;
+	end_date?: string;
+	price_id?: string; // omit for subscription-level; set for line-item-level
+}
+
+// Coupon mid-cycle modify params
+export interface SubModifyCouponParams {
+	action: 'add' | 'remove';
+	coupon_code?: string; // required when action=add
+	coupon_association_id?: string; // required when action=remove
+	start_date?: string;
+	end_date?: string;
+	subscription_id?: string; // mutually exclusive with subscription_line_item_id
+	subscription_line_item_id?: string;
+}
+
+// Tax mid-cycle modify params
+export interface SubModifyTaxParams {
+	action: 'add' | 'remove';
+	tax_rate_id?: string; // required when action=add
+	tax_association_id?: string; // required when action=remove
+	effective_date?: string;
+}
 
 export interface GetSubscriptionDetailsPayload {
 	subscription_id: string;
@@ -206,6 +235,8 @@ export interface ExecuteSubscriptionModifyRequest {
 	inheritance_params?: SubModifyInheritanceRequest;
 	quantity_change_params?: SubModifyQuantityChangeRequest;
 	grouped_invoicing_params?: SubModifyGroupedInvoicingParams;
+	coupon_params?: SubModifyCouponParams;
+	tax_params?: SubModifyTaxParams;
 }
 
 export interface ChangedLineItem {
@@ -315,6 +346,8 @@ export interface CreateSubscriptionRequest {
 	// Coupons
 	coupons?: string[];
 	line_item_coupons?: Record<string, string[]>;
+	// Preferred (new): unified coupon input using coupon_code
+	subscription_coupons?: SubscriptionCouponInput[];
 
 	// Price overrides
 	override_line_items?: OverrideLineItemRequest[];
@@ -336,8 +369,7 @@ export interface CreateSubscriptionRequest {
 	// Proration behavior
 	proration_behavior?: SUBSCRIPTION_PRORATION_BEHAVIOR;
 
-	// Customer timezone
-	customer_timezone?: string;
+	timezone?: string;
 
 	// Entitlement overrides
 	override_entitlements?: EntitlementOverrideRequest[];
@@ -362,6 +394,16 @@ export interface CreateSubscriptionRequest {
 
 	/** Optional threshold for auto-invoice behavior (typically usage-only plans). Omit when not used. */
 	auto_invoice_threshold?: number;
+
+	/**
+	 * Authoritative list of plan prices to attach to this subscription.
+	 *  - Omitted: backend attaches its default set (exact-cadence + ONETIME).
+	 *  - Empty array: no plan prices attach (extras still come from `line_items`).
+	 *  - Non-empty: exactly these ids (intersected server-side with the plan's compatible-price set).
+	 * Frontend sends this field only when the user opted in additional-cadence prices via the
+	 * "Also available on this plan" section; in that case it sends the full list (primary + opted-in).
+	 */
+	include_price_ids?: string[];
 }
 
 export interface SubscriptionPhaseCreateRequest {
@@ -417,6 +459,10 @@ export interface OverrideLineItemRequest {
 
 	// PriceUnitTiers are the tiers for the price unit (for CUSTOM type, TIERED billing model)
 	price_unit_tiers?: CreatePriceTier[];
+
+	/** Windows usage into fixed-size buckets before aggregation, overriding the plan price for this
+	 * subscription (USAGE prices only). Omit to inherit the plan price's bucket_size unchanged. */
+	bucket_size?: PriceBucketSize;
 }
 
 /** Request to update a subscription (PUT /subscriptions/:id). Omitted fields are unchanged; send "" or null to clear where supported. */
@@ -524,6 +570,8 @@ export interface AddAddonRequest {
 	proration_behavior?: ADDON_PRORATION_BEHAVIOR;
 	metadata?: Metadata;
 	line_item_commitments?: LineItemCommitmentsMap;
+	// Per-price overrides for this addon's prices (price_id must belong to the addon).
+	override_line_items?: OverrideLineItemRequest[];
 }
 
 export interface RemoveAddonRequest {
@@ -563,7 +611,7 @@ export interface ListAddonAssociationsResponse {
 // SUBSCRIPTION LINE ITEM TYPES
 // =============================================================================
 
-/** Inline price for subscription-scoped line items. Currency/entity_type/entity_id are set server-side from subscription. */
+/** Inline price for subscription-scoped line items. Entity_type/entity_id are set server-side from subscription. */
 export interface SubscriptionPriceCreateRequest {
 	type: PRICE_TYPE;
 	price_unit_type: PRICE_UNIT_TYPE;
@@ -571,6 +619,8 @@ export interface SubscriptionPriceCreateRequest {
 	billing_period_count?: number;
 	billing_model: BILLING_MODEL;
 	invoice_cadence: INVOICE_CADENCE;
+	/** Lowercase ISO currency code; defaults from subscription when omitted. */
+	currency?: string;
 	amount?: string;
 	meter_id?: string;
 	filter_values?: Record<string, string[]>;
@@ -586,6 +636,8 @@ export interface SubscriptionPriceCreateRequest {
 	end_date?: string;
 	display_name?: string;
 	min_quantity?: number;
+	/** Windows usage into fixed-size buckets before aggregation (USAGE prices only). Omit for no bucketing. */
+	bucket_size?: PriceBucketSize;
 }
 
 export interface CreateSubscriptionLineItemRequest {
@@ -622,6 +674,9 @@ export interface UpdateSubscriptionLineItemRequest {
 	price_unit_amount?: string;
 	price_unit_tiers?: CreatePriceTier[];
 	proration_behavior?: ADDON_PRORATION_BEHAVIOR;
+	/** Same new-price/end-date-old-price semantics as UpdatePriceRequest.bucket_size - re-fetch after
+	 * a successful update instead of patching in place. BUCKET_SIZE_NONE removes bucketing. */
+	bucket_size?: PriceBucketSize | typeof BUCKET_SIZE_NONE;
 	// Commitment fields
 	commitment_amount?: number;
 	commitment_quantity?: number;
@@ -665,11 +720,13 @@ export interface SubscriptionLineItemResponse {
 	// Addon association link
 	addon_association_id?: string;
 	// Commitment fields
+	commitment_amount?: string | number;
 	commitment_quantity?: string;
 	commitment_type?: string;
 	commitment_overage_factor?: string;
 	commitment_true_up_enabled?: boolean;
 	commitment_windowed?: boolean;
+	commitment_duration?: string;
 	commitment_time_buckets?: CommitmentTimeBucket[];
 }
 
@@ -742,6 +799,54 @@ export interface EntitlementOverrideRequest {
 	usage_limit?: number | null;
 	static_value?: string;
 	is_enabled?: boolean;
+	config_value?: JsonObject;
+}
+
+// =============================================================================
+// SUBSCRIPTION ENTITLEMENT (effective) TYPES
+// =============================================================================
+
+export interface SubscriptionEntitlementSource {
+	entity_type: string;
+	entity_id: string;
+	entitlement_id: string;
+	usage_limit?: number | null;
+	static_value?: string;
+	is_enabled?: boolean;
+	config_value?: JsonObject | null;
+}
+
+export interface SubscriptionEntitlementEffective {
+	is_enabled?: boolean;
+	usage_limit?: number | null;
+	usage_reset_period?: string;
+	/** Aggregated static feature values (backend field name) */
+	static_values?: string[];
+	/** Present on EntitlementSource rows, not on aggregated entitlement */
+	static_value?: string;
+	is_soft_limit?: boolean;
+	/** Aggregated config values array (backend field name: config_values) */
+	config_values?: JsonObject[];
+	/** Present on EntitlementSource rows */
+	config_value?: JsonObject | null;
+	id?: string;
+}
+
+export interface SubscriptionEntitlementFeature {
+	feature: {
+		id: string;
+		name: string;
+		type: string;
+		[key: string]: unknown;
+	};
+	entitlement: SubscriptionEntitlementEffective;
+	sources: SubscriptionEntitlementSource[];
+}
+
+export interface GetSubscriptionEntitlementsResponse {
+	subscription_id: string;
+	plan_id: string;
+	features: SubscriptionEntitlementFeature[];
 }
 
 // =============================================================================

@@ -8,6 +8,8 @@ import EnvironmentApi from '@/api/EnvironmentApi';
 import toast from 'react-hot-toast';
 import { Mail, CalendarDays, AlertTriangle } from 'lucide-react';
 import { SANDBOX_AUTO_CANCELLATION_DAYS } from '@/constants/constants';
+import { getContactDetails } from '@/config/contact';
+import { config } from '@/config/config';
 
 interface Props {
 	isOpen: boolean;
@@ -85,10 +87,12 @@ const EnvironmentCreator: React.FC<Props> = ({ isOpen, onOpenChange, onEnvironme
 
 	const isProduction = type === ENVIRONMENT_TYPE.PRODUCTION;
 	const isSandbox = type === ENVIRONMENT_TYPE.DEVELOPMENT;
+	// When enabled via VITE_PLATFORM_CONFIG, this platform can self-create production
+	// environments (shows the create form) instead of the "contact us" options.
+	const productionEnabled = config.platform.production.enabled;
 
-	const calendlyLink = 'https://calendly.com/nikhil-flexprice/30min';
-	const slackLink = 'https://join.slack.com/t/flexpricecommunity/shared_invite/zt-39uat51l0-n8JmSikHZP~bHJNXladeaQ';
-	const emailLink = 'mailto:support@flexprice.io';
+	const { slackUrl, email, bookCallUrl } = getContactDetails();
+	const emailLink = `mailto:${email}`;
 
 	const handleContactClick = (url: string) => {
 		window.open(url, '_blank', 'noopener noreferrer');
@@ -107,7 +111,7 @@ const EnvironmentCreator: React.FC<Props> = ({ isOpen, onOpenChange, onEnvironme
 					placeholder={t('environment.creator.namePlaceholder')}
 					value={name}
 					onChange={setName}
-					disabled={isPending || isProduction}
+					disabled={isPending || (isProduction && !productionEnabled)}
 				/>
 
 				<Select
@@ -121,19 +125,19 @@ const EnvironmentCreator: React.FC<Props> = ({ isOpen, onOpenChange, onEnvironme
 
 				{/* Sandbox Note */}
 				{isSandbox && (
-					<div className='w-full flex items-center gap-2.5 rounded-md border border-amber-300 bg-amber-50/80 px-3 py-2.5'>
-						<AlertTriangle className='h-4 w-4 flex-shrink-0 text-amber-600' />
-						<span className='text-sm font-medium text-amber-800 leading-relaxed'>
+					<div className='w-full flex items-center gap-2.5 rounded-md border border-warning-line-strong bg-warning-muted/80 px-3 py-2.5'>
+						<AlertTriangle className='h-4 w-4 flex-shrink-0 text-warning' />
+						<span className='text-sm font-medium text-warning-deep leading-relaxed'>
 							{t('environment.creator.sandboxCancellationNote', { days: SANDBOX_AUTO_CANCELLATION_DAYS })}
 						</span>
 					</div>
 				)}
 
-				{/* Production Contact Options */}
-				{isProduction && (
+				{/* Production Contact Options — shown when this platform cannot self-create production envs */}
+				{isProduction && !productionEnabled && (
 					<div className='space-y-6 pt-2'>
 						<div className='text-center'>
-							<p className='text-sm text-gray-600 mb-6'>
+							<p className='text-sm text-content-tertiary mb-6'>
 								{t('environment.creator.productionBodyLine1')}
 								<br />
 								{t('environment.creator.productionContactPrompt')}
@@ -142,7 +146,7 @@ const EnvironmentCreator: React.FC<Props> = ({ isOpen, onOpenChange, onEnvironme
 						<div className='flex gap-8 justify-center items-center px-4'>
 							<button
 								type='button'
-								onClick={() => handleContactClick(slackLink)}
+								onClick={() => handleContactClick(slackUrl)}
 								className='flex flex-col items-center gap-2 group transition-transform duration-300 ease-in-out hover:scale-[1.03]'
 								aria-label={t('environment.creator.ariaSlackContact')}>
 								<div
@@ -150,7 +154,7 @@ const EnvironmentCreator: React.FC<Props> = ({ isOpen, onOpenChange, onEnvironme
 									style={{ backgroundColor: '#4A154B' }}>
 									<img src='/assets/logo/slack-logo.png' alt={t('environment.creator.slackAlt')} className='h-7 w-7 object-contain' />
 								</div>
-								<span className='text-xs font-medium text-gray-700 group-hover:text-[#4A154B] transition-colors duration-300 ease-in-out'>
+								<span className='text-xs font-medium text-content-secondary group-hover:text-[#4A154B] transition-colors duration-300 ease-in-out'>
 									{t('environment.creator.brandSlack')}
 								</span>
 							</button>
@@ -161,16 +165,16 @@ const EnvironmentCreator: React.FC<Props> = ({ isOpen, onOpenChange, onEnvironme
 								aria-label={t('environment.creator.ariaEmailContact')}>
 								<div
 									className='h-14 w-14 rounded-xl flex items-center justify-center shadow-sm transition-shadow duration-300 ease-in-out group-hover:shadow-md'
-									style={{ backgroundColor: '#E5E7EB' }}>
-									<Mail className='h-7 w-7 text-gray-700' strokeWidth={1.5} />
+									style={{ backgroundColor: 'rgb(var(--fp-surface-strong))' }}>
+									<Mail className='h-7 w-7 text-content-secondary' strokeWidth={1.5} />
 								</div>
-								<span className='text-xs font-medium text-gray-700 group-hover:text-gray-900 transition-colors duration-300 ease-in-out'>
+								<span className='text-xs font-medium text-content-secondary group-hover:text-content transition-colors duration-300 ease-in-out'>
 									{t('environment.creator.brandEmail')}
 								</span>
 							</button>
 							<button
 								type='button'
-								onClick={() => handleContactClick(calendlyLink)}
+								onClick={() => handleContactClick(bookCallUrl)}
 								className='flex flex-col items-center gap-2 group transition-transform duration-300 ease-in-out hover:scale-[1.03]'
 								aria-label={t('environment.creator.ariaBookCall')}>
 								<div
@@ -178,7 +182,7 @@ const EnvironmentCreator: React.FC<Props> = ({ isOpen, onOpenChange, onEnvironme
 									style={{ backgroundColor: '#0069FF' }}>
 									<CalendarDays className='h-7 w-7 text-white' strokeWidth={1.5} />
 								</div>
-								<span className='text-xs font-medium text-gray-700 group-hover:text-[#0069FF] transition-colors duration-300 ease-in-out'>
+								<span className='text-xs font-medium text-content-secondary group-hover:text-[#0069FF] transition-colors duration-300 ease-in-out'>
 									{t('environment.creator.bookACall')}
 								</span>
 							</button>
@@ -186,8 +190,8 @@ const EnvironmentCreator: React.FC<Props> = ({ isOpen, onOpenChange, onEnvironme
 					</div>
 				)}
 
-				{/* Action Buttons - Only show for non-production */}
-				{!isProduction && (
+				{/* Action Buttons - shown for non-production, or for production when platform config enables it */}
+				{(!isProduction || productionEnabled) && (
 					<div className='flex justify-end space-x-2 pt-4'>
 						<Button variant='outline' onClick={handleCancel} disabled={isPending}>
 							{t('connection.buttons.cancel')}

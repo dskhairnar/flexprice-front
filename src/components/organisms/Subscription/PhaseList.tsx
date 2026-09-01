@@ -3,7 +3,7 @@ import { Button } from '@/components/atoms';
 import PhaseForm, { PhaseFormData } from './PhaseForm';
 import { SubscriptionPhaseCreateRequest } from '@/types/dto/Subscription';
 import { Price } from '@/models/Price';
-import { BILLING_PERIOD } from '@/constants/constants';
+import { BILLING_PERIOD, BUCKET_SIZE_NONE } from '@/constants/constants';
 import { Pencil, Trash2, Calendar } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { Coupon } from '@/models/Coupon';
@@ -197,6 +197,12 @@ const PhaseList: React.FC<PhaseListProps> = ({
 								...(tierMode !== undefined && { tier_mode: tierMode }),
 								...(override.tiers !== undefined && { tiers: override.tiers }),
 								...(override.transform_quantity !== undefined && { transform_quantity: override.transform_quantity }),
+								// bucket_size only makes sense for USAGE prices. BUCKET_SIZE_NONE isn't meaningful
+								// at phase-create time since there's no existing price to clear - drop it, same as
+								// getLineItemOverrides does for subscription-create-time overrides.
+								...(override.bucket_size !== undefined &&
+									override.bucket_size !== BUCKET_SIZE_NONE &&
+									isUsagePrice && { bucket_size: override.bucket_size }),
 							};
 						})
 					: undefined,
@@ -238,6 +244,7 @@ const PhaseList: React.FC<PhaseListProps> = ({
 					tier_mode: override.tier_mode,
 					tiers: override.tiers,
 					transform_quantity: override.transform_quantity,
+					bucket_size: override.bucket_size,
 				};
 			});
 		}
@@ -330,7 +337,7 @@ const PhaseList: React.FC<PhaseListProps> = ({
 		<div className='space-y-6'>
 			{phases.length > 0 && (
 				<div className='flex items-center justify-between mb-4'>
-					<h3 className='text-base font-semibold text-gray-900'>{t('organisms.phaseList.title')}</h3>
+					<h3 className='text-base font-semibold text-content'>{t('organisms.phaseList.title')}</h3>
 				</div>
 			)}
 
@@ -371,24 +378,24 @@ const PhaseList: React.FC<PhaseListProps> = ({
 				return (
 					<div
 						key={index}
-						className='group flex items-center justify-between p-4 border border-gray-200 rounded-lg bg-white hover:bg-gray-50 transition-colors'>
+						className='group flex items-center justify-between p-4 border border-line rounded-lg bg-surface hover:bg-surface-subtle transition-colors'>
 						<div className='flex items-center space-x-3'>
-							<Calendar className='h-5 w-5 text-gray-400' />
+							<Calendar className='h-5 w-5 text-content-subtle' />
 							<div>
-								<div className='text-sm font-medium text-gray-900'>
+								<div className='text-sm font-medium text-content'>
 									{startDate} → {endDate}
 								</div>
-								<div className='text-xs text-gray-500 mt-1'>
+								<div className='text-xs text-content-muted mt-1'>
 									{t('organisms.phaseList.phaseIndex', { index: index + 1 })}
 									{phase.coupons && phase.coupons.length > 0 && (
-										<span className='ms-2 text-blue-600'>
+										<span className='ms-2 text-info'>
 											{phase.coupons.length > 1
 												? t('organisms.phaseList.couponPlural', { count: phase.coupons.length })
 												: t('organisms.phaseList.couponSingle', { count: phase.coupons.length })}
 										</span>
 									)}
 									{phase.line_item_coupons && Object.keys(phase.line_item_coupons).length > 0 && (
-										<span className='ms-2 text-green-600'>
+										<span className='ms-2 text-success'>
 											{Object.keys(phase.line_item_coupons).length > 1
 												? t('organisms.phaseList.lineItemCouponPlural', {
 														count: Object.keys(phase.line_item_coupons).length,
@@ -406,16 +413,16 @@ const PhaseList: React.FC<PhaseListProps> = ({
 							<div className='flex items-center space-x-2 opacity-0 group-hover:opacity-100 transition-opacity'>
 								<button
 									onClick={() => handleEditPhase(index)}
-									className='p-2 hover:bg-gray-100 rounded-md transition-colors'
+									className='p-2 hover:bg-surface-shell rounded-md transition-colors'
 									title={t('organisms.phaseList.editPhase')}>
-									<Pencil size={16} className='text-gray-600' />
+									<Pencil size={16} className='text-content-tertiary' />
 								</button>
-								<div className='border-r h-4 border-gray-300' />
+								<div className='border-r h-4 border-line-strong' />
 								<button
 									onClick={() => handleDeletePhase(index)}
-									className='p-2 hover:bg-red-50 rounded-md transition-colors'
+									className='p-2 hover:bg-danger-muted rounded-md transition-colors'
 									title={t('organisms.phaseList.deletePhase')}>
-									<Trash2 size={16} className='text-red-500' />
+									<Trash2 size={16} className='text-danger-bright' />
 								</button>
 							</div>
 						)}

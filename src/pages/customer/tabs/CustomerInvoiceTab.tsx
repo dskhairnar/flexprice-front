@@ -1,22 +1,25 @@
-import { AddButton, Card, CardHeader, Loader, NoDataCard, ShortPagination } from '@/components/atoms';
+import { AddButton, Card, CardHeader, Loader, NoDataCard, ShortPagination, Tooltip } from '@/components/atoms';
 import { ApiDocsContent, CustomerInvoiceTable } from '@/components/molecules';
 import { API_DOCS_TAGS } from '@/constants/apiDocsTags';
 import InvoiceApi from '@/api/InvoiceApi';
 import CustomerApi from '@/api/CustomerApi';
 import { useQuery } from '@tanstack/react-query';
 import { useNavigate, useParams, useOutletContext } from 'react-router';
-import { Invoice as InvoiceModel } from '@/models/Invoice';
+import { InvoiceListItem } from '@/types/dto';
 import { RouteNames } from '@/core/routes/Routes';
 import { useMemo } from 'react';
 import Customer from '@/models/Customer';
 import usePagination from '@/hooks/usePagination';
 import { useTranslation } from 'react-i18next';
+import { useCurrentUserPermissions } from '@/hooks/useCurrentUserPermissions';
 
 const CustomerInvoiceTab = () => {
 	const { t } = useTranslation('customers');
 	const { id: customerId } = useParams();
 	const navigate = useNavigate();
 	const { limit, offset, page } = usePagination();
+	const { can, isLoading: permissionsLoading } = useCurrentUserPermissions();
+	const canWriteInvoice = can('invoice', 'write');
 
 	const { data, isLoading } = useQuery({
 		queryKey: ['invoice', customerId, page],
@@ -62,11 +65,26 @@ const CustomerInvoiceTab = () => {
 
 	const { isArchived } = useOutletContext<{ isArchived: boolean }>();
 
-	const handleShowDetails = (invoice: InvoiceModel) => {
+	const handleShowDetails = (invoice: InvoiceListItem) => {
 		navigate(`${invoice.id}`);
 	};
 
-	if (isLoading) {
+	const addInvoiceButton = canWriteInvoice ? (
+		<AddButton
+			label={t('tabPanels.invoice.addInvoice')}
+			onClick={() => {
+				navigate(`${RouteNames.customers}/${customerId}/invoices/create`);
+			}}
+		/>
+	) : (
+		<Tooltip content={t('tabPanels.invoice.writeDeniedTooltip')}>
+			<span tabIndex={0} className='inline-block cursor-not-allowed'>
+				<AddButton disabled label={t('tabPanels.invoice.addInvoice')} />
+			</span>
+		</Tooltip>
+	);
+
+	if (isLoading || permissionsLoading) {
 		return <Loader />;
 	}
 
@@ -75,16 +93,7 @@ const CustomerInvoiceTab = () => {
 			<NoDataCard
 				title={t('tabPanels.invoice.title')}
 				subtitle={t('tabPanels.invoice.emptySubtitle')}
-				cta={
-					!isArchived && (
-						<AddButton
-							label={t('tabPanels.invoice.addInvoice')}
-							onClick={() => {
-								navigate(`${RouteNames.customers}/${customerId}/invoices/create`);
-							}}
-						/>
-					)
-				}
+				cta={!isArchived && addInvoiceButton}
 			/>
 		);
 	}
@@ -92,19 +101,7 @@ const CustomerInvoiceTab = () => {
 		<div>
 			<ApiDocsContent tags={API_DOCS_TAGS.Invoices} />
 			<Card variant='notched'>
-				<CardHeader
-					title={t('tabPanels.invoice.title')}
-					cta={
-						!isArchived && (
-							<AddButton
-								label={t('tabPanels.invoice.addInvoice')}
-								onClick={() => {
-									navigate(`${RouteNames.customers}/${customerId}/invoices/create`);
-								}}
-							/>
-						)
-					}
-				/>
+				<CardHeader title={t('tabPanels.invoice.title')} cta={!isArchived && addInvoiceButton} />
 				<CustomerInvoiceTable onRowClick={handleShowDetails} customerId={customerId} data={enrichedInvoices} />
 				<ShortPagination unit={t('tabPanels.invoice.paginationUnit')} totalItems={data?.pagination.total ?? 0} />
 			</Card>

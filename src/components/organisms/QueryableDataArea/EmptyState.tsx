@@ -1,4 +1,4 @@
-import { Button } from '@/components/atoms';
+import { Button, Tooltip } from '@/components/atoms';
 import { ApiDocsContent } from '@/components/molecules';
 import type { EmptyStateConfig } from './QueryableDataArea';
 import TutorialCards from './TutorialCards';
@@ -22,18 +22,30 @@ const EmptyState = ({ config }: EmptyStateProps) => {
 	// Default empty state
 	return (
 		<div className='space-y-6'>
-			<div className='bg-[#fafafa] border border-[#E9E9E9] rounded-[6px] w-full h-[360px] flex flex-col items-center justify-center mx-auto'>
-				{config.heading && <div className='font-medium text-[20px] leading-normal text-gray-700 mb-4 text-center'>{config.heading}</div>}
+			<div className='bg-surface-faint border border-line-hairline dark:bg-surface dark:border-line rounded-[6px] w-full h-[360px] flex flex-col items-center justify-center mx-auto'>
+				{config.heading && (
+					<div className='font-medium text-[20px] leading-normal text-content-secondary mb-4 text-center'>{config.heading}</div>
+				)}
 				{config.description && (
-					<div className='font-normal bg-[#F9F9F9] text-[16px] leading-normal text-gray-400 mb-8 text-center max-w-[350px]'>
+					<div className='font-normal bg-surface-faint-inner dark:bg-transparent text-[16px] leading-normal text-content-subtle mb-8 text-center max-w-[350px]'>
 						{config.description}
 					</div>
 				)}
-				{config.buttonAction && config.buttonLabel && (
-					<Button variant='outline' onClick={config.buttonAction} className='!p-5 !bg-[#fbfbfb] !border-[#CFCFCF]'>
-						{config.buttonLabel}
-					</Button>
-				)}
+				{config.buttonAction &&
+					config.buttonLabel &&
+					(config.buttonDisabled ? (
+						<Tooltip content={config.buttonDisabledReason}>
+							<span tabIndex={0} className='inline-block'>
+								<Button disabled variant='outline' className='!p-5 !bg-surface-panel !border-line-muted'>
+									{config.buttonLabel}
+								</Button>
+							</span>
+						</Tooltip>
+					) : (
+						<Button variant='outline' onClick={config.buttonAction} className='!p-5 !bg-surface-panel !border-line-muted'>
+							{config.buttonLabel}
+						</Button>
+					))}
 			</div>
 			{config.tags && <ApiDocsContent tags={config.tags} />}
 			{config.tutorials && config.tutorials.length > 0 && <TutorialCards tutorials={config.tutorials} />}

@@ -3,6 +3,7 @@
 		"save": "Save",
 		"cancel": "Cancel",
 		"add": "Add",
+		"adding": "Adding...",
 		"edit": "Edit",
 		"archive": "Archive",
 		"delete": "Delete",
@@ -35,7 +36,8 @@
 		"sync": "Sync",
 		"linking": "Linking...",
 		"unlink": "Unlink",
-		"unlinking": "Unlinking..."
+		"unlinking": "Unlinking...",
+		"rowActions": "Row actions"
 	},
 	"status": {
 		"active": "Active",
@@ -159,7 +161,12 @@
 		"searchPlaceholderExtended": "Search features, plans, customers...",
 		"searchCommandsAriaLabel": "Search commands",
 		"keyboardShortcutsSrOnly": "Keyboard:",
-		"keyboardShortcutsHint": "↑↓ Navigate · Enter Select · Esc Close · {{shortcut}} to open anytime",
+		"footerNavigate": "Navigate",
+		"footerSelect": "Select",
+		"footerClose": "Close",
+		"footerOpenAnytime": "to open anytime",
+		"keyEnter": "Enter",
+		"keyEscape": "Esc",
 		"shortcutToast": "Press {{shortcut}} to open the command palette anytime",
 		"keyboardShortcutTitle": "Command + K",
 		"kbdDisplay": "⌘ + K"
@@ -250,13 +257,22 @@
 		"keyboardTip": "Press Tab to navigate, Enter to select",
 		"notFoundTitle": "404 Error Page",
 		"notFoundSubtitle": "Oops! Looks like you took a wrong turn",
-		"notFoundBackToHome": "Back to Home"
+		"notFoundBackToHome": "Back to Home",
+		"forbiddenTitle": "Access denied",
+		"forbiddenSubtitle": "You don't have permission to view this page. Ask a tenant admin for access."
 	},
 	"copyId": {
+		"genericLabel": "Copy ID",
 		"toastFallback": "ID copied to clipboard",
 		"toastWithType": "{{type}} ID copied to clipboard",
 		"titleWithType": "Copy {{type}} ID",
-		"defaultEntityType": "ID"
+		"defaultEntityType": "ID",
+		"lineItemId": "Line item ID",
+		"priceId": "Price ID",
+		"entityTypes": {
+			"lineItem": "Line item",
+			"price": "Price"
+		}
 	},
 	"dateTime": {
 		"placeholderFormat": "MM/DD/YYYY hh:mm aa",
@@ -268,7 +284,8 @@
 		"timezoneLocal": "Local",
 		"timezoneUtc": "UTC",
 		"timezoneSectionAriaLabel": "Timezone",
-		"timezoneSectionLabel": "Timezone"
+		"timezoneSectionLabel": "Timezone",
+		"clear": "Clear date"
 	},
 	"breadcrumb": {
 		"navAriaLabel": "breadcrumb",
@@ -297,6 +314,7 @@
 			"tools": "Tools",
 			"imports": "Imports",
 			"exports": "Exports",
+			"usageSyncs": "Usage Syncs",
 			"developers": "Developers",
 			"eventsDebugger": "Events Debugger",
 			"apiKeys": "API Keys",
@@ -352,6 +370,9 @@
 		"unlinkConfirmDescription": "This will remove the link between this entity and {{provider}}. You can re-link it again later."
 	},
 	"labels": {
+		"addonWriteDeniedTooltip": "You don't have permission to manage addons on this subscription. Ask a tenant admin for access.",
+		"couponWriteDeniedTooltip": "You don't have permission to manage coupons on this subscription. Ask a tenant admin for access.",
+		"taxWriteDeniedTooltip": "You don't have permission to manage taxes on this subscription. Ask a tenant admin for access.",
 		"payload": "Payload",
 		"sort": "Sort",
 		"na": "--",
@@ -370,6 +391,7 @@
 		"metered": "Metered",
 		"boolean": "Boolean",
 		"static": "Static",
+		"config": "Config",
 		"unknownFeature": "Unknown Feature",
 		"entitlementOverrideApplied": "Entitlement Override Applied",
 		"noEntitlementsAvailable": "No entitlements available",
@@ -515,6 +537,45 @@
 		"recurring": "recurring",
 		"previewBooleanNotIncluded": "{{name}} not included"
 	},
+	"usageWidgets": {
+		"quotaTitle": "Usage Quota",
+		"unknownFeature": "Unknown Feature",
+		"unlimited": "Unlimited",
+		"revenue": "Revenue",
+		"cost": "Cost",
+		"margin": "Margin",
+		"marginPercent": "Margin %",
+		"cpm": "CPM",
+		"trendTitle": "Usage Trend",
+		"breakdownTitle": "Usage Breakdown",
+		"feature": "Feature",
+		"totalUsage": "Total Usage",
+		"totalCost": "Total Cost",
+		"noGroup": "No group",
+		"expandAllAria": "Expand all",
+		"collapseAllAria": "Collapse all",
+		"unknownRow": "Unknown",
+		"cellEmDash": "—",
+		"cellEmpty": "--"
+	},
+	"creditWidgets": {
+		"defaultName": "Wallet",
+		"balance": "Balance",
+		"credits": "credits",
+		"valueSuffix": "value",
+		"emptyTitle": "No wallet",
+		"emptyDescription": "No wallet has been set up for this account",
+		"status": {
+			"active": "Active",
+			"frozen": "Frozen",
+			"closed": "Closed"
+		},
+		"transactionHistory": "Transaction History",
+		"transactionsUnit": "Transactions",
+		"noTransactionsTitle": "No transactions",
+		"noTransactionsDescription": "Your transaction history will appear here",
+		"fallbackWalletName": "Wallet {{id}}"
+	},
 	"taxAssociation": {
 		"dialogTitle": "Link Tax Rate",
 		"taxRateRequired": "Tax rate is required",
@@ -558,7 +619,10 @@
 		"commitmentUsageOnlyHint": "Commitments can be configured only for usage-based charges.",
 		"saveChanges": "Save Changes",
 		"submitAddAddon": "Add Addon",
-		"chargeFallbackLabel": "Charge"
+		"chargeFallbackLabel": "Charge",
+		"columnPrice": "Price",
+		"labelStartDate": "Start Date (optional)",
+		"placeholderStartDate": "Select start date"
 	},
 	"priceTooltip": {
 		"volumeTierPricing": "Volume Tier Pricing",
@@ -656,20 +720,29 @@
 		"loadingWorkspaceAria": "Loading workspace",
 		"flexpriceLogoAlt": "Flexprice",
 		"welcomeHeading": "Welcome to Flexprice",
-		"welcomeSubtext": "Let's finish setting up your workspace — complete this form to get started.",
+		"welcomeSubtext": "Just two quick questions to set up your workspace.",
+		"getStarted": "Get started",
+		"reviewCompanyLogoAlt": "{{company}} logo",
 		"orgNameLabel": "Organization name",
 		"orgNamePlaceholder": "Enter your organization name",
-		"websiteUrlLabel": "Website URL",
-		"websiteUrlPlaceholder": "e.g. https://example.com",
-		"websiteUrlDescription": "Enter your organization's website link",
-		"roleQuestion": "What role do you perform in your organization?",
-		"rolePlaceholder": "Your role",
-		"teamSizeQuestion": "What's your team size?",
-		"teamSizePlaceholder": "Team size",
-		"pricingModelQuestion": "What pricing model are you choosing for Flexprice?",
-		"pricingModelPlaceholder": "How do you price today?",
 		"referralQuestion": "How did you find us?",
-		"referralPlaceholder": "Where did you hear about us?"
+		"referralPlaceholder": "Where did you hear about us?",
+		"referralRequired": "Please select how you found us",
+		"orgNameRequired": "Organization name is required",
+		"orgNameIsFlexprice": "Oops! That's us. Please enter your organization name instead.",
+		"orgNameIsFlexpriceToast": "That's us, please enter your organization name.",
+		"orgNameBannedWord": "Organization name cannot include the word “{{word}}”. Please choose another name.",
+		"successToast": "You're all set!",
+		"completeFailed": "Failed to complete onboarding. Please try again.",
+		"referralSources": {
+			"linkedin": "LinkedIn",
+			"x": "X (Formerly Twitter)",
+			"reddit": "Reddit",
+			"blogs": "Blogs",
+			"aiSearch": "ChatGPT / Perplexity / Gemini",
+			"hackerNews": "HackerNews",
+			"productHunt": "Product Hunt"
+		}
 	},
 	"pricingSetupPage": {
 		"closeReturnDashboardAria": "Close and return to dashboard",
@@ -715,6 +788,7 @@
 		"tools": "Tools",
 		"imports": "Imports",
 		"exports": "Exports",
+		"usageSyncs": "Usage Syncs",
 		"developers": "Developers",
 		"eventsDebugger": "Events Debugger",
 		"apiKeys": "API Keys",
@@ -724,9 +798,5 @@
 		"integrations": "Integrations",
 		"pricingWidget": "Pricing Widget",
 		"settings": "Settings"
-	},
-	"fundingStrip": {
-		"announcement": "Flexprice Raises $1.5M SEED Round",
-		"knowMore": "KNOW MORE"
 	}
 }

@@ -1,0 +1,27 @@
+# Security alerts + security-updates are already enabled via repo settings.
+# This file adds scheduled weekly version bumps, grouped into one PR per ecosystem.
+version: 2
+updates:
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    # Wait out newly published versions — fresh releases can be malicious or unstable.
+    cooldown:
+      default-days: 7
+    open-pull-requests-limit: 5
+    groups:
+      npm:
+        patterns:
+          - "*"
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    cooldown:
+      default-days: 7
+    open-pull-requests-limit: 5
+    groups:
+      actions:
+        patterns:
+          - "*"

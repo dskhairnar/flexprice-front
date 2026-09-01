@@ -53,6 +53,10 @@ const CouponDetails = () => {
 			),
 		},
 		{
+			label: 'Coupon Code',
+			value: coupon.coupon_code ? <code className='font-mono bg-muted px-1.5 py-0.5 rounded text-sm'>{coupon.coupon_code}</code> : '—',
+		},
+		{
 			label: 'Discount',
 			value:
 				coupon.type === COUPON_TYPE.FIXED

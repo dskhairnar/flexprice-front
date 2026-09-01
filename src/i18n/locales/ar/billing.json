@@ -136,6 +136,8 @@
 	},
 	"creditNotes": {
 		"title": "إشعارات دائنة",
+		"writeDeniedTooltip": "ليس لديك صلاحية إنشاء إشعارات دائنة. اطلب الوصول من مسؤول المستأجر.",
+		"addCreditNote": "إضافة إشعار دائن",
 		"empty": "لم يتم العثور على إشعارات دائنة",
 		"toast": {
 			"fetchListError": "خطأ في جلب الإشعارات الدائنة"
@@ -255,6 +257,7 @@
 			},
 			"inheritedReadOnlyTooltip": "الاشتراكات الموروثة للقراءة فقط. عدّل الاشتراك الأب.",
 			"cancelAction": "إلغاء",
+			"writeDeniedTooltip": "ليس لديك صلاحية إدارة الاشتراكات. اطلب الوصول من مسؤول المستأجر.",
 			"entityNameForActions": "اشتراك"
 		},
 		"empty": "لم يتم العثور على اشتراكات",
@@ -372,7 +375,8 @@
 			"columns": {
 				"charge": "الرسم",
 				"type": "النوع",
-				"commitment": "الالتزام"
+				"commitment": "الالتزام",
+				"price": "السعر"
 			},
 			"chargeFallback": "رسم",
 			"commitmentNotAvailable": "غير متاح",
@@ -402,6 +406,7 @@
 			"billingCycle": "دورة الفوترة",
 			"startDate": "تاريخ البدء",
 			"currentPeriodEnd": "نهاية الفترة الحالية",
+			"timezone": "المنطقة الزمنية",
 			"commitmentAmount": "مبلغ الالتزام",
 			"overageFactor": "معامل الزيادة",
 			"parentSubscription": "الاشتراك الأب",
@@ -415,6 +420,50 @@
 			"change": "تغيير",
 			"remove": "إزالة",
 			"emptyState": "لا يوجد كوبون اشتراك مُطبَّق"
+		},
+		"tax": {
+			"remove": "إزالة"
+		},
+		"modifyDialog": {
+			"previewHeading": "معاينة",
+			"noBillingImpact": "لا تأثير على الفوترة",
+			"invoicesAffected": "الفواتير المتأثرة",
+			"lineItemsAffected": "بنود السطر المتأثرة"
+		},
+		"applyCouponDialog": {
+			"title": "تطبيق الكوبون",
+			"couponCodeLabel": "رمز الكوبون",
+			"couponCodePlaceholder": "مثال: SUMMER20",
+			"applyToLabel": "تطبيق على",
+			"subscriptionLevel": "مستوى الاشتراك",
+			"lineItemLevel": "مستوى بند السطر",
+			"lineItemLabel": "بند السطر",
+			"selectLineItemPlaceholder": "اختر بند سطر",
+			"startDateOptional": "تاريخ البدء (اختياري)",
+			"pickStartDate": "اختر تاريخ البدء",
+			"endDateOptional": "تاريخ الانتهاء (اختياري)",
+			"pickEndDate": "اختر تاريخ الانتهاء"
+		},
+		"removeCouponDialog": {
+			"title": "إزالة الكوبون",
+			"confirmMessage": "إزالة <bold>{{name}}</bold> من هذا الاشتراك؟",
+			"confirmMessageWithCode": "إزالة <bold>{{name}}</bold> ({{code}}) من هذا الاشتراك؟"
+		},
+		"removeTaxDialog": {
+			"title": "إزالة الضريبة",
+			"confirmMessage": "إزالة الضريبة <bold>{{name}}</bold> من هذا الاشتراك؟"
+		},
+		"applyTaxDialog": {
+			"title": "تطبيق الضريبة",
+			"taxRateLabel": "معدل الضريبة",
+			"selectTaxRatePlaceholder": "اختر معدل ضريبة",
+			"effectiveDateOptional": "تاريخ السريان (اختياري)",
+			"pickDate": "اختر تاريخاً"
+		},
+		"configureAddonDialog": {
+			"title": "ضبط الإضافة",
+			"empty": "لا توجد رسوم لهذه الإضافة.",
+			"loadError": "تعذر تحميل رسوم هذه الإضافة."
 		}
 	},
 	"payments": {
@@ -487,6 +536,7 @@
 		}
 	},
 	"taxes": {
+		"writeDeniedTooltip": "ليس لديك صلاحية إدارة أسعار الضرائب. اطلب الوصول من مسؤول المستأجر.",
 		"title": "الضرائب",
 		"empty": "لم يتم العثور على ضرائب",
 		"taxRateDetails": "تفاصيل معدل الضريبة",
@@ -740,7 +790,21 @@
 			"infoDescription": "تنبيه عند وصول الرصيد لمستوى معلومات",
 			"cancel": "إلغاء",
 			"saving": "جارٍ الحفظ...",
-			"saveChanges": "حفظ التغييرات"
+			"saveChanges": "حفظ التغييرات",
+			"statusBadgeLabel": "الرصيد {{condition}} {{threshold}}",
+			"validation": {
+				"atLeastOneThreshold": "يرجى تكوين مستوى عتبة واحد على الأقل عند تفعيل التنبيهات",
+				"invalidCriticalThreshold": "يرجى إدخال قيمة عتبة حرجة صالحة",
+				"invalidWarningThreshold": "يرجى إدخال قيمة عتبة تحذير صالحة",
+				"invalidInfoThreshold": "يرجى إدخال قيمة عتبة معلومات صالحة",
+				"criticalRequiredForWarning": "عتبة حرجة مطلوبة عند تعيين عتبة تحذير",
+				"warningMustBeLessThanCritical": "لتنبيهات \"أكبر من\"، يجب أن تكون عتبة التحذير أقل من العتبة الحرجة",
+				"warningMustBeGreaterThanCritical": "لتنبيهات \"أقل من\"، يجب أن تكون عتبة التحذير أكبر من العتبة الحرجة",
+				"infoMustBeLessThanWarning": "لتنبيهات \"أكبر من\"، يجب أن تكون عتبة المعلومات أقل من عتبة التحذير",
+				"infoMustBeGreaterThanWarning": "لتنبيهات \"أقل من\"، يجب أن تكون عتبة المعلومات أكبر من عتبة التحذير",
+				"infoMustBeLessThanCritical": "لتنبيهات \"أكبر من\"، يجب أن تكون عتبة المعلومات أقل من العتبة الحرجة",
+				"infoMustBeGreaterThanCritical": "لتنبيهات \"أقل من\"، يجب أن تكون عتبة المعلومات أكبر من العتبة الحرجة"
+			}
 		},
 		"autoTopup": {
 			"dialogTitle": "إعدادات التعبئة التلقائية",
@@ -753,12 +817,33 @@
 			"amountLabel": "مبلغ التعبئة (أرصدة)",
 			"amountPlaceholder": "0.00",
 			"amountDescription": "عدد الأرصدة المضافة عند تشغيل التعبئة التلقائية",
+			"cooldownTitle": "فترة الانتظار",
+			"cooldownLabel": "الانتظار قبل التعبئة التلقائية التالية",
+			"cooldownValueLabel": "المدة",
+			"cooldownValuePlaceholder": "مثال: 1",
+			"cooldownUnitLabel": "الوحدة",
+			"cooldownUnitPlaceholder": "اختر الوحدة",
+			"cooldownDescription": "بعد تعبئة تلقائية ناجحة، لن يعيد النظام التعبئة تلقائياً حتى تنتهي هذه المدة، حتى لو بقي الرصيد دون العتبة.",
+			"cooldownBurstDescription": "عند إيقاف فترة الانتظار وعدم طلب دفع الفاتورة، قد يعيد النظام التعبئة مراراً حتى يتجاوز الرصيد العتبة.",
+			"cooldownOptionalDescription": "عند إيقاف فترة الانتظار، لا يوجد انتظار بين التعبئات التلقائية.",
+			"cooldownUnits": {
+				"SECOND": "ثانية",
+				"MINUTE": "دقيقة",
+				"HOUR": "ساعة",
+				"DAY": "يوم"
+			},
 			"invoiceTitle": "يتطلب دفع الفاتورة",
 			"invoiceLabel": "إنشاء فاتورة للتعبئة التلقائية (يتطلب الدفع قبل إضافة الأرصدة)",
 			"invoiceDescriptionWhenInvoiced": "تُضاف الأرصدة فقط بعد دفع الفاتورة. تُنشأ فاتورة بحالة PENDING عند تشغيل التعبئة التلقائية.",
 			"invoiceDescriptionImmediate": "تُضاف الأرصدة فوراً عند تشغيل التعبئة التلقائية.",
 			"cancel": "إلغاء",
-			"saveChanges": "حفظ التغييرات"
+			"saveChanges": "حفظ التغييرات",
+			"errors": {
+				"invalidThreshold": "يرجى إدخال قيمة عتبة صالحة",
+				"invalidAmount": "يرجى إدخال مبلغ صالح أكبر من 0",
+				"cooldownIncomplete": "أدخل قيمة وحدة الانتظار معاً، أو أوقف فترة الانتظار",
+				"cooldownInvalidValue": "يجب أن تكون قيمة فترة الانتظار عدداً صحيحاً موجباً"
+			}
 		},
 		"terminate": {
 			"title": "إنهاء المحفظة",
@@ -826,7 +911,7 @@
 		"addCharge": {
 			"selectMeterForBuckets": "اختر ميزة مُقاسة لتهيئة فترات التزام بالنافذة.",
 			"loadingMeter": "جارٍ تحميل تفاصيل العداد…",
-			"meterNotSupported": "هذا العداد لا يدعم التزام النافذة. قم أولاً بتهيئة حجم الدلو على العداد."
+			"meterNotSupported": "هذه الرسوم لا تدعم التزام النافذة. قم أولاً بتهيئة حجم الدلو على السعر."
 		},
 		"timeBuckets": {
 			"bucketCount": "{{count}} فترة/فترات زمنية",
@@ -855,16 +940,27 @@
 			"unitsPerPackage": "الوحدات لكل حزمة",
 			"pricingFlat": "ثابت",
 			"pricingSlab": "شرائح",
+			"volumeTiers": "شرائح الحجم",
 			"slabTiers": "شرائح التسعير",
 			"upTo": "حتى",
 			"unitAmount": "مبلغ الوحدة",
 			"lookupKey": "مفتاح البحث",
 			"overageFactor": "التجاوز",
 			"trueUpEnabled": "التسوية",
+			"bucketAmountHint": "سعر الوحدة المطبق خلال هذه النافذة الزمنية",
+			"bucketAmountVolumeTieredHint": "يُحدَّد التسعير في شرائح الحجم أدناه",
+			"bucketAmountSlabTieredHint": "يُحدَّد التسعير في شرائح التسعير أدناه",
+			"bucketAmountTieredHint": "يُحدَّد التسعير في شرائح التسعير أدناه",
+			"billingModelHint": "كيفية فوترة الاستخدام في هذه النافذة",
+			"unitsPerPackageHint": "عدد الوحدات المضمنة في كل حزمة",
 			"errors": {
 				"sameTime": "لا يمكن أن يكون وقت البداية والنهاية متطابقين",
 				"incomplete": "يرجى اختيار وقت البداية والنهاية لجميع الفترات",
-				"incompleteCommitment": "يرجى إكمال حقول الالتزام لجميع الفترات"
+				"incompleteCommitment": "يرجى إكمال حقول الالتزام لجميع الفترات",
+				"fieldRequired": "هذا الحقل مطلوب",
+				"overageRequired": "أدخل قيمة 1 أو أكثر",
+				"priceRequired": "أدخل سعرًا لهذه الفترة",
+				"tiersRequired": "أضف مستوى واحدًا على الأقل"
 			}
 		},
 		"existingNotice": "هذا السعر لديه بالفعل تهيئة التزام. ستُحدَّث بتغييراتك.",
@@ -873,6 +969,7 @@
 		"saveCommitment": "حفظ الالتزام",
 		"updateCommitment": "تحديث الالتزام",
 		"billingPeriodLabels": {
+			"DAILY": "يومي",
 			"MONTHLY": "شهري",
 			"QUARTERLY": "ربع سنوي",
 			"HALF_YEARLY": "نصف سنوي",
@@ -912,5 +1009,30 @@
 			"scheduledMessage": "سيُنهى {{name}} في {{date}}.",
 			"immediateMessage": "سيُنهى {{name}} فورًا."
 		}
+	},
+	"spendAlerts": {
+		"remove": "إزالة",
+		"add": "إضافة",
+		"thresholdValueLabel": "قيمة العتبة{{currencySuffix}}",
+		"amountPlaceholder": "0.00",
+		"conditionLabel": "الشرط",
+		"conditionAbove": "أعلى من",
+		"subscriptionDialogTitle": "إعدادات تنبيه الاشتراك",
+		"lineItemDialogTitle": "إعدادات تنبيه بند السطر",
+		"enableTitle": "تفعيل التنبيهات",
+		"subscriptionEnableLabel": "مراقبة إجمالي إنفاق الاشتراك مقارنة بالعتبات المضبوطة",
+		"lineItemEnableLabel": "مراقبة إنفاق بند السطر هذا مقارنة بالعتبات المضبوطة",
+		"enableDescription": "استلام إشعار عند تجاوز الإنفاق للعتبات المضبوطة خلال فترة الفوترة الحالية",
+		"criticalTitle": "عتبة حرجة",
+		"criticalDescription": "تنبيه عند وصول الإنفاق لمستوى حرج",
+		"warningTitle": "عتبة تحذير",
+		"warningDescription": "تنبيه عند وصول الإنفاق لمستوى تحذير",
+		"infoTitle": "عتبة معلومات",
+		"infoDescription": "تنبيه عند وصول الإنفاق لمستوى معلومات",
+		"cancel": "إلغاء",
+		"saving": "جارٍ الحفظ...",
+		"saveChanges": "حفظ التغييرات",
+		"saveSuccess": "تم حفظ إعدادات التنبيه بنجاح",
+		"saveError": "فشل حفظ إعدادات التنبيه"
 	}
 }

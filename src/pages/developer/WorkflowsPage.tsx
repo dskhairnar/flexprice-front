@@ -1,9 +1,11 @@
-import { Page, Chip } from '@/components/atoms';
+import { Page, Chip, Button } from '@/components/atoms';
 import { ApiDocsContent } from '@/components/molecules';
 import { API_DOCS_TAGS } from '@/constants/apiDocsTags';
 import { ColumnData, TooltipCell } from '@/components/molecules/Table';
 import { QueryableDataArea } from '@/components/organisms';
 import WorkflowApi from '@/api/WorkflowApi';
+import { refetchQueries } from '@/core/services/tanstack/ReactQueryProvider';
+import { RefreshCw } from 'lucide-react';
 import { useMemo } from 'react';
 import {
 	FilterField,
@@ -187,6 +189,11 @@ const WorkflowsPage = () => {
 					initialFilters,
 					initialSorts,
 					debounceTime: 300,
+					toolbarTrailing: (
+						<Button variant='outline' onClick={() => refetchQueries('fetchWorkflows')} aria-label={t('common:actions.refresh')}>
+							<RefreshCw />
+						</Button>
+					),
 				}}
 				dataConfig={{
 					queryKey: 'fetchWorkflows',

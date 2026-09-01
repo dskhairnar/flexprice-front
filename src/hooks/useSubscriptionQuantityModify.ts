@@ -3,6 +3,7 @@ import { useCallback } from 'react';
 import toast from 'react-hot-toast';
 import SubscriptionApi from '@/api/SubscriptionApi';
 import { refetchQueries } from '@/core/services/tanstack/ReactQueryProvider';
+import { refetchSubscriptionQueries } from '@/core/services/tanstack/queryKeys';
 import type { ExecuteSubscriptionModifyRequest, SubscriptionModifyResponse } from '@/types/dto/Subscription';
 
 export interface UseSubscriptionQuantityModifyResult {
@@ -49,7 +50,7 @@ export function useSubscriptionQuantityModify(subscriptionId: string | undefined
 			if (subscriptionId) {
 				await refetchQueries(['subscriptionEdit', subscriptionId]);
 			}
-			await refetchQueries(['subscriptions']);
+			await refetchSubscriptionQueries();
 		},
 		onError: (error: Error) => {
 			toast.error(error.message || 'Failed to apply subscription change');

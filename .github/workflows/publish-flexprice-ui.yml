@@ -1,0 +1,73 @@
+name: Publish flexprice-ui
+
+# Publishes the exportable UI package (@flexprice/ui) to npm.
+# Runs only on push to main (prod) — develop (staging) no longer publishes. It only publishes
+# when the version in packages/flexprice-ui/package.json is new — so bump that version in your
+# PR to release; pushes that don't change the version just run the checks and skip publishing.
+#
+# Required repository secret: NPM_TOKEN (an npm automation token for the @flexprice org).
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+concurrency:
+  group: publish-flexprice-ui
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    name: Publish
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write # npm provenance
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          registry-url: 'https://registry.npmjs.org'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Type check
+        run: npx tsc --noEmit
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Test
+        run: npx vitest run
+
+      - name: Build package
+        run: npm run build:ui
+
+      - name: Publish to npm (only if version is new)
+        working-directory: packages/flexprice-ui
+        run: |
+          NAME=$(node -p "require('./package.json').name")
+          VER=$(node -p "require('./package.json').version")
+          # Only main (prod) publishes — guards workflow_dispatch runs triggered from any other
+          # ref too, not just the push trigger above. Compare the full ref so a tag named "main"
+          # can't slip through, and read it via the built-in GITHUB_REF env var instead of an
+          # inline expression (avoids a shell-injection surface).
+          if [ "$GITHUB_REF" != "refs/heads/main" ]; then
+            echo "Not on main ($GITHUB_REF_NAME) — skipping publish."
+            exit 0
+          fi
+          if npm view "$NAME@$VER" version >/dev/null 2>&1; then
+            echo "$NAME@$VER is already published — skipping."
+          else
+            npm publish --provenance --access public --tag latest
+            echo "Published $NAME@$VER (dist-tag: latest)"
+          fi
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
