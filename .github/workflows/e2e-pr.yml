@@ -37,6 +37,9 @@ on:
       - '.github/workflows/e2e-pr.yml'
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 # A newer push supersedes the run in progress; nobody needs the results of a commit
 # that has already been replaced.
 concurrency:
