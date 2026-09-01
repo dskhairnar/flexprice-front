@@ -6,7 +6,6 @@ import { Skeleton } from '@/components/ui/skeleton';
 import CustomerUsageChart from '@/components/molecules/CustomerUsageChart';
 import type { GetUsageAnalyticsResponse } from '@/types/dto';
 import { cn } from '@/lib/utils';
-import { formatDateShort } from '@/utils/common/helper_functions';
 import { formatCredits } from '@/utils/common/formatBalance';
 import { useUsageT } from '../i18n';
 import { normalizeUsageTrendSeries } from '../schema';
@@ -51,7 +50,14 @@ const UsageTrendChart = ({ series: rawSeries, label, isLoading = false, classNam
 	const sparseCaption =
 		points.length === 1
 			? t('usageWidgets.singlePointLabel', {
-					date: formatDateShort(new Date(points[0].timestamp).toISOString()),
+					// Not formatDateShort: it pins 'en-US', so this caption rendered an
+					// English date inside the Arabic portal. Passing undefined defers to
+					// the runtime locale without wiring host i18n into the package.
+					date: new Date(points[0].timestamp).toLocaleDateString(undefined, {
+						month: 'short',
+						day: 'numeric',
+						year: 'numeric',
+					}),
 					value: formatCredits(series.reduce((sum, item) => sum + (item.points[0]?.usage ?? 0), 0)),
 				})
 			: undefined;
