@@ -10,6 +10,8 @@ import { WindowSize } from '@/models';
 import { DateRangePicker } from '@/components/atoms';
 import { usePortalConfig } from '@/context/PortalConfigContext';
 import TabRenderer, { DEFAULT_USAGE_GRAPH_CONFIG } from './TabRenderer';
+import EmptyState from './EmptyState';
+import { Card } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 
 interface SectionContentProps {
@@ -212,7 +214,19 @@ const SectionContent = ({ section }: SectionContentProps) => {
 		if (usageError) toast.error(t('errors.loadUsage'));
 	}, [usageError, t]);
 
-	if (enabledTabs.length === 0) return null;
+	// The section keeps its place in the tab bar whatever its tabs are configured
+	// to be — CustomerPortal only hides a section whose one data source came back
+	// empty — so returning null here left the customer clicking a tab that opened
+	// onto nothing at all.
+	if (enabledTabs.length === 0) {
+		return (
+			<Card
+				className='rounded-xl p-6'
+				style={{ backgroundColor: 'var(--portal-surface, white)', border: '1px solid var(--portal-border, #E9E9E9)' }}>
+				<EmptyState title={t('section.emptyTitle')} description={t('section.emptyDescription')} />
+			</Card>
+		);
+	}
 
 	const subscriptions = subscriptionsData?.items ?? [];
 	const usageData = usageSummaryData?.features ?? [];

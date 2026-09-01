@@ -557,7 +557,11 @@
 		"unknownRow": "Unknown",
 		"cellEmDash": "—",
 		"cellEmpty": "--",
-		"singlePointLabel": "Usage for {{date}} · {{value}}"
+		"singlePointLabel": "Usage for {{date}} · {{value}}",
+		"quotaEmptyTitle": "No quotas to show",
+		"quotaEmptyDescription": "Quotas appear here once your plan includes metered features.",
+		"breakdownEmptyTitle": "No usage in this period",
+		"breakdownEmptyDescription": "Try a longer date range, or check back once usage has been recorded."
 	},
 	"creditWidgets": {
 		"defaultName": "Wallet",
