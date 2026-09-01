@@ -15,6 +15,14 @@ describe('CreditBalance', () => {
 		expect(screen.getByText('Main Wallet')).toBeInTheDocument();
 	});
 
+	// It was a bespoke block with no icon in a card twice the height of its two
+	// lines of text — the shared empty state carries the glyph and the proportions.
+	it('gives the empty state an icon, from the shared component', () => {
+		const { container } = render(<CreditBalance wallet={null} />);
+		expect(screen.getByText('No wallet')).toBeInTheDocument();
+		expect(container.querySelector('svg')).toBeInTheDocument();
+	});
+
 	it('renders the empty state when wallet is null', () => {
 		render(<CreditBalance wallet={null} />);
 		expect(screen.getByText('No wallet')).toBeInTheDocument();

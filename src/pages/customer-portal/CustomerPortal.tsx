@@ -13,6 +13,7 @@ import { PortalConfigProvider, usePortalConfig } from '@/context/PortalConfigCon
 import SectionContent from '@/components/customer-portal/SectionContent';
 import useCheckoutReturn from '@/components/customer-portal/useCheckoutReturn';
 import { portalInvoicesQueryKey } from '@/components/customer-portal/queryKeys';
+import { isCustomerVisible } from '@/components/customer-portal/invoiceStatus';
 import { SectionConfig } from '@/types/dto/PortalConfig';
 import { cn } from '@/lib/utils';
 
@@ -85,7 +86,9 @@ const CustomerPortalInner = () => {
 			const allInvoice = enabledTypes.length > 0 && enabledTypes.every((t) => invoiceTypes.has(t));
 
 			if (allWallet && walletsData !== undefined && walletsData.length === 0) return false;
-			if (allInvoice && invoicesData !== undefined && (invoicesData.items?.length ?? 0) === 0) return false;
+			// Counted the same way the tab lists them, or a customer with nothing but
+			// drafts gets an Invoices tab that opens onto an empty list.
+			if (allInvoice && invoicesData !== undefined && (invoicesData.items ?? []).filter(isCustomerVisible).length === 0) return false;
 
 			return true;
 		},

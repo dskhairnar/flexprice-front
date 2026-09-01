@@ -1,6 +1,7 @@
 // src/credits/components/CreditBalance.tsx
 import Card from '@/components/atoms/Card/Card';
 import Chip from '@/components/atoms/Chip/Chip';
+import EmptyState from '@/components/atoms/EmptyState/EmptyState';
 import { formatCredits, formatMoney } from '@/utils/common/formatBalance';
 import { getCurrencySymbol } from '@/utils/common/helper_functions';
 import { Wallet as WalletIcon } from 'lucide-react';
@@ -41,11 +42,10 @@ const CreditBalance = ({ wallet: rawWallet, isLoading = false, className, action
 
 	if (!wallet) {
 		return (
-			<Card noPadding className={cn('flexprice-ui', 'rounded-xl p-6 bg-surface', className)}>
-				<div className='flex flex-col items-center justify-center py-16 px-4'>
-					<p className='text-sm font-medium text-content-secondary mb-1'>{t('creditWidgets.emptyTitle')}</p>
-					<p className='text-xs text-content-muted text-center max-w-sm mt-1'>{t('creditWidgets.emptyDescription')}</p>
-				</div>
+			<Card noPadding className={cn('flexprice-ui', 'rounded-xl bg-surface', className)}>
+				{/* Was a bespoke py-16 block with no icon, so an account without a wallet
+				    showed two lines of text stranded in a card twice their height. */}
+				<EmptyState icon={<WalletIcon />} title={t('creditWidgets.emptyTitle')} description={t('creditWidgets.emptyDescription')} />
 			</Card>
 		);
 	}
