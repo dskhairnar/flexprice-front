@@ -1,4 +1,5 @@
 import { Button, Input, Select, Textarea, PaymentUrlSuccessDialog, DatePicker, Dialog } from '@/components/atoms';
+import { openPaymentUrl } from '@/utils/common/openPaymentUrl';
 import { FC, useState, useEffect, useMemo } from 'react';
 import { getCurrencySymbol } from '@/utils/common/helper_functions';
 import { PAYMENT_METHOD_TYPE, PAYMENT_DESTINATION_TYPE, Payment } from '@/models/Payment';
@@ -237,7 +238,12 @@ const RecordPaymentTopup: FC<Props> = ({
 			onOpenChange(false);
 
 			if (payment.payment_url) {
+				// Show the dialog first, then try to open the link. This runs in an async
+				// callback rather than directly in the click, so a popup blocker will often
+				// stop the open — the dialog carries the URL so that is recoverable, not a
+				// dead end.
 				setPaymentUrlPopup({ isOpen: true, paymentUrl: payment.payment_url, isCopied: false });
+				openPaymentUrl(payment.payment_url);
 			}
 
 			onSuccess?.(payment);
