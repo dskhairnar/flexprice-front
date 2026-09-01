@@ -186,7 +186,10 @@ const TopUpForm = ({ wallet, onDone, onActionUrl }: TopUpFormProps) => {
 				disabled={isPending}
 			/>
 
-			{canCheckout && checkoutProviders.length > 1 && (
+			{/* Shown for a single provider too, not just a choice of several: the customer
+			    is about to be handed to a third party, and naming it is part of telling
+			    them what happens next. It is simply already selected. */}
+			{canCheckout && checkoutProviders.length > 0 && (
 				<div>
 					<p className='text-sm font-medium mb-1' style={{ color: 'var(--portal-text-primary, #09090b)' }}>
 						{t('topUp.providerLabel')}
@@ -218,9 +221,13 @@ const TopUpForm = ({ wallet, onDone, onActionUrl }: TopUpFormProps) => {
 							);
 						})}
 					</div>
-					<p className='text-xs mt-1.5' style={{ color: 'var(--portal-text-secondary, #71717a)' }}>
-						{t('topUp.providerHint')}
-					</p>
+					{/* Only a choice when there is one to make — with a single provider the
+					    hint would invite a decision the customer does not have. */}
+					{checkoutProviders.length > 1 && (
+						<p className='text-xs mt-1.5' style={{ color: 'var(--portal-text-secondary, #71717a)' }}>
+							{t('topUp.providerHint')}
+						</p>
+					)}
 				</div>
 			)}
 
