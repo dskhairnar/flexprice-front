@@ -333,7 +333,9 @@ const TopupCard: FC<TopupCardProps> = ({ walletId, currency, conversion_rate = 1
 					label={t('wallet.topup.priority')}
 					className='w-full'
 					placeholder={t('wallet.topup.priorityPlaceholder')}
-					value={topupPayload.priority}
+					// Guarded like the sibling fields: priority starts undefined, which makes
+					// the input uncontrolled until the first keystroke and warns on the switch.
+					value={topupPayload.priority ?? ''}
 					onChange={(e) => {
 						if (e) {
 							updateTopupPayload({ priority: Number(e) });
