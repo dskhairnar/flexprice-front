@@ -3,11 +3,11 @@ import { useMutation, useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import toast from 'react-hot-toast';
 import CustomerPortalApi from '@/api/CustomerPortalApi';
-import { Button, Input, Toggle } from '@/components/atoms';
+import { Button, Input, Select, Toggle } from '@/components/atoms';
 import { refetchPortalQueries } from '../refetchPortalQueries';
 import { getCurrencySymbol } from '@/utils/common/helper_functions';
 import { formatMoney } from '@/utils/common/formatBalance';
-import type { PortalTopUpRequest, SavedPaymentMethod } from '@/types/dto/CustomerPortalBilling';
+import type { PaymentGatewayType, PortalTopUpRequest, SavedPaymentMethod } from '@/types/dto/CustomerPortalBilling';
 import { WalletResponse } from '@/types/dto/Wallet';
 import { portalPaymentMethodsQueryKey } from '../queryKeys';
 import { rememberPendingCheckout } from '../useCheckoutReturn';
@@ -36,7 +36,7 @@ const describeCard = (method: SavedPaymentMethod) =>
  */
 const TopUpForm = ({ wallet, onDone, onActionUrl }: TopUpFormProps) => {
 	const { t } = useTranslation('customer-portal');
-	const { maySupport, supports } = usePortalIntegrations();
+	const { maySupport, supports, providersFor } = usePortalIntegrations();
 	const [credits, setCredits] = useState('');
 	const [description, setDescription] = useState('');
 	const [useSavedMethod, setUseSavedMethod] = useState(false);
@@ -54,6 +54,14 @@ const TopUpForm = ({ wallet, onDone, onActionUrl }: TopUpFormProps) => {
 	// Optimistic: only hidden when /integrations has loaded and names no checkout
 	// provider. A slow or failing integrations call must not remove the pay button.
 	const canCheckout = maySupport('checkout');
+
+	// The resolver refuses to guess: with more than one checkout-capable gateway it
+	// returns "Specify which payment provider to use" rather than falling back to a
+	// default, so the provider is always named explicitly.
+	const checkoutProviders = providersFor('checkout');
+	const [selectedProvider, setSelectedProvider] = useState<PaymentGatewayType | ''>('');
+	// providersFor sorts the capability default first, so [0] is the tenant's pick.
+	const effectiveProvider = selectedProvider || checkoutProviders[0];
 
 	const { data: methods } = useQuery({
 		queryKey: portalPaymentMethodsQueryKey,
@@ -88,8 +96,11 @@ const TopUpForm = ({ wallet, onDone, onActionUrl }: TopUpFormProps) => {
 				idempotency_key: keyForSubmission,
 				...(description ? { description } : {}),
 				checkout: {
-					// payment_provider omitted: the backend resolves the tenant's configured
-					// provider, so the customer never learns which gateway is behind it.
+					// Sent explicitly. The resolver only picks for us when exactly one
+					// provider has the capability — with two it refuses as ambiguous and
+					// ignores is_default entirely. Chosen from /integrations rather than
+					// asked of the customer, who should never learn the gateway.
+					...(effectiveProvider ? { payment_provider: effectiveProvider } : {}),
 					use_saved_method: useSavedMethod && !!chargeableMethod,
 					success_url: window.location.href,
 					cancel_url: window.location.href,
@@ -159,6 +170,17 @@ const TopUpForm = ({ wallet, onDone, onActionUrl }: TopUpFormProps) => {
 				onChange={setDescription}
 				disabled={isPending}
 			/>
+
+			{canCheckout && checkoutProviders.length > 1 && (
+				<Select
+					label={t('topUp.providerLabel')}
+					description={t('topUp.providerHint')}
+					value={effectiveProvider ?? ''}
+					onChange={(value) => setSelectedProvider(value as PaymentGatewayType)}
+					options={checkoutProviders.map((p: PaymentGatewayType) => ({ value: p, label: t(`paymentProviders.${p}`) }))}
+					disabled={isPending}
+				/>
+			)}
 
 			{canCheckout && (
 				<Toggle

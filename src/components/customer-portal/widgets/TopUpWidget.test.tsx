@@ -182,8 +182,40 @@ describe('TopUpWidget', () => {
 		expect(screen.getByRole('switch')).toBeDisabled();
 	});
 
-	// Portal checkouts always vault and the provider is resolved server-side, so
-	// neither may be sent from here.
+	// The resolver refuses to guess between two capable gateways, returning
+	// "Specify which payment provider to use", so one is always named.
+	it('names the checkout provider explicitly', async () => {
+		vi.mocked(CustomerPortalApi.topUpWallet).mockResolvedValue({} as never);
+
+		renderWidget();
+		await enterCredits('10');
+		await userEvent.click(screen.getByRole('button', { name: /pay now/i }));
+
+		await waitFor(() => expect(CustomerPortalApi.topUpWallet).toHaveBeenCalled());
+		const [, payload] = vi.mocked(CustomerPortalApi.topUpWallet).mock.calls[0];
+		expect(payload.checkout?.payment_provider).toBe('chargebee');
+	});
+
+	// One gateway is not a choice, so the customer is not asked to make one.
+	it('offers no provider picker when only one gateway can host checkout', async () => {
+		renderWidget();
+		await screen.findByRole('button', { name: /pay now/i });
+		expect(screen.queryByText('Pay with')).not.toBeInTheDocument();
+	});
+
+	it('asks which gateway to use when more than one can host checkout', async () => {
+		vi.mocked(CustomerPortalApi.getIntegrations).mockResolvedValue({
+			payment_integrations: [
+				{ provider: 'chargebee', capabilities: [{ type: 'checkout', is_default: true }] },
+				{ provider: 'razorpay', capabilities: [{ type: 'checkout', is_default: false }] },
+			],
+		} as never);
+
+		renderWidget();
+		expect(await screen.findByText('Pay with')).toBeInTheDocument();
+	});
+
+	// Portal checkouts always vault, so no save flag may be sent from here.
 	it('sends no provider config and no save-card flag', async () => {
 		vi.mocked(CustomerPortalApi.topUpWallet).mockResolvedValue({} as never);
 
@@ -195,6 +227,26 @@ describe('TopUpWidget', () => {
 		const [, payload] = vi.mocked(CustomerPortalApi.topUpWallet).mock.calls[0];
 		expect(payload.checkout).not.toHaveProperty('payment_provider_config');
 		expect(payload.checkout).not.toHaveProperty('save_payment_method');
-		expect(payload.checkout?.payment_provider).toBeUndefined();
+	});
+
+	// The resolver only picks for us when exactly one provider qualifies; with two
+	// it refuses as ambiguous, so the provider has to be named.
+	it('names the checkout provider from /integrations', async () => {
+		vi.mocked(CustomerPortalApi.getIntegrations).mockResolvedValue({
+			payment_integrations: [
+				{ provider: 'razorpay', capabilities: [{ type: 'checkout', is_default: false }] },
+				{ provider: 'chargebee', capabilities: [{ type: 'checkout', is_default: true }] },
+			],
+		} as never);
+		vi.mocked(CustomerPortalApi.topUpWallet).mockResolvedValue({} as never);
+
+		renderWidget();
+		await enterCredits('10');
+		await userEvent.click(screen.getByRole('button', { name: /pay now/i }));
+
+		await waitFor(() => expect(CustomerPortalApi.topUpWallet).toHaveBeenCalled());
+		const [, payload] = vi.mocked(CustomerPortalApi.topUpWallet).mock.calls[0];
+		// The default wins over declaration order.
+		expect(payload.checkout?.payment_provider).toBe('chargebee');
 	});
 });
