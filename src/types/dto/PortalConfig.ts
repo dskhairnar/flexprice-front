@@ -181,9 +181,9 @@ export const DEFAULT_PORTAL_CONFIG: PortalConfig = {
 			enabled: true,
 			order: 1,
 			tabs: [
-				{ id: '14', type: 'account_summary', enabled: true, order: 1 },
-				{ id: '9', type: 'subscriptions', enabled: true, order: 2 },
-				{ id: '10', type: 'current_usage', enabled: true, order: 3 },
+				{ id: '16', type: 'wallet_balance', enabled: true, order: 1 },
+				{ id: '17', type: 'payment_methods', enabled: true, order: 2 },
+				{ id: '9', type: 'subscriptions', enabled: true, order: 3 },
 			],
 		},
 	],
@@ -232,33 +232,29 @@ function mergeSections(defaults: SectionConfig[], tenant?: SectionConfig[]): Sec
 	return [...reordered, ...unseen].sort((a, b) => a.order - b.order);
 }
 
-/** Analytics widgets: they belong to Usage, and each one also brings the date filter. */
-const ANALYTICS_TAB_TYPES: TabType[] = ['usage_graph', 'usage_breakdown', 'metric_cards'];
-
 const OVERVIEW_SECTION_ID = 'overview';
 
 /**
- * Overview summarises account state — balance, subscriptions, quota. Usage is the
- * analytics page.
+ * Overview's composition is a product decision, like the ordering of the standard
+ * sections above it: credits, payments and subscriptions — what the customer owes,
+ * how they pay it, and what they are signed up to.
  *
- * Tenants whose stored config predates that split still carry a usage trend in
- * Overview, and any analytics tab there also renders the section's date filter,
- * so the summary page opened on a chart and a timeline picker that duplicate the
- * Usage tab. Removing them from the defaults is not enough: a stored config
- * replaces the defaults wholesale, so the rule is applied after the merge.
+ * Applied after the merge because a stored config replaces the default tabs
+ * wholesale, so tenants saved before a change never see it. That is how analytics
+ * widgets survived here: any of them also renders the section's date filter, so
+ * the summary page opened on a chart and a timeline picker duplicating Usage.
  *
- * A tenant whose Overview holds nothing but analytics keeps the default tabs
- * rather than being left with an empty section.
+ * The trade-off, and it is a real one: a tenant who curated their own Overview
+ * loses that. Every other section still honours the tenant's tabs — this rule is
+ * scoped to Overview alone.
  */
-function withoutAnalyticsInOverview(sections: SectionConfig[], defaults: SectionConfig[]): SectionConfig[] {
-	const defaultOverviewTabs = defaults.find((section) => section.id === OVERVIEW_SECTION_ID)?.tabs ?? [];
+function withOverviewComposition(sections: SectionConfig[], defaults: SectionConfig[]): SectionConfig[] {
+	const defaultOverviewTabs = defaults.find((section) => section.id === OVERVIEW_SECTION_ID)?.tabs;
+	if (!defaultOverviewTabs) return sections;
 
-	return sections.map((section) => {
-		if (section.id !== OVERVIEW_SECTION_ID) return section;
-
-		const tabs = section.tabs.filter((tab) => !ANALYTICS_TAB_TYPES.includes(tab.type));
-		return { ...section, tabs: tabs.some((tab) => tab.enabled) ? tabs : defaultOverviewTabs };
-	});
+	// Label and enabled stay the tenant's — what they call it and whether they show
+	// it at all is still theirs.
+	return sections.map((section) => (section.id === OVERVIEW_SECTION_ID ? { ...section, tabs: defaultOverviewTabs } : section));
 }
 
 export function deepMergePortalConfig(defaults: PortalConfig, tenant: Partial<PortalConfig>): PortalConfig {
@@ -276,6 +272,6 @@ export function deepMergePortalConfig(defaults: PortalConfig, tenant: Partial<Po
 		// The trade-off: a tenant who deliberately removed a section would see it
 		// return. Section removal is expressed by `enabled: false`, not by deletion,
 		// so that is the narrower reading of intent.
-		sections: withoutAnalyticsInOverview(mergeSections(defaults.sections, tenant.sections), defaults.sections),
+		sections: withOverviewComposition(mergeSections(defaults.sections, tenant.sections), defaults.sections),
 	};
 }
