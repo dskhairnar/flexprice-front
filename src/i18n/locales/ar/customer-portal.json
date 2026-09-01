@@ -141,7 +141,8 @@
 		"emptyDescription": "لم يتم إعداد محفظة لهذا الحساب",
 		"transactionHistory": "سجل المعاملات",
 		"noTransactionsTitle": "لا توجد معاملات",
-		"noTransactionsDescription": "سيظهر سجل معاملاتك هنا"
+		"noTransactionsDescription": "سيظهر سجل معاملاتك هنا",
+		"moreActions": "إجراءات إضافية للمحفظة"
 	},
 	"usageAnalytics": {
 		"noDataTitle": "لا توجد بيانات استخدام",

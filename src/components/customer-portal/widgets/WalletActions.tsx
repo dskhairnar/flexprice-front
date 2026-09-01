@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Settings2 } from 'lucide-react';
-import { Dialog } from '@/components/atoms';
+import { EllipsisVertical, Settings2 } from 'lucide-react';
+import { Button, Dialog } from '@/components/atoms';
 import { DropdownMenu } from '@/components/molecules';
 import { WalletResponse } from '@/types/dto/Wallet';
 import TopUpButton from './TopUpButton';
@@ -35,6 +35,11 @@ const WalletActions = ({ wallet }: WalletActionsProps) => {
 						onSelect: () => setIsAutoTopUpOpen(true),
 					},
 				]}
+				// Matches the admin wallet header: an outline icon button sized to sit
+				// beside the primary action. The shared default trigger is a bare icon
+				// with no border and no accessible name, so it neither lines up with the
+				// button next to it nor announces itself.
+				trigger={<Button variant='outline' size='icon' prefixIcon={<EllipsisVertical />} aria-label={t('wallet.moreActions')} />}
 			/>
 			<Dialog
 				isOpen={isAutoTopUpOpen}

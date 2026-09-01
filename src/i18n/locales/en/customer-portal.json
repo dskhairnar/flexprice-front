@@ -141,7 +141,8 @@
 		"emptyDescription": "No wallet has been set up for this account",
 		"transactionHistory": "Transaction History",
 		"noTransactionsTitle": "No transactions",
-		"noTransactionsDescription": "Your transaction history will appear here"
+		"noTransactionsDescription": "Your transaction history will appear here",
+		"moreActions": "More wallet actions"
 	},
 	"usageAnalytics": {
 		"noDataTitle": "No usage data found",
