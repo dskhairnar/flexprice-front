@@ -200,6 +200,14 @@ function hasThemeValues(theme?: Partial<PortalTheme>): boolean {
 	return Object.values(theme).some((v) => typeof v === 'string' && v.length > 0);
 }
 
+/** Tenant sections in their order, plus any default section they have never seen. */
+function mergeSections(defaults: SectionConfig[], tenant?: SectionConfig[]): SectionConfig[] {
+	if (!tenant || tenant.length === 0) return defaults;
+	const known = new Set(tenant.map((section) => section.id));
+	const unseen = defaults.filter((section) => !known.has(section.id));
+	return [...tenant, ...unseen];
+}
+
 export function deepMergePortalConfig(defaults: PortalConfig, tenant: Partial<PortalConfig>): PortalConfig {
 	const mergedTheme = { ...(defaults.theme ?? {}), ...(tenant.theme ?? {}) } as PortalTheme;
 	return {
@@ -207,7 +215,14 @@ export function deepMergePortalConfig(defaults: PortalConfig, tenant: Partial<Po
 		// Only set theme if the merged result actually has at least one value.
 		// An empty {} from the backend must NOT override the light-mode defaults.
 		theme: hasThemeValues(mergedTheme) ? mergedTheme : undefined,
-		// Sections from tenant fully replace defaults if provided (they control order + content)
-		sections: tenant.sections && tenant.sections.length > 0 ? tenant.sections : defaults.sections,
+		// Tenant sections win on order and content — that is their point — but a
+		// wholesale replace also hides any section added to the defaults later, so a
+		// tenant with a stored config never sees a newly shipped capability. New
+		// default sections are therefore appended rather than dropped.
+		//
+		// The trade-off: a tenant who deliberately removed a section would see it
+		// return. Section removal is expressed by `enabled: false`, not by deletion,
+		// so that is the narrower reading of intent.
+		sections: mergeSections(defaults.sections, tenant.sections),
 	};
 }

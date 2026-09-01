@@ -23,6 +23,8 @@ interface TopUpFormProps {
 	onActionUrl?: (url: string) => void;
 }
 
+const PRESET_CREDITS = ['10', '25', '50', '100'];
+
 const describeCard = (method: SavedPaymentMethod) =>
 	method.card?.last4 ? `${method.card.brand ?? 'card'} •••• ${method.card.last4}` : method.id;
 
@@ -39,7 +41,7 @@ const describeCard = (method: SavedPaymentMethod) =>
  */
 const TopUpForm = ({ wallet, onDone, onActionUrl }: TopUpFormProps) => {
 	const { t } = useTranslation('customer-portal');
-	const { supports } = usePortalIntegrations();
+	const { maySupport } = usePortalIntegrations();
 	const [credits, setCredits] = useState('');
 	const [description, setDescription] = useState('');
 	const [useSavedMethod, setUseSavedMethod] = useState(false);
@@ -54,7 +56,9 @@ const TopUpForm = ({ wallet, onDone, onActionUrl }: TopUpFormProps) => {
 	// An edit after a failed submit invalidates the key for the next attempt.
 	const keyForSubmission = submittedPayload !== null && submittedPayload !== payloadFingerprint ? crypto.randomUUID() : idempotencyKey;
 
-	const canCheckout = supports('checkout');
+	// Optimistic: only hidden when /integrations has loaded and names no checkout
+	// provider. A slow or failing integrations call must not remove the pay button.
+	const canCheckout = maySupport('checkout');
 
 	const { data: methods } = useQuery({
 		queryKey: portalPaymentMethodsQueryKey,
@@ -129,17 +133,60 @@ const TopUpForm = ({ wallet, onDone, onActionUrl }: TopUpFormProps) => {
 	const chargeAmount = isValid ? formatMoney(parsedCredits * conversionRate) : null;
 
 	return (
-		<div className='space-y-4'>
-			<Input
-				label={t('topUp.creditsLabel')}
-				type='number'
-				value={credits}
-				onChange={setCredits}
-				disabled={isPending}
-				placeholder={t('topUp.creditsPlaceholder')}
-				suffix={t('wallet.credits')}
-				description={chargeAmount ? t('topUp.chargeSummary', { amount: `${currencySymbol}${chargeAmount}` }) : undefined}
-			/>
+		<div className='space-y-5'>
+			{/* Quick amounts first: most top-ups are a round number, and typing is the
+			    slower path. Selecting one fills the field rather than submitting, so the
+			    customer still sees what they are about to be charged. */}
+			<div>
+				<p className='text-sm font-medium mb-2' style={{ color: 'var(--portal-text-primary, #09090b)' }}>
+					{t('topUp.creditsLabel')}
+				</p>
+				<div className='flex flex-wrap gap-2 mb-3'>
+					{PRESET_CREDITS.map((preset) => {
+						const isSelected = credits === preset;
+						return (
+							<button
+								key={preset}
+								type='button'
+								onClick={() => setCredits(preset)}
+								disabled={isPending}
+								aria-pressed={isSelected}
+								className='px-3.5 py-1.5 text-sm rounded-lg border transition-colors disabled:opacity-50'
+								style={{
+									borderColor: isSelected ? 'var(--portal-primary, #2563eb)' : 'var(--portal-border, #E9E9E9)',
+									color: isSelected ? 'var(--portal-primary, #2563eb)' : 'var(--portal-text-primary, #09090b)',
+									backgroundColor: isSelected ? 'var(--portal-bg, #eff6ff)' : 'transparent',
+								}}>
+								{preset}
+							</button>
+						);
+					})}
+				</div>
+
+				<Input
+					type='number'
+					value={credits}
+					onChange={setCredits}
+					disabled={isPending}
+					placeholder={t('topUp.creditsPlaceholder')}
+					suffix={t('wallet.credits')}
+				/>
+
+				{/* States the charge before the customer commits — Pay now charges at once. */}
+				{chargeAmount && (
+					<div
+						className='flex items-baseline justify-between mt-3 rounded-lg px-3 py-2.5'
+						style={{ backgroundColor: 'var(--portal-bg, #fafafa)' }}>
+						<span className='text-sm' style={{ color: 'var(--portal-text-secondary, #71717a)' }}>
+							{t('topUp.youWillPay')}
+						</span>
+						<span className='text-base font-semibold' style={{ color: 'var(--portal-text-primary, #09090b)' }}>
+							{currencySymbol}
+							{chargeAmount}
+						</span>
+					</div>
+				)}
+			</div>
 
 			<Input
 				label={t('topUp.descriptionLabel')}
@@ -149,13 +196,14 @@ const TopUpForm = ({ wallet, onDone, onActionUrl }: TopUpFormProps) => {
 				placeholder={t('topUp.descriptionPlaceholder')}
 			/>
 
-			{chargeableMethod && (
-				<div className='flex items-start gap-2 rounded-lg border p-3' style={{ borderColor: 'var(--portal-border, #E9E9E9)' }}>
+			{chargeableMethod && canCheckout && (
+				<div className='flex items-start gap-2.5 rounded-lg border p-3' style={{ borderColor: 'var(--portal-border, #E9E9E9)' }}>
 					<Checkbox
 						id='portal-topup-saved-method'
 						checked={useSavedMethod}
 						onCheckedChange={(checked) => setUseSavedMethod(checked === true)}
 						disabled={isPending}
+						className='mt-0.5'
 					/>
 					<Label htmlFor='portal-topup-saved-method' className='text-sm font-normal leading-snug flex items-center gap-1.5'>
 						<CreditCard className='h-3.5 w-3.5 shrink-0' />
@@ -164,20 +212,23 @@ const TopUpForm = ({ wallet, onDone, onActionUrl }: TopUpFormProps) => {
 				</div>
 			)}
 
-			<div className='flex items-center gap-2 pt-1'>
+			<div className='flex items-center gap-2 pt-1' style={{ borderTop: '1px solid var(--portal-border, #E9E9E9)', paddingTop: '1rem' }}>
 				{canCheckout && (
 					<Button onClick={() => topUp('checkout')} disabled={!isValid || isPending} isLoading={isPending && pendingMode === 'checkout'}>
 						{t('topUp.payNow')}
 					</Button>
 				)}
 				<Button
-					variant={canCheckout ? 'outline' : 'default'}
+					variant='outline'
 					onClick={() => topUp('invoice')}
 					disabled={!isValid || isPending}
 					isLoading={isPending && pendingMode === 'invoice'}>
 					{t('topUp.generateInvoice')}
 				</Button>
 			</div>
+			<p className='text-xs' style={{ color: 'var(--portal-text-secondary, #a1a1aa)' }}>
+				{canCheckout ? t('topUp.actionsHint') : t('topUp.invoiceOnlyHint')}
+			</p>
 		</div>
 	);
 };

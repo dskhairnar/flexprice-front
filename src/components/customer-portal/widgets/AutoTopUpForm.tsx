@@ -69,15 +69,23 @@ const AutoTopUpForm = ({ wallet, hasChargeableMethod, onAddPaymentMethod, onDone
 
 	return (
 		<div className='space-y-4'>
-			<div className='flex items-start gap-2'>
+			{/* The toggle is the whole control when disabled, so it carries the
+			    explanation rather than leaving a lone unexplained checkbox. */}
+			<div className='flex items-start gap-2.5 rounded-lg border p-3' style={{ borderColor: 'var(--portal-border, #E9E9E9)' }}>
 				<Checkbox
 					id='portal-auto-topup-enabled'
 					checked={enabled}
 					onCheckedChange={(checked) => setEnabled(checked === true)}
 					disabled={isPending}
+					className='mt-0.5'
 				/>
 				<Label htmlFor='portal-auto-topup-enabled' className='text-sm font-normal leading-snug'>
-					{t('autoTopUp.enableLabel')}
+					<span className='block font-medium' style={{ color: 'var(--portal-text-primary, #09090b)' }}>
+						{t('autoTopUp.enableLabel')}
+					</span>
+					<span className='block mt-0.5' style={{ color: 'var(--portal-text-secondary, #71717a)' }}>
+						{t('autoTopUp.enableHint')}
+					</span>
 				</Label>
 			</div>
 
@@ -145,9 +153,16 @@ const AutoTopUpForm = ({ wallet, hasChargeableMethod, onAddPaymentMethod, onDone
 				</>
 			)}
 
-			<Button onClick={() => save()} disabled={!isValid || isPending} isLoading={isPending}>
-				{t('autoTopUp.save')}
-			</Button>
+			<div className='pt-1' style={{ borderTop: '1px solid var(--portal-border, #E9E9E9)', paddingTop: '1rem' }}>
+				<Button onClick={() => save()} disabled={!isValid || isPending} isLoading={isPending}>
+					{t('autoTopUp.save')}
+				</Button>
+				{enabled && !hasChargeableMethod && (
+					<p className='text-xs mt-2' style={{ color: 'var(--portal-text-secondary, #a1a1aa)' }}>
+						{t('autoTopUp.needsCardHint')}
+					</p>
+				)}
+			</div>
 		</div>
 	);
 };

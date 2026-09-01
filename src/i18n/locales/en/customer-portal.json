@@ -178,7 +178,10 @@
 		"payNow": "Pay now",
 		"generateInvoice": "Generate invoice",
 		"invoiceCreated": "Invoice created. Credits are added once it is paid.",
-		"useSavedMethod": "Pay with my saved card ({{method}})"
+		"useSavedMethod": "Pay with my saved card ({{method}})",
+		"youWillPay": "You'll pay",
+		"actionsHint": "Pay now charges you immediately. Generate invoice lets you pay later.",
+		"invoiceOnlyHint": "An invoice will be raised for you to pay."
 	},
 	"autoTopUp": {
 		"title": "Auto top-up",
@@ -207,7 +210,9 @@
 			"hour": "Hours",
 			"day": "Days"
 		},
-		"noSavedCard": "No saved payment method found."
+		"noSavedCard": "No saved payment method found.",
+		"enableHint": "We top up your balance automatically so service is never interrupted.",
+		"needsCardHint": "Add a payment method to enable automatic top-ups."
 	},
 	"paymentMethods": {
 		"title": "Payment methods",

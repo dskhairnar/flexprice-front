@@ -32,12 +32,24 @@ const usePortalIntegrations = () => {
 
 	const supports = (capability: IntegrationCapabilityType) => providersFor(capability).length > 0;
 
+	/**
+	 * Whether to offer an action, when hiding it outright would be worse than
+	 * letting the backend refuse it.
+	 *
+	 * `supports` is false while the query is in flight and false if it failed, so
+	 * gating a primary action on it hides that action whenever /integrations is
+	 * slow or down — the customer simply loses the ability to pay. Only a loaded,
+	 * successful response that names no provider is real evidence of absence.
+	 */
+	const maySupport = (capability: IntegrationCapabilityType) => isLoading || isError || supports(capability);
+
 	return {
 		integrations,
 		isLoading,
 		isError,
 		providersFor,
 		supports,
+		maySupport,
 		/** The provider to use when the customer is not asked to choose. */
 		defaultProviderFor: (capability: IntegrationCapabilityType) => providersFor(capability)[0],
 	};
