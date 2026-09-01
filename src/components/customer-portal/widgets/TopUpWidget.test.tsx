@@ -53,7 +53,11 @@ const enterCredits = async (value: string) => {
 describe('TopUpWidget', () => {
 	const originalLocation = window.location;
 
+	let openSpy: ReturnType<typeof vi.fn>;
+
 	beforeEach(() => {
+		openSpy = vi.fn().mockReturnValue({} as Window);
+		vi.stubGlobal('open', openSpy);
 		vi.mocked(CustomerPortalApi.getWallets).mockResolvedValue([WALLET] as never);
 		vi.mocked(CustomerPortalApi.getIntegrations).mockResolvedValue({
 			payment_integrations: [{ provider: 'chargebee', capabilities: [{ type: 'checkout', is_default: true }] }],
@@ -65,6 +69,7 @@ describe('TopUpWidget', () => {
 
 	afterEach(() => {
 		Object.defineProperty(window, 'location', { configurable: true, value: originalLocation });
+		vi.unstubAllGlobals();
 		vi.clearAllMocks();
 	});
 
@@ -85,7 +90,9 @@ describe('TopUpWidget', () => {
 
 	// Pay now is the checkout path: the customer is charged before credits land,
 	// so the widget must hand off to the returned session.
-	it('Pay now requests checkout and surfaces the returned action URL', async () => {
+	// Both, not either: the open can be blocked, and the dialog is what the customer
+	// falls back to — so the link must be on the page even when the tab opens.
+	it('Pay now opens the checkout and keeps the link on the page', async () => {
 		vi.mocked(CustomerPortalApi.topUpWallet).mockResolvedValue({
 			checkout_session: { id: 'cs_1', payment_action: { type: 'checkout_url', url: 'https://checkout.test/session' } },
 		} as never);
@@ -94,9 +101,8 @@ describe('TopUpWidget', () => {
 		await enterCredits('50');
 		await userEvent.click(screen.getByRole('button', { name: /pay now/i }));
 
-		await waitFor(() => expect(CustomerPortalApi.topUpWallet).toHaveBeenCalled());
-		const [, payload] = vi.mocked(CustomerPortalApi.topUpWallet).mock.calls[0];
-		expect(payload.checkout).toBeDefined();
+		await waitFor(() => expect(openSpy).toHaveBeenCalledWith('https://checkout.test/session', '_blank', expect.any(String)));
+		expect(await screen.findByText('https://checkout.test/session')).toBeInTheDocument();
 	});
 
 	// transaction_reason is pinned server-side; the client must not send one.
