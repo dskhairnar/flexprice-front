@@ -22,6 +22,23 @@ const TERMINAL: CheckoutStatus[] = ['completed', 'failed', 'expired'];
  */
 const startListeners = new Set<(sessionId: string) => void>();
 
+/** Notified once a checkout reaches a status it will not move on from. */
+const settleListeners = new Set<(status: CheckoutStatus) => void>();
+
+/**
+ * Run `onSettle` when a checkout finishes, whatever the outcome.
+ *
+ * Lets the hand-off dialog dismiss itself once the payment it points at is done,
+ * rather than leaving "Complete your payment" on screen over a balance that has
+ * already gone up. Returns an unsubscribe.
+ */
+export const subscribeToCheckoutSettled = (onSettle: (status: CheckoutStatus) => void): (() => void) => {
+	settleListeners.add(onSettle);
+	return () => {
+		settleListeners.delete(onSettle);
+	};
+};
+
 export const rememberPendingCheckout = (sessionId: string) => {
 	try {
 		sessionStorage.setItem(STORAGE_KEY, sessionId);
@@ -131,6 +148,7 @@ const useCheckoutReturn = () => {
 		clearPendingCheckout();
 		setSessionId(null);
 		setIsPolling(false);
+		settleListeners.forEach((listener) => listener(status));
 	}, [session, t]);
 
 	return { pendingSession: session, isResolving: !!sessionId };

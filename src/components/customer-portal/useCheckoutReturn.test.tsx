@@ -3,7 +3,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
 import CustomerPortalApi from '@/api/CustomerPortalApi';
-import useCheckoutReturn, { rememberPendingCheckout } from './useCheckoutReturn';
+import useCheckoutReturn, { rememberPendingCheckout, subscribeToCheckoutSettled } from './useCheckoutReturn';
 
 vi.mock('@/api/CustomerPortalApi', () => ({
 	default: { getCheckoutSession: vi.fn() },
@@ -71,6 +71,44 @@ describe('useCheckoutReturn', () => {
 		renderHook(() => useCheckoutReturn(), { wrapper });
 
 		await waitFor(() => expect(toast.success).toHaveBeenCalledWith('checkoutReturn.completed'));
+	});
+
+	// The hand-off dialog points at a payment that is now done — leaving "Complete
+	// your payment" sitting over a balance that has already gone up.
+	it('tells subscribers when a checkout settles', async () => {
+		const onSettle = vi.fn();
+		const unsubscribe = subscribeToCheckoutSettled(onSettle);
+		rememberPendingCheckout('cs_settled');
+		vi.mocked(CustomerPortalApi.getCheckoutSession).mockResolvedValue({
+			id: 'cs_settled',
+			checkout_status: 'completed',
+			payment_provider: 'razorpay',
+			expires_at: '2026-01-01T00:00:00Z',
+		} as never);
+
+		renderHook(() => useCheckoutReturn(), { wrapper });
+
+		await waitFor(() => expect(onSettle).toHaveBeenCalledWith('completed'));
+		unsubscribe();
+	});
+
+	// The outcome travels with the signal, so a failed checkout can leave its link
+	// up to retry instead of being dismissed like a success.
+	it('reports a failed outcome to subscribers too', async () => {
+		const onSettle = vi.fn();
+		const unsubscribe = subscribeToCheckoutSettled(onSettle);
+		rememberPendingCheckout('cs_failed_signal');
+		vi.mocked(CustomerPortalApi.getCheckoutSession).mockResolvedValue({
+			id: 'cs_failed_signal',
+			checkout_status: 'failed',
+			payment_provider: 'razorpay',
+			expires_at: '2026-01-01T00:00:00Z',
+		} as never);
+
+		renderHook(() => useCheckoutReturn(), { wrapper });
+
+		await waitFor(() => expect(onSettle).toHaveBeenCalledWith('failed'));
+		unsubscribe();
 	});
 
 	// A failure reason from the gateway is more use than our generic wording.
