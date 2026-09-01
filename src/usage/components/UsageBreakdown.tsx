@@ -1,12 +1,12 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { ChevronDown, ChevronUp, ChevronsUpDown } from 'lucide-react';
+import { ChevronDown, ChevronUp, ChevronsUpDown, ListFilter } from 'lucide-react';
 // Direct file import, NOT the '@/components/atoms' barrel — see UsageQuota.tsx for why.
 import Card from '@/components/atoms/Card/Card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/molecules/Table/Table';
 import { formatNumber, getCurrencySymbol } from '@/utils';
 import { cn } from '@/lib/utils';
+import EmptyState from '@/components/atoms/EmptyState/EmptyState';
 import { useUsageT } from '../i18n';
-import WidgetEmptyBody from './WidgetEmptyBody';
 import { normalizeUsageBreakdownRows } from '../schema';
 import type { UsageBreakdownProps, UsageBreakdownRow } from '../types';
 
@@ -51,7 +51,7 @@ function renderCostCell(row: UsageBreakdownRow) {
  * Prop-only usage-breakdown table — no fetching, no auth, no PortalConfigContext. Groups rows by
  * `groupId`/`groupName` (falls back to an "ungrouped" bucket) and supports sorting by usage/cost.
  */
-const UsageBreakdown = ({ rows: rawRows, label, isLoading = false, className }: UsageBreakdownProps) => {
+const UsageBreakdown = ({ rows: rawRows, label, isLoading = false, className, emptyAction }: UsageBreakdownProps) => {
 	const rows = useMemo(() => normalizeUsageBreakdownRows(rawRows), [rawRows]);
 	const t = useUsageT();
 
@@ -137,10 +137,12 @@ const UsageBreakdown = ({ rows: rawRows, label, isLoading = false, className }: 
 				<div className='p-6'>
 					<h3 className='text-base font-semibold text-content'>{label || t('usageWidgets.breakdownTitle')}</h3>
 				</div>
-				<WidgetEmptyBody
+				<EmptyState
 					className='pt-0'
+					icon={<ListFilter />}
 					title={t('usageWidgets.breakdownEmptyTitle')}
 					description={t('usageWidgets.breakdownEmptyDescription')}
+					action={emptyAction}
 				/>
 			</Card>
 		);

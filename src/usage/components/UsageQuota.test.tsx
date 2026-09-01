@@ -36,7 +36,7 @@ describe('UsageQuota', () => {
 	it('keeps the titled card for an empty item list', () => {
 		render(<UsageQuota items={[]} />);
 		expect(screen.getByText('Usage Quota')).toBeInTheDocument();
-		expect(screen.getByText('No quotas to show')).toBeInTheDocument();
+		expect(screen.getByText('No usage quotas configured')).toBeInTheDocument();
 	});
 
 	it('honors a custom label', () => {

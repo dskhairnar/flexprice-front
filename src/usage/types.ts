@@ -1,3 +1,12 @@
+import type { EmptyStateAction } from '@/components/atoms/EmptyState/EmptyState';
+
+/**
+ * What the reader can do when this widget has nothing to show. Supplied by the
+ * host — these widgets have no router — and omitted when there is nowhere useful
+ * to send them, in which case no action is rendered.
+ */
+export type { EmptyStateAction };
+
 //
 // Public presentational types for the usage widgets (quota, metric cards, trend chart, breakdown).
 //
@@ -19,6 +28,7 @@ export interface UsageQuotaProps {
 	items: UsageQuotaItem[];
 	label?: string;
 	className?: string;
+	emptyAction?: EmptyStateAction;
 }
 
 // ── MetricCards ──────────────────────────────────────────────────────────────
@@ -59,6 +69,9 @@ export interface UsageTrendChartProps {
 	label?: string;
 	isLoading?: boolean;
 	className?: string;
+	/** The window the series covers, e.g. "Aug 26 – Sep 1", shown under the title. */
+	periodLabel?: string;
+	emptyAction?: EmptyStateAction;
 }
 
 // ── UsageBreakdown ──────────────────────────────────────────────────────────
@@ -80,4 +93,5 @@ export interface UsageBreakdownProps {
 	label?: string;
 	isLoading?: boolean;
 	className?: string;
+	emptyAction?: EmptyStateAction;
 }
