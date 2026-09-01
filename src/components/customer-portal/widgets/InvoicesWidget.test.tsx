@@ -96,6 +96,37 @@ describe('InvoicesWidget', () => {
 		vi.clearAllMocks();
 	});
 
+	// A draft is the tenant still deciding what to bill and can still change; a
+	// voided or skipped one is no longer owed. Listing either invites the customer
+	// to pay something that is not, or is no longer, a bill.
+	it('lists only finalized invoices', async () => {
+		vi.mocked(CustomerPortalApi.getInvoices).mockResolvedValue({
+			items: [
+				{ ...UNPAID, id: 'inv_draft', invoice_number: 'INV-000900', invoice_status: 'DRAFT' },
+				{ ...UNPAID, id: 'inv_void', invoice_number: 'INV-000901', invoice_status: 'VOIDED' },
+				{ ...UNPAID, id: 'inv_skip', invoice_number: 'INV-000902', invoice_status: 'SKIPPED' },
+				{ ...UNPAID, id: 'inv_final', invoice_number: 'INV-000903', invoice_status: 'FINALIZED' },
+			],
+		} as never);
+
+		renderWidget();
+		expect(await screen.findByText('INV-000903')).toBeInTheDocument();
+		expect(screen.queryByText('INV-000900')).not.toBeInTheDocument();
+		expect(screen.queryByText('INV-000901')).not.toBeInTheDocument();
+		expect(screen.queryByText('INV-000902')).not.toBeInTheDocument();
+	});
+
+	// Filtered out, not merely hidden: a customer holding nothing but drafts has no
+	// invoices to show, so the tab says so rather than rendering an empty table.
+	it('shows the empty state when every invoice is a draft', async () => {
+		vi.mocked(CustomerPortalApi.getInvoices).mockResolvedValue({
+			items: [{ ...UNPAID, id: 'inv_draft', invoice_number: 'INV-000900', invoice_status: 'DRAFT' }],
+		} as never);
+
+		renderWidget();
+		expect(await screen.findByText('No invoices')).toBeInTheDocument();
+	});
+
 	// Pay stays listed on a settled invoice but is disabled, so the row's action
 	// set does not change shape between states.
 	it('offers pay, view and download, with pay disabled once the invoice is settled', async () => {

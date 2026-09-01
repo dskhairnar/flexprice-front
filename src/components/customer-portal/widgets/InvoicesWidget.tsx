@@ -17,7 +17,7 @@ import { downloadInvoiceLineItemsCsv } from '@/utils/invoices/downloadInvoiceLin
 import InvoiceDetailDrawer from './InvoiceDetailDrawer';
 import CheckoutLinkDialog from './CheckoutLinkDialog';
 import usePayInvoice from './usePayInvoice';
-import { isPayable } from '../invoiceStatus';
+import { isPayable, isCustomerVisible } from '../invoiceStatus';
 
 interface InvoicesTableProps {
 	invoices: Invoice[];
@@ -187,7 +187,7 @@ const InvoicesWidget = () => {
 		if (isError) toast.error(t('errors.loadInvoices'));
 	}, [isError, t]);
 
-	const invoices = useMemo(() => invoicesData?.items ?? [], [invoicesData?.items]);
+	const invoices = useMemo(() => (invoicesData?.items ?? []).filter(isCustomerVisible), [invoicesData?.items]);
 	const filteredInvoices = useMemo(() => {
 		if (!searchQuery) return invoices;
 		const query = searchQuery.toLowerCase();
