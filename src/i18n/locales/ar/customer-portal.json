@@ -123,7 +123,12 @@
 		"columnInvoice": "الفاتورة",
 		"columnAction": "الإجراء",
 		"payNow": "ادفع الآن",
-		"view": "عرض"
+		"view": "عرض",
+		"viewInvoice": "عرض الفاتورة",
+		"downloadInvoice": "تنزيل الفاتورة",
+		"notPayable": "هذه الفاتورة ليست في انتظار السداد.",
+		"notDownloadable": "يمكن تنزيل الفواتير النهائية فقط.",
+		"rowActions": "إجراءات الفاتورة {{invoice}}"
 	},
 	"wallet": {
 		"defaultName": "محفظة",
@@ -181,7 +186,10 @@
 		"useSavedMethod": "الدفع ببطاقتي المحفوظة ({{method}})",
 		"youWillPay": "ستدفع",
 		"actionsHint": "\"ادفع الآن\" يخصم فوراً. \"إنشاء فاتورة\" يتيح لك الدفع لاحقاً.",
-		"invoiceOnlyHint": "سيتم إنشاء فاتورة لتقوم بسدادها."
+		"invoiceOnlyHint": "سيتم إنشاء فاتورة لتقوم بسدادها.",
+		"useSavedMethodTitle": "البطاقة المحفوظة",
+		"useSavedMethodHint": "الخصم من البطاقة المحفوظة بدل فتح صفحة دفع.",
+		"checkoutUnavailable": "الدفع عبر الإنترنت غير مُهيأ لهذا الحساب، لذا سيتم إنشاء فاتورة بدلاً من ذلك."
 	},
 	"autoTopUp": {
 		"title": "الشحن التلقائي",
@@ -200,7 +208,7 @@
 		"enable": "تفعيل",
 		"cancel": "إلغاء",
 		"enableLabel": "تفعيل الشحن التلقائي",
-		"cooloffLabel": "فترة الانتظار (اختياري)",
+		"cooloffLabel": "الانتظار قبل الشحن التلقائي التالي",
 		"cooloffHelp": "الانتظار هذه المدة بعد الشحن قبل السماح بشحن آخر",
 		"cooloffPlaceholder": "بدون انتظار",
 		"cooloffUnitLabel": "الوحدة",
@@ -212,7 +220,14 @@
 		},
 		"noSavedCard": "لا توجد طريقة دفع محفوظة.",
 		"enableHint": "نقوم بشحن رصيدك تلقائياً حتى لا تنقطع الخدمة.",
-		"needsCardHint": "أضف طريقة دفع لتفعيل الشحن التلقائي."
+		"needsCardHint": "أضف طريقة دفع لتفعيل الشحن التلقائي.",
+		"enableTitle": "الشحن التلقائي",
+		"thresholdPlaceholder": "مثال: 20",
+		"amountPlaceholder": "مثال: 100",
+		"cooloffTitle": "فترة الانتظار",
+		"cooloffValueLabel": "المدة",
+		"cooloffOnHint": "بعد الشحن، ننتظر هذه المدة قبل الشحن مجدداً حتى لو كان الرصيد منخفضاً.",
+		"cooloffOffHint": "عند إيقاف فترة الانتظار، لا يوجد تأخير بين عمليات الشحن التلقائي."
 	},
 	"paymentMethods": {
 		"title": "طرق الدفع",

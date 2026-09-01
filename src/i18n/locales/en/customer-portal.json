@@ -123,7 +123,12 @@
 		"columnInvoice": "Invoice",
 		"columnAction": "Action",
 		"payNow": "Pay now",
-		"view": "View"
+		"view": "View",
+		"viewInvoice": "View invoice",
+		"downloadInvoice": "Download invoice",
+		"notPayable": "This invoice is not awaiting payment.",
+		"notDownloadable": "Only finalized invoices can be downloaded.",
+		"rowActions": "Actions for invoice {{invoice}}"
 	},
 	"wallet": {
 		"defaultName": "Wallet",
@@ -181,7 +186,10 @@
 		"useSavedMethod": "Pay with my saved card ({{method}})",
 		"youWillPay": "You'll pay",
 		"actionsHint": "Pay now charges you immediately. Generate invoice lets you pay later.",
-		"invoiceOnlyHint": "An invoice will be raised for you to pay."
+		"invoiceOnlyHint": "An invoice will be raised for you to pay.",
+		"useSavedMethodTitle": "Saved card",
+		"useSavedMethodHint": "Charge the card on file instead of opening a checkout page.",
+		"checkoutUnavailable": "Online payment is not set up for this account, so an invoice will be raised instead."
 	},
 	"autoTopUp": {
 		"title": "Auto top-up",
@@ -200,7 +208,7 @@
 		"enable": "Enable",
 		"cancel": "Cancel",
 		"enableLabel": "Enable auto top-up",
-		"cooloffLabel": "Cooloff (optional)",
+		"cooloffLabel": "Wait before the next auto top-up",
 		"cooloffHelp": "Wait this long after a top-up before another can run",
 		"cooloffPlaceholder": "No cooloff",
 		"cooloffUnitLabel": "Unit",
@@ -212,7 +220,14 @@
 		},
 		"noSavedCard": "No saved payment method found.",
 		"enableHint": "We top up your balance automatically so service is never interrupted.",
-		"needsCardHint": "Add a payment method to enable automatic top-ups."
+		"needsCardHint": "Add a payment method to enable automatic top-ups.",
+		"enableTitle": "Auto top-up",
+		"thresholdPlaceholder": "e.g. 20",
+		"amountPlaceholder": "e.g. 100",
+		"cooloffTitle": "Cooloff",
+		"cooloffValueLabel": "Duration",
+		"cooloffOnHint": "After a top-up, we wait this long before topping up again, even if the balance is still low.",
+		"cooloffOffHint": "With cooloff off, there is no wait between automatic top-ups."
 	},
 	"paymentMethods": {
 		"title": "Payment methods",

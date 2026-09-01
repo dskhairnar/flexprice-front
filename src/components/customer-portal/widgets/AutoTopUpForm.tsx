@@ -4,9 +4,7 @@ import { useTranslation } from 'react-i18next';
 import toast from 'react-hot-toast';
 import { AlertCircle } from 'lucide-react';
 import CustomerPortalApi from '@/api/CustomerPortalApi';
-import { Button, Input, Select } from '@/components/atoms';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Label } from '@/components/ui';
+import { Button, Input, Select, Toggle } from '@/components/atoms';
 import { refetchPortalQueries } from '../refetchPortalQueries';
 import { getCurrencySymbol } from '@/utils/common/helper_functions';
 import type { DurationUnit } from '@/models/Wallet';
@@ -42,6 +40,13 @@ const AutoTopUpForm = ({ wallet, hasChargeableMethod, onAddPaymentMethod, onDone
 	const [amount, setAmount] = useState(wallet.auto_topup?.amount ?? '');
 	const [cooldownValue, setCooldownValue] = useState(wallet.auto_topup?.cooldown?.value ? String(wallet.auto_topup.cooldown.value) : '');
 	const [cooldownUnit, setCooldownUnit] = useState<DurationUnit>(wallet.auto_topup?.cooldown?.unit ?? 'hour');
+	// A stored cooloff of 0 means unset, matching how the backend reads it.
+	const [cooldownEnabled, setCooldownEnabled] = useState(Number(wallet.auto_topup?.cooldown?.value ?? 0) > 0);
+
+	const handleCooldownToggle = (next: boolean) => {
+		setCooldownEnabled(next);
+		if (!next) setCooldownValue('');
+	};
 
 	const { mutate: save, isPending } = useMutation({
 		mutationFn: () => {
@@ -49,7 +54,7 @@ const AutoTopUpForm = ({ wallet, hasChargeableMethod, onAddPaymentMethod, onDone
 				enabled,
 				...(enabled ? { threshold, amount } : {}),
 				// null clears a stored cooloff; omitting the field would leave it in place.
-				cooldown: cooldownValue && Number(cooldownValue) > 0 ? { value: Number(cooldownValue), unit: cooldownUnit } : null,
+				cooldown: cooldownEnabled && Number(cooldownValue) > 0 ? { value: Number(cooldownValue), unit: cooldownUnit } : null,
 			};
 			return CustomerPortalApi.updateAutoTopup(wallet.id, payload);
 		},
@@ -68,26 +73,15 @@ const AutoTopUpForm = ({ wallet, hasChargeableMethod, onAddPaymentMethod, onDone
 	const currencySymbol = getCurrencySymbol(wallet.currency ?? 'USD');
 
 	return (
-		<div className='space-y-4'>
-			{/* The toggle is the whole control when disabled, so it carries the
-			    explanation rather than leaving a lone unexplained checkbox. */}
-			<div className='flex items-start gap-2.5 rounded-lg border p-3' style={{ borderColor: 'var(--portal-border, #E9E9E9)' }}>
-				<Checkbox
-					id='portal-auto-topup-enabled'
-					checked={enabled}
-					onCheckedChange={(checked) => setEnabled(checked === true)}
-					disabled={isPending}
-					className='mt-0.5'
-				/>
-				<Label htmlFor='portal-auto-topup-enabled' className='text-sm font-normal leading-snug'>
-					<span className='block font-medium' style={{ color: 'var(--portal-text-primary, #09090b)' }}>
-						{t('autoTopUp.enableLabel')}
-					</span>
-					<span className='block mt-0.5' style={{ color: 'var(--portal-text-secondary, #71717a)' }}>
-						{t('autoTopUp.enableHint')}
-					</span>
-				</Label>
-			</div>
+		<div className='flex flex-col gap-5'>
+			<Toggle
+				title={t('autoTopUp.enableTitle')}
+				label={t('autoTopUp.enableLabel')}
+				description={t('autoTopUp.enableHint')}
+				checked={enabled}
+				onChange={setEnabled}
+				disabled={isPending}
+			/>
 
 			{enabled && !hasChargeableMethod && (
 				<div
@@ -110,50 +104,66 @@ const AutoTopUpForm = ({ wallet, hasChargeableMethod, onAddPaymentMethod, onDone
 			)}
 
 			{enabled && (
-				<>
-					<div className='grid gap-4 sm:grid-cols-2'>
-						<Input
-							label={t('autoTopUp.thresholdLabel')}
-							description={t('autoTopUp.thresholdHelp')}
-							type='number'
-							value={threshold}
-							onChange={setThreshold}
-							disabled={isPending}
-							inputPrefix={currencySymbol}
-						/>
-						<Input
-							label={t('autoTopUp.amountLabel')}
-							description={t('autoTopUp.amountHelp')}
-							type='number'
-							value={amount}
-							onChange={setAmount}
-							disabled={isPending}
-							inputPrefix={currencySymbol}
-						/>
-					</div>
+				<div className='space-y-4'>
+					<Input
+						label={t('autoTopUp.thresholdLabel')}
+						placeholder={t('autoTopUp.thresholdPlaceholder')}
+						description={t('autoTopUp.thresholdHelp')}
+						type='number'
+						step='0.01'
+						min='0'
+						value={threshold}
+						onChange={setThreshold}
+						disabled={isPending}
+						inputPrefix={currencySymbol}
+					/>
 
-					<div className='grid gap-4 sm:grid-cols-2'>
-						<Input
-							label={t('autoTopUp.cooloffLabel')}
-							description={t('autoTopUp.cooloffHelp')}
-							type='number'
-							value={cooldownValue}
-							onChange={setCooldownValue}
-							disabled={isPending}
-							placeholder={t('autoTopUp.cooloffPlaceholder')}
-						/>
-						<Select
-							label={t('autoTopUp.cooloffUnitLabel')}
-							value={cooldownUnit}
-							onChange={(value) => setCooldownUnit(value as DurationUnit)}
-							options={DURATION_UNITS.map((unit) => ({ value: unit, label: t(`autoTopUp.cooloffUnits.${unit}`) }))}
-							disabled={isPending || !cooldownValue}
-						/>
-					</div>
-				</>
+					<Input
+						label={t('autoTopUp.amountLabel')}
+						placeholder={t('autoTopUp.amountPlaceholder')}
+						description={t('autoTopUp.amountHelp')}
+						type='number'
+						step='0.01'
+						min='0'
+						value={amount}
+						onChange={setAmount}
+						disabled={isPending}
+						inputPrefix={currencySymbol}
+					/>
+
+					<Toggle
+						title={t('autoTopUp.cooloffTitle')}
+						label={t('autoTopUp.cooloffLabel')}
+						description={cooldownEnabled ? t('autoTopUp.cooloffOnHint') : t('autoTopUp.cooloffOffHint')}
+						checked={cooldownEnabled}
+						onChange={handleCooldownToggle}
+						disabled={isPending}
+					/>
+
+					{cooldownEnabled && (
+						<div className='grid grid-cols-1 gap-3 md:grid-cols-2'>
+							<Input
+								label={t('autoTopUp.cooloffValueLabel')}
+								placeholder={t('autoTopUp.cooloffPlaceholder')}
+								type='number'
+								min='1'
+								value={cooldownValue}
+								onChange={setCooldownValue}
+								disabled={isPending}
+							/>
+							<Select
+								label={t('autoTopUp.cooloffUnitLabel')}
+								value={cooldownUnit}
+								onChange={(value) => setCooldownUnit(value as DurationUnit)}
+								options={DURATION_UNITS.map((unit) => ({ value: unit, label: t(`autoTopUp.cooloffUnits.${unit}`) }))}
+								disabled={isPending}
+							/>
+						</div>
+					)}
+				</div>
 			)}
 
-			<div className='pt-1' style={{ borderTop: '1px solid var(--portal-border, #E9E9E9)', paddingTop: '1rem' }}>
+			<div style={{ borderTop: '1px solid var(--portal-border, #E9E9E9)', paddingTop: '1rem' }}>
 				<Button onClick={() => save()} disabled={!isValid || isPending} isLoading={isPending}>
 					{t('autoTopUp.save')}
 				</Button>

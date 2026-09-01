@@ -200,12 +200,34 @@ function hasThemeValues(theme?: Partial<PortalTheme>): boolean {
 	return Object.values(theme).some((v) => typeof v === 'string' && v.length > 0);
 }
 
-/** Tenant sections in their order, plus any default section they have never seen. */
+/**
+ * Tenant content and visibility, product ordering.
+ *
+ * A tenant's stored config carries the `order` values that were current when they
+ * saved it, so a section later promoted in the defaults stays wherever it was —
+ * Overview sat last for every tenant with a saved config. Known sections
+ * therefore take the default's order, while the tenant keeps label, enabled and
+ * tabs. Sections only the tenant has keep their own order, placed after.
+ *
+ * The trade-off: a tenant who deliberately reordered a known section loses that.
+ * Ordering of the standard sections is treated as a product decision; what a
+ * tenant shows, hides and names is not.
+ */
 function mergeSections(defaults: SectionConfig[], tenant?: SectionConfig[]): SectionConfig[] {
 	if (!tenant || tenant.length === 0) return defaults;
+
+	const defaultOrder = new Map(defaults.map((section) => [section.id, section.order]));
+	const maxDefaultOrder = defaults.reduce((max, section) => Math.max(max, section.order), 0);
+
+	const reordered = tenant.map((section) => ({
+		...section,
+		order: defaultOrder.get(section.id) ?? maxDefaultOrder + section.order,
+	}));
+
 	const known = new Set(tenant.map((section) => section.id));
 	const unseen = defaults.filter((section) => !known.has(section.id));
-	return [...tenant, ...unseen];
+
+	return [...reordered, ...unseen].sort((a, b) => a.order - b.order);
 }
 
 export function deepMergePortalConfig(defaults: PortalConfig, tenant: Partial<PortalConfig>): PortalConfig {

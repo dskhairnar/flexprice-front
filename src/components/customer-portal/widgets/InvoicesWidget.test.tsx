@@ -22,6 +22,13 @@ vi.mock('@/context/PortalConfigContext', () => ({
 	usePortalConfig: () => ({ config: {} }),
 }));
 
+/** Opens a row's overflow menu and returns the menu for scoping queries. */
+const openRowMenu = async (invoiceNumber: string) => {
+	const row = screen.getByText(invoiceNumber).closest('tr')!;
+	await userEvent.click(within(row).getByRole('button', { name: /actions for invoice/i }));
+	return screen.findByRole('menu');
+};
+
 const UNPAID = {
 	id: 'inv_unpaid',
 	invoice_number: 'INV-000484',
@@ -89,15 +96,16 @@ describe('InvoicesWidget', () => {
 		vi.clearAllMocks();
 	});
 
-	it('gives an unpaid invoice the primary Pay action and a paid one only View', async () => {
+	// Pay stays listed on a settled invoice but is disabled, so the row's action
+	// set does not change shape between states.
+	it('offers pay, view and download, with pay disabled once the invoice is settled', async () => {
 		renderWidget();
+		await screen.findByText('INV-000485');
 
-		const unpaidRow = (await screen.findByText('INV-000484')).closest('tr')!;
-		const paidRow = screen.getByText('INV-000485').closest('tr')!;
-
-		expect(within(unpaidRow).getByRole('button', { name: /pay now/i })).toBeInTheDocument();
-		expect(within(paidRow).queryByRole('button', { name: /pay now/i })).not.toBeInTheDocument();
-		expect(within(paidRow).getByRole('button', { name: /^view$/i })).toBeInTheDocument();
+		const menu = await openRowMenu('INV-000485');
+		expect(within(menu).getByRole('menuitem', { name: /view invoice/i })).toBeInTheDocument();
+		expect(within(menu).getByRole('menuitem', { name: /download invoice/i })).toBeInTheDocument();
+		expect(within(menu).getByRole('menuitem', { name: /pay now/i })).toHaveAttribute('aria-disabled', 'true');
 	});
 
 	// Pay starts a hosted payment and hands off to the returned action URL.
@@ -112,8 +120,9 @@ describe('InvoicesWidget', () => {
 		} as never);
 
 		renderWidget();
-		const unpaidRow = (await screen.findByText('INV-000484')).closest('tr')!;
-		await userEvent.click(within(unpaidRow).getByRole('button', { name: /pay now/i }));
+		await screen.findByText('INV-000484');
+		const menu = await openRowMenu('INV-000484');
+		await userEvent.click(within(menu).getByRole('menuitem', { name: /pay now/i }));
 
 		await waitFor(() => expect(openSpy).toHaveBeenCalledWith('https://pay.test/link', '_blank', expect.any(String)));
 	});
@@ -125,12 +134,14 @@ describe('InvoicesWidget', () => {
 			.mockResolvedValue({ payment_id: 'pay_1', invoice_id: 'inv_unpaid', status: 'PENDING', amount: '120', currency: 'USD' } as never);
 
 		renderWidget();
-		const unpaidRow = (await screen.findByText('INV-000484')).closest('tr')!;
-		const payButton = within(unpaidRow).getByRole('button', { name: /pay now/i });
+		await screen.findByText('INV-000484');
 
-		await userEvent.click(payButton);
+		const menu1 = await openRowMenu('INV-000484');
+		await userEvent.click(within(menu1).getByRole('menuitem', { name: /pay now/i }));
 		await waitFor(() => expect(CustomerPortalApi.payInvoice).toHaveBeenCalledTimes(1));
-		await userEvent.click(payButton);
+
+		const menu2 = await openRowMenu('INV-000484');
+		await userEvent.click(within(menu2).getByRole('menuitem', { name: /pay now/i }));
 		await waitFor(() => expect(CustomerPortalApi.payInvoice).toHaveBeenCalledTimes(2));
 
 		const calls = vi.mocked(CustomerPortalApi.payInvoice).mock.calls;
@@ -151,8 +162,9 @@ describe('InvoicesWidget', () => {
 		} as never);
 
 		renderWidget();
-		const unpaidRow = (await screen.findByText('INV-000484')).closest('tr')!;
-		await userEvent.click(within(unpaidRow).getByRole('button', { name: /pay now/i }));
+		await screen.findByText('INV-000484');
+		const menu = await openRowMenu('INV-000484');
+		await userEvent.click(within(menu).getByRole('menuitem', { name: /pay now/i }));
 
 		expect(await screen.findByText('https://pay.test/link')).toBeInTheDocument();
 	});

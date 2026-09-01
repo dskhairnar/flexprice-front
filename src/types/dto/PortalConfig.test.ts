@@ -6,9 +6,35 @@ const tenantConfig: Partial<PortalConfig> = {
 };
 
 describe('deepMergePortalConfig', () => {
-	it('keeps tenant sections and their ordering', () => {
-		const merged = deepMergePortalConfig(DEFAULT_PORTAL_CONFIG, tenantConfig);
-		expect(merged.sections[0].id).toBe('usage');
+	// A stored config carries the order values current when it was saved, so a
+	// section later promoted in the defaults would otherwise stay where it was.
+	it('puts Overview first even when the stored config ordered it last', () => {
+		const merged = deepMergePortalConfig(DEFAULT_PORTAL_CONFIG, {
+			sections: [
+				{ id: 'usage', label: 'Usage', enabled: true, order: 1, tabs: [] },
+				{ id: 'invoices', label: 'Invoices', enabled: true, order: 2, tabs: [] },
+				{ id: 'credits', label: 'Credits', enabled: true, order: 3, tabs: [] },
+				{ id: 'overview', label: 'Overview', enabled: true, order: 4, tabs: [] },
+			],
+		});
+		expect(merged.sections.map((s) => s.id)).toEqual(['overview', 'usage', 'credits', 'invoices', 'payment_methods']);
+	});
+
+	it('keeps the tenant label and enabled flag while reordering', () => {
+		const merged = deepMergePortalConfig(DEFAULT_PORTAL_CONFIG, {
+			sections: [{ id: 'usage', label: 'My Usage', enabled: false, order: 9, tabs: [] }],
+		});
+		const usage = merged.sections.find((s) => s.id === 'usage');
+		expect(usage?.label).toBe('My Usage');
+		expect(usage?.enabled).toBe(false);
+	});
+
+	// A section only the tenant has must survive, placed after the known ones.
+	it('keeps a tenant-only section', () => {
+		const merged = deepMergePortalConfig(DEFAULT_PORTAL_CONFIG, {
+			sections: [{ id: 'custom', label: 'Custom', enabled: true, order: 1, tabs: [] }],
+		});
+		expect(merged.sections.map((s) => s.id)).toContain('custom');
 	});
 
 	// A stored config used to replace the defaults wholesale, so a tenant who had
