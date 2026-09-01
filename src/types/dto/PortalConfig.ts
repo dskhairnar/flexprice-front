@@ -169,9 +169,12 @@ export const DEFAULT_PORTAL_CONFIG: PortalConfig = {
 			],
 		},
 		{
+			// Saved cards live on Overview, beside the balance they top up and the
+			// subscriptions they pay for. A section of its own held one widget and
+			// split managing a card from the reason to manage it.
 			id: 'payment_methods',
 			label: 'Payments',
-			enabled: true,
+			enabled: false,
 			order: 5,
 			tabs: [{ id: '13', type: 'payment_methods', enabled: true, order: 1 }],
 		},
@@ -234,27 +237,41 @@ function mergeSections(defaults: SectionConfig[], tenant?: SectionConfig[]): Sec
 
 const OVERVIEW_SECTION_ID = 'overview';
 
-/**
- * Overview's composition is a product decision, like the ordering of the standard
- * sections above it: credits, payments and subscriptions — what the customer owes,
- * how they pay it, and what they are signed up to.
- *
- * Applied after the merge because a stored config replaces the default tabs
- * wholesale, so tenants saved before a change never see it. That is how analytics
- * widgets survived here: any of them also renders the section's date filter, so
- * the summary page opened on a chart and a timeline picker duplicating Usage.
- *
- * The trade-off, and it is a real one: a tenant who curated their own Overview
- * loses that. Every other section still honours the tenant's tabs — this rule is
- * scoped to Overview alone.
- */
-function withOverviewComposition(sections: SectionConfig[], defaults: SectionConfig[]): SectionConfig[] {
-	const defaultOverviewTabs = defaults.find((section) => section.id === OVERVIEW_SECTION_ID)?.tabs;
-	if (!defaultOverviewTabs) return sections;
+/** Sections the product no longer shows, whatever a stored config says. */
+const RETIRED_SECTION_IDS = new Set(['payment_methods']);
 
-	// Label and enabled stay the tenant's — what they call it and whether they show
-	// it at all is still theirs.
-	return sections.map((section) => (section.id === OVERVIEW_SECTION_ID ? { ...section, tabs: defaultOverviewTabs } : section));
+/**
+ * Overview's composition, and which sections exist at all, are product decisions
+ * — like the ordering of the standard sections above.
+ *
+ * Overview is credits, payments and subscriptions: what the customer owes, how
+ * they pay it, and what they are signed up to. Payments is therefore no longer a
+ * section of its own; it held a single widget, and splitting the card from the
+ * balance it tops up made the customer navigate between the two.
+ *
+ * Applied after the merge because a stored config replaces the default sections
+ * and tabs wholesale, so tenants saved before a change never see it. That is how
+ * analytics widgets survived in Overview: any of them also renders the section's
+ * date filter, so the summary page opened on a chart and a timeline picker
+ * duplicating Usage.
+ *
+ * Retirement is expressed as `enabled: false` rather than deletion, matching how
+ * the rest of this file treats a hidden section.
+ *
+ * The trade-off, and it is a real one: a tenant who curated their own Overview,
+ * or who wanted a standalone Payments tab, loses that. Every other section still
+ * honours the tenant's tabs, labels and visibility.
+ */
+function withPortalComposition(sections: SectionConfig[], defaults: SectionConfig[]): SectionConfig[] {
+	const defaultOverviewTabs = defaults.find((section) => section.id === OVERVIEW_SECTION_ID)?.tabs;
+
+	return sections.map((section) => {
+		if (RETIRED_SECTION_IDS.has(section.id)) return { ...section, enabled: false };
+		// Label and enabled stay the tenant's — what they call it and whether they
+		// show it at all is still theirs.
+		if (section.id === OVERVIEW_SECTION_ID && defaultOverviewTabs) return { ...section, tabs: defaultOverviewTabs };
+		return section;
+	});
 }
 
 export function deepMergePortalConfig(defaults: PortalConfig, tenant: Partial<PortalConfig>): PortalConfig {
@@ -272,6 +289,6 @@ export function deepMergePortalConfig(defaults: PortalConfig, tenant: Partial<Po
 		// The trade-off: a tenant who deliberately removed a section would see it
 		// return. Section removal is expressed by `enabled: false`, not by deletion,
 		// so that is the narrower reading of intent.
-		sections: withOverviewComposition(mergeSections(defaults.sections, tenant.sections), defaults.sections),
+		sections: withPortalComposition(mergeSections(defaults.sections, tenant.sections), defaults.sections),
 	};
 }
