@@ -49,4 +49,42 @@ describe('CustomerUsageChart single-point rendering', () => {
 		const { container } = render(<CustomerUsageChart data={series(3) as never} title='Usage Trend' />);
 		expect(container.querySelectorAll('.recharts-line-curve').length).toBeGreaterThan(0);
 	});
+
+	// chartData zero-fills every series on every row, so a one-point series among
+	// dense ones still draws a line and stays visible — which is why the marker
+	// check keys off the chart's row count rather than each series'.
+	it('renders a sparse series alongside a dense one as a line, not nothing', () => {
+		const mixed = {
+			total_cost: 0,
+			currency: 'USD',
+			items: [
+				{
+					feature_id: 'dense',
+					source: 'dense',
+					name: 'dense',
+					total_usage: 0,
+					total_cost: 0,
+					event_count: 0,
+					points: Array.from({ length: 5 }, (_, i) => ({
+						timestamp: `2026-08-2${5 + i}T00:00:00Z`,
+						usage: 10 + i,
+						cost: 0,
+						event_count: 1,
+					})),
+				},
+				{
+					feature_id: 'sparse',
+					source: 'sparse',
+					name: 'sparse',
+					total_usage: 0,
+					total_cost: 0,
+					event_count: 0,
+					points: [{ timestamp: '2026-08-27T00:00:00Z', usage: 99, cost: 0, event_count: 1 }],
+				},
+			],
+		};
+		const { container } = render(<CustomerUsageChart data={mixed as never} title='Usage Trend' />);
+		// Both series draw, so neither is invisible.
+		expect(container.querySelectorAll('.recharts-line-curve')).toHaveLength(2);
+	});
 });

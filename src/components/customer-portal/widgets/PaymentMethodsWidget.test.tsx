@@ -184,6 +184,33 @@ describe('PaymentMethodsWidget', () => {
 		expect(window.location.href).toBe('https://portal.test/methods');
 	});
 
+	// An integrations failure is not a capability answer — claiming "not available"
+	// would state something we do not know.
+	it('distinguishes an integrations failure from an unsupported account', async () => {
+		vi.mocked(CustomerPortalApi.getIntegrations).mockRejectedValue(new Error('gateway down'));
+		vi.mocked(CustomerPortalApi.getPaymentMethods).mockResolvedValue({ providers: [] } as never);
+
+		renderWidget();
+
+		expect(await screen.findByText(/couldn't load/i)).toBeInTheDocument();
+		expect(screen.queryByText(/not available/i)).not.toBeInTheDocument();
+	});
+
+	// Set as default is provider-scoped; offering it where unsupported would fail.
+	it('hides Set as default for a provider that does not support it', async () => {
+		vi.mocked(CustomerPortalApi.getIntegrations).mockResolvedValue({
+			payment_integrations: [{ provider: 'chargebee', capabilities: [{ type: 'payment_method_management', is_default: true }] }],
+		} as never);
+		vi.mocked(CustomerPortalApi.getPaymentMethods).mockResolvedValue({
+			providers: [{ provider: 'chargebee', items: [card({ is_default: false })] }],
+		} as never);
+
+		renderWidget();
+
+		await screen.findByText('visa •••• 4242');
+		expect(screen.queryByRole('button', { name: /set as default/i })).not.toBeInTheDocument();
+	});
+
 	// No connected provider can manage methods, so the actions would be dead.
 	it('says so when no provider supports managing payment methods', async () => {
 		vi.mocked(CustomerPortalApi.getIntegrations).mockResolvedValue({ payment_integrations: [] } as never);

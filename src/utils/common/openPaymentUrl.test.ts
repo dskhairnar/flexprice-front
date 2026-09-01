@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, afterEach } from 'vitest';
-import { openPaymentUrl } from './openPaymentUrl';
+import { openPaymentUrl, isSafePaymentUrl } from './openPaymentUrl';
 
 describe('openPaymentUrl', () => {
 	afterEach(() => vi.restoreAllMocks());
@@ -21,6 +21,26 @@ describe('openPaymentUrl', () => {
 			throw new Error('blocked');
 		});
 		expect(openPaymentUrl('https://pay.test/link')).toBe(false);
+	});
+
+	// window.open evaluates a javascript: URL, and noopener isolates the new context
+	// without preventing that. Payment URLs are unconstrained API strings.
+	it('refuses a javascript: url without calling window.open', () => {
+		const open = vi.spyOn(window, 'open');
+		expect(openPaymentUrl('javascript:alert(1)')).toBe(false);
+		expect(open).not.toHaveBeenCalled();
+	});
+
+	it('refuses data: and file: schemes', () => {
+		const open = vi.spyOn(window, 'open');
+		expect(openPaymentUrl('data:text/html,<script>alert(1)</script>')).toBe(false);
+		expect(openPaymentUrl('file:///etc/passwd')).toBe(false);
+		expect(open).not.toHaveBeenCalled();
+	});
+
+	it('accepts http and https', () => {
+		expect(isSafePaymentUrl('https://pay.test/link')).toBe(true);
+		expect(isSafePaymentUrl('http://localhost:8080/pay')).toBe(true);
 	});
 
 	it('does nothing without a url', () => {

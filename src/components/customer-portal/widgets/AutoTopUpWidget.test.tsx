@@ -78,6 +78,14 @@ describe('AutoTopUpWidget', () => {
 
 	it('sends the configured threshold and amount on save', async () => {
 		vi.mocked(CustomerPortalApi.getWallets).mockResolvedValue([CONFIGURED] as never);
+		vi.mocked(CustomerPortalApi.getPaymentMethods).mockResolvedValue({
+			providers: [
+				{
+					provider: 'chargebee',
+					items: [{ id: 'pm_1', provider: 'chargebee', type: 'CARD', status: 'ACTIVE', is_default: true, can_auto_charge: true }],
+				},
+			],
+		} as never);
 		renderWidget();
 		await userEvent.click(await screen.findByRole('button', { name: /save settings/i }));
 
@@ -118,8 +126,16 @@ describe('AutoTopUpWidget', () => {
 	});
 
 	// Omitting cooldown leaves a stored one in place; value 0 is what clears it.
-	it('clears a cooloff by sending zero rather than omitting the field', async () => {
+	it('clears a cooloff by sending null rather than omitting the field', async () => {
 		vi.mocked(CustomerPortalApi.getWallets).mockResolvedValue([CONFIGURED] as never);
+		vi.mocked(CustomerPortalApi.getPaymentMethods).mockResolvedValue({
+			providers: [
+				{
+					provider: 'chargebee',
+					items: [{ id: 'pm_1', provider: 'chargebee', type: 'CARD', status: 'ACTIVE', is_default: true, can_auto_charge: true }],
+				},
+			],
+		} as never);
 		renderWidget();
 		await userEvent.click(await screen.findByRole('button', { name: /save settings/i }));
 
@@ -127,5 +143,27 @@ describe('AutoTopUpWidget', () => {
 		const [, payload] = vi.mocked(CustomerPortalApi.updateAutoTopup).mock.calls[0];
 		// null clears a stored cooloff; omitting the field would leave it in place.
 		expect(payload.cooldown).toBeNull();
+	});
+});
+
+// Enabling auto top-up with nothing to charge saves a config that can never fire.
+describe('AutoTopUpWidget without a chargeable method', () => {
+	it('blocks saving an enabled config', async () => {
+		vi.mocked(CustomerPortalApi.getWallets).mockResolvedValue([
+			{
+				id: 'wallet_1',
+				currency: 'USD',
+				wallet_status: 'active',
+				auto_topup: { enabled: true, threshold: '20', amount: '100', invoicing: true },
+			},
+		] as never);
+		vi.mocked(CustomerPortalApi.getPaymentMethods).mockResolvedValue({ providers: [] } as never);
+		vi.mocked(CustomerPortalApi.getIntegrations).mockResolvedValue({
+			payment_integrations: [{ provider: 'chargebee', capabilities: [{ type: 'payment_method_management', is_default: true }] }],
+		} as never);
+
+		renderWidget();
+
+		expect(await screen.findByRole('button', { name: /save settings/i })).toBeDisabled();
 	});
 });

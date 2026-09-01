@@ -2,6 +2,7 @@ import { useTranslation } from 'react-i18next';
 import { Copy, ExternalLink } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { Button, Dialog } from '@/components/atoms';
+import { openPaymentUrl } from '@/utils/common/openPaymentUrl';
 
 interface CheckoutLinkDialogProps {
 	url: string | null;
@@ -38,7 +39,7 @@ const CheckoutLinkDialog = ({ url, onOpenChange }: CheckoutLinkDialogProps) => {
 						{url}
 					</p>
 					<div className='flex items-center gap-2'>
-						<Button onClick={() => window.open(url, '_blank', 'noopener,noreferrer')} prefixIcon={<ExternalLink />}>
+						<Button onClick={() => openPaymentUrl(url)} prefixIcon={<ExternalLink />}>
 							{t('checkoutLink.open')}
 						</Button>
 						<Button variant='outline' onClick={copy} prefixIcon={<Copy />}>

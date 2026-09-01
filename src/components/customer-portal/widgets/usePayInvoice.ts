@@ -3,7 +3,7 @@ import { useMutation } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import toast from 'react-hot-toast';
 import CustomerPortalApi from '@/api/CustomerPortalApi';
-import { refetchQueries } from '@/core/services/tanstack/ReactQueryProvider';
+import { refetchPortalQueries } from '../refetchPortalQueries';
 import { openPaymentUrl } from '@/utils/common/openPaymentUrl';
 
 /**
@@ -41,7 +41,7 @@ const usePayInvoice = () => {
 			}
 			keys.delete(invoiceId);
 			toast.success(t('toast.invoicePaymentStarted'));
-			await refetchQueries(['portal-invoices-tab', 'portal-invoice', 'portal-wallets']);
+			await refetchPortalQueries(['portal-invoices-tab', 'portal-invoice', 'portal-wallets']);
 		},
 		onError: (error: Error) => toast.error(error.message || t('errors.payInvoice')),
 	});

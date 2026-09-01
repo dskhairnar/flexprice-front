@@ -5,10 +5,11 @@ import toast from 'react-hot-toast';
 import { AlertTriangle, CreditCard, Plus, Trash2 } from 'lucide-react';
 import CustomerPortalApi from '@/api/CustomerPortalApi';
 import { Button, Card, Chip, Dialog } from '@/components/atoms';
-import { refetchQueries } from '@/core/services/tanstack/ReactQueryProvider';
+import { refetchPortalQueries } from '../refetchPortalQueries';
 import type { PaymentGatewayType, ProviderSavedPaymentMethods, SavedPaymentMethod } from '@/types/dto/CustomerPortalBilling';
 import { portalPaymentMethodsQueryKey } from '../queryKeys';
 import usePortalIntegrations from '../usePortalIntegrations';
+import { navigateToPaymentUrl } from '@/utils/common/openPaymentUrl';
 import EmptyState from '../EmptyState';
 
 interface PaymentMethodsWidgetProps {
@@ -115,11 +116,19 @@ const ProviderGroup = ({ group, children }: { group: ProviderSavedPaymentMethods
  */
 const PaymentMethodsWidget = ({ label }: PaymentMethodsWidgetProps) => {
 	const { t } = useTranslation('customer-portal');
-	const { supports, defaultProviderFor, isLoading: integrationsLoading } = usePortalIntegrations();
+	const {
+		supports,
+		providersFor,
+		defaultProviderFor,
+		isLoading: integrationsLoading,
+		isError: integrationsError,
+	} = usePortalIntegrations();
 	const [pendingDelete, setPendingDelete] = useState<SavedPaymentMethod | null>(null);
 
 	const canManage = supports('payment_method_management');
-	const canSetDefault = supports('set_default_method');
+	// Capability is per provider: in a mixed-provider portal a global flag would
+	// offer Set as default on a provider that cannot do it, and the call would fail.
+	const setDefaultProviders = providersFor('set_default_method');
 
 	const { data, isLoading, isError } = useQuery({
 		queryKey: portalPaymentMethodsQueryKey,
@@ -138,11 +147,15 @@ const PaymentMethodsWidget = ({ label }: PaymentMethodsWidgetProps) => {
 			// A provider that vaults server-to-server returns type 'none' — there is
 			// nothing to redirect to, so refresh instead of waiting for a return trip.
 			if (response.action.type === 'redirect' && response.action.url) {
-				window.location.href = response.action.url;
+				// Refused rather than followed when the scheme is not http(s): the URL is
+				// an unconstrained API string and a javascript: URL would execute.
+				if (!navigateToPaymentUrl(response.action.url)) {
+					toast.error(t('errors.addPaymentMethod'));
+				}
 				return;
 			}
 			toast.success(t('paymentMethods.added'));
-			await refetchQueries(['portal-payment-methods']);
+			await refetchPortalQueries(['portal-payment-methods']);
 		},
 		onError: (error: Error) => toast.error(error.message || t('errors.addPaymentMethod')),
 	});
@@ -152,7 +165,7 @@ const PaymentMethodsWidget = ({ label }: PaymentMethodsWidgetProps) => {
 			CustomerPortalApi.setDefaultPaymentMethod({ payment_provider: method.provider, payment_method_id: method.id }),
 		onSuccess: async () => {
 			toast.success(t('paymentMethods.defaultUpdated'));
-			await refetchQueries(['portal-payment-methods']);
+			await refetchPortalQueries(['portal-payment-methods']);
 		},
 		onError: (error: Error) => toast.error(error.message || t('errors.setDefaultPaymentMethod')),
 	});
@@ -163,7 +176,7 @@ const PaymentMethodsWidget = ({ label }: PaymentMethodsWidgetProps) => {
 		onSuccess: async () => {
 			toast.success(t('paymentMethods.removed'));
 			setPendingDelete(null);
-			await refetchQueries(['portal-payment-methods']);
+			await refetchPortalQueries(['portal-payment-methods']);
 		},
 		onError: (error: Error) => toast.error(error.message || t('errors.deletePaymentMethod')),
 	});
@@ -174,6 +187,16 @@ const PaymentMethodsWidget = ({ label }: PaymentMethodsWidgetProps) => {
 	const addProvider = defaultProviderFor('payment_method_management');
 
 	const cardStyle = { backgroundColor: 'var(--portal-surface, white)', border: '1px solid var(--portal-border, #E9E9E9)' };
+
+	// An integrations failure is not the same as a provider that cannot manage
+	// methods — saying "not available" would state something we do not know.
+	if (integrationsError) {
+		return (
+			<Card className='rounded-xl p-6' style={cardStyle}>
+				<EmptyState title={t('paymentMethods.providerUnavailable')} description={t('paymentMethods.retryHint')} />
+			</Card>
+		);
+	}
 
 	if (!integrationsLoading && !canManage) {
 		return (
@@ -232,7 +255,7 @@ const PaymentMethodsWidget = ({ label }: PaymentMethodsWidgetProps) => {
 								<MethodRow
 									key={`${group.provider}:${method.id}`}
 									method={method}
-									canSetDefault={canSetDefault}
+									canSetDefault={setDefaultProviders.includes(group.provider)}
 									onSetDefault={setDefault}
 									onDelete={setPendingDelete}
 									isBusy={isBusy}

@@ -7,7 +7,7 @@ import CustomerPortalApi from '@/api/CustomerPortalApi';
 import { Button, Input } from '@/components/atoms';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui';
-import { refetchQueries } from '@/core/services/tanstack/ReactQueryProvider';
+import { refetchPortalQueries } from '../refetchPortalQueries';
 import { getCurrencySymbol } from '@/utils/common/helper_functions';
 import { formatMoney } from '@/utils/common/formatBalance';
 import type { PortalTopUpRequest, SavedPaymentMethod } from '@/types/dto/CustomerPortalBilling';
@@ -43,9 +43,16 @@ const TopUpForm = ({ wallet, onDone, onActionUrl }: TopUpFormProps) => {
 	const [credits, setCredits] = useState('');
 	const [description, setDescription] = useState('');
 	const [useSavedMethod, setUseSavedMethod] = useState(false);
-	// One key per mounted attempt, so a retry after a network failure dedups server
-	// side instead of granting the credits twice. Rotated only after a success.
+	// One key per *unchanged* attempt. Retrying the same submission must reuse it so
+	// the server dedups, but editing the amount after a failure makes it a different
+	// request — reusing the key there could return the original checkout, or be
+	// rejected, if the first call actually succeeded and only its response was lost.
 	const [idempotencyKey, setIdempotencyKey] = useState(() => crypto.randomUUID());
+	const [submittedPayload, setSubmittedPayload] = useState<string | null>(null);
+
+	const payloadFingerprint = `${credits}|${description}|${useSavedMethod}`;
+	// An edit after a failed submit invalidates the key for the next attempt.
+	const keyForSubmission = submittedPayload !== null && submittedPayload !== payloadFingerprint ? crypto.randomUUID() : idempotencyKey;
 
 	const canCheckout = supports('checkout');
 
@@ -68,7 +75,7 @@ const TopUpForm = ({ wallet, onDone, onActionUrl }: TopUpFormProps) => {
 		mutationFn: async (mode: 'checkout' | 'invoice') => {
 			const payload: PortalTopUpRequest = {
 				credits_to_add: credits,
-				idempotency_key: idempotencyKey,
+				idempotency_key: keyForSubmission,
 				...(description ? { description } : {}),
 				...(mode === 'checkout'
 					? {
@@ -84,6 +91,11 @@ const TopUpForm = ({ wallet, onDone, onActionUrl }: TopUpFormProps) => {
 					: {}),
 			};
 			return CustomerPortalApi.topUpWallet(wallet.id, payload);
+		},
+		onMutate: () => {
+			// Record what this key now belongs to, so a later edit rotates it.
+			setIdempotencyKey(keyForSubmission);
+			setSubmittedPayload(payloadFingerprint);
 		},
 		onSuccess: async (response, mode) => {
 			const action = response.checkout_session?.payment_action;
@@ -102,8 +114,9 @@ const TopUpForm = ({ wallet, onDone, onActionUrl }: TopUpFormProps) => {
 			setCredits('');
 			setDescription('');
 			setIdempotencyKey(crypto.randomUUID());
+			setSubmittedPayload(null);
 			onDone?.();
-			await refetchQueries(['portal-wallets', 'portal-wallet-balance', 'portal-wallet-transactions', 'portal-invoices-tab']);
+			await refetchPortalQueries(['portal-wallets', 'portal-wallet-balance', 'portal-wallet-transactions', 'portal-invoices-tab']);
 		},
 		onError: (error: Error) => toast.error(error.message || t('errors.topUp')),
 	});

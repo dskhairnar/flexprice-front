@@ -7,7 +7,7 @@ import CustomerPortalApi from '@/api/CustomerPortalApi';
 import { Button, Input, Select } from '@/components/atoms';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui';
-import { refetchQueries } from '@/core/services/tanstack/ReactQueryProvider';
+import { refetchPortalQueries } from '../refetchPortalQueries';
 import { getCurrencySymbol } from '@/utils/common/helper_functions';
 import type { DurationUnit } from '@/models/Wallet';
 import type { PortalAutoTopupRequest } from '@/types/dto/CustomerPortalBilling';
@@ -56,13 +56,15 @@ const AutoTopUpForm = ({ wallet, hasChargeableMethod, onAddPaymentMethod, onDone
 		onSuccess: async () => {
 			toast.success(t('autoTopUp.saved'));
 			onDone?.();
-			await refetchQueries(['portal-wallets', 'portal-wallet-balance']);
+			await refetchPortalQueries(['portal-wallets', 'portal-wallet-balance']);
 		},
 		onError: (error: Error) => toast.error(error.message || t('errors.saveAutoTopUp')),
 	});
 
-	// Both are required by the API whenever auto top-up is on.
-	const isValid = !enabled || (Number(threshold) > 0 && Number(amount) > 0);
+	// Both are required by the API whenever auto top-up is on. Enabling it without a
+	// chargeable method saves a config that can never fire — a trap rather than a
+	// setting — so the save is blocked, not just warned about.
+	const isValid = !enabled || (Number(threshold) > 0 && Number(amount) > 0 && hasChargeableMethod);
 	const currencySymbol = getCurrencySymbol(wallet.currency ?? 'USD');
 
 	return (

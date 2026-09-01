@@ -438,7 +438,9 @@ export const CustomerUsageChart: React.FC<CustomerUsageChartProps> = ({
 									stroke={primaryColor ? `${primaryColor}99` : 'rgba(99, 102, 241, 0.6)'}
 									fill={primaryColor ? `${primaryColor}22` : 'rgb(var(--fp-surface-shell) / 0.2)'}
 									travellerWidth={8}
-									y={330} // Position at the bottom of the chart, below the data lines
+									// Derived from the plot height rather than fixed at 330: the height is
+									// configurable, and a shorter chart left the brush rendering outside it.
+									y={Math.max(0, height - 70)}
 									tickFormatter={(value) => {
 										const date = new Date(value);
 										return date.toLocaleDateString('en-US', {
@@ -487,9 +489,13 @@ export const CustomerUsageChart: React.FC<CustomerUsageChartProps> = ({
 										type='monotone'
 										stroke={getSeriesColor(index)}
 										strokeWidth={1.5}
-										// A line needs two points to draw anything. With a single point and
-										// dot={false} the plot area renders completely empty, so show the
-										// marker instead of an apparently broken chart.
+										// A line needs two points to draw anything, so a chart with a single
+										// row renders an empty plot unless the point is marked.
+										//
+										// Deliberately the chart's row count, not a per-series one: chartData
+										// zero-fills every series on every row (see `|| 0` above), so a series
+										// with one real reading still draws a line through zeros and stays
+										// visible. Only a single-row chart has nothing to draw.
 										dot={
 											chartData.length < 2
 												? { r: 3.5, stroke: 'rgb(var(--fp-surface))', strokeWidth: 1, fill: getSeriesColor(index) }

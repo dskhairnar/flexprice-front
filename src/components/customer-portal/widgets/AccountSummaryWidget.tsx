@@ -2,12 +2,11 @@ import { useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import CustomerPortalApi from '@/api/CustomerPortalApi';
 import { Card } from '@/components/atoms';
-import { INVOICE_STATUS } from '@/models/Invoice';
+import { INVOICE_STATUS, type Invoice } from '@/models/Invoice';
 import { PAYMENT_STATUS } from '@/constants/payment';
 import { SUBSCRIPTION_STATUS } from '@/models/Subscription';
 import { formatDateShort, getCurrencySymbol } from '@/utils/common/helper_functions';
 import { formatMoney } from '@/utils/common/formatBalance';
-import { portalInvoicesQueryKey } from '../queryKeys';
 import usePortalWallet from '../usePortalWallet';
 import TopUpButton from './TopUpButton';
 
@@ -46,9 +45,23 @@ const AccountSummaryWidget = ({ label }: AccountSummaryWidgetProps) => {
 	const { t } = useTranslation('customer-portal');
 	const { wallet, isLoading: walletLoading } = usePortalWallet();
 
+	// Pages rather than reading the first 100: amount due is a headline figure, and
+	// a customer with more invoices than one page would be shown less than they owe.
+	// Bounded so a large history cannot spin the portal.
 	const { data: invoicesData, isLoading: invoicesLoading } = useQuery({
-		queryKey: portalInvoicesQueryKey,
-		queryFn: () => CustomerPortalApi.getInvoices({ limit: 100, offset: 0 }),
+		queryKey: ['portal-invoices-all'],
+		queryFn: async () => {
+			const pageSize = 100;
+			const maxPages = 20;
+			const items: Invoice[] = [];
+			for (let page = 0; page < maxPages; page += 1) {
+				const response = await CustomerPortalApi.getInvoices({ limit: pageSize, offset: page * pageSize });
+				const batch = response?.items ?? [];
+				items.push(...batch);
+				if (batch.length < pageSize) break;
+			}
+			return { items };
+		},
 	});
 
 	const { data: subscriptionsData, isLoading: subsLoading } = useQuery({

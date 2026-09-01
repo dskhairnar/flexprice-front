@@ -3,7 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import toast from 'react-hot-toast';
 import CustomerPortalApi from '@/api/CustomerPortalApi';
-import { refetchQueries } from '@/core/services/tanstack/ReactQueryProvider';
+import { refetchPortalQueries } from './refetchPortalQueries';
 import type { CheckoutStatus } from '@/types/dto/CustomerPortalBilling';
 
 const STORAGE_KEY = 'flexprice.portal.pendingCheckout';
@@ -86,7 +86,7 @@ const useCheckoutReturn = () => {
 
 		if (status === 'completed') {
 			toast.success(t('checkoutReturn.completed'));
-			void refetchQueries(['portal-wallets', 'portal-wallet-balance', 'portal-wallet-transactions', 'portal-invoices-tab']);
+			void refetchPortalQueries(['portal-wallets', 'portal-wallet-balance', 'portal-wallet-transactions', 'portal-invoices-tab']);
 		} else if (status === 'expired') {
 			toast.error(t('checkoutReturn.expired'));
 		} else {
