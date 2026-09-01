@@ -1,8 +1,5 @@
 import { CHECKOUT_RETURN_PARAM } from './checkoutHandoff';
 
-/** Query parameter carrying the portal session token. */
-const TOKEN_PARAM = 'token';
-
 /** Where the token is kept so a return trip can restore it without the URL. */
 const TOKEN_STORAGE_KEY = 'flexprice.portal.sessionToken';
 
@@ -44,15 +41,26 @@ export const recallSessionToken = (): string | null => {
 };
 
 /**
+ * Query parameters the portal owns and wants to survive a checkout round trip.
+ *
+ * An allowlist, not a denylist. Providers append their own result parameters to
+ * the return URL — Razorpay `id` and `state`, others something else again — and
+ * building the next return URL from the current one carried those back so the
+ * provider appended a fresh pair beside them. After a few top-ups the URL read
+ * `?id=…&state=succeeded&id=…&state=succeeded&…`. There is no fixed set of names
+ * to strip, so only what we recognise is kept.
+ */
+const PRESERVED_PARAMS = ['section'];
+
+/**
  * The URL a payment provider should send the customer back to.
  *
- * Deliberately not window.location.href: the portal authenticates from a
- * `token` query parameter, so the current URL carries the customer's session
- * token. Sending that as success_url hands the session to the provider, and from
- * there into its redirect logs, the referrer chain and browser history — anyone
- * holding the URL could act as that customer until it expires.
- *
- * The token is stripped and restored from session storage on return.
+ * Deliberately not window.location.href. The portal authenticates from a `token`
+ * query parameter, so the current URL carries the customer's session token.
+ * Sending that as success_url hands the session to the provider, and from there
+ * into its redirect logs, the referrer chain and browser history — anyone holding
+ * the URL could act as that customer until it expires. The token is left out here
+ * and restored from storage on return.
  *
  * A marker is added in its place so the returning tab knows it is a redirect
  * landing and can hand the result back to the tab the customer started from —
@@ -60,8 +68,14 @@ export const recallSessionToken = (): string | null => {
  */
 export const portalReturnUrl = (): string => {
 	try {
-		const url = new URL(window.location.href);
-		url.searchParams.delete(TOKEN_PARAM);
+		const current = new URL(window.location.href);
+		// Rebuilt from the path rather than edited, so nothing unrecognised — the
+		// token included — can survive by being forgotten about here.
+		const url = new URL(current.pathname, current.origin);
+		PRESERVED_PARAMS.forEach((name) => {
+			const value = current.searchParams.get(name);
+			if (value !== null) url.searchParams.set(name, value);
+		});
 		url.searchParams.set(CHECKOUT_RETURN_PARAM, '1');
 		return url.toString();
 	} catch {
