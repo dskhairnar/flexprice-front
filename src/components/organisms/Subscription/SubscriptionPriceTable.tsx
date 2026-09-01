@@ -38,6 +38,20 @@ export function resolveQuantityFromInput(value: string, minQuantity: number): nu
 	return Number.isNaN(parsed) ? minQuantity : parsed;
 }
 
+/**
+ * Whether a price belongs in the table for the selected subscription billing period.
+ * isCadenceCompatible always returns false for ONETIME (it only reasons about the
+ * recurring scale), so one-time prices must be kept explicitly, or they silently drop
+ * out of the table whenever a billing period filter is active.
+ */
+export function isPriceCompatibleWithBillingPeriod(
+	price: Pick<Price, 'billing_period' | 'billing_period_count'>,
+	billingPeriod: string,
+	billingPeriodCount?: number,
+): boolean {
+	return isOneTimePlanPrice(price) || isCadenceCompatible(billingPeriod, billingPeriodCount, price.billing_period, price.billing_period_count);
+}
+
 type ChargeTableData = {
 	priceId: string;
 	charge: ReactNode;
@@ -320,7 +334,7 @@ const SubscriptionPriceTable: FC<Props> = ({
 			filtered = filtered.filter((p) => p.currency.toLowerCase() === currency.toLowerCase());
 		}
 		if (billingPeriod) {
-			filtered = filtered.filter((p) => isCadenceCompatible(billingPeriod, billingPeriodCount, p.billing_period, p.billing_period_count));
+			filtered = filtered.filter((p) => isPriceCompatibleWithBillingPeriod(p, billingPeriod, billingPeriodCount));
 		}
 		return filtered;
 	}, [data, billingPeriod, billingPeriodCount, currency]);
