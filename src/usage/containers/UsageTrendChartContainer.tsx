@@ -9,7 +9,6 @@ import type { DashboardAnalyticsRequest } from '@/types';
 import type { UsageGraphConfig } from '@/types/dto/PortalConfig';
 import { adaptUsageTrendSeries } from '../adapters';
 import UsageTrendChart from '../components/UsageTrendChart';
-import type { EmptyStateAction } from '../types';
 
 interface UsageTrendChartContainerProps {
 	config: UsageGraphConfig;
@@ -17,17 +16,9 @@ interface UsageTrendChartContainerProps {
 	label?: string;
 	className?: string;
 	periodLabel?: string;
-	emptyAction?: EmptyStateAction;
 }
 
-const UsageTrendChartContainer = ({
-	config,
-	analyticsParams,
-	label,
-	className,
-	periodLabel,
-	emptyAction,
-}: UsageTrendChartContainerProps) => {
+const UsageTrendChartContainer = ({ config, analyticsParams, label, className, periodLabel }: UsageTrendChartContainerProps) => {
 	const { t } = useTranslation('customer-portal');
 	const {
 		data: analyticsData,
@@ -44,16 +35,7 @@ const UsageTrendChartContainer = ({
 
 	const series = adaptUsageTrendSeries(analyticsData?.items ?? [], config);
 
-	return (
-		<UsageTrendChart
-			series={series}
-			label={label}
-			isLoading={isLoading}
-			className={className}
-			periodLabel={periodLabel}
-			emptyAction={emptyAction}
-		/>
-	);
+	return <UsageTrendChart series={series} label={label} isLoading={isLoading} className={className} periodLabel={periodLabel} />;
 };
 
 export default UsageTrendChartContainer;

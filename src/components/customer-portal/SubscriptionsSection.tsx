@@ -1,7 +1,7 @@
 import { Card, Chip } from '@/components/atoms';
 import { Subscription, SUBSCRIPTION_STATUS } from '@/models/Subscription';
 import { formatDateShort } from '@/utils/common/helper_functions';
-import { Calendar, Clock } from 'lucide-react';
+import { Calendar, Clock, Repeat } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import EmptyState from './EmptyState';
 
@@ -45,7 +45,7 @@ const SubscriptionsSection = ({ subscriptions, isLoading }: SubscriptionsSection
 	if (!subscriptions || subscriptions.length === 0 || activeSubscriptions.length === 0) {
 		return (
 			<Card className='bg-white border border-[#E9E9E9] rounded-xl p-6'>
-				<EmptyState title={t('subscriptions.emptyTitle')} description={t('subscriptions.emptyDescription')} />
+				<EmptyState icon={<Repeat />} title={t('subscriptions.emptyTitle')} description={t('subscriptions.emptyDescription')} />
 			</Card>
 		);
 	}

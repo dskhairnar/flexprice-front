@@ -1,7 +1,7 @@
 import { Card, Chip } from '@/components/atoms';
 import { Subscription, SUBSCRIPTION_STATUS } from '@/models/Subscription';
 import { formatDateShort } from '@/utils/common/helper_functions';
-import { Calendar, Clock } from 'lucide-react';
+import { Calendar, Clock, Repeat } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import EmptyState from '../EmptyState';
 
@@ -36,7 +36,7 @@ const SubscriptionsWidget = ({ subscriptions, label }: SubscriptionsWidgetProps)
 			<Card
 				className='rounded-xl p-6'
 				style={{ backgroundColor: 'var(--portal-surface, white)', border: '1px solid var(--portal-border, #E9E9E9)' }}>
-				<EmptyState title={t('subscriptions.emptyTitle')} description={t('subscriptions.emptyDescription')} />
+				<EmptyState icon={<Repeat />} title={t('subscriptions.emptyTitle')} description={t('subscriptions.emptyDescription')} />
 			</Card>
 		);
 	}

@@ -242,4 +242,14 @@ describe('PaymentMethodsWidget', () => {
 		expect(await screen.findByText(/not available/i)).toBeInTheDocument();
 		expect(screen.queryByRole('button', { name: /add card/i })).not.toBeInTheDocument();
 	});
+
+	// Every portal empty state carries a glyph: text alone in a card sized for
+	// populated data reads as a widget that failed to render.
+	it('gives the empty state an icon', async () => {
+		vi.mocked(CustomerPortalApi.getPaymentMethods).mockResolvedValue({ providers: [] } as never);
+
+		const { container } = renderWidget();
+		await screen.findByText(/no payment methods|not available/i);
+		expect(container.querySelector('svg')).toBeInTheDocument();
+	});
 });

@@ -4,7 +4,6 @@ import { DashboardAnalyticsRequest } from '@/types';
 import { SubscriptionResponse } from '@/types/dto/Subscription';
 import { CustomerUsage } from '@/models';
 import { Loader } from '@/components/atoms';
-import type { EmptyStateAction } from '@/components/atoms/EmptyState/EmptyState';
 
 // Lazy-load widgets — unused widgets don't bloat the bundle.
 const SubscriptionsWidget = lazy(() => import('./widgets/SubscriptionsWidget'));
@@ -46,12 +45,6 @@ interface TabRendererProps {
 	 * so they hit the same React Query cache entry — zero duplicate API calls.
 	 */
 	analyticsParams: DashboardAnalyticsRequest;
-	/**
-	 * Where an empty usage quota should send the reader. Resolved by SectionContent,
-	 * which owns the portal config — this component stays presentational and can be
-	 * rendered without a config provider or a router.
-	 */
-	planLink?: EmptyStateAction;
 }
 
 /**
@@ -67,13 +60,13 @@ const formatPeriod = (start?: string, end?: string): string | undefined => {
 	return `${short(start)} – ${short(end)}`;
 };
 
-const TabRenderer = ({ tab, subscriptions = [], usageData, analyticsParams, planLink }: TabRendererProps) => {
+const TabRenderer = ({ tab, subscriptions = [], usageData, analyticsParams }: TabRendererProps) => {
 	const period = formatPeriod(analyticsParams?.start_time, analyticsParams?.end_time);
 
 	return (
 		<Suspense fallback={<FallbackLoader />}>
 			{tab.type === 'subscriptions' && <SubscriptionsWidget subscriptions={subscriptions} label={tab.label} />}
-			{tab.type === 'current_usage' && <UsageQuotaContainer usageData={usageData} label={tab.label} emptyAction={planLink} />}
+			{tab.type === 'current_usage' && <UsageQuotaContainer usageData={usageData} label={tab.label} />}
 			{tab.type === 'usage_graph' && (
 				<UsageTrendChartContainer
 					config={tab.usage_graph ?? DEFAULT_USAGE_GRAPH_CONFIG}

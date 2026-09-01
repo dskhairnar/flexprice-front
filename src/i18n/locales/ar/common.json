@@ -555,10 +555,8 @@
 		"singlePointLabel": "الاستخدام في {{date}} · {{value}}",
 		"quotaEmptyTitle": "لم يتم إعداد حصص استخدام",
 		"quotaEmptyDescription": "ستظهر الحصص عندما تتضمن خطتك ميزات مقيسة.",
-		"quotaEmptyAction": "عرض الخطة",
 		"trendEmptyTitle": "لا يوجد استخدام بعد",
 		"trendEmptyDescription": "لم يُسجَّل أي استخدام خلال هذه الفترة.",
-		"trendEmptyAction": "عرض أحداث الاستخدام",
 		"breakdownEmptyTitle": "لا يوجد استخدام في هذه الفترة",
 		"breakdownEmptyDescription": "جرّب اختيار نطاق زمني مختلف."
 	},

@@ -30,10 +30,8 @@ const EN_USAGE_WIDGETS = {
 	cellEmpty: '--',
 	quotaEmptyTitle: 'No usage quotas configured',
 	quotaEmptyDescription: 'Quotas will appear when your plan includes metered features.',
-	quotaEmptyAction: 'View plan',
 	trendEmptyTitle: 'No usage data yet',
 	trendEmptyDescription: 'No usage has been recorded during this period.',
-	trendEmptyAction: 'View usage events',
 	breakdownEmptyTitle: 'No usage in this period',
 	breakdownEmptyDescription: 'Try selecting a different date range.',
 };

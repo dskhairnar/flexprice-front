@@ -224,7 +224,7 @@ const PaymentMethodsWidget = ({ label }: PaymentMethodsWidgetProps) => {
 	if (integrationsError) {
 		return (
 			<Card className='rounded-xl p-6' style={cardStyle}>
-				<EmptyState title={t('paymentMethods.providerUnavailable')} description={t('paymentMethods.retryHint')} />
+				<EmptyState icon={<AlertTriangle />} title={t('paymentMethods.providerUnavailable')} description={t('paymentMethods.retryHint')} />
 			</Card>
 		);
 	}
@@ -232,7 +232,11 @@ const PaymentMethodsWidget = ({ label }: PaymentMethodsWidgetProps) => {
 	if (!integrationsLoading && !canManage) {
 		return (
 			<Card className='rounded-xl p-6' style={cardStyle}>
-				<EmptyState title={t('paymentMethods.unsupportedTitle')} description={t('paymentMethods.unsupportedDescription')} />
+				<EmptyState
+					icon={<CreditCard />}
+					title={t('paymentMethods.unsupportedTitle')}
+					description={t('paymentMethods.unsupportedDescription')}
+				/>
 			</Card>
 		);
 	}
@@ -278,7 +282,7 @@ const PaymentMethodsWidget = ({ label }: PaymentMethodsWidgetProps) => {
 					))}
 				</div>
 			) : isError ? (
-				<EmptyState title={t('errors.loadPaymentMethods')} description={t('paymentMethods.retryHint')} />
+				<EmptyState icon={<AlertTriangle />} title={t('errors.loadPaymentMethods')} description={t('paymentMethods.retryHint')} />
 			) : hasAnyMethod || groups.some((g) => g.error) ? (
 				<div className='divide-y' style={{ borderColor: 'var(--portal-border, #E9E9E9)' }}>
 					{groups.map((group) => (
@@ -297,7 +301,7 @@ const PaymentMethodsWidget = ({ label }: PaymentMethodsWidgetProps) => {
 					))}
 				</div>
 			) : (
-				<EmptyState title={t('paymentMethods.emptyTitle')} description={t('paymentMethods.emptyDescription')} />
+				<EmptyState icon={<CreditCard />} title={t('paymentMethods.emptyTitle')} description={t('paymentMethods.emptyDescription')} />
 			)}
 		</Card>
 	);
