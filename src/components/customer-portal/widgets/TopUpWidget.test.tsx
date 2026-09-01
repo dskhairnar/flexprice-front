@@ -230,11 +230,16 @@ describe('TopUpWidget', () => {
 		expect(payload.checkout?.payment_provider).toBe('chargebee');
 	});
 
-	// One gateway is not a choice, so the customer is not asked to make one.
-	it('offers no provider picker when only one gateway can host checkout', async () => {
+	// The customer is about to be handed to a third party, so it is named even when
+	// there is only one — already selected, with nothing to decide.
+	it('shows the single gateway, pre-selected, with no choice to make', async () => {
 		renderWidget();
-		await screen.findByRole('button', { name: /pay now/i });
-		expect(screen.queryByText('Payment provider')).not.toBeInTheDocument();
+		// Awaited, not queried off the Pay now button: canCheckout is optimistic while
+		// /integrations is in flight, so the button renders before the provider list.
+		expect(await screen.findByText('Payment provider')).toBeInTheDocument();
+		expect(screen.getByRole('radio', { name: /chargebee/i })).toHaveAttribute('aria-checked', 'true');
+		// A hint inviting a choice would imply one that is not on offer.
+		expect(screen.queryByText(/choose which provider/i)).not.toBeInTheDocument();
 	});
 
 	// Inline options, not a Select: a portaled listbox inside this modal={false}
