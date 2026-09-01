@@ -77,55 +77,45 @@ const TopUpForm = ({ wallet, onDone, onActionUrl }: TopUpFormProps) => {
 			? t('topUp.savedMethodNone')
 			: undefined;
 
-	const {
-		mutate: topUp,
-		isPending,
-		variables: pendingMode,
-	} = useMutation({
-		mutationFn: async (mode: 'checkout' | 'invoice') => {
+	const { mutate: topUp, isPending } = useMutation({
+		mutationFn: async () => {
+			// Recorded so an unchanged retry reuses this key while an edited one does not.
+			setSubmittedPayload(payloadFingerprint);
+			setIdempotencyKey(keyForSubmission);
+
 			const payload: PortalTopUpRequest = {
 				credits_to_add: credits,
 				idempotency_key: keyForSubmission,
 				...(description ? { description } : {}),
-				...(mode === 'checkout'
-					? {
-							checkout: {
-								// payment_provider omitted: the backend resolves the tenant's
-								// configured provider, so the customer never learns which
-								// gateway is behind the checkout.
-								use_saved_method: useSavedMethod && !!chargeableMethod,
-								success_url: window.location.href,
-								cancel_url: window.location.href,
-							},
-						}
-					: {}),
+				checkout: {
+					// payment_provider omitted: the backend resolves the tenant's configured
+					// provider, so the customer never learns which gateway is behind it.
+					use_saved_method: useSavedMethod && !!chargeableMethod,
+					success_url: window.location.href,
+					cancel_url: window.location.href,
+				},
 			};
 			return CustomerPortalApi.topUpWallet(wallet.id, payload);
 		},
-		onMutate: () => {
-			// Record what this key now belongs to, so a later edit rotates it.
-			setIdempotencyKey(keyForSubmission);
-			setSubmittedPayload(payloadFingerprint);
-		},
-		onSuccess: async (response, mode) => {
+		onSuccess: async (response) => {
 			const action = response.checkout_session?.payment_action;
 
 			// use_saved_method can settle outright, and some providers vault
 			// server-to-server — so an absent action means done, not broken.
-			if (mode === 'checkout' && action?.url) {
-				// Recorded before the hand-off so the outcome can be resolved on return —
-				// providers redirect back without saying whether payment succeeded.
+			if (action?.url) {
 				if (response.checkout_session?.id) rememberPendingCheckout(response.checkout_session.id);
 				onActionUrl?.(action.url);
 				return;
 			}
 
-			toast.success(mode === 'checkout' ? t('topUp.successPending') : t('topUp.invoiceCreated'));
+			toast.success(t('topUp.successPending'));
 			setCredits('');
 			setDescription('');
 			setIdempotencyKey(crypto.randomUUID());
 			setSubmittedPayload(null);
 			onDone?.();
+			// One call per root: a single array argument is read as one prefix key and
+			// would match none of these.
 			await refetchPortalQueries(['portal-wallets', 'portal-wallet-balance', 'portal-wallet-transactions', 'portal-invoices-tab']);
 		},
 		onError: (error: Error) => toast.error(error.message || t('errors.topUp')),
@@ -161,7 +151,6 @@ const TopUpForm = ({ wallet, onDone, onActionUrl }: TopUpFormProps) => {
 
 			{canCheckout && (
 				<Toggle
-					title={t('topUp.useSavedMethodTitle')}
 					label={
 						chargeableMethod ? t('topUp.useSavedMethod', { method: describeCard(chargeableMethod) }) : t('topUp.useSavedMethodEmptyLabel')
 					}
@@ -172,36 +161,19 @@ const TopUpForm = ({ wallet, onDone, onActionUrl }: TopUpFormProps) => {
 				/>
 			)}
 
-			<div className='w-full justify-end flex gap-2 pt-1'>
+			<div className='pt-1'>
 				<Button
-					variant='outline'
-					onClick={() => topUp('invoice')}
-					disabled={!isValid || isPending}
-					isLoading={isPending && pendingMode === 'invoice'}>
-					{t('topUp.generateInvoice')}
-				</Button>
-				{/* Kept rendered and disabled rather than hidden when checkout is
-				    unavailable: a control that vanishes reads as a missing feature,
-				    while a greyed one with a reason reads as a state. */}
-				<Button
-					onClick={() => topUp('checkout')}
+					className='w-full'
+					onClick={() => topUp()}
 					disabled={!isValid || isPending || !canCheckout}
-					isLoading={isPending && pendingMode === 'checkout'}
+					isLoading={isPending}
 					title={canCheckout ? undefined : t('topUp.checkoutUnavailable')}>
 					{t('topUp.payNow')}
 				</Button>
-			</div>
-
-			<p className='text-xs text-end' style={{ color: 'var(--portal-text-secondary, #a1a1aa)' }}>
-				{canCheckout ? t('topUp.actionsHint') : t('topUp.checkoutUnavailable')}
-			</p>
-			{/* Checkout always vaults the card server-side and the customer cannot
-			    decline, so the portal states it rather than implying a choice. */}
-			{canCheckout && (
-				<p className='text-xs text-end' style={{ color: 'var(--portal-text-secondary, #a1a1aa)' }}>
-					{t('topUp.cardSavedNotice')}
+				<p className='text-xs text-center mt-2' style={{ color: 'var(--portal-text-secondary, #a1a1aa)' }}>
+					{canCheckout ? t('topUp.cardSavedNotice') : t('topUp.checkoutUnavailable')}
 				</p>
-			)}
+			</div>
 		</div>
 	);
 };

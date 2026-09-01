@@ -71,16 +71,13 @@ describe('TopUpWidget', () => {
 		expect(await screen.findByText('No wallet')).toBeInTheDocument();
 	});
 
-	it('keeps both actions disabled until a positive credit amount is entered', async () => {
+	it('keeps the action disabled until a positive credit amount is entered', async () => {
 		renderWidget();
 		const payNow = await screen.findByRole('button', { name: /pay now/i });
-		const invoice = screen.getByRole('button', { name: /generate invoice/i });
 		expect(payNow).toBeDisabled();
-		expect(invoice).toBeDisabled();
 
 		await enterCredits('25');
 		await waitFor(() => expect(payNow).toBeEnabled());
-		expect(invoice).toBeEnabled();
 	});
 
 	// Pay now is the checkout path: the customer is charged before credits land,
@@ -99,26 +96,13 @@ describe('TopUpWidget', () => {
 		expect(payload.checkout).toBeDefined();
 	});
 
-	// Generate invoice is the pay-later path and must not open checkout.
-	it('Generate invoice omits checkout entirely', async () => {
-		vi.mocked(CustomerPortalApi.topUpWallet).mockResolvedValue({ invoice_id: 'inv_1' } as never);
-
-		renderWidget();
-		await enterCredits('50');
-		await userEvent.click(screen.getByRole('button', { name: /generate invoice/i }));
-
-		await waitFor(() => expect(CustomerPortalApi.topUpWallet).toHaveBeenCalled());
-		const [, payload] = vi.mocked(CustomerPortalApi.topUpWallet).mock.calls[0];
-		expect(payload.checkout).toBeUndefined();
-	});
-
 	// transaction_reason is pinned server-side; the client must not send one.
 	it('never sends a transaction reason, and always sends an idempotency key', async () => {
 		vi.mocked(CustomerPortalApi.topUpWallet).mockResolvedValue({} as never);
 
 		renderWidget();
 		await enterCredits('10');
-		await userEvent.click(screen.getByRole('button', { name: /generate invoice/i }));
+		await userEvent.click(screen.getByRole('button', { name: /pay now/i }));
 
 		await waitFor(() => expect(CustomerPortalApi.topUpWallet).toHaveBeenCalled());
 		const [walletId, payload] = vi.mocked(CustomerPortalApi.topUpWallet).mock.calls[0];
