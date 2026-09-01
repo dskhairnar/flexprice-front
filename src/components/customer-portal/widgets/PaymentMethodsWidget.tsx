@@ -11,7 +11,8 @@ import { refetchPortalQueries } from '../refetchPortalQueries';
 import type { PaymentGatewayType, ProviderSavedPaymentMethods, SavedPaymentMethod } from '@/types/dto/CustomerPortalBilling';
 import { portalPaymentMethodsQueryKey } from '../queryKeys';
 import usePortalIntegrations from '../usePortalIntegrations';
-import { navigateToPaymentUrl } from '@/utils/common/openPaymentUrl';
+import { openPaymentUrl } from '@/utils/common/openPaymentUrl';
+import CheckoutLinkDialog from './CheckoutLinkDialog';
 import EmptyState from '../EmptyState';
 
 interface PaymentMethodsWidgetProps {
@@ -148,6 +149,7 @@ const PaymentMethodsWidget = ({ label }: PaymentMethodsWidgetProps) => {
 		isError: integrationsError,
 	} = usePortalIntegrations();
 	const [pendingDelete, setPendingDelete] = useState<SavedPaymentMethod | null>(null);
+	const [setupUrl, setSetupUrl] = useState<string | null>(null);
 	const queryClient = useQueryClient();
 
 	const canManage = supports('payment_method_management');
@@ -172,11 +174,13 @@ const PaymentMethodsWidget = ({ label }: PaymentMethodsWidgetProps) => {
 			// A provider that vaults server-to-server returns type 'none' — there is
 			// nothing to redirect to, so refresh instead of waiting for a return trip.
 			if (response.action.type === 'redirect' && response.action.url) {
-				// Refused rather than followed when the scheme is not http(s): the URL is
-				// an unconstrained API string and a javascript: URL would execute.
-				if (!navigateToPaymentUrl(response.action.url)) {
-					toast.error(t('errors.addPaymentMethod'));
-				}
+				// A new tab, not this one: navigating away would unmount the portal, so a
+				// customer who abandons the provider's page has nothing to come back to.
+				// The link is shown as well, because the open runs in an async callback
+				// rather than the click and a popup blocker can stop it. Both paths refuse
+				// a non-http(s) scheme — the URL is an unconstrained API string.
+				setSetupUrl(response.action.url);
+				openPaymentUrl(response.action.url);
 				return;
 			}
 			toast.success(t('paymentMethods.added'));
@@ -235,6 +239,7 @@ const PaymentMethodsWidget = ({ label }: PaymentMethodsWidgetProps) => {
 
 	return (
 		<Card className='rounded-xl p-5' style={cardStyle}>
+			<CheckoutLinkDialog url={setupUrl} onOpenChange={(open) => !open && setSetupUrl(null)} />
 			<Dialog
 				isOpen={pendingDelete !== null}
 				onOpenChange={(open) => !open && setPendingDelete(null)}

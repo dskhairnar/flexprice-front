@@ -69,13 +69,18 @@ const renderWidget = () => {
 describe('PaymentMethodsWidget', () => {
 	const originalLocation = window.location;
 
+	let openSpy: ReturnType<typeof vi.fn>;
+
 	beforeEach(() => {
+		openSpy = vi.fn().mockReturnValue({} as Window);
+		vi.stubGlobal('open', openSpy);
 		vi.mocked(CustomerPortalApi.getIntegrations).mockResolvedValue(FULL_CAPABILITIES as never);
 		Object.defineProperty(window, 'location', { configurable: true, value: { href: 'https://portal.test/methods' } });
 	});
 
 	afterEach(() => {
 		Object.defineProperty(window, 'location', { configurable: true, value: originalLocation });
+		vi.unstubAllGlobals();
 		vi.clearAllMocks();
 	});
 
@@ -166,8 +171,9 @@ describe('PaymentMethodsWidget', () => {
 		);
 	});
 
-	// Adding returns an action, not a method — follow it only when it is a redirect.
-	it('follows a redirect action when adding a card', async () => {
+	// A new tab, so abandoning the provider's page still leaves the portal behind;
+	// the link is shown too, since the open can be blocked.
+	it('opens a redirect action in a new tab and keeps the link on the page', async () => {
 		vi.mocked(CustomerPortalApi.getPaymentMethods).mockResolvedValue({ providers: [] } as never);
 		vi.mocked(CustomerPortalApi.addPaymentMethod).mockResolvedValue({
 			provider: 'chargebee',
@@ -177,7 +183,10 @@ describe('PaymentMethodsWidget', () => {
 		renderWidget();
 		await userEvent.click(await screen.findByRole('button', { name: /add card/i }));
 
-		await waitFor(() => expect(window.location.href).toBe('https://vault.test/setup'));
+		await waitFor(() => expect(openSpy).toHaveBeenCalledWith('https://vault.test/setup', '_blank', expect.any(String)));
+		expect(await screen.findByText('https://vault.test/setup')).toBeInTheDocument();
+		// The portal must still be mounted — that is the point of not navigating.
+		expect(window.location.href).toBe('https://portal.test/methods');
 	});
 
 	// type 'none' means the provider vaulted server-to-server; there is nothing to
