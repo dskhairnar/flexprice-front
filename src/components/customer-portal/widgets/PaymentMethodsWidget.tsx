@@ -2,9 +2,11 @@ import { useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import toast from 'react-hot-toast';
-import { AlertTriangle, CreditCard, Plus, Trash2 } from 'lucide-react';
+import { AlertTriangle, CreditCard, MoreHorizontal, Plus, Star, Trash2 } from 'lucide-react';
 import CustomerPortalApi from '@/api/CustomerPortalApi';
+import { portalReturnUrl } from '../portalReturnUrl';
 import { Button, Card, Chip, Dialog } from '@/components/atoms';
+import { DropdownMenu } from '@/components/molecules';
 import { refetchPortalQueries } from '../refetchPortalQueries';
 import type { PaymentGatewayType, ProviderSavedPaymentMethods, SavedPaymentMethod } from '@/types/dto/CustomerPortalBilling';
 import { portalPaymentMethodsQueryKey } from '../queryKeys';
@@ -15,6 +17,10 @@ import EmptyState from '../EmptyState';
 interface PaymentMethodsWidgetProps {
 	label?: string;
 }
+
+/** Names a method for an accessible label without leaking the gateway. */
+const describeMethod = (method: SavedPaymentMethod, t: (k: string, o?: Record<string, unknown>) => string) =>
+	method.card?.last4 ? t('paymentMethods.cardLabel', { brand: method.card.brand ?? 'card', last4: method.card.last4 }) : method.id;
 
 const formatExpiry = (month?: number, year?: number) => {
 	if (!month || !year) return null;
@@ -60,25 +66,43 @@ const MethodRow = ({ method, canSetDefault, onSetDefault, onDelete, isBusy }: Me
 			</div>
 
 			<div className='flex items-center gap-2 shrink-0'>
-				{method.is_default ? (
-					<Chip label={t('paymentMethods.default')} variant='success' />
-				) : (
-					canSetDefault &&
-					!isExpired && (
-						<Button variant='ghost' size='xs' onClick={() => onSetDefault(method)} disabled={isBusy}>
-							{t('paymentMethods.setDefault')}
-						</Button>
-					)
-				)}
-				<Button
-					variant='ghost'
-					size='xs'
-					onClick={() => onDelete(method)}
-					disabled={isBusy}
-					aria-label={t('paymentMethods.remove')}
-					title={t('paymentMethods.remove')}>
-					<Trash2 className='h-4 w-4' />
-				</Button>
+				{method.is_default && <Chip label={t('paymentMethods.default')} variant='success' />}
+				{/* One menu rather than inline buttons, matching the admin row actions and
+				    the invoices table: the set of actions varies per method, and inline
+				    controls made each row a different width. */}
+				<DropdownMenu
+					align='end'
+					trigger={
+						<button
+							type='button'
+							aria-label={t('paymentMethods.rowActions', { method: describeMethod(method, t) })}
+							className='p-1.5 rounded-md transition-colors'
+							style={{ color: 'var(--portal-text-secondary, #71717a)' }}>
+							<MoreHorizontal className='h-4 w-4' />
+						</button>
+					}
+					options={[
+						{
+							label: t('paymentMethods.setDefault'),
+							icon: <Star className='w-4 h-4' />,
+							disabled: method.is_default || !canSetDefault || isExpired || isBusy,
+							disabledReason: method.is_default
+								? t('paymentMethods.alreadyDefault')
+								: !canSetDefault
+									? t('paymentMethods.setDefaultUnsupported')
+									: isExpired
+										? t('paymentMethods.expiredCannotDefault')
+										: undefined,
+							onSelect: () => onSetDefault(method),
+						},
+						{
+							label: t('paymentMethods.remove'),
+							icon: <Trash2 className='w-4 h-4' />,
+							disabled: isBusy,
+							onSelect: () => onDelete(method),
+						},
+					]}
+				/>
 			</div>
 		</div>
 	);
@@ -141,8 +165,8 @@ const PaymentMethodsWidget = ({ label }: PaymentMethodsWidgetProps) => {
 		mutationFn: (provider: PaymentGatewayType) =>
 			CustomerPortalApi.addPaymentMethod({
 				payment_provider: provider,
-				success_url: window.location.href,
-				cancel_url: window.location.href,
+				success_url: portalReturnUrl(),
+				cancel_url: portalReturnUrl(),
 			}),
 		onSuccess: async (response) => {
 			// A provider that vaults server-to-server returns type 'none' — there is

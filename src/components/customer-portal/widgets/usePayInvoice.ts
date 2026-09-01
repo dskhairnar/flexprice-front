@@ -3,6 +3,7 @@ import { useMutation } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import toast from 'react-hot-toast';
 import CustomerPortalApi from '@/api/CustomerPortalApi';
+import { portalReturnUrl } from '../portalReturnUrl';
 import type { PaymentGatewayType } from '@/types/dto/CustomerPortalBilling';
 import usePortalIntegrations from '../usePortalIntegrations';
 import { refetchPortalQueries } from '../refetchPortalQueries';
@@ -38,8 +39,8 @@ const usePayInvoice = (provider?: PaymentGatewayType) => {
 				// provider qualifies, so the choice is made here rather than left unset.
 				...(linkProvider ? { payment_provider: linkProvider } : {}),
 				idempotency_key: keys.get(invoiceId),
-				success_url: window.location.href,
-				cancel_url: window.location.href,
+				success_url: portalReturnUrl(),
+				cancel_url: portalReturnUrl(),
 			});
 		},
 		onSuccess: async (response, invoiceId) => {

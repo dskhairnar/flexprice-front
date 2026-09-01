@@ -1,4 +1,6 @@
+import { useEffect } from 'react';
 import { useSearchParams } from 'react-router';
+import { rememberSessionToken, recallSessionToken } from '@/components/customer-portal/portalReturnUrl';
 import { useTranslation } from 'react-i18next';
 import { RefreshCw, Shield } from 'lucide-react';
 import { motion } from 'framer-motion';
@@ -59,7 +61,15 @@ const CustomerPortalWrapper = () => {
 	useForceLightTheme();
 	const { t } = useTranslation('customer-portal');
 	const [searchParams] = useSearchParams();
-	const token = searchParams.get('token');
+	// Falls back to session storage so a customer returning from a hosted checkout
+	// still authenticates: the return URL deliberately omits the token rather than
+	// handing the session to the payment provider.
+	const urlToken = searchParams.get('token');
+	const token = urlToken ?? recallSessionToken();
+
+	useEffect(() => {
+		if (urlToken) rememberSessionToken(urlToken);
+	}, [urlToken]);
 
 	// Validate required token parameter
 	if (!token) {

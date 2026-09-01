@@ -114,15 +114,25 @@ describe('PaymentMethodsWidget', () => {
 	// Defaults are scoped per provider, so both fields must be sent.
 	it('sends provider and method id when promoting a card to default', async () => {
 		vi.mocked(CustomerPortalApi.getPaymentMethods).mockResolvedValue({
-			providers: [{ provider: 'chargebee', items: [card(), card({ id: 'pm_2', is_default: false })] }],
+			providers: [
+				{
+					provider: 'chargebee',
+					items: [
+						card(),
+						// Distinct details so the second row can be targeted unambiguously.
+						card({ id: 'pm_2', is_default: false, card: { brand: 'amex', last4: '0005', exp_month: 1, exp_year: 2031 } }),
+					],
+				},
+			],
 		} as never);
 		vi.mocked(CustomerPortalApi.setDefaultPaymentMethod).mockResolvedValue({} as never);
 
 		renderWidget();
-		const buttons = await screen.findAllByRole('button', { name: /set as default/i });
-		expect(buttons).toHaveLength(1);
-
-		await userEvent.click(buttons[0]);
+		// Actions live behind a per-row menu now, matching the invoices table.
+		await screen.findByText('amex •••• 0005');
+		await userEvent.click(screen.getByRole('button', { name: /actions for amex/i }));
+		const menu = await screen.findByRole('menu');
+		await userEvent.click(within(menu).getByRole('menuitem', { name: /set as default/i }));
 		await waitFor(() =>
 			expect(CustomerPortalApi.setDefaultPaymentMethod).toHaveBeenCalledWith({
 				payment_provider: 'chargebee',
@@ -139,7 +149,9 @@ describe('PaymentMethodsWidget', () => {
 		vi.mocked(CustomerPortalApi.deletePaymentMethod).mockResolvedValue({} as never);
 
 		renderWidget();
-		await userEvent.click(await screen.findByRole('button', { name: /remove/i }));
+		await userEvent.click(await screen.findByRole('button', { name: /actions for/i }));
+		const menu = await screen.findByRole('menu');
+		await userEvent.click(within(menu).getByRole('menuitem', { name: /remove/i }));
 		expect(CustomerPortalApi.deletePaymentMethod).not.toHaveBeenCalled();
 
 		// The row action and the dialog's confirm share a label, so scope to the dialog.

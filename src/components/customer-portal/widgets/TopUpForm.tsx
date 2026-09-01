@@ -3,6 +3,7 @@ import { useMutation, useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import toast from 'react-hot-toast';
 import CustomerPortalApi from '@/api/CustomerPortalApi';
+import { portalReturnUrl } from '../portalReturnUrl';
 import { Button, Input, Select, Toggle } from '@/components/atoms';
 import { refetchPortalQueries } from '../refetchPortalQueries';
 import { getCurrencySymbol } from '@/utils/common/helper_functions';
@@ -102,8 +103,8 @@ const TopUpForm = ({ wallet, onDone, onActionUrl }: TopUpFormProps) => {
 					// asked of the customer, who should never learn the gateway.
 					...(effectiveProvider ? { payment_provider: effectiveProvider } : {}),
 					use_saved_method: useSavedMethod && !!chargeableMethod,
-					success_url: window.location.href,
-					cancel_url: window.location.href,
+					success_url: portalReturnUrl(),
+					cancel_url: portalReturnUrl(),
 				},
 			};
 			return CustomerPortalApi.topUpWallet(wallet.id, payload);

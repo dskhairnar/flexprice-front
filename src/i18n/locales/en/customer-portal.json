@@ -252,7 +252,11 @@
 		"providerUnavailable": "We couldn't load your saved cards right now.",
 		"retryHint": "Please refresh the page to try again.",
 		"unsupportedTitle": "Payment methods are not available",
-		"unsupportedDescription": "This account has no payment provider that supports saved cards."
+		"unsupportedDescription": "This account has no payment provider that supports saved cards.",
+		"rowActions": "Actions for {{method}}",
+		"alreadyDefault": "This is already your default card.",
+		"setDefaultUnsupported": "Your payment provider does not support a default card.",
+		"expiredCannotDefault": "An expired card cannot be made default."
 	},
 	"invoiceDetail": {
 		"title": "Invoice",
