@@ -21,7 +21,6 @@ import { isPayable } from '../invoiceStatus';
 
 interface InvoicesTableProps {
 	invoices: Invoice[];
-	currencySymbol: string;
 	onOpenDownloadFormat: (invoice: Invoice) => void;
 	downloadPendingId: string | null;
 	onView: (invoice: Invoice) => void;
@@ -29,15 +28,7 @@ interface InvoicesTableProps {
 	payPendingId: string | null;
 }
 
-const InvoicesTable = ({
-	invoices,
-	currencySymbol,
-	onOpenDownloadFormat,
-	downloadPendingId,
-	onView,
-	onPay,
-	payPendingId,
-}: InvoicesTableProps) => {
+const InvoicesTable = ({ invoices, onOpenDownloadFormat, downloadPendingId, onView, onPay, payPendingId }: InvoicesTableProps) => {
 	const { t } = useTranslation('customer-portal');
 
 	const getStatusChip = (invoice: Invoice) => {
@@ -103,7 +94,11 @@ const InvoicesTable = ({
 							</td>
 							<td className='px-4 py-2.5'>{getStatusChip(invoice)}</td>
 							<td className='px-4 py-2.5 text-sm text-end font-medium' style={{ color: 'var(--portal-text-primary, #09090b)' }}>
-								{currencySymbol}
+								{/* Resolved per row: the list previously took invoices[0].currency and
+								    applied it to every row, so an invoice in another currency was
+								    rendered with the wrong symbol — ₹100 in the list against $100 in
+								    the drawer for the same invoice. */}
+								{getCurrencySymbol(invoice.currency ?? '')}
 								{formatAmount(String(invoice.total ?? 0))}
 							</td>
 							<td className='px-4 py-2.5'>
@@ -223,9 +218,6 @@ const InvoicesWidget = () => {
 		);
 	}
 
-	const currency = invoices[0]?.currency || 'USD';
-	const currencySymbol = getCurrencySymbol(currency);
-
 	if (invoices.length === 0) {
 		return (
 			<Card
@@ -306,7 +298,6 @@ const InvoicesWidget = () => {
 				style={{ backgroundColor: 'var(--portal-surface, white)', border: '1px solid var(--portal-border, #E9E9E9)' }}>
 				<InvoicesTable
 					invoices={filteredInvoices}
-					currencySymbol={currencySymbol}
 					onOpenDownloadFormat={openInvoiceDownload}
 					downloadPendingId={busyDownloadInvoiceId}
 					onView={setDetailInvoice}

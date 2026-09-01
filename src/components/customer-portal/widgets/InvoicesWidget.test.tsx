@@ -96,6 +96,24 @@ describe('InvoicesWidget', () => {
 		vi.clearAllMocks();
 	});
 
+	// The list used to derive one symbol from invoices[0] and stamp it on every
+	// row, so a USD invoice under an INR one rendered as ₹100 in the list while
+	// the drawer showed $100 for the same invoice.
+	it('renders each row with its own currency symbol', async () => {
+		vi.mocked(CustomerPortalApi.getInvoices).mockResolvedValue({
+			items: [
+				{ ...UNPAID, id: 'inv_inr', invoice_number: 'INV-000490', currency: 'inr', total: 10 },
+				{ ...PAID, id: 'inv_usd', invoice_number: 'INV-000491', currency: 'usd', total: 100 },
+			],
+		} as never);
+
+		renderWidget();
+		await screen.findByText('INV-000491');
+
+		expect(within(screen.getByText('INV-000490').closest('tr')!).getByText(/^₹/)).toHaveTextContent('₹10');
+		expect(within(screen.getByText('INV-000491').closest('tr')!).getByText(/^\$/)).toHaveTextContent('$100');
+	});
+
 	// Pay stays listed on a settled invoice but is disabled, so the row's action
 	// set does not change shape between states.
 	it('offers pay, view and download, with pay disabled once the invoice is settled', async () => {

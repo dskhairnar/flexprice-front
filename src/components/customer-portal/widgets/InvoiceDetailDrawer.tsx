@@ -80,7 +80,9 @@ const InvoiceDetailDrawer = ({
 
 	// Fall back to the list row so the drawer has a header while the detail loads.
 	const detail = data ?? invoice;
-	const symbol = getCurrencySymbol(detail?.currency ?? 'USD');
+	// No 'USD' default: fabricating a symbol for a missing currency renders a
+	// wrong one, which is worse than rendering none. getCurrencySymbol('') is ''.
+	const symbol = getCurrencySymbol(detail?.currency ?? '');
 	const money = (value?: number) => `${symbol}${formatAmount(String(value ?? 0))}`;
 
 	const title = detail ? detail.invoice_number || t('invoices.numberPrefix', { id: detail.id.slice(0, 8) }) : t('invoiceDetail.title');
