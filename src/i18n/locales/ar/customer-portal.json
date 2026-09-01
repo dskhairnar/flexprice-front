@@ -32,7 +32,8 @@
 		"addPaymentMethod": "تعذّر بدء إضافة طريقة دفع",
 		"payInvoice": "تعذّر دفع الفاتورة",
 		"setDefaultPaymentMethod": "تعذّر تحديث طريقة الدفع الافتراضية",
-		"deletePaymentMethod": "تعذّر إزالة طريقة الدفع"
+		"deletePaymentMethod": "تعذّر إزالة طريقة الدفع",
+		"checkoutUnavailable": "تعذّر فتح صفحة الدفع. يرجى المحاولة مرة أخرى."
 	},
 	"toast": {
 		"invoiceDownloaded": "تم تنزيل الفاتورة",

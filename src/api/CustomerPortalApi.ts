@@ -186,14 +186,18 @@ class CustomerPortalApi {
 		return await AxiosClient.post<AddPaymentMethodResponse>(`${this.baseUrl}/payment-methods`, payload);
 	}
 
-	/** Remove a saved payment method at a given provider. */
-	public static async deletePaymentMethod(payload: PortalDeletePaymentMethodRequest): Promise<unknown> {
-		return await AxiosClient.post<unknown>(`${this.baseUrl}/payment-methods/delete`, payload);
+	/**
+	 * Remove a saved payment method. Returns the refreshed list — the backend
+	 * re-reads the affected gateway — so callers can seed the cache rather than
+	 * spend another round trip on it.
+	 */
+	public static async deletePaymentMethod(payload: PortalDeletePaymentMethodRequest): Promise<SavedPaymentMethodsResponse> {
+		return await AxiosClient.post<SavedPaymentMethodsResponse>(`${this.baseUrl}/payment-methods/delete`, payload);
 	}
 
-	/** Defaults are scoped per provider, so the provider is required. */
-	public static async setDefaultPaymentMethod(payload: PortalSetDefaultPaymentMethodRequest): Promise<unknown> {
-		return await AxiosClient.post<unknown>(`${this.baseUrl}/payment-methods/default`, payload);
+	/** Defaults are scoped per provider, so the provider is required. Returns the refreshed list. */
+	public static async setDefaultPaymentMethod(payload: PortalSetDefaultPaymentMethodRequest): Promise<SavedPaymentMethodsResponse> {
+		return await AxiosClient.post<SavedPaymentMethodsResponse>(`${this.baseUrl}/payment-methods/default`, payload);
 	}
 
 	/**

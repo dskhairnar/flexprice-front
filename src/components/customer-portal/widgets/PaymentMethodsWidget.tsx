@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useMutation, useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import toast from 'react-hot-toast';
 import { AlertTriangle, CreditCard, Plus, Trash2 } from 'lucide-react';
@@ -124,6 +124,7 @@ const PaymentMethodsWidget = ({ label }: PaymentMethodsWidgetProps) => {
 		isError: integrationsError,
 	} = usePortalIntegrations();
 	const [pendingDelete, setPendingDelete] = useState<SavedPaymentMethod | null>(null);
+	const queryClient = useQueryClient();
 
 	const canManage = supports('payment_method_management');
 	// Capability is per provider: in a mixed-provider portal a global flag would
@@ -163,9 +164,11 @@ const PaymentMethodsWidget = ({ label }: PaymentMethodsWidgetProps) => {
 	const { mutate: setDefault, isPending: isSettingDefault } = useMutation({
 		mutationFn: (method: SavedPaymentMethod) =>
 			CustomerPortalApi.setDefaultPaymentMethod({ payment_provider: method.provider, payment_method_id: method.id }),
-		onSuccess: async () => {
+		onSuccess: (updated) => {
 			toast.success(t('paymentMethods.defaultUpdated'));
-			await refetchPortalQueries(['portal-payment-methods']);
+			// The response is the gateway re-read after the write, so refetching here
+			// would only ask the same question twice.
+			queryClient.setQueryData(portalPaymentMethodsQueryKey, updated);
 		},
 		onError: (error: Error) => toast.error(error.message || t('errors.setDefaultPaymentMethod')),
 	});
@@ -173,10 +176,10 @@ const PaymentMethodsWidget = ({ label }: PaymentMethodsWidgetProps) => {
 	const { mutate: deleteMethod, isPending: isDeleting } = useMutation({
 		mutationFn: (method: SavedPaymentMethod) =>
 			CustomerPortalApi.deletePaymentMethod({ payment_provider: method.provider, payment_method_id: method.id }),
-		onSuccess: async () => {
+		onSuccess: (updated) => {
 			toast.success(t('paymentMethods.removed'));
 			setPendingDelete(null);
-			await refetchPortalQueries(['portal-payment-methods']);
+			queryClient.setQueryData(portalPaymentMethodsQueryKey, updated);
 		},
 		onError: (error: Error) => toast.error(error.message || t('errors.deletePaymentMethod')),
 	});

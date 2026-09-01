@@ -7,11 +7,14 @@ import { createInstance } from 'i18next';
 import { I18nextProvider } from 'react-i18next';
 import enPortal from '@/i18n/locales/en/customer-portal.json';
 import TopUpWidget from './TopUpWidget';
+import toast from 'react-hot-toast';
 import CustomerPortalApi from '@/api/CustomerPortalApi';
 
 vi.mock('@/api/CustomerPortalApi', () => ({
 	default: { getWallets: vi.fn(), topUpWallet: vi.fn(), getPaymentMethods: vi.fn(), getIntegrations: vi.fn() },
 }));
+
+vi.mock('react-hot-toast', () => ({ default: { success: vi.fn(), error: vi.fn() } }));
 
 vi.mock('@/core/services/tanstack/ReactQueryProvider', () => ({
 	refetchQueries: vi.fn().mockResolvedValue(undefined),
@@ -110,6 +113,41 @@ describe('TopUpWidget', () => {
 		expect(payload.credits_to_add).toBe('10');
 		expect(payload.idempotency_key).toBeTruthy();
 		expect(payload).not.toHaveProperty('transaction_reason');
+	});
+
+	// The backend prices a top-up with TopupConversionRate, so quoting the spend
+	// rate would show an amount the customer is not actually charged.
+	it('quotes the charge using the top-up conversion rate, not the spend rate', async () => {
+		vi.mocked(CustomerPortalApi.getWallets).mockResolvedValue([{ ...WALLET, conversion_rate: 1, topup_conversion_rate: 2 }] as never);
+
+		renderWidget();
+		await enterCredits('10');
+
+		expect(await screen.findByText(/You'll be charged \$20\.00/)).toBeInTheDocument();
+	});
+
+	it('falls back to the spend rate when no top-up rate is set', async () => {
+		vi.mocked(CustomerPortalApi.getWallets).mockResolvedValue([{ ...WALLET, conversion_rate: 3 }] as never);
+
+		renderWidget();
+		await enterCredits('10');
+
+		expect(await screen.findByText(/You'll be charged \$30\.00/)).toBeInTheDocument();
+	});
+
+	// A checkout was asked for, so a session with nothing to follow is a failed
+	// hand-off — telling the customer credits are coming would be a lie.
+	it('reports an error when a checkout session comes back with no action', async () => {
+		vi.mocked(CustomerPortalApi.topUpWallet).mockResolvedValue({
+			checkout_session: { id: 'cs_1', checkout_status: 'pending' },
+		} as never);
+
+		renderWidget();
+		await enterCredits('10');
+		await userEvent.click(screen.getByRole('button', { name: /pay now/i }));
+
+		await waitFor(() => expect(toast.error).toHaveBeenCalled());
+		expect(toast.success).not.toHaveBeenCalled();
 	});
 
 	// The saved-card option stays visible but disabled when nothing can use it, so

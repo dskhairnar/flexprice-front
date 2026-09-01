@@ -95,6 +95,29 @@ describe('AutoTopUpWidget', () => {
 		expect(payload).toMatchObject({ enabled: true, threshold: '20', amount: '100' });
 	});
 
+	// The backend refuses to enable auto top-up without an auto-chargeable method,
+	// so submitting without one is a guaranteed trip to an error the form knows about.
+	it('blocks saving an enabled config when no card can be charged', async () => {
+		vi.mocked(CustomerPortalApi.getWallets).mockResolvedValue([CONFIGURED] as never);
+		renderWidget();
+		expect(await screen.findByRole('button', { name: /save settings/i })).toBeDisabled();
+	});
+
+	it('allows saving once a chargeable card exists', async () => {
+		vi.mocked(CustomerPortalApi.getWallets).mockResolvedValue([CONFIGURED] as never);
+		vi.mocked(CustomerPortalApi.getPaymentMethods).mockResolvedValue({
+			providers: [
+				{
+					provider: 'chargebee',
+					items: [{ id: 'pm_1', provider: 'chargebee', type: 'CARD', status: 'ACTIVE', is_default: true, can_auto_charge: true }],
+				},
+			],
+		} as never);
+
+		renderWidget();
+		await waitFor(() => expect(screen.getByRole('button', { name: /save settings/i })).toBeEnabled());
+	});
+
 	// Auto-charging a saved card is meaningless without one, so the customer is told
 	// rather than left with an option that silently cannot work.
 	it('flags that there is no saved payment method to auto-charge', async () => {

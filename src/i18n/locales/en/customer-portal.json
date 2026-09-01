@@ -32,7 +32,8 @@
 		"addPaymentMethod": "Failed to start adding a payment method",
 		"payInvoice": "Failed to pay invoice",
 		"setDefaultPaymentMethod": "Failed to update default payment method",
-		"deletePaymentMethod": "Failed to remove payment method"
+		"deletePaymentMethod": "Failed to remove payment method",
+		"checkoutUnavailable": "Could not open the payment page. Please try again."
 	},
 	"toast": {
 		"invoiceDownloaded": "Invoice downloaded",

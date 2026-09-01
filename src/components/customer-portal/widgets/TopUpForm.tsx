@@ -108,6 +108,14 @@ const TopUpForm = ({ wallet, onDone, onActionUrl }: TopUpFormProps) => {
 				return;
 			}
 
+			// A checkout was requested, so a session with no action to follow means the
+			// hand-off is unavailable — reporting success would tell the customer their
+			// credits are coming when nothing has been paid.
+			if (response.checkout_session && !action?.url) {
+				toast.error(t('errors.checkoutUnavailable'));
+				return;
+			}
+
 			toast.success(t('topUp.successPending'));
 			setCredits('');
 			setDescription('');
@@ -125,7 +133,10 @@ const TopUpForm = ({ wallet, onDone, onActionUrl }: TopUpFormProps) => {
 	const isValid = credits !== '' && Number.isFinite(parsedCredits) && parsedCredits > 0;
 
 	const currencySymbol = getCurrencySymbol(wallet.currency ?? 'USD');
-	const conversionRate = Number(wallet.conversion_rate ?? 1) || 1;
+	// topup_conversion_rate, not conversion_rate: the backend prices a top-up with
+	// GetCurrencyAmountFromCredits(credits, w.TopupConversionRate), so using the
+	// spend rate here would quote an amount the customer is not actually charged.
+	const conversionRate = Number(wallet.topup_conversion_rate ?? wallet.conversion_rate ?? 1) || 1;
 	const chargeAmount = isValid ? formatMoney(parsedCredits * conversionRate) : null;
 
 	return (
