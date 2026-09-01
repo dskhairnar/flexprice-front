@@ -4,6 +4,7 @@ import usePortalWallet from '../usePortalWallet';
 import EmptyState from '../EmptyState';
 import AutoTopUpForm from './AutoTopUpForm';
 import useChargeableMethod from '../useChargeableMethod';
+import { Wallet } from 'lucide-react';
 
 interface AutoTopUpWidgetProps {
 	label?: string;
@@ -32,7 +33,7 @@ const AutoTopUpWidget = ({ label }: AutoTopUpWidgetProps) => {
 			<Card
 				className='rounded-xl p-5'
 				style={{ backgroundColor: 'var(--portal-surface, white)', border: '1px solid var(--portal-border, #E9E9E9)' }}>
-				<EmptyState title={t('wallet.emptyTitle')} description={t('wallet.emptyDescription')} />
+				<EmptyState icon={<Wallet />} title={t('wallet.emptyTitle')} description={t('wallet.emptyDescription')} />
 			</Card>
 		);
 	}

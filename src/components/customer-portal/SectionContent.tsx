@@ -11,9 +11,9 @@ import { DateRangePicker } from '@/components/atoms';
 import { usePortalConfig } from '@/context/PortalConfigContext';
 import TabRenderer, { DEFAULT_USAGE_GRAPH_CONFIG } from './TabRenderer';
 import EmptyState from './EmptyState';
-import useSectionLink from './useSectionLink';
 import { Card } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
+import { LayoutGrid } from 'lucide-react';
 
 interface SectionContentProps {
 	section: SectionConfig;
@@ -213,13 +213,6 @@ const SectionContent = ({ section }: SectionContentProps) => {
 		if (usageError) toast.error(t('errors.loadUsage'));
 	}, [usageError, t]);
 
-	// The only empty-state action the portal can actually honour: there is no
-	// usage-events tab type, so the trend and breakdown widgets explain the empty
-	// period instead of linking somewhere that does not exist. Resolves to
-	// undefined — and renders no action — when subscriptions are not configured or
-	// already are the open section.
-	const planLink = useSectionLink('subscriptions', t('usageWidgets.quotaEmptyAction', { ns: 'common' }));
-
 	// The section keeps its place in the tab bar whatever its tabs are configured
 	// to be — CustomerPortal only hides a section whose one data source came back
 	// empty — so returning null here left the customer clicking a tab that opened
@@ -229,7 +222,7 @@ const SectionContent = ({ section }: SectionContentProps) => {
 			<Card
 				className='rounded-xl p-6'
 				style={{ backgroundColor: 'var(--portal-surface, white)', border: '1px solid var(--portal-border, #E9E9E9)' }}>
-				<EmptyState title={t('section.emptyTitle')} description={t('section.emptyDescription')} />
+				<EmptyState icon={<LayoutGrid />} title={t('section.emptyTitle')} description={t('section.emptyDescription')} />
 			</Card>
 		);
 	}
@@ -259,14 +252,7 @@ const SectionContent = ({ section }: SectionContentProps) => {
 
 			{/* All widgets stacked vertically in config order */}
 			{enabledTabs.map((tab) => (
-				<TabRenderer
-					key={tab.id}
-					tab={tab}
-					subscriptions={subscriptions}
-					usageData={usageData}
-					analyticsParams={analyticsParams}
-					planLink={planLink}
-				/>
+				<TabRenderer key={tab.id} tab={tab} subscriptions={subscriptions} usageData={usageData} analyticsParams={analyticsParams} />
 			))}
 		</div>
 	);

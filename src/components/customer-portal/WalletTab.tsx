@@ -9,7 +9,7 @@ import { WalletTransactionsTable } from '@/components/molecules';
 import { WALLET_STATUS } from '@/models/Wallet';
 import { formatCredits, formatMoney } from '@/utils/common/formatBalance';
 import { getCurrencySymbol } from '@/utils/common/helper_functions';
-import { Wallet as WalletIcon } from 'lucide-react';
+import { ArrowLeftRight, Wallet, Wallet as WalletIcon } from 'lucide-react';
 import usePagination from '@/hooks/usePagination';
 
 const WalletTab = () => {
@@ -83,7 +83,7 @@ const WalletTab = () => {
 	if (!wallets || wallets.length === 0) {
 		return (
 			<Card className='bg-white border border-[#E9E9E9] rounded-xl p-6'>
-				<EmptyState title={t('wallet.emptyTitle')} description={t('wallet.emptyDescription')} />
+				<EmptyState icon={<Wallet />} title={t('wallet.emptyTitle')} description={t('wallet.emptyDescription')} />
 			</Card>
 		);
 	}
@@ -159,7 +159,11 @@ const WalletTab = () => {
 						<ShortPagination unit='transactions' totalItems={transactionsData.pagination?.total || 0} />
 					</>
 				) : (
-					<EmptyState title={t('wallet.noTransactionsTitle')} description={t('wallet.noTransactionsDescription')} />
+					<EmptyState
+						icon={<ArrowLeftRight />}
+						title={t('wallet.noTransactionsTitle')}
+						description={t('wallet.noTransactionsDescription')}
+					/>
 				)}
 			</Card>
 		</div>

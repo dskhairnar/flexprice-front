@@ -11,7 +11,7 @@ import { Invoice, INVOICE_STATUS } from '@/models/Invoice';
 import { PAYMENT_STATUS } from '@/constants/payment';
 import { formatDateShort, getCurrencySymbol } from '@/utils/common/helper_functions';
 import { formatAmount } from '@/components/atoms/Input/Input';
-import { CreditCard, Download, Eye, MoreHorizontal, Search } from 'lucide-react';
+import { CreditCard, Download, Eye, MoreHorizontal, Receipt, Search, SearchX } from 'lucide-react';
 import EmptyState from '../EmptyState';
 import { downloadInvoiceLineItemsCsv } from '@/utils/invoices/downloadInvoiceLineItemsCsv';
 import InvoiceDetailDrawer from './InvoiceDetailDrawer';
@@ -152,7 +152,7 @@ const InvoicesTable = ({
 			</table>
 			{invoices.length === 0 && (
 				<div className='py-8'>
-					<EmptyState title={t('invoices.noMatchTitle')} description={t('invoices.noMatchDescription')} />
+					<EmptyState icon={<SearchX />} title={t('invoices.noMatchTitle')} description={t('invoices.noMatchDescription')} />
 				</div>
 			)}
 		</div>
@@ -231,7 +231,7 @@ const InvoicesWidget = () => {
 			<Card
 				className='rounded-xl p-6'
 				style={{ backgroundColor: 'var(--portal-surface, white)', border: '1px solid var(--portal-border, #E9E9E9)' }}>
-				<EmptyState title={t('invoices.emptyTitle')} description={t('invoices.emptyDescription')} />
+				<EmptyState icon={<Receipt />} title={t('invoices.emptyTitle')} description={t('invoices.emptyDescription')} />
 			</Card>
 		);
 	}

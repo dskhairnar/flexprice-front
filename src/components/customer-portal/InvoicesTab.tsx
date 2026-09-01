@@ -10,7 +10,7 @@ import { Invoice, INVOICE_STATUS } from '@/models/Invoice';
 import { PAYMENT_STATUS } from '@/constants/payment';
 import { formatDateShort, getCurrencySymbol } from '@/utils/common/helper_functions';
 import { formatAmount } from '@/components/atoms/Input/Input';
-import { Download, Loader2, Search } from 'lucide-react';
+import { Download, Loader2, Receipt, Search, SearchX } from 'lucide-react';
 import { Input } from '@/components/ui';
 import EmptyState from './EmptyState';
 import { downloadInvoiceLineItemsCsv } from '@/utils/invoices/downloadInvoiceLineItemsCsv';
@@ -140,7 +140,7 @@ const InvoicesTab = () => {
 	if (invoices.length === 0) {
 		return (
 			<Card className='bg-white border border-[#E9E9E9] rounded-xl p-6'>
-				<EmptyState title={t('invoices.emptyTitle')} description={t('invoices.emptyDescription')} />
+				<EmptyState icon={<Receipt />} title={t('invoices.emptyTitle')} description={t('invoices.emptyDescription')} />
 			</Card>
 		);
 	}
@@ -279,7 +279,7 @@ const InvoicesTab = () => {
 
 				{filteredInvoices.length === 0 && (
 					<div className='py-8'>
-						<EmptyState title={t('invoices.noMatchTitle')} description={t('invoices.noMatchDescription')} />
+						<EmptyState icon={<SearchX />} title={t('invoices.noMatchTitle')} description={t('invoices.noMatchDescription')} />
 					</div>
 				)}
 			</Card>
