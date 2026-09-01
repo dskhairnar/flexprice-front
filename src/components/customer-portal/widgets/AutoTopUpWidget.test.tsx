@@ -162,6 +162,27 @@ describe('AutoTopUpWidget', () => {
 	});
 
 	// Omitting cooldown leaves a stored one in place; value 0 is what clears it.
+	// With the toggle on and the field empty the payload sends cooldown: null,
+	// silently clearing the cool-off while the switch still reads as on — so Save
+	// is blocked rather than quietly discarding the setting.
+	it('blocks saving a cool-off that is enabled but has no value', async () => {
+		vi.mocked(CustomerPortalApi.getWallets).mockResolvedValue([CONFIGURED] as never);
+		vi.mocked(CustomerPortalApi.getPaymentMethods).mockResolvedValue({
+			providers: [{ provider: 'chargebee', items: [{ id: 'pm_1', provider: 'chargebee', status: 'ACTIVE', can_auto_charge: true }] }],
+		} as never);
+
+		renderWidget();
+		// Enabled and valid to begin with, so a disabled Save is attributable to the
+		// cool-off alone rather than to a missing card or threshold.
+		await waitFor(() => expect(screen.getByRole('button', { name: /save settings/i })).toBeEnabled());
+
+		// Turning the cool-off on leaves its duration empty, which is exactly the
+		// state that used to save a null cool-off under an on switch.
+		await userEvent.click(screen.getByRole('switch', { name: /wait before the next auto top-up/i }));
+
+		await waitFor(() => expect(screen.getByRole('button', { name: /save settings/i })).toBeDisabled());
+	});
+
 	it('clears a cooloff by sending null rather than omitting the field', async () => {
 		vi.mocked(CustomerPortalApi.getWallets).mockResolvedValue([CONFIGURED] as never);
 		vi.mocked(CustomerPortalApi.getPaymentMethods).mockResolvedValue({

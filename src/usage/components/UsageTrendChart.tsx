@@ -9,6 +9,7 @@ import { cn } from '@/lib/utils';
 import { formatCredits } from '@/utils/common/formatBalance';
 import { LineChart } from 'lucide-react';
 import EmptyState from '@/components/atoms/EmptyState/EmptyState';
+import { useTranslation } from 'react-i18next';
 import { useUsageT } from '../i18n';
 import { normalizeUsageTrendSeries } from '../schema';
 import type { UsageTrendChartProps } from '../types';
@@ -32,6 +33,11 @@ import type { UsageTrendChartProps } from '../types';
 const UsageTrendChart = ({ series: rawSeries, label, isLoading = false, className, periodLabel, emptyAction }: UsageTrendChartProps) => {
 	const series = useMemo(() => normalizeUsageTrendSeries(rawSeries), [rawSeries]);
 	const t = useUsageT();
+	// The caption's words come from i18next but its date came from the browser
+	// locale, so the two could disagree — an Arabic label above an en-US date.
+	// Optional throughout: a consumer app may have no i18next provider at all.
+	const { i18n } = useTranslation();
+	const locale = i18n?.resolvedLanguage || i18n?.language || undefined;
 
 	const chartData: GetUsageAnalyticsResponse = useMemo(
 		() => ({
@@ -58,9 +64,8 @@ const UsageTrendChart = ({ series: rawSeries, label, isLoading = false, classNam
 		points.length === 1
 			? t('usageWidgets.singlePointLabel', {
 					// Not formatDateShort: it pins 'en-US', so this caption rendered an
-					// English date inside the Arabic portal. Passing undefined defers to
-					// the runtime locale without wiring host i18n into the package.
-					date: new Date(points[0].timestamp).toLocaleDateString(undefined, {
+					// English date inside the Arabic portal.
+					date: new Date(points[0].timestamp).toLocaleDateString(locale, {
 						month: 'short',
 						day: 'numeric',
 						year: 'numeric',

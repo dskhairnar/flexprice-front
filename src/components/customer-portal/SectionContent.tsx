@@ -2,7 +2,7 @@ import { useState, useMemo, useCallback, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import toast from 'react-hot-toast';
-import { endOfDay, startOfDay, subDays } from 'date-fns';
+import { startOfDay, subDays } from 'date-fns';
 import CustomerPortalApi from '@/api/CustomerPortalApi';
 import { SectionConfig, TabConfig, DatePreset, UsageGraphConfig } from '@/types/dto/PortalConfig';
 import { DashboardAnalyticsRequest } from '@/types';
@@ -18,6 +18,8 @@ import { LayoutGrid } from 'lucide-react';
 interface SectionContentProps {
 	section: SectionConfig;
 }
+
+const DAY_MS = 24 * 60 * 60 * 1000;
 
 // ─── Date Range Calculator ────────────────────────────────────────────────────
 
@@ -60,6 +62,9 @@ interface SectionDateFilterProps {
 	/** Effective range to show in date pickers (preset range or custom); keeps pickers in sync with preset */
 	effectiveStart: string;
 	effectiveEnd: string;
+	/** The custom range as typed so far — takes over the picker once a start is chosen. */
+	draftStart: string;
+	draftEnd: string;
 	hasTheme: boolean;
 	getPresetLabel: (preset: DatePreset) => string;
 	startPlaceholder: string;
@@ -74,6 +79,8 @@ const SectionDateFilter = ({
 	selectedPreset,
 	useCustom,
 	effectiveStart,
+	draftStart,
+	draftEnd,
 	effectiveEnd,
 	hasTheme,
 	getPresetLabel,
@@ -118,12 +125,21 @@ const SectionDateFilter = ({
 		</div>
 		{usageGraphConfig.allow_custom_date_range && (
 			<DateRangePicker
-				startDate={effectiveStart ? new Date(effectiveStart) : undefined}
-				endDate={effectiveEnd ? new Date(effectiveEnd) : undefined}
+				// The draft wins while a custom range is half-chosen. The first click sends
+				// a start with no end, which leaves the effective range on the preset — so
+				// feeding the preset back as the controlled value threw the first date away
+				// and the customer could never complete a selection.
+				startDate={draftStart ? new Date(draftStart) : effectiveStart ? new Date(effectiveStart) : undefined}
+				endDate={draftStart ? (draftEnd ? new Date(draftEnd) : undefined) : effectiveEnd ? new Date(effectiveEnd) : undefined}
 				placeholder={`${startPlaceholder} – ${endPlaceholder}`}
 				onChange={({ startDate, endDate }) => {
-					onCustomStartChange(startDate ? startOfDay(startDate).toISOString() : '');
-					onCustomEndChange(endDate ? endOfDay(endDate).toISOString() : '');
+					// Passed through rather than re-normalised: the picker has a UTC toggle
+					// and already hands back day boundaries in its own timezone, so applying
+					// the browser's startOfDay/endOfDay on top shifted the window by the UTC
+					// offset for anyone not on UTC. The end is extended to the last instant
+					// of that same day, which holds in either timezone.
+					onCustomStartChange(startDate ? startDate.toISOString() : '');
+					onCustomEndChange(endDate ? new Date(endDate.getTime() + DAY_MS - 1).toISOString() : '');
 				}}
 				className='w-auto'
 				popoverTriggerClassName={`[&_button]:h-9 [&_button]:text-xs [&_button]:rounded-md${hasTheme ? ' [&_button]:bg-[var(--portal-surface)] [&_button]:border-[var(--portal-border)] [&_button]:text-[var(--portal-text-primary)]' : ''}`}
@@ -165,16 +181,21 @@ const SectionContent = ({ section }: SectionContentProps) => {
 	const handlePresetClick = useCallback((preset: DatePreset) => {
 		setSelectedPreset(preset);
 		setUseCustom(false);
+		// Dropped, or the stale draft would take the picker over again on reopen.
+		setCustomStart('');
+		setCustomEnd('');
 	}, []);
 
+	// useCustom follows the start alone. Keying it off each field meant the empty
+	// end that arrives with the first click switched custom mode straight back off.
 	const handleCustomStart = useCallback((val: string) => {
 		setCustomStart(val);
 		setUseCustom(!!val);
+		if (!val) setCustomEnd('');
 	}, []);
 
 	const handleCustomEnd = useCallback((val: string) => {
 		setCustomEnd(val);
-		setUseCustom(!!val);
 	}, []);
 
 	// Effective range: preset when a preset is selected, custom when user picked dates (used for analytics + date picker display)
@@ -240,6 +261,8 @@ const SectionContent = ({ section }: SectionContentProps) => {
 					useCustom={useCustom}
 					effectiveStart={effectiveRange.start_time}
 					effectiveEnd={effectiveRange.end_time}
+					draftStart={customStart}
+					draftEnd={customEnd}
 					hasTheme={hasTheme}
 					getPresetLabel={(preset) => t(`datePreset.${preset}`)}
 					startPlaceholder={t('datePicker.startDate')}

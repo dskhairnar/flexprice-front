@@ -48,7 +48,11 @@ const AccountSummaryWidget = ({ label }: AccountSummaryWidgetProps) => {
 	// Pages rather than reading the first 100: amount due is a headline figure, and
 	// a customer with more invoices than one page would be shown less than they owe.
 	// Bounded so a large history cannot spin the portal.
-	const { data: invoicesData, isLoading: invoicesLoading } = useQuery({
+	const {
+		data: invoicesData,
+		isLoading: invoicesLoading,
+		isError: invoicesError,
+	} = useQuery({
 		queryKey: ['portal-invoices-all'],
 		queryFn: async () => {
 			const pageSize = 100;
@@ -92,9 +96,13 @@ const AccountSummaryWidget = ({ label }: AccountSummaryWidgetProps) => {
 	const symbol = getCurrencySymbol(currency);
 
 	// Only finalized, unsettled invoices count as owed — drafts and voided ones do not.
-	const amountDue = (invoicesData?.items ?? [])
-		.filter((inv) => inv.invoice_status === INVOICE_STATUS.FINALIZED && inv.payment_status !== PAYMENT_STATUS.SUCCEEDED)
-		.reduce((sum, inv) => sum + (inv.amount_remaining ?? 0), 0);
+	// null when the query failed: an empty fallback list reduces to zero, and telling
+	// a customer they owe nothing because a request failed is worse than saying so.
+	const amountDue = invoicesError
+		? null
+		: (invoicesData?.items ?? [])
+				.filter((inv) => inv.invoice_status === INVOICE_STATUS.FINALIZED && inv.payment_status !== PAYMENT_STATUS.SUCCEEDED)
+				.reduce((sum, inv) => sum + (inv.amount_remaining ?? 0), 0);
 
 	const activeSubscription = (subscriptionsData?.items ?? []).find((s) => s.subscription_status === SUBSCRIPTION_STATUS.ACTIVE);
 
@@ -121,8 +129,8 @@ const AccountSummaryWidget = ({ label }: AccountSummaryWidgetProps) => {
 					)}
 					<Stat
 						label={t('accountSummary.amountDue')}
-						value={`${symbol}${formatMoney(amountDue)}`}
-						tone={amountDue > 0 ? 'danger' : 'default'}
+						value={amountDue === null ? '—' : `${symbol}${formatMoney(amountDue)}`}
+						tone={amountDue !== null && amountDue > 0 ? 'danger' : 'default'}
 					/>
 					<Stat
 						label={t('accountSummary.nextBilling')}
