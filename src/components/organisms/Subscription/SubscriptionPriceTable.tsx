@@ -23,6 +23,7 @@ import { resolveBucketSize } from '@/utils/common/commitment_helpers';
 import { formatAmount } from '@/components/atoms/Input/Input';
 import { BILLING_PERIOD, BUCKET_SIZE_NONE } from '@/constants/constants';
 import { isCadenceCompatible } from '@/utils/subscription/cadenceCompatibility';
+import { isOneTimePlanPrice } from '@/utils/subscription/planPricesForSubscriptionUi';
 import { useTranslation } from 'react-i18next';
 
 const DEFAULT_ROW_LIMIT = 5;
