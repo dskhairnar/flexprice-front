@@ -11,7 +11,11 @@ import type { CustomAnalyticItem } from '@/types/dto/Events';
 import { adaptMetricCards } from '../adapters';
 import MetricCards from '../components/MetricCards';
 
-const DEFAULT_CONFIG: MetricCardsConfig = { show_custom_metrics: true, show_revenue_metric: true, show_cost_metrics: true };
+// show_cost_metrics is off by default: it renders Cost, Margin and Margin %,
+// which are the tenant's cost to serve and their profit on this customer. Those
+// are not the customer's numbers to see, so a portal must opt in deliberately
+// rather than leak them by omission.
+const DEFAULT_CONFIG: MetricCardsConfig = { show_custom_metrics: true, show_revenue_metric: true, show_cost_metrics: false };
 
 interface MetricCardsContainerProps {
 	analyticsParams: DashboardAnalyticsRequest;

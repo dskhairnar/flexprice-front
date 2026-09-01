@@ -58,6 +58,17 @@ describe('deepMergePortalConfig', () => {
 		expect(merged.sections.find((s) => s.id === 'payment_methods')?.enabled).toBe(false);
 	});
 
+	// Cost and Margin are the tenant's cost to serve and their profit on this
+	// customer. A portal must opt in deliberately rather than leak them by default.
+	it('does not enable cost and margin cards by default', () => {
+		const metricTabs = DEFAULT_PORTAL_CONFIG.sections.flatMap((section) => section.tabs).filter((tab) => tab.type === 'metric_cards');
+
+		expect(metricTabs.length).toBeGreaterThan(0);
+		for (const tab of metricTabs) {
+			expect(tab.metric_cards?.show_cost_metrics).toBe(false);
+		}
+	});
+
 	it('falls back to defaults when the tenant has no sections', () => {
 		const merged = deepMergePortalConfig(DEFAULT_PORTAL_CONFIG, {});
 		expect(merged.sections).toEqual(DEFAULT_PORTAL_CONFIG.sections);

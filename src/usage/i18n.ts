@@ -11,7 +11,7 @@ const EN_USAGE_WIDGETS = {
 	quotaTitle: 'Usage Quota',
 	unknownFeature: 'Unknown Feature',
 	unlimited: 'Unlimited',
-	revenue: 'Revenue',
+	revenue: 'Total spend',
 	cost: 'Cost',
 	margin: 'Margin',
 	marginPercent: 'Margin %',

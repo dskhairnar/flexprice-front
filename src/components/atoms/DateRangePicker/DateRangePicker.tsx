@@ -122,6 +122,11 @@ const DateRangePicker = ({
 									? 'text-muted-foreground opacity-70 hover:text-muted-foreground'
 									: 'text-content-black',
 								!className && (selectedRange?.from && selectedRange?.to ? 'w-[260px]' : 'w-[240px]'),
+								// The clear affordance is absolutely positioned over this button, so
+								// the label must reserve room for it. Without this a caller that sizes
+								// to content — the portal passes w-auto — renders the X on top of the
+								// last characters of the range.
+								selectedRange?.from && selectedRange?.to && 'pe-8',
 								'transition-all duration-300 ease-in-out',
 								className,
 							)}>
@@ -130,7 +135,7 @@ const DateRangePicker = ({
 						</Button>
 						{selectedRange?.from && selectedRange?.to && (
 							<X
-								className='ms-2 h-4 w-4 absolute right-2 top-[12px] cursor-pointer'
+								className='h-4 w-4 absolute end-2 top-[12px] cursor-pointer'
 								onClick={(e) => {
 									e.stopPropagation();
 									setSelectedRange(undefined);

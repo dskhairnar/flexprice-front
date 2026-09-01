@@ -59,8 +59,10 @@ export type TabType =
 /**
  * Controls which sub-groups appear inside the metric_cards widget.
  *   show_custom_metrics  → cards from revenue analytics custom_analytics[]
- *   show_revenue_metric  → Revenue card from cost analytics API
- *   show_cost_metrics    → Cost / Margin / Margin % cards from cost analytics API
+ *   show_revenue_metric  → the customer's total spend, from the cost analytics API
+ *   show_cost_metrics    → Cost / Margin / Margin % — the TENANT's cost to serve and
+ *                          their profit on this customer. Off by default: these are
+ *                          not the customer's numbers to see.
  * If the field is absent in the stored config, all default to true.
  */
 export interface MetricCardsConfig {
@@ -130,7 +132,7 @@ export const DEFAULT_PORTAL_CONFIG: PortalConfig = {
 					type: 'metric_cards',
 					enabled: true,
 					order: 1,
-					metric_cards: { show_custom_metrics: true, show_revenue_metric: true, show_cost_metrics: true },
+					metric_cards: { show_custom_metrics: true, show_revenue_metric: true, show_cost_metrics: false },
 				},
 				{
 					id: '2',

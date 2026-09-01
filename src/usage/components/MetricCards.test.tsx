@@ -13,7 +13,7 @@ describe('MetricCards', () => {
 				]}
 			/>,
 		);
-		expect(screen.getByText('Revenue')).toBeInTheDocument();
+		expect(screen.getByText('Total spend')).toBeInTheDocument();
 		expect(screen.getByText('Active Calls')).toBeInTheDocument();
 	});
 
