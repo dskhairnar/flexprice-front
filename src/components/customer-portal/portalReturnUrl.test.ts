@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { portalReturnUrl, rememberSessionToken, recallSessionToken } from './portalReturnUrl';
+import { portalReturnUrl, rememberSessionToken, recallSessionToken, forgetSessionToken } from './portalReturnUrl';
 
 const setUrl = (href: string) => {
 	Object.defineProperty(window, 'location', { configurable: true, value: new URL(href) });
@@ -8,7 +8,7 @@ const setUrl = (href: string) => {
 describe('portalReturnUrl', () => {
 	const original = window.location;
 
-	beforeEach(() => sessionStorage.clear());
+	beforeEach(() => localStorage.clear());
 	afterEach(() => Object.defineProperty(window, 'location', { configurable: true, value: original }));
 
 	// The token authenticates the portal session. Handing it to a payment provider
@@ -25,9 +25,18 @@ describe('portalReturnUrl', () => {
 		expect(portalReturnUrl()).toContain('tab=credits');
 	});
 
-	it('round-trips the token through session storage', () => {
+	// localStorage, not sessionStorage: the provider tab is opened with noopener,
+	// so it inherits no session storage and the return would find no token at all.
+	it('round-trips the token across browsing contexts', () => {
 		rememberSessionToken('tok_123');
 		expect(recallSessionToken()).toBe('tok_123');
+		expect(localStorage.getItem('flexprice.portal.sessionToken')).toBe('tok_123');
+	});
+
+	it('forgets the token on request', () => {
+		rememberSessionToken('tok_123');
+		forgetSessionToken();
+		expect(recallSessionToken()).toBeNull();
 	});
 
 	it('returns null when nothing was stored', () => {

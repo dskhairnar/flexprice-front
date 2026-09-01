@@ -126,15 +126,23 @@ const TopUpForm = ({ wallet, onDone, onActionUrl }: TopUpFormProps) => {
 				return;
 			}
 
-			// A checkout was requested, so a session with no action to follow means the
-			// hand-off is unavailable — reporting success would tell the customer their
-			// credits are coming when nothing has been paid.
-			if (response.checkout_session && !action?.url) {
-				toast.error(t('errors.checkoutUnavailable'));
+			// No action to follow is not automatically a failure: use_saved_method
+			// charges the card outright, and the session comes back completed with
+			// nothing to redirect to. Read the status rather than inferring from the
+			// absent action — treating that as an error rejected a payment that had
+			// already succeeded.
+			const status = response.checkout_session?.checkout_status;
+			if (status === 'failed' || status === 'expired') {
+				toast.error(response.checkout_session?.failure_reason || t('errors.checkoutUnavailable'));
 				return;
 			}
-
-			toast.success(t('topUp.successPending'));
+			if (response.checkout_session && !action?.url && status !== 'completed') {
+				// Still settling and nowhere to send them: the wallet updates on the
+				// webhook, so say it is in flight rather than claiming either outcome.
+				toast.success(t('topUp.successPending'));
+			} else {
+				toast.success(status === 'completed' ? t('topUp.paid') : t('topUp.successPending'));
+			}
 			setCredits('');
 			setDescription('');
 			setIdempotencyKey(crypto.randomUUID());

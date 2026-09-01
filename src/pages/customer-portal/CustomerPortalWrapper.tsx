@@ -61,9 +61,10 @@ const CustomerPortalWrapper = () => {
 	useForceLightTheme();
 	const { t } = useTranslation('customer-portal');
 	const [searchParams] = useSearchParams();
-	// Falls back to session storage so a customer returning from a hosted checkout
+	// Falls back to stored state so a customer returning from a hosted checkout
 	// still authenticates: the return URL deliberately omits the token rather than
-	// handing the session to the payment provider.
+	// handing the session to the payment provider. The provider opens in a fresh
+	// tab, so the store has to outlive this one — see portalReturnUrl.
 	const urlToken = searchParams.get('token');
 	const token = urlToken ?? recallSessionToken();
 
