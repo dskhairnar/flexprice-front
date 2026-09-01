@@ -176,7 +176,7 @@
 	},
 	"topUp": {
 		"title": "إضافة أرصدة",
-		"description": "اشحن رصيدك. سيتم نقلك إلى صفحة دفع آمنة لإتمام العملية.",
+		"description": "اشحن رصيدك باستخدام خيارات الدفع المتاحة في حسابك.",
 		"creditsLabel": "الأرصدة",
 		"creditsPlaceholder": "أدخل المبلغ",
 		"chargeSummary": "سيتم خصم {{amount}}",
@@ -259,7 +259,7 @@
 		"unsupportedDescription": "لا يوجد مزوّد دفع في هذا الحساب يدعم البطاقات المحفوظة.",
 		"rowActions": "إجراءات {{method}}",
 		"alreadyDefault": "هذه بطاقتك الافتراضية بالفعل.",
-		"setDefaultUnsupported": "مزوّد الدفع لديك لا يدعم بطاقة افتراضية.",
+		"setDefaultUnsupported": "مزوّد الدفع لديك لا يدعم تعيين بطاقة كطريقة دفع افتراضية.",
 		"expiredCannotDefault": "لا يمكن تعيين بطاقة منتهية كافتراضية."
 	},
 	"invoiceDetail": {

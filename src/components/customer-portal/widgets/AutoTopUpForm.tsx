@@ -69,7 +69,11 @@ const AutoTopUpForm = ({ wallet, hasChargeableMethod, onAddPaymentMethod, onDone
 	// Both are required by the API whenever auto top-up is on. Enabling it without a
 	// chargeable method saves a config that can never fire — a trap rather than a
 	// setting — so the save is blocked, not just warned about.
-	const isValid = !enabled || (Number(threshold) > 0 && Number(amount) > 0 && hasChargeableMethod);
+	// The cool-off clause matters: with the toggle on and the field empty the
+	// payload sends cooldown: null, silently clearing the cool-off while the
+	// switch still reads as on. Blocking Save is the honest response.
+	const hasValidCooloff = !cooldownEnabled || Number(cooldownValue) > 0;
+	const isValid = (!enabled || (Number(threshold) > 0 && Number(amount) > 0 && hasChargeableMethod)) && hasValidCooloff;
 	const currencySymbol = getCurrencySymbol(wallet.currency ?? 'USD');
 
 	return (
