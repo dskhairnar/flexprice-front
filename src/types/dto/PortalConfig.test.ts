@@ -74,3 +74,59 @@ describe('deepMergePortalConfig', () => {
 		expect(merged.sections).toEqual(DEFAULT_PORTAL_CONFIG.sections);
 	});
 });
+
+describe('Overview carries no analytics', () => {
+	const overviewTabs = (config: PortalConfig) => config.sections.find((section) => section.id === 'overview')?.tabs ?? [];
+
+	// Overview summarises account state; Usage is the analytics page. Any analytics
+	// tab in Overview also renders the section's date filter, so a stored config
+	// from before that split opened the summary on a chart and a timeline picker
+	// duplicating the Usage tab.
+	it('drops a usage trend a stored config left in Overview', () => {
+		const merged = deepMergePortalConfig(DEFAULT_PORTAL_CONFIG, {
+			sections: [
+				{
+					id: 'overview',
+					label: 'Overview',
+					enabled: true,
+					order: 1,
+					tabs: [
+						{ id: '14', type: 'account_summary', enabled: true, order: 1 },
+						{ id: '20', type: 'usage_graph', enabled: true, order: 2 },
+						{ id: '21', type: 'metric_cards', enabled: true, order: 3 },
+						{ id: '22', type: 'usage_breakdown', enabled: true, order: 4 },
+						{ id: '9', type: 'subscriptions', enabled: true, order: 5 },
+					],
+				},
+			],
+		});
+
+		expect(overviewTabs(merged).map((tab) => tab.type)).toEqual(['account_summary', 'subscriptions']);
+	});
+
+	// The rule is about Overview only — Usage is where analytics belong.
+	it('leaves the Usage section untouched', () => {
+		const merged = deepMergePortalConfig(DEFAULT_PORTAL_CONFIG, {});
+		const usage = merged.sections.find((section) => section.id === 'usage');
+		expect(usage?.tabs.map((tab) => tab.type)).toContain('usage_graph');
+	});
+
+	// Stripping every tab would leave the customer clicking Overview and landing on
+	// an empty page, so such a config falls back to the default summary.
+	it('falls back to the default tabs when Overview held nothing else', () => {
+		const merged = deepMergePortalConfig(DEFAULT_PORTAL_CONFIG, {
+			sections: [
+				{ id: 'overview', label: 'Overview', enabled: true, order: 1, tabs: [{ id: '20', type: 'usage_graph', enabled: true, order: 1 }] },
+			],
+		});
+
+		expect(overviewTabs(merged).map((tab) => tab.type)).toEqual(['account_summary', 'subscriptions', 'current_usage']);
+	});
+
+	it('has no analytics in the shipped defaults either', () => {
+		const types = DEFAULT_PORTAL_CONFIG.sections.find((section) => section.id === 'overview')!.tabs.map((tab) => tab.type);
+		expect(types).not.toContain('usage_graph');
+		expect(types).not.toContain('metric_cards');
+		expect(types).not.toContain('usage_breakdown');
+	});
+});
