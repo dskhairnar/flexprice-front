@@ -141,9 +141,37 @@ describe('TopUpWidget', () => {
 		expect(await screen.findByText(/You'll be charged \$30\.00/)).toBeInTheDocument();
 	});
 
-	// A checkout was asked for, so a session with nothing to follow is a failed
-	// hand-off — telling the customer credits are coming would be a lie.
-	it('reports an error when a checkout session comes back with no action', async () => {
+	// use_saved_method charges the card outright: the session comes back completed
+	// with nothing to redirect to. Treating an absent action as failure rejected a
+	// payment that had already gone through.
+	it('reports success when a saved-card charge settles with no redirect', async () => {
+		vi.mocked(CustomerPortalApi.topUpWallet).mockResolvedValue({
+			checkout_session: { id: 'cs_1', checkout_status: 'completed' },
+		} as never);
+
+		renderWidget();
+		await enterCredits('10');
+		await userEvent.click(screen.getByRole('button', { name: /pay now/i }));
+
+		await waitFor(() => expect(toast.success).toHaveBeenCalled());
+		expect(toast.error).not.toHaveBeenCalled();
+	});
+
+	it('reports the gateway reason when the session failed', async () => {
+		vi.mocked(CustomerPortalApi.topUpWallet).mockResolvedValue({
+			checkout_session: { id: 'cs_1', checkout_status: 'failed', failure_reason: 'card declined' },
+		} as never);
+
+		renderWidget();
+		await enterCredits('10');
+		await userEvent.click(screen.getByRole('button', { name: /pay now/i }));
+
+		await waitFor(() => expect(toast.error).toHaveBeenCalledWith('card declined'));
+	});
+
+	// Still settling with nowhere to send them: the wallet updates on the webhook,
+	// so neither outcome may be claimed.
+	it('reports a pending session as in flight, not as a failure', async () => {
 		vi.mocked(CustomerPortalApi.topUpWallet).mockResolvedValue({
 			checkout_session: { id: 'cs_1', checkout_status: 'pending' },
 		} as never);
@@ -152,8 +180,8 @@ describe('TopUpWidget', () => {
 		await enterCredits('10');
 		await userEvent.click(screen.getByRole('button', { name: /pay now/i }));
 
-		await waitFor(() => expect(toast.error).toHaveBeenCalled());
-		expect(toast.success).not.toHaveBeenCalled();
+		await waitFor(() => expect(toast.success).toHaveBeenCalled());
+		expect(toast.error).not.toHaveBeenCalled();
 	});
 
 	// The saved-card option stays visible but disabled when nothing can use it, so

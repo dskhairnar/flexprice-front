@@ -239,7 +239,7 @@ const PaymentMethodsWidget = ({ label }: PaymentMethodsWidgetProps) => {
 
 	return (
 		<Card className='rounded-xl p-5' style={cardStyle}>
-			<CheckoutLinkDialog url={setupUrl} onOpenChange={(open) => !open && setSetupUrl(null)} />
+			<CheckoutLinkDialog url={setupUrl} purpose='setup' onOpenChange={(open) => !open && setSetupUrl(null)} />
 			<Dialog
 				isOpen={pendingDelete !== null}
 				onOpenChange={(open) => !open && setPendingDelete(null)}

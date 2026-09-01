@@ -7,6 +7,11 @@ import { openPaymentUrl } from '@/utils/common/openPaymentUrl';
 interface CheckoutLinkDialogProps {
 	url: string | null;
 	onOpenChange: (open: boolean) => void;
+	/**
+	 * What the link leads to. Adding a card is not a payment, and telling a
+	 * customer to "complete your payment" when no money is involved is wrong.
+	 */
+	purpose?: 'payment' | 'setup';
 }
 
 /**
@@ -16,7 +21,7 @@ interface CheckoutLinkDialogProps {
  * is blocked, in which case the customer would be stranded with no way to pay.
  * Showing the URL leaves them a link they can open or copy by hand.
  */
-const CheckoutLinkDialog = ({ url, onOpenChange }: CheckoutLinkDialogProps) => {
+const CheckoutLinkDialog = ({ url, onOpenChange, purpose = 'payment' }: CheckoutLinkDialogProps) => {
 	const { t } = useTranslation('customer-portal');
 
 	const copy = async () => {
@@ -30,7 +35,11 @@ const CheckoutLinkDialog = ({ url, onOpenChange }: CheckoutLinkDialogProps) => {
 	};
 
 	return (
-		<Dialog isOpen={url !== null} onOpenChange={onOpenChange} title={t('checkoutLink.title')} description={t('checkoutLink.description')}>
+		<Dialog
+			isOpen={url !== null}
+			onOpenChange={onOpenChange}
+			title={t(`checkoutLink.${purpose}Title`)}
+			description={t(`checkoutLink.${purpose}Description`)}>
 			{url && (
 				<div className='space-y-3'>
 					<p
@@ -40,7 +49,7 @@ const CheckoutLinkDialog = ({ url, onOpenChange }: CheckoutLinkDialogProps) => {
 					</p>
 					<div className='flex items-center gap-2'>
 						<Button onClick={() => openPaymentUrl(url)} prefixIcon={<ExternalLink />}>
-							{t('checkoutLink.open')}
+							{t(`checkoutLink.${purpose}Open`)}
 						</Button>
 						<Button variant='outline' onClick={copy} prefixIcon={<Copy />}>
 							{t('checkoutLink.copy')}

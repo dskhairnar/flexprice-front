@@ -192,7 +192,8 @@
 		"savedMethodNone": "No saved card yet — add one from the Payments tab.",
 		"cardSavedNotice": "Your card is securely saved for future payments.",
 		"providerLabel": "Payment provider",
-		"providerHint": "Choose which provider to complete this payment with."
+		"providerHint": "Choose which provider to complete this payment with.",
+		"paid": "Payment complete — your credits have been added."
 	},
 	"autoTopUp": {
 		"title": "Auto top-up",
@@ -283,12 +284,15 @@
 		"nextBilling": "Next billing"
 	},
 	"checkoutLink": {
-		"title": "Complete your payment",
-		"description": "If the payment page didn't open, use the link below.",
-		"open": "Open payment page",
 		"copy": "Copy link",
 		"copied": "Link copied",
-		"copyFailed": "Could not copy the link"
+		"copyFailed": "Could not copy the link",
+		"paymentTitle": "Complete your payment",
+		"paymentDescription": "If the payment page didn't open, use the link below.",
+		"paymentOpen": "Open payment page",
+		"setupTitle": "Add your card",
+		"setupDescription": "If the secure card form didn't open, use the link below.",
+		"setupOpen": "Open card form"
 	},
 	"checkoutReturn": {
 		"completed": "Payment complete — your balance has been updated.",

@@ -5,24 +5,37 @@ const TOKEN_PARAM = 'token';
 const TOKEN_STORAGE_KEY = 'flexprice.portal.sessionToken';
 
 /**
- * Remember the session token for the rest of this tab's life.
+ * Remember the session token so a return trip can restore it.
  *
- * The token arrives as a query parameter, which is fine for the first load but
- * cannot be handed to a payment provider as a return URL — see returnUrl below.
- * Session storage is tab-scoped and no more exposed than the URL already is.
+ * localStorage, not sessionStorage: the provider is opened with
+ * `noopener,noreferrer`, which starts a fresh browsing context that inherits no
+ * session storage, and the customer is redirected back into *that* tab. A
+ * tab-scoped token left the return landing with neither a URL token nor a stored
+ * one, which the portal reads as an invalid link.
+ *
+ * Same-origin and no more exposed than the URL the token already arrives in.
  */
 export const rememberSessionToken = (token: string) => {
 	try {
-		sessionStorage.setItem(TOKEN_STORAGE_KEY, token);
+		localStorage.setItem(TOKEN_STORAGE_KEY, token);
 	} catch {
 		// Blocked storage: the customer keeps the URL token and simply loses the
 		// ability to return from a hosted checkout.
 	}
 };
 
+/** Dropped once the session is no longer usable, so a stale token is not replayed. */
+export const forgetSessionToken = () => {
+	try {
+		localStorage.removeItem(TOKEN_STORAGE_KEY);
+	} catch {
+		/* nothing to clear */
+	}
+};
+
 export const recallSessionToken = (): string | null => {
 	try {
-		return sessionStorage.getItem(TOKEN_STORAGE_KEY);
+		return localStorage.getItem(TOKEN_STORAGE_KEY);
 	} catch {
 		return null;
 	}
