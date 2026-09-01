@@ -5,7 +5,7 @@ import toast from 'react-hot-toast';
 import CustomerPortalApi from '@/api/CustomerPortalApi';
 import { portalReturnUrl } from '../portalReturnUrl';
 import { openPaymentUrl } from '@/utils/common/openPaymentUrl';
-import { Button, Input, Select, Toggle } from '@/components/atoms';
+import { Button, Input, Toggle } from '@/components/atoms';
 import { refetchPortalQueries } from '../refetchPortalQueries';
 import { getCurrencySymbol } from '@/utils/common/helper_functions';
 import { formatMoney } from '@/utils/common/formatBalance';
@@ -187,14 +187,41 @@ const TopUpForm = ({ wallet, onDone, onActionUrl }: TopUpFormProps) => {
 			/>
 
 			{canCheckout && checkoutProviders.length > 1 && (
-				<Select
-					label={t('topUp.providerLabel')}
-					description={t('topUp.providerHint')}
-					value={effectiveProvider ?? ''}
-					onChange={(value) => setSelectedProvider(value as PaymentGatewayType)}
-					options={checkoutProviders.map((p: PaymentGatewayType) => ({ value: p, label: t(`paymentProviders.${p}`) }))}
-					disabled={isPending}
-				/>
+				<div>
+					<p className='text-sm font-medium mb-1' style={{ color: 'var(--portal-text-primary, #09090b)' }}>
+						{t('topUp.providerLabel')}
+					</p>
+					{/* Inline rather than a Select: a Radix Select portals its list outside
+					    the dialog, and this dialog is modal={false}, so choosing an option
+					    reads as an outside click to the dismissable layer and closed the
+					    whole dialog mid-choice. With a handful of providers there is no
+					    reason to introduce a second dismissable layer at all. */}
+					<div role='radiogroup' aria-label={t('topUp.providerLabel')} className='flex flex-wrap gap-2'>
+						{checkoutProviders.map((provider: PaymentGatewayType) => {
+							const isSelected = effectiveProvider === provider;
+							return (
+								<button
+									key={provider}
+									type='button'
+									role='radio'
+									aria-checked={isSelected}
+									onClick={() => setSelectedProvider(provider)}
+									disabled={isPending}
+									className='px-3.5 py-2 text-sm rounded-lg border transition-colors disabled:opacity-50'
+									style={{
+										borderColor: isSelected ? 'var(--portal-primary, #2563eb)' : 'var(--portal-border, #E9E9E9)',
+										color: isSelected ? 'var(--portal-primary, #2563eb)' : 'var(--portal-text-primary, #09090b)',
+										backgroundColor: isSelected ? 'var(--portal-bg, #eff6ff)' : 'transparent',
+									}}>
+									{t(`paymentProviders.${provider}`)}
+								</button>
+							);
+						})}
+					</div>
+					<p className='text-xs mt-1.5' style={{ color: 'var(--portal-text-secondary, #71717a)' }}>
+						{t('topUp.providerHint')}
+					</p>
+				</div>
 			)}
 
 			{canCheckout && (

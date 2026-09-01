@@ -237,6 +237,8 @@ describe('TopUpWidget', () => {
 		expect(screen.queryByText('Payment provider')).not.toBeInTheDocument();
 	});
 
+	// Inline options, not a Select: a portaled listbox inside this modal={false}
+	// dialog reads as an outside click and closed the dialog mid-choice.
 	it('asks which gateway to use when more than one can host checkout', async () => {
 		vi.mocked(CustomerPortalApi.getIntegrations).mockResolvedValue({
 			payment_integrations: [
@@ -247,6 +249,34 @@ describe('TopUpWidget', () => {
 
 		renderWidget();
 		expect(await screen.findByText('Payment provider')).toBeInTheDocument();
+
+		// Selectable in place, with no portaled layer to dismiss.
+		const options = screen.getAllByRole('radio');
+		expect(options.map((o) => o.textContent)).toEqual(['Chargebee', 'Razorpay']);
+		expect(options[0]).toHaveAttribute('aria-checked', 'true');
+
+		await userEvent.click(options[1]);
+		expect(options[1]).toHaveAttribute('aria-checked', 'true');
+	});
+
+	it('sends the provider the customer picked', async () => {
+		vi.mocked(CustomerPortalApi.getIntegrations).mockResolvedValue({
+			payment_integrations: [
+				{ provider: 'chargebee', capabilities: [{ type: 'checkout', is_default: true }] },
+				{ provider: 'razorpay', capabilities: [{ type: 'checkout', is_default: false }] },
+			],
+		} as never);
+		vi.mocked(CustomerPortalApi.topUpWallet).mockResolvedValue({} as never);
+
+		renderWidget();
+		await screen.findByText('Payment provider');
+		await userEvent.click(screen.getByRole('radio', { name: 'Razorpay' }));
+		await enterCredits('10');
+		await userEvent.click(screen.getByRole('button', { name: /pay now/i }));
+
+		await waitFor(() => expect(CustomerPortalApi.topUpWallet).toHaveBeenCalled());
+		const [, payload] = vi.mocked(CustomerPortalApi.topUpWallet).mock.calls[0];
+		expect(payload.checkout?.payment_provider).toBe('razorpay');
 	});
 
 	// Portal checkouts always vault, so no save flag may be sent from here.
