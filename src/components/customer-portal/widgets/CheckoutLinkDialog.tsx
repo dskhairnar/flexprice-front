@@ -5,6 +5,7 @@ import toast from 'react-hot-toast';
 import { Button, Dialog } from '@/components/atoms';
 import { openPaymentUrl } from '@/utils/common/openPaymentUrl';
 import { subscribeToCheckoutSettled } from '../useCheckoutReturn';
+import { subscribeToCheckoutReturn } from '../checkoutHandoff';
 
 interface CheckoutLinkDialogProps {
 	url: string | null;
@@ -32,9 +33,16 @@ const CheckoutLinkDialog = ({ url, onOpenChange, purpose = 'payment' }: Checkout
 	onOpenChangeRef.current = onOpenChange;
 
 	// The customer pays in another tab and comes back to a refreshed balance with
-	// "Complete your payment" still sitting over it. Only on success: a failed or
-	// expired checkout leaves the link up, because retrying it is the obvious next
-	// move.
+	// "Complete your payment" still sitting over it.
+	//
+	// Two signals, because either one alone leaves a gap. The outcome is
+	// authoritative but only arrives if this tab is still polling — it gives up
+	// after ~40s, and a customer can easily spend longer on the provider's page.
+	// The return announcement always arrives the moment they come back, whatever
+	// the outcome, and by then this dialog is pointing at a checkout they have
+	// finished with either way.
+	useEffect(() => subscribeToCheckoutReturn(() => onOpenChangeRef.current(false)), []);
+
 	useEffect(
 		() =>
 			subscribeToCheckoutSettled((status) => {

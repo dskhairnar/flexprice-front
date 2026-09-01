@@ -3,14 +3,24 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import '@testing-library/jest-dom';
 import type { CheckoutStatus } from '@/types/dto/CustomerPortalBilling';
 
-/** Stands in for the checkout resolving, so the dialog can be driven directly. */
-let emit: (status: CheckoutStatus) => void = () => {};
+/** Stand-ins for the two signals, so the dialog can be driven directly. */
+let emitSettled: (status: CheckoutStatus) => void = () => {};
+let emitReturn: () => void = () => {};
 
 vi.mock('../useCheckoutReturn', () => ({
 	subscribeToCheckoutSettled: (onSettle: (status: CheckoutStatus) => void) => {
-		emit = onSettle;
+		emitSettled = onSettle;
 		return () => {
-			emit = () => {};
+			emitSettled = () => {};
+		};
+	},
+}));
+
+vi.mock('../checkoutHandoff', () => ({
+	subscribeToCheckoutReturn: (onReturn: () => void) => {
+		emitReturn = onReturn;
+		return () => {
+			emitReturn = () => {};
 		};
 	},
 }));
@@ -23,7 +33,8 @@ const { default: CheckoutLinkDialog } = await import('./CheckoutLinkDialog');
 
 describe('CheckoutLinkDialog', () => {
 	beforeEach(() => {
-		emit = () => {};
+		emitSettled = () => {};
+		emitReturn = () => {};
 	});
 
 	// The customer pays in another tab and comes back to a refreshed balance with
@@ -32,18 +43,31 @@ describe('CheckoutLinkDialog', () => {
 		const onOpenChange = vi.fn();
 		render(<CheckoutLinkDialog url='https://pay.test/link' onOpenChange={onOpenChange} />);
 
-		emit('completed');
+		emitSettled('completed');
 
 		expect(onOpenChange).toHaveBeenCalledWith(false);
 	});
 
-	// Retrying is the obvious next move, so the link stays up.
-	it('stays open when the checkout failed or expired', () => {
+	// The outcome only arrives while the page is still polling, and it gives up
+	// after ~40s — easily less than a customer spends on the provider's page. The
+	// return announcement always arrives, so it closes the dialog on its own.
+	it('dismisses itself when the customer returns, even with no outcome', () => {
 		const onOpenChange = vi.fn();
 		render(<CheckoutLinkDialog url='https://pay.test/link' onOpenChange={onOpenChange} />);
 
-		emit('failed');
-		emit('expired');
+		emitReturn();
+
+		expect(onOpenChange).toHaveBeenCalledWith(false);
+	});
+
+	// A failed outcome on its own is not a reason to take the link away — the
+	// customer never left, and retrying it is the obvious next move.
+	it('stays open on a failed outcome with no return', () => {
+		const onOpenChange = vi.fn();
+		render(<CheckoutLinkDialog url='https://pay.test/link' onOpenChange={onOpenChange} />);
+
+		emitSettled('failed');
+		emitSettled('expired');
 
 		expect(onOpenChange).not.toHaveBeenCalled();
 	});

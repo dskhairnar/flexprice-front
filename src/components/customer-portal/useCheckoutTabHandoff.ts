@@ -5,6 +5,16 @@ import { announceCheckoutReturn, consumeCheckoutReturnLoad } from './checkoutHan
 const CLOSE_GRACE_MS = 800;
 
 /**
+ * Breathing room between announcing and tearing this context down.
+ *
+ * postMessage only queues delivery, and window.close() destroys the context that
+ * queued it — closing in the same tick can drop the message, leaving the tab the
+ * customer started from none the wiser and its hand-off dialog still open over a
+ * payment that is already done.
+ */
+const ANNOUNCE_SETTLE_MS = 150;
+
+/**
  * On a provider redirect landing, hand the result to the tab the customer started
  * from and close this one.
  *
@@ -24,13 +34,18 @@ const useCheckoutTabHandoff = (): boolean => {
 	useEffect(() => {
 		if (!isHandingOff) return;
 		announceCheckoutReturn();
-		try {
-			window.close();
-		} catch {
-			// Refused — fall through to the timer and render the portal instead.
-		}
-		const timer = window.setTimeout(() => setIsHandingOff(false), CLOSE_GRACE_MS);
-		return () => window.clearTimeout(timer);
+		const closeTimer = window.setTimeout(() => {
+			try {
+				window.close();
+			} catch {
+				// Refused — the give-up timer below renders the portal instead.
+			}
+		}, ANNOUNCE_SETTLE_MS);
+		const giveUpTimer = window.setTimeout(() => setIsHandingOff(false), CLOSE_GRACE_MS);
+		return () => {
+			window.clearTimeout(closeTimer);
+			window.clearTimeout(giveUpTimer);
+		};
 	}, [isHandingOff]);
 
 	return isHandingOff;
