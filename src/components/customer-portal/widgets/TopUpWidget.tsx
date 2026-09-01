@@ -1,8 +1,10 @@
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Card } from '@/components/atoms';
 import usePortalWallet from '../usePortalWallet';
 import EmptyState from '../EmptyState';
 import TopUpForm from './TopUpForm';
+import CheckoutLinkDialog from './CheckoutLinkDialog';
 
 interface TopUpWidgetProps {
 	label?: string;
@@ -11,6 +13,7 @@ interface TopUpWidgetProps {
 /** Standalone top-up card. The Credits page surfaces `TopUpButton` in the wallet header instead. */
 const TopUpWidget = ({ label }: TopUpWidgetProps) => {
 	const { t } = useTranslation('customer-portal');
+	const [checkoutUrl, setCheckoutUrl] = useState<string | null>(null);
 	const { wallet, isLoading } = usePortalWallet();
 
 	if (isLoading) {
@@ -46,7 +49,10 @@ const TopUpWidget = ({ label }: TopUpWidgetProps) => {
 			<p className='text-sm mb-4' style={{ color: 'var(--portal-text-secondary, #71717a)' }}>
 				{t('topUp.description')}
 			</p>
-			<TopUpForm wallet={wallet} />
+			{/* Same fallback as the dialog variant: the open can be blocked, so the link
+			    has to remain reachable on the page. */}
+			<TopUpForm wallet={wallet} onActionUrl={setCheckoutUrl} />
+			<CheckoutLinkDialog url={checkoutUrl} onOpenChange={(open) => !open && setCheckoutUrl(null)} />
 		</Card>
 	);
 };
