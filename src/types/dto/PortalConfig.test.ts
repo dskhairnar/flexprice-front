@@ -134,3 +134,34 @@ describe('Overview composition', () => {
 		expect(overview?.enabled).toBe(false);
 	});
 });
+
+describe('retired sections', () => {
+	// Saved cards live on Overview now, beside the balance they top up. A section of
+	// its own held one widget and split the card from the reason to manage it.
+	it('hides Payments even when a stored config enables it', () => {
+		const merged = deepMergePortalConfig(DEFAULT_PORTAL_CONFIG, {
+			sections: [
+				{
+					id: 'payment_methods',
+					label: 'Payments',
+					enabled: true,
+					order: 5,
+					tabs: [{ id: '13', type: 'payment_methods', enabled: true, order: 1 }],
+				},
+			],
+		});
+
+		expect(merged.sections.find((section) => section.id === 'payment_methods')?.enabled).toBe(false);
+	});
+
+	// It is gone from the tab bar, but the widget it held is still reachable.
+	it('keeps payment methods on Overview', () => {
+		const merged = deepMergePortalConfig(DEFAULT_PORTAL_CONFIG, {});
+		const overview = merged.sections.find((section) => section.id === 'overview');
+		expect(overview?.tabs.map((tab) => tab.type)).toContain('payment_methods');
+	});
+
+	it('ships disabled by default too', () => {
+		expect(DEFAULT_PORTAL_CONFIG.sections.find((section) => section.id === 'payment_methods')?.enabled).toBe(false);
+	});
+});
