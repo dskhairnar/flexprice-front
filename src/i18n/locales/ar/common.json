@@ -552,7 +552,11 @@
 		"unknownRow": "غير معروف",
 		"cellEmDash": "—",
 		"cellEmpty": "--",
-		"singlePointLabel": "الاستخدام في {{date}} · {{value}}"
+		"singlePointLabel": "الاستخدام في {{date}} · {{value}}",
+		"quotaEmptyTitle": "لا توجد حصص لعرضها",
+		"quotaEmptyDescription": "تظهر الحصص هنا بمجرد أن تتضمن خطتك ميزات مقيسة.",
+		"breakdownEmptyTitle": "لا يوجد استخدام في هذه الفترة",
+		"breakdownEmptyDescription": "جرّب نطاقاً زمنياً أطول، أو تحقق مرة أخرى بعد تسجيل الاستخدام."
 	},
 	"creditWidgets": {
 		"defaultName": "محفظة",

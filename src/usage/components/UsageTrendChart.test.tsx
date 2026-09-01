@@ -21,9 +21,13 @@ describe('UsageTrendChart', () => {
 		expect(nested).toHaveLength(0);
 	});
 
-	it('renders nothing when not loading and series is empty', () => {
-		const { container } = render(<UsageTrendChart series={[]} />);
-		expect(container).toBeEmptyDOMElement();
+	// Returning null left a customer with no usage yet looking at blank space where
+	// a chart should be. The empty series is passed through so the chart's own
+	// no-data path keeps the titled card at its full height.
+	it('keeps the titled chart card when not loading and series is empty', () => {
+		render(<UsageTrendChart series={[]} />);
+		expect(screen.getByText('Usage Trend')).toBeInTheDocument();
+		expect(screen.getByText('No data to display')).toBeInTheDocument();
 	});
 
 	it('renders a loading skeleton when isLoading', () => {

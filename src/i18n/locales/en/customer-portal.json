@@ -307,5 +307,9 @@
 		"moyasar": "Moyasar",
 		"paddle": "Paddle",
 		"whop": "Whop"
+	},
+	"section": {
+		"emptyTitle": "Nothing to show here",
+		"emptyDescription": "This section has no content configured yet."
 	}
 }

@@ -21,6 +21,10 @@ import type { UsageTrendChartProps } from '../types';
  * has-data paths — this wrapper must not add a second one around it, or the widget renders
  * nested card borders/padding. The Card here is only for the loading-skeleton state, which
  * `CustomerUsageChart` has no prop for.
+ *
+ * An empty series is deliberately passed straight through rather than short-circuited: the
+ * chart's own no-data path keeps the titled card at a fixed height, so a customer with no
+ * usage yet sees where their chart will be instead of blank space where a widget should be.
  */
 const UsageTrendChart = ({ series: rawSeries, label, isLoading = false, className }: UsageTrendChartProps) => {
 	const series = useMemo(() => normalizeUsageTrendSeries(rawSeries), [rawSeries]);
@@ -61,8 +65,6 @@ const UsageTrendChart = ({ series: rawSeries, label, isLoading = false, classNam
 					value: formatCredits(series.reduce((sum, item) => sum + (item.points[0]?.usage ?? 0), 0)),
 				})
 			: undefined;
-
-	if (!isLoading && series.length === 0) return null;
 
 	if (isLoading) {
 		return (

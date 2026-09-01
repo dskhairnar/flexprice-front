@@ -16,9 +16,12 @@ describe('UsageBreakdown', () => {
 		expect(screen.getByText('Storage')).toBeInTheDocument();
 	});
 
-	it('renders nothing when not loading and rows is empty', () => {
-		const { container } = render(<UsageBreakdown rows={[]} />);
-		expect(container).toBeEmptyDOMElement();
+	// Keeping the card and its heading tells the customer where usage will appear,
+	// rather than collapsing to nothing under the section's date filter.
+	it('keeps the titled card when not loading and rows is empty', () => {
+		render(<UsageBreakdown rows={[]} />);
+		expect(screen.getByText('Usage Breakdown')).toBeInTheDocument();
+		expect(screen.getByText('No usage in this period')).toBeInTheDocument();
 	});
 
 	it('renders a loading skeleton when isLoading', () => {

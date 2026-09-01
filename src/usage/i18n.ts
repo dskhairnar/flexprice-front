@@ -28,6 +28,10 @@ const EN_USAGE_WIDGETS = {
 	unknownRow: 'Unknown',
 	cellEmDash: '—',
 	cellEmpty: '--',
+	quotaEmptyTitle: 'No quotas to show',
+	quotaEmptyDescription: 'Quotas appear here once your plan includes metered features.',
+	breakdownEmptyTitle: 'No usage in this period',
+	breakdownEmptyDescription: 'Try a longer date range, or check back once usage has been recorded.',
 };
 
 export const useUsageT = createBundledT('common', { usageWidgets: EN_USAGE_WIDGETS }).useBoundT;

@@ -33,9 +33,10 @@ describe('UsageQuota', () => {
 		expect(container.querySelector('.bg-destructive')).toBeInTheDocument();
 	});
 
-	it('renders nothing for an empty item list', () => {
-		const { container } = render(<UsageQuota items={[]} />);
-		expect(container).toBeEmptyDOMElement();
+	it('keeps the titled card for an empty item list', () => {
+		render(<UsageQuota items={[]} />);
+		expect(screen.getByText('Usage Quota')).toBeInTheDocument();
+		expect(screen.getByText('No quotas to show')).toBeInTheDocument();
 	});
 
 	it('honors a custom label', () => {

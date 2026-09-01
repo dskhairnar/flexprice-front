@@ -7,6 +7,7 @@ import Progress from '@/components/atoms/Progress/Progress';
 import { formatAmount } from '@/components/atoms/Input/Input';
 import { cn } from '@/lib/utils';
 import { useUsageT } from '../i18n';
+import WidgetEmptyBody from './WidgetEmptyBody';
 import { normalizeUsageQuotaItems } from '../schema';
 import type { UsageQuotaProps } from '../types';
 
@@ -18,13 +19,20 @@ const UsageQuota = ({ items: rawItems, label, className }: UsageQuotaProps) => {
 	const items = useMemo(() => normalizeUsageQuotaItems(rawItems), [rawItems]);
 	const t = useUsageT();
 
-	if (items.length === 0) return null;
+	const heading = <h3 className='text-base font-medium text-content'>{label || t('usageWidgets.quotaTitle')}</h3>;
+
+	if (items.length === 0) {
+		return (
+			<Card noPadding className={cn('flexprice-ui', 'rounded-xl overflow-hidden bg-surface', className)}>
+				<div className='p-6 border-b border-line'>{heading}</div>
+				<WidgetEmptyBody title={t('usageWidgets.quotaEmptyTitle')} description={t('usageWidgets.quotaEmptyDescription')} />
+			</Card>
+		);
+	}
 
 	return (
 		<Card noPadding className={cn('flexprice-ui', 'rounded-xl overflow-hidden bg-surface', className)}>
-			<div className='p-6 border-b border-line'>
-				<h3 className='text-base font-medium text-content'>{label || t('usageWidgets.quotaTitle')}</h3>
-			</div>
+			<div className='p-6 border-b border-line'>{heading}</div>
 			<div className='p-6 space-y-4'>
 				{items.map((item) => {
 					// `item.limit` truthiness would treat a real 0 limit (e.g. a zero-quota entitlement)

@@ -6,6 +6,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { formatNumber, getCurrencySymbol } from '@/utils';
 import { cn } from '@/lib/utils';
 import { useUsageT } from '../i18n';
+import WidgetEmptyBody from './WidgetEmptyBody';
 import { normalizeUsageBreakdownRows } from '../schema';
 import type { UsageBreakdownProps, UsageBreakdownRow } from '../types';
 
@@ -130,7 +131,20 @@ const UsageBreakdown = ({ rows: rawRows, label, isLoading = false, className }: 
 		);
 	};
 
-	if (!isLoading && rows.length === 0) return null;
+	if (!isLoading && rows.length === 0) {
+		return (
+			<Card noPadding className={cn('flexprice-ui', 'rounded-xl overflow-hidden bg-surface', className)}>
+				<div className='p-6'>
+					<h3 className='text-base font-semibold text-content'>{label || t('usageWidgets.breakdownTitle')}</h3>
+				</div>
+				<WidgetEmptyBody
+					className='pt-0'
+					title={t('usageWidgets.breakdownEmptyTitle')}
+					description={t('usageWidgets.breakdownEmptyDescription')}
+				/>
+			</Card>
+		);
+	}
 
 	if (isLoading) {
 		return (
