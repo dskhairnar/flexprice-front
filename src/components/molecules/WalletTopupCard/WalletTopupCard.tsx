@@ -10,6 +10,8 @@ import { WALLET_TRANSACTION_REASON } from '@/models';
 import { getCurrencyAmountFromCredits } from '@/utils';
 import { TopupWalletPayload } from '@/types';
 import { DialogContent, DialogHeader, DialogTitle } from '@/components/ui';
+import { PaymentUrlSuccessDialog } from '@/components/atoms';
+import { openPaymentUrl } from '@/utils/common/openPaymentUrl';
 import { useMinCreditExpiryDate, toDateOnlyUtc } from '@/hooks/useMinCreditExpiryDate';
 import { useTranslation } from 'react-i18next';
 
@@ -73,6 +75,8 @@ const TopupCard: FC<TopupCardProps> = ({ walletId, currency, conversion_rate = 1
 	);
 
 	// State management with more explicit typing
+	const [checkoutPopup, setCheckoutPopup] = useState({ isOpen: false, paymentUrl: '', isCopied: false });
+
 	const [topupPayload, setTopupPayload] = useState<TopupPayload>({
 		credits_type: CreditsType.FreeCredit,
 		credits_to_add: undefined,
@@ -183,10 +187,13 @@ const TopupCard: FC<TopupCardProps> = ({ walletId, currency, conversion_rate = 1
 		onSuccess: async (response, mode) => {
 			const checkoutUrl = response?.checkout_session?.payment_action?.redirect_url ?? response?.checkout_session?.payment_url;
 			if (mode === TopupMode.Checkout && checkoutUrl) {
-				// Hand the link back to the operator to pass on — the customer, not the
-				// admin, completes this payment.
+				// Show the link first, then try to open it. The open runs in an async
+				// callback rather than directly in the click, so a popup blocker will often
+				// stop it — the dialog carries the URL so that stays recoverable, and it is
+				// also the link the operator shares with the customer.
+				setCheckoutPopup({ isOpen: true, paymentUrl: checkoutUrl, isCopied: false });
+				openPaymentUrl(checkoutUrl);
 				onCheckoutUrl?.(checkoutUrl);
-				toast.success('Checkout link created. Share it with the customer to collect payment.');
 			} else if (getTransactionReason(mode) === WALLET_TRANSACTION_REASON.PURCHASED_CREDIT_INVOICED) {
 				toast.success('Invoice created successfully. Credits will be added once the invoice is paid.');
 			} else {
@@ -227,8 +234,26 @@ const TopupCard: FC<TopupCardProps> = ({ walletId, currency, conversion_rate = 1
 		}));
 	}, []);
 
+	const handleCopyCheckoutUrl = async () => {
+		try {
+			await navigator.clipboard.writeText(checkoutPopup.paymentUrl);
+			setCheckoutPopup((prev) => ({ ...prev, isCopied: true }));
+			setTimeout(() => setCheckoutPopup((prev) => ({ ...prev, isCopied: false })), 2000);
+		} catch {
+			toast.error('Could not copy the link');
+		}
+	};
+
 	return (
 		<DialogContent className='bg-white sm:max-w-[600px]'>
+			<PaymentUrlSuccessDialog
+				isOpen={checkoutPopup.isOpen}
+				paymentUrl={checkoutPopup.paymentUrl}
+				isCopied={checkoutPopup.isCopied}
+				onClose={() => setCheckoutPopup({ isOpen: false, paymentUrl: '', isCopied: false })}
+				onCopyUrl={handleCopyCheckoutUrl}
+				onGoToLink={() => openPaymentUrl(checkoutPopup.paymentUrl)}
+			/>
 			<DialogHeader>
 				<DialogTitle>{t('wallet.topup.dialogTitle')}</DialogTitle>
 			</DialogHeader>

@@ -12,14 +12,15 @@ interface PaymentUrlSuccessDialogProps {
 	onGoToLink: () => void;
 }
 
-const PaymentUrlSuccessDialog: FC<PaymentUrlSuccessDialogProps> = ({
-	isOpen,
-	paymentUrl: _paymentUrl,
-	isCopied,
-	onClose,
-	onCopyUrl,
-	onGoToLink,
-}) => {
+/**
+ * Shown after a payment link is created.
+ *
+ * The caller also tries to open the link automatically; a popup blocker will stop
+ * that whenever the open happens in an async callback rather than directly in the
+ * click. So the URL is rendered in full here — visible, selectable and copyable —
+ * and this dialog is the reliable path, not just a confirmation.
+ */
+const PaymentUrlSuccessDialog: FC<PaymentUrlSuccessDialogProps> = ({ isOpen, paymentUrl, isCopied, onClose, onCopyUrl, onGoToLink }) => {
 	const { t } = useTranslation('common');
 	return (
 		<Dialog
@@ -32,6 +33,12 @@ const PaymentUrlSuccessDialog: FC<PaymentUrlSuccessDialogProps> = ({
 			<div className='space-y-4'>
 				<div className='p-4 bg-green-50 border border-green-200 rounded-lg'>
 					<div className='text-sm text-green-800 mb-2'>{t('paymentLink.successBanner')}</div>
+				</div>
+
+				<div>
+					<p className='text-sm text-content-zinc-bold mb-1.5'>{t('paymentLink.linkLabel')}</p>
+					<p className='text-xs font-mono break-all select-all p-3 rounded-md bg-surface-muted border border-line'>{paymentUrl}</p>
+					<p className='text-xs text-content-muted mt-1.5'>{t('paymentLink.blockedHint')}</p>
 				</div>
 
 				<div className='flex gap-3'>
