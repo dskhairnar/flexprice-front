@@ -189,7 +189,11 @@
 		"invoiceOnlyHint": "An invoice will be raised for you to pay.",
 		"useSavedMethodTitle": "Saved card",
 		"useSavedMethodHint": "Charge the card on file instead of opening a checkout page.",
-		"checkoutUnavailable": "Online payment is not set up for this account, so an invoice will be raised instead."
+		"checkoutUnavailable": "Online payment is not set up for this account, so an invoice will be raised instead.",
+		"useSavedMethodEmptyLabel": "Use my saved card",
+		"savedMethodUnsupported": "Your payment provider does not support charging a saved card.",
+		"savedMethodNone": "No saved card yet — add one from the Payments tab.",
+		"cardSavedNotice": "Your card is securely saved for future payments."
 	},
 	"autoTopUp": {
 		"title": "Auto top-up",

@@ -36,7 +36,7 @@ const describeCard = (method: SavedPaymentMethod) =>
  */
 const TopUpForm = ({ wallet, onDone, onActionUrl }: TopUpFormProps) => {
 	const { t } = useTranslation('customer-portal');
-	const { maySupport } = usePortalIntegrations();
+	const { maySupport, supports } = usePortalIntegrations();
 	const [credits, setCredits] = useState('');
 	const [description, setDescription] = useState('');
 	const [useSavedMethod, setUseSavedMethod] = useState(false);
@@ -65,6 +65,17 @@ const TopUpForm = ({ wallet, onDone, onActionUrl }: TopUpFormProps) => {
 	const chargeableMethod = (methods?.providers ?? [])
 		.flatMap((group) => group.items)
 		.find((method) => method.can_auto_charge && method.status === 'ACTIVE' && method.is_default);
+
+	// Two independent reasons this can be unavailable, and they need different
+	// wording: no connected provider can charge off-session, or the customer has
+	// no saved card yet. Shown disabled either way rather than hidden, so the
+	// option reads as a state to resolve instead of a feature that does not exist.
+	const providerCanAutoCharge = supports('auto_charge');
+	const savedMethodDisabledReason = !providerCanAutoCharge
+		? t('topUp.savedMethodUnsupported')
+		: !chargeableMethod
+			? t('topUp.savedMethodNone')
+			: undefined;
 
 	const {
 		mutate: topUp,
@@ -148,14 +159,16 @@ const TopUpForm = ({ wallet, onDone, onActionUrl }: TopUpFormProps) => {
 				disabled={isPending}
 			/>
 
-			{chargeableMethod && canCheckout && (
+			{canCheckout && (
 				<Toggle
 					title={t('topUp.useSavedMethodTitle')}
-					label={t('topUp.useSavedMethod', { method: describeCard(chargeableMethod) })}
-					description={t('topUp.useSavedMethodHint')}
-					checked={useSavedMethod}
+					label={
+						chargeableMethod ? t('topUp.useSavedMethod', { method: describeCard(chargeableMethod) }) : t('topUp.useSavedMethodEmptyLabel')
+					}
+					description={savedMethodDisabledReason ?? t('topUp.useSavedMethodHint')}
+					checked={useSavedMethod && !savedMethodDisabledReason}
 					onChange={setUseSavedMethod}
-					disabled={isPending}
+					disabled={isPending || !!savedMethodDisabledReason}
 				/>
 			)}
 
@@ -182,6 +195,13 @@ const TopUpForm = ({ wallet, onDone, onActionUrl }: TopUpFormProps) => {
 			<p className='text-xs text-end' style={{ color: 'var(--portal-text-secondary, #a1a1aa)' }}>
 				{canCheckout ? t('topUp.actionsHint') : t('topUp.checkoutUnavailable')}
 			</p>
+			{/* Checkout always vaults the card server-side and the customer cannot
+			    decline, so the portal states it rather than implying a choice. */}
+			{canCheckout && (
+				<p className='text-xs text-end' style={{ color: 'var(--portal-text-secondary, #a1a1aa)' }}>
+					{t('topUp.cardSavedNotice')}
+				</p>
+			)}
 		</div>
 	);
 };

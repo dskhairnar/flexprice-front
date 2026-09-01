@@ -128,6 +128,38 @@ describe('TopUpWidget', () => {
 		expect(payload).not.toHaveProperty('transaction_reason');
 	});
 
+	// The saved-card option stays visible but disabled when nothing can use it, so
+	// the customer sees a state to resolve rather than a missing feature.
+	it('disables the saved-card toggle when no provider can charge off-session', async () => {
+		renderWidget();
+		await screen.findByRole('button', { name: /pay now/i });
+
+		// findBy, not getBy: supports() is false while /integrations is in flight, so
+		// a synchronous read would pass on the loading state rather than the answer.
+		expect(await screen.findByText(/does not support charging a saved card/i)).toBeInTheDocument();
+		expect(screen.getByRole('switch')).toBeDisabled();
+	});
+
+	it('explains a missing saved card separately from an unsupported provider', async () => {
+		vi.mocked(CustomerPortalApi.getIntegrations).mockResolvedValue({
+			payment_integrations: [
+				{
+					provider: 'chargebee',
+					capabilities: [
+						{ type: 'checkout', is_default: true },
+						{ type: 'auto_charge', is_default: true },
+					],
+				},
+			],
+		} as never);
+
+		renderWidget();
+		await screen.findByRole('button', { name: /pay now/i });
+
+		expect(await screen.findByText(/no saved card yet/i)).toBeInTheDocument();
+		expect(screen.getByRole('switch')).toBeDisabled();
+	});
+
 	// Portal checkouts always vault and the provider is resolved server-side, so
 	// neither may be sent from here.
 	it('sends no provider config and no save-card flag', async () => {
