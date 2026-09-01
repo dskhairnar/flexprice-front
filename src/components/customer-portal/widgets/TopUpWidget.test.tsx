@@ -200,7 +200,7 @@ describe('TopUpWidget', () => {
 	it('offers no provider picker when only one gateway can host checkout', async () => {
 		renderWidget();
 		await screen.findByRole('button', { name: /pay now/i });
-		expect(screen.queryByText('Pay with')).not.toBeInTheDocument();
+		expect(screen.queryByText('Payment provider')).not.toBeInTheDocument();
 	});
 
 	it('asks which gateway to use when more than one can host checkout', async () => {
@@ -212,7 +212,7 @@ describe('TopUpWidget', () => {
 		} as never);
 
 		renderWidget();
-		expect(await screen.findByText('Pay with')).toBeInTheDocument();
+		expect(await screen.findByText('Payment provider')).toBeInTheDocument();
 	});
 
 	// Portal checkouts always vault, so no save flag may be sent from here.

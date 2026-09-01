@@ -190,8 +190,8 @@
 		"savedMethodUnsupported": "Your payment provider does not support charging a saved card.",
 		"savedMethodNone": "No saved card yet — add one from the Payments tab.",
 		"cardSavedNotice": "Your card is securely saved for future payments.",
-		"providerLabel": "Pay with",
-		"providerHint": "Choose how you want to complete this payment."
+		"providerLabel": "Payment provider",
+		"providerHint": "Choose which provider to complete this payment with."
 	},
 	"autoTopUp": {
 		"title": "Auto top-up",
@@ -295,12 +295,12 @@
 		"expired": "That payment session expired. Please try again."
 	},
 	"paymentProviders": {
-		"chargebee": "Card",
-		"razorpay": "Card / UPI / Netbanking",
-		"stripe": "Card",
-		"nomod": "Card",
-		"moyasar": "Card",
-		"paddle": "Card",
-		"whop": "Card"
+		"chargebee": "Chargebee",
+		"razorpay": "Razorpay",
+		"stripe": "Stripe",
+		"nomod": "Nomod",
+		"moyasar": "Moyasar",
+		"paddle": "Paddle",
+		"whop": "Whop"
 	}
 }
