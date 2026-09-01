@@ -6,8 +6,7 @@ import CustomerPortalApi from '@/api/CustomerPortalApi';
 import { portalReturnUrl } from '../portalReturnUrl';
 import type { PaymentGatewayType } from '@/types/dto/CustomerPortalBilling';
 import usePortalIntegrations from '../usePortalIntegrations';
-import { refetchPortalQueries } from '../refetchPortalQueries';
-import { PORTAL_BALANCE_QUERY_ROOTS } from '../queryKeys';
+import { refreshAfterPayment } from '../refetchPortalQueries';
 import { openPaymentUrl } from '@/utils/common/openPaymentUrl';
 
 /**
@@ -53,7 +52,7 @@ const usePayInvoice = (provider?: PaymentGatewayType) => {
 			}
 			keys.delete(invoiceId);
 			toast.success(t('toast.invoicePaymentStarted'));
-			await refetchPortalQueries([...PORTAL_BALANCE_QUERY_ROOTS, 'portal-invoice']);
+			await refreshAfterPayment(['portal-invoice']);
 		},
 		onError: (error: Error) => toast.error(error.message || t('errors.payInvoice')),
 	});

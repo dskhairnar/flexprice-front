@@ -6,8 +6,7 @@ import CustomerPortalApi from '@/api/CustomerPortalApi';
 import { portalReturnUrl } from '../portalReturnUrl';
 import { openPaymentUrl } from '@/utils/common/openPaymentUrl';
 import { Button, Input, Select, Toggle } from '@/components/atoms';
-import { refetchPortalQueries } from '../refetchPortalQueries';
-import { PORTAL_BALANCE_QUERY_ROOTS } from '../queryKeys';
+import { refreshAfterPayment } from '../refetchPortalQueries';
 import { getCurrencySymbol } from '@/utils/common/helper_functions';
 import { formatMoney } from '@/utils/common/formatBalance';
 import type { PaymentGatewayType, PortalTopUpRequest, SavedPaymentMethod } from '@/types/dto/CustomerPortalBilling';
@@ -149,9 +148,9 @@ const TopUpForm = ({ wallet, onDone, onActionUrl }: TopUpFormProps) => {
 			setIdempotencyKey(crypto.randomUUID());
 			setSubmittedPayload(null);
 			onDone?.();
-			// One call per root: a single array argument is read as one prefix key and
-			// would match none of these.
-			await refetchPortalQueries([...PORTAL_BALANCE_QUERY_ROOTS]);
+			// Re-checks until the credit lands: the transaction and its invoice are
+			// written by a webhook that can arrive after the response does.
+			await refreshAfterPayment();
 		},
 		onError: (error: Error) => toast.error(error.message || t('errors.topUp')),
 	});
