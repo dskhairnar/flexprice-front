@@ -3,6 +3,7 @@ import { useMutation, useQuery } from '@tanstack/react-query';
 import { useNavigate, useParams } from 'react-router';
 import { useTranslation } from 'react-i18next';
 import toast from 'react-hot-toast';
+import { z } from 'zod';
 import { Trash2 } from 'lucide-react';
 import { Button, Checkbox, DateTimePicker, Divider, FormHeader, Input, Loader, Page, Select, Spacer, Textarea } from '@/components/atoms';
 import { InvoiceLineItemTable, InvoiceStatusModal } from '@/components/molecules';
@@ -54,6 +55,18 @@ const toLineItemRows = (invoice: Invoice): LineItemRow[] =>
 		amount: String(li.amount ?? '0'),
 	}));
 
+// Runtime guard for the parts of the response this page dereferences; the API
+// client only type-asserts, so a malformed payload would otherwise crash `.map`.
+const invoiceEditResponseSchema = z.object({
+	line_items: z.array(z.object({ id: z.string() }).passthrough()).nullish(),
+	metadata: z.record(z.unknown()).nullish(),
+});
+
+const parseInvoiceForEdit = (invoice: Invoice): Invoice => {
+	invoiceEditResponseSchema.parse(invoice);
+	return invoice;
+};
+
 // Backend only accepts updates for invoices in these statuses.
 const EDITABLE_STATUSES: string[] = [INVOICE_STATUS.DRAFT, INVOICE_STATUS.FINALIZED];
 
@@ -79,6 +92,14 @@ const isValidUrl = (value: string): boolean => {
 	}
 };
 
+/** Fires the load-error toast once from an effect so renders stay side-effect free. */
+const LoadErrorNotice: FC<{ message: string }> = ({ message }) => {
+	useEffect(() => {
+		toast.error(message);
+	}, [message]);
+	return null;
+};
+
 const EditInvoicePage: FC = () => {
 	const { t } = useTranslation(['billing', 'common']);
 	const { invoiceId } = useParams<{ invoiceId: string }>();
@@ -100,7 +121,7 @@ const EditInvoicePage: FC = () => {
 		isError,
 	} = useQuery({
 		queryKey: ['invoiceEdit', invoiceId],
-		queryFn: async () => await InvoiceApi.getInvoiceById(invoiceId!),
+		queryFn: async () => parseInvoiceForEdit(await InvoiceApi.getInvoiceById(invoiceId!)),
 		enabled: !!invoiceId,
 	});
 
@@ -156,11 +177,12 @@ const EditInvoicePage: FC = () => {
 			}
 			const original = originalById.get(row.id);
 			if (!original) return;
-			const update: InvoiceModifyUpdateLineItem = {};
+			// Built incrementally, then narrowed to the at-least-one-field type by the length guard below.
+			const update: Partial<InvoiceModifyAddLineItem> = {};
 			if (row.display_name !== (original.display_name ?? '')) update.display_name = row.display_name;
 			if (row.amount !== String(original.amount ?? '0')) update.amount = row.amount;
 			if (row.quantity !== String(original.quantity ?? '1')) update.quantity = row.quantity;
-			if (Object.keys(update).length > 0) updates.push({ line_item_id: row.id, update });
+			if (Object.keys(update).length > 0) updates.push({ line_item_id: row.id, update: update as InvoiceModifyUpdateLineItem });
 		});
 		return { removes, updates, adds };
 	}, [invoice, lineItemRows, removedLineItemIds]);
@@ -213,6 +235,10 @@ const EditInvoicePage: FC = () => {
 			navigate(`${RouteNames.invoices}/${invoiceId}`);
 		},
 		onError: (error: Error) => {
+			// A partial save may have persisted earlier operations (e.g. a removal before a
+			// failed update); reset the form baseline from server state so a retry can't replay them.
+			void refetchInvoiceQueries();
+			void refetchQueries(['invoiceEdit', invoiceId!]);
 			toast.error(error.message || t('invoices.edit.toast.updateFailed'));
 		},
 	});
@@ -297,8 +323,7 @@ const EditInvoicePage: FC = () => {
 	if (isLoading) return <Loader />;
 
 	if (isError || !invoice) {
-		toast.error(t('invoices.edit.toast.loadError'));
-		return null;
+		return <LoadErrorNotice message={t('invoices.edit.toast.loadError')} />;
 	}
 
 	const na = t('common:labels.na');
@@ -482,7 +507,11 @@ const EditInvoicePage: FC = () => {
 											/>
 										</div>
 										<div className='col-span-1 flex items-end justify-end'>
-											<Button variant='outline' className='size-[42px] shrink-0' onClick={() => handleRemoveLineItemRow(index)}>
+											<Button
+												variant='outline'
+												className='size-[42px] shrink-0'
+												aria-label={t('invoices.edit.removeLineItem')}
+												onClick={() => handleRemoveLineItemRow(index)}>
 												<Trash2 className='w-4 h-4' />
 											</Button>
 										</div>

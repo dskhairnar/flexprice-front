@@ -78,12 +78,21 @@ export interface InvoiceModifyAddLineItem {
 	quantity: string;
 }
 
+type RequireAtLeastOne<T> = { [K in keyof T]-?: Required<Pick<T, K>> & Partial<Omit<T, K>> }[keyof T];
+
 /** Sparse update for one line item via the modify endpoint; at least one field required. */
-export interface InvoiceModifyUpdateLineItem {
-	display_name?: string;
-	amount?: string;
-	quantity?: string;
-}
+export type InvoiceModifyUpdateLineItem = RequireAtLeastOne<{
+	display_name: string;
+	amount: string;
+	quantity: string;
+}>;
+
+/** Per-action params for the modify endpoint; each action carries only its own required fields. */
+export type InvoiceModifyLineItemParams =
+	| { action: INVOICE_MODIFY_LINE_ITEM_ACTION.ADD; items: InvoiceModifyAddLineItem[] }
+	| { action: INVOICE_MODIFY_LINE_ITEM_ACTION.REMOVE; line_item_ids: string[] }
+	// One line item per call: the backend versions each edit individually.
+	| { action: INVOICE_MODIFY_LINE_ITEM_ACTION.UPDATE; line_item_id: string; update: InvoiceModifyUpdateLineItem };
 
 /**
  * Request body for POST /invoices/:id/modify/execute. Matches backend
@@ -93,16 +102,7 @@ export interface InvoiceModifyUpdateLineItem {
  */
 export interface ExecuteInvoiceModifyPayload {
 	type: 'line_item';
-	line_item_params: {
-		action: INVOICE_MODIFY_LINE_ITEM_ACTION;
-		// action 'add'
-		items?: InvoiceModifyAddLineItem[];
-		// action 'remove'
-		line_item_ids?: string[];
-		// action 'update' (one line item per call)
-		line_item_id?: string;
-		update?: InvoiceModifyUpdateLineItem;
-	};
+	line_item_params: InvoiceModifyLineItemParams;
 }
 
 export interface InvoiceModifyResponse {

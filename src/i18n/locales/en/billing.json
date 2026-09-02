@@ -52,7 +52,8 @@
 			},
 			"lineItemsDraftOnlyNote": "Line items can only be edited while the invoice is a draft.",
 			"manualEditHint": "Editing line items marks the invoice as manually edited; automatic recomputation is disabled afterwards.",
-			"lineItemInvalid": "Each line item needs a name and non-negative amount and quantity."
+			"lineItemInvalid": "Each line item needs a name and non-negative amount and quantity.",
+			"removeLineItem": "Remove line item"
 		},
 		"status": {
 			"void": "Void",
@@ -167,7 +168,8 @@
 			"plan": "Plan",
 			"billingPeriod": "Billing Period",
 			"total": "Total"
-		}
+		},
+		"writeDenied": "You don't have permission to modify invoices"
 	},
 	"creditNotes": {
 		"title": "Credit Notes",

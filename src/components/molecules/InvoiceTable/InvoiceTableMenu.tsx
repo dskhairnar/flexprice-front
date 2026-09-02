@@ -28,7 +28,7 @@ const InvoiceTableMenu: FC<Props> = ({ data }) => {
 	const { t: tc } = useTranslation('common');
 	const { can } = useCurrentUserPermissions();
 	const canWrite = can('invoice', 'write');
-	const writeDeniedReason = canWrite ? undefined : "You don't have permission to modify invoices";
+	const writeDeniedReason = canWrite ? undefined : t('invoices.writeDenied');
 	// PUT /invoices/:id only accepts DRAFT and FINALIZED invoices.
 	const isEditableStatus = data.invoice_status === INVOICE_STATUS.DRAFT || data.invoice_status === INVOICE_STATUS.FINALIZED;
 
