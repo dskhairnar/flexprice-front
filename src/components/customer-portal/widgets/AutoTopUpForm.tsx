@@ -53,8 +53,17 @@ const AutoTopUpForm = ({ wallet, hasChargeableMethod, onAddPaymentMethod, onDone
 			const payload: PortalAutoTopupRequest = {
 				enabled,
 				...(enabled ? { threshold, amount } : {}),
-				// null clears a stored cooloff; omitting the field would leave it in place.
-				cooldown: cooldownEnabled && Number(cooldownValue) > 0 ? { value: Number(cooldownValue), unit: cooldownUnit } : null,
+				// A zero-valued duration clears a stored cooloff, not null.
+				//
+				// The backend merges auto top-up field by field and only looks at cooldown
+				// when the pointer is non-nil, so JSON null is indistinguishable from the
+				// field being absent and the stored cooloff survived untouched. Its clear
+				// branch keys off Duration.IsEmpty(), which is value === 0 — so that is the
+				// payload that actually resets it.
+				cooldown:
+					cooldownEnabled && Number(cooldownValue) > 0
+						? { value: Number(cooldownValue), unit: cooldownUnit }
+						: { value: 0, unit: cooldownUnit },
 			};
 			return CustomerPortalApi.updateAutoTopup(wallet.id, payload);
 		},
