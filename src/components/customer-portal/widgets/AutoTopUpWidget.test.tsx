@@ -183,7 +183,10 @@ describe('AutoTopUpWidget', () => {
 		await waitFor(() => expect(screen.getByRole('button', { name: /save settings/i })).toBeDisabled());
 	});
 
-	it('clears a cooloff by sending null rather than omitting the field', async () => {
+	// The server merges auto top-up field by field and only reads cooldown when the
+	// pointer is non-nil, so JSON null is indistinguishable from an absent field and
+	// the stored cooloff survived. Its clear branch keys off value === 0.
+	it('clears a cooloff by sending a zero duration, not null', async () => {
 		vi.mocked(CustomerPortalApi.getWallets).mockResolvedValue([CONFIGURED] as never);
 		vi.mocked(CustomerPortalApi.getPaymentMethods).mockResolvedValue({
 			providers: [
@@ -198,8 +201,7 @@ describe('AutoTopUpWidget', () => {
 
 		await waitFor(() => expect(CustomerPortalApi.updateAutoTopup).toHaveBeenCalled());
 		const [, payload] = vi.mocked(CustomerPortalApi.updateAutoTopup).mock.calls[0];
-		// null clears a stored cooloff; omitting the field would leave it in place.
-		expect(payload.cooldown).toBeNull();
+		expect(payload.cooldown).toEqual({ value: 0, unit: expect.any(String) });
 	});
 });
 
