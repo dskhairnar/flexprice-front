@@ -146,15 +146,11 @@ const CustomerPortalInner = () => {
 				animate={{ opacity: 1, y: 0 }}
 				transition={{ duration: 0.3 }}
 				className='max-w-6xl mx-auto px-4 sm:px-6 py-6'>
-				{/* Top-level Section Tab Bar */}
-				<div className='mb-6'>
-					<div
-						className='flex space-x-1 rounded-[6px] p-1 w-fit'
-						style={
-							hasTheme
-								? { backgroundColor: 'var(--portal-surface)', border: '1px solid var(--portal-border)' }
-								: { backgroundColor: 'white', border: '1px solid #E9E9E9' }
-						}>
+				{/* Navigation, not a card: the bordered, padded container gave the tab bar
+				    the same weight as the sections below it and left it floating on its
+				    own. Only the active item carries a background now. */}
+				<div className='mb-6 border-b' style={{ borderColor: hasTheme ? 'var(--portal-border)' : '#E9E9E9' }}>
+					<div className='flex items-center gap-1 -mb-px pb-2'>
 						{visibleSections.map((section) => {
 							const isActive = activeSection?.id === section.id;
 							return (

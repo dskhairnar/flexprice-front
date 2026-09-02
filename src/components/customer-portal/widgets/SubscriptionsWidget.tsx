@@ -1,7 +1,7 @@
 import { Card, Chip } from '@/components/atoms';
 import { Subscription, SUBSCRIPTION_STATUS } from '@/models/Subscription';
 import { formatDateShort } from '@/utils/common/helper_functions';
-import { Calendar, Clock, Repeat } from 'lucide-react';
+import { Repeat } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import EmptyState from '../EmptyState';
 
@@ -43,52 +43,47 @@ const SubscriptionsWidget = ({ subscriptions, label }: SubscriptionsWidgetProps)
 
 	return (
 		<Card
+			noPadding
 			className='rounded-xl overflow-hidden'
 			style={{ backgroundColor: 'var(--portal-surface, white)', border: '1px solid var(--portal-border, #E9E9E9)' }}>
-			<div className='p-6' style={{ borderBottom: '1px solid var(--portal-border, #E9E9E9)' }}>
-				<h3 className='text-base font-medium' style={{ color: 'var(--portal-text-primary, #09090b)' }}>
+			{/* One row per subscription, separated by a rule rather than each sitting in
+			    its own bordered box inside this one. The nested cards cost roughly a
+			    third of the section's height and read as a second level of hierarchy
+			    that the content does not have. */}
+			<div
+				className='flex items-baseline justify-between gap-3 px-5 py-4'
+				style={{ borderBottom: '1px solid var(--portal-border, #E9E9E9)' }}>
+				<h3 className='text-sm font-medium' style={{ color: 'var(--portal-text-primary, #09090b)' }}>
 					{label || t('subscriptions.title')}
 				</h3>
+				<span className='text-xs shrink-0' style={{ color: 'var(--portal-text-secondary, #71717a)' }}>
+					{t('subscriptions.count', { count: activeSubscriptions.length })}
+				</span>
 			</div>
-			<div className='p-6 space-y-4'>
+			<div className='divide-y' style={{ borderColor: 'var(--portal-border, #E9E9E9)' }}>
 				{activeSubscriptions.map((subscription) => (
-					<div
-						key={subscription.id}
-						className='rounded-lg p-4 transition-colors'
-						style={{ border: '1px solid var(--portal-border, #E9E9E9)' }}>
-						<div className='flex items-start justify-between mb-3'>
-							<div>
-								<h4 className='text-sm font-medium' style={{ color: 'var(--portal-text-primary, #09090b)' }}>
-									{subscription.plan?.name || t('subscriptions.unknownPlan')}
-								</h4>
-								{subscription.plan?.description && (
-									<p className='text-xs mt-0.5 line-clamp-1' style={{ color: 'var(--portal-text-secondary, #71717a)' }}>
-										{subscription.plan.description}
-									</p>
-								)}
-							</div>
-							{getStatusChip(subscription.subscription_status)}
-						</div>
-						<div className='flex flex-wrap gap-4 text-xs' style={{ color: 'var(--portal-text-secondary, #71717a)' }}>
-							<div className='flex items-center gap-1.5'>
-								<Calendar className='h-3.5 w-3.5' />
-								<span>
-									{formatDateShort(subscription.current_period_start)} - {formatDateShort(subscription.current_period_end)}
-								</span>
-							</div>
-							{subscription.subscription_status === SUBSCRIPTION_STATUS.ACTIVE && (
-								<div className='flex items-center gap-1.5'>
-									<Clock className='h-3.5 w-3.5' />
-									<span>{t('subscriptions.nextBilling', { date: formatDateShort(subscription.current_period_end) })}</span>
-								</div>
+					<div key={subscription.id} className='flex items-start justify-between gap-4 px-5 py-4'>
+						<div className='min-w-0'>
+							<h4 className='text-sm font-medium truncate' style={{ color: 'var(--portal-text-primary, #09090b)' }}>
+								{subscription.plan?.name || t('subscriptions.unknownPlan')}
+							</h4>
+							{subscription.plan?.description && (
+								<p className='text-xs mt-0.5 line-clamp-1' style={{ color: 'var(--portal-text-secondary, #71717a)' }}>
+									{subscription.plan.description}
+								</p>
 							)}
-							{subscription.subscription_status === SUBSCRIPTION_STATUS.TRIALING && subscription.trial_end && (
-								<div className='flex items-center gap-1.5 text-blue-600'>
-									<Clock className='h-3.5 w-3.5' />
-									<span>{t('subscriptions.trialEnds', { date: formatDateShort(subscription.trial_end) })}</span>
-								</div>
-							)}
+							{/* One line, middot-separated: the dates are a single fact about the
+							    period, not two findings worth their own icons and columns. */}
+							<p className='text-xs mt-1' style={{ color: 'var(--portal-text-secondary, #71717a)' }}>
+								{formatDateShort(subscription.current_period_start)} – {formatDateShort(subscription.current_period_end)}
+								{subscription.subscription_status === SUBSCRIPTION_STATUS.ACTIVE &&
+									` · ${t('subscriptions.nextBilling', { date: formatDateShort(subscription.current_period_end) })}`}
+								{subscription.subscription_status === SUBSCRIPTION_STATUS.TRIALING &&
+									subscription.trial_end &&
+									` · ${t('subscriptions.trialEnds', { date: formatDateShort(subscription.trial_end) })}`}
+							</p>
 						</div>
+						<div className='shrink-0'>{getStatusChip(subscription.subscription_status)}</div>
 					</div>
 				))}
 			</div>

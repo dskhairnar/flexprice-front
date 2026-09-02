@@ -20,7 +20,7 @@ const STATUS_VARIANT: Record<string, 'success' | 'warning' | 'failed' | 'default
  * Prop-only wallet-balance card — no fetching, no auth, no PortalConfigContext. Consumers supply
  * an already-adapted `wallet` (see `adaptCreditBalance`), or `null` for the empty state.
  */
-const CreditBalance = ({ wallet: rawWallet, isLoading = false, className, actions }: CreditBalanceProps) => {
+const CreditBalance = ({ wallet: rawWallet, isLoading = false, className, actions, balanceAction }: CreditBalanceProps) => {
 	const wallet = rawWallet ? normalizeCreditBalanceData(rawWallet) : null;
 	const t = useCreditsT();
 
@@ -57,7 +57,7 @@ const CreditBalance = ({ wallet: rawWallet, isLoading = false, className, action
 
 	return (
 		<Card noPadding className={cn('flexprice-ui', 'rounded-xl overflow-hidden bg-surface', className)}>
-			<div className='p-5 flex items-start justify-between gap-4'>
+			<div className='px-5 pt-4 pb-3 flex items-start justify-between gap-4'>
 				<div className='flex items-center gap-3 min-w-0'>
 					<div className='h-9 w-9 rounded-full flex items-center justify-center shrink-0 bg-accent-indigo-muted'>
 						<WalletIcon className='h-4 w-4 text-accent-indigo' />
@@ -69,19 +69,24 @@ const CreditBalance = ({ wallet: rawWallet, isLoading = false, className, action
 				</div>
 				{actions && <div className='shrink-0'>{actions}</div>}
 			</div>
-			<div className='px-5 pb-5'>
-				<span className='text-sm block mb-1 text-content-secondary'>{t('creditWidgets.balance')}</span>
-				{/* Money leads: it is the figure a customer can act on. Credits follow as the unit detail.
+			{/* The action sits with the balance, not up beside the wallet's name: the
+			    question it answers is "I have this much — how do I add more?" */}
+			<div className='px-5 pb-4 flex items-end justify-between gap-4'>
+				<div className='min-w-0'>
+					<span className='text-sm block mb-1 text-content-secondary'>{t('creditWidgets.balance')}</span>
+					{/* Money leads: it is the figure a customer can act on. Credits follow as the unit detail.
 				    The sign sits outside the currency symbol so a negative reads as -$17,681.62. */}
-				<p className={cn('text-3xl font-semibold', isOverdrawn ? 'text-accent-rose' : 'text-content')}>
-					{wallet.balance < 0 ? '-' : ''}
-					{currencySymbol}
-					{formatMoney(Math.abs(wallet.balance))}
-				</p>
-				<p className='text-sm mt-1 text-content-secondary'>
-					{formatCredits(wallet.creditBalance)} {t('creditWidgets.credits')}
-				</p>
-				{isOverdrawn && <p className='text-sm mt-3 text-accent-rose'>{t('creditWidgets.overdrawnHint')}</p>}
+					<p className={cn('text-3xl font-semibold', isOverdrawn ? 'text-accent-rose' : 'text-content')}>
+						{wallet.balance < 0 ? '-' : ''}
+						{currencySymbol}
+						{formatMoney(Math.abs(wallet.balance))}
+					</p>
+					<p className='text-sm mt-1 text-content-secondary'>
+						{formatCredits(wallet.creditBalance)} {t('creditWidgets.credits')}
+					</p>
+					{isOverdrawn && <p className='text-sm mt-3 text-accent-rose'>{t('creditWidgets.overdrawnHint')}</p>}
+				</div>
+				{balanceAction && <div className='shrink-0 pb-1'>{balanceAction}</div>}
 			</div>
 		</Card>
 	);

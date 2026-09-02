@@ -87,8 +87,10 @@
 		"emptyTitle": "لا توجد اشتراكات نشطة",
 		"emptyDescription": "ليس لديك اشتراكات نشطة في الوقت الحالي",
 		"unknownPlan": "خطة غير معروفة",
-		"nextBilling": "الفوترة التالية: {{date}}",
-		"trialEnds": "تنتهي التجربة: {{date}}"
+		"nextBilling": "الفوترة التالية {{date}}",
+		"trialEnds": "تنتهي التجربة {{date}}",
+		"count_one": "اشتراك واحد",
+		"count_other": "{{count}} اشتراكات"
 	},
 	"usage": {
 		"title": "الاستخدام",

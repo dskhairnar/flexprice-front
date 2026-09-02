@@ -259,12 +259,14 @@ const PaymentMethodsWidget = ({ label }: PaymentMethodsWidgetProps) => {
 				</div>
 			</Dialog>
 
-			<div className='flex items-start justify-between gap-4 mb-4'>
-				<div>
-					<h3 className='text-sm font-medium mb-0.5' style={{ color: 'var(--portal-text-primary, #09090b)' }}>
+			<div className='flex items-start justify-between gap-4 mb-3'>
+				<div className='min-w-0'>
+					<h3 className='text-sm font-medium' style={{ color: 'var(--portal-text-primary, #09090b)' }}>
 						{label ?? t('paymentMethods.title')}
 					</h3>
-					<p className='text-sm' style={{ color: 'var(--portal-text-secondary, #71717a)' }}>
+					{/* Supporting text, so it drops to the smaller size the other section
+					    descriptions use rather than matching its own heading. */}
+					<p className='text-xs mt-0.5' style={{ color: 'var(--portal-text-secondary, #71717a)' }}>
 						{t('paymentMethods.description')}
 					</p>
 				</div>

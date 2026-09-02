@@ -87,8 +87,10 @@
 		"emptyTitle": "No active subscriptions",
 		"emptyDescription": "You do not have any active subscriptions at the moment",
 		"unknownPlan": "Unknown Plan",
-		"nextBilling": "Next billing: {{date}}",
-		"trialEnds": "Trial ends: {{date}}"
+		"nextBilling": "Next billing {{date}}",
+		"trialEnds": "Trial ends {{date}}",
+		"count_one": "{{count}} subscription",
+		"count_other": "{{count}} subscriptions"
 	},
 	"usage": {
 		"title": "Usage",
