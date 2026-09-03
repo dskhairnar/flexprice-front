@@ -8,7 +8,6 @@ import { SectionConfig, TabConfig, DatePreset, UsageGraphConfig } from '@/types/
 import { DashboardAnalyticsRequest } from '@/types';
 import { WindowSize } from '@/models';
 import { DateRangePicker } from '@/components/atoms';
-import { usePortalConfig } from '@/context/PortalConfigContext';
 import TabRenderer, { DEFAULT_USAGE_GRAPH_CONFIG } from './TabRenderer';
 import EmptyState from './EmptyState';
 import { Card } from '@/components/ui/card';
@@ -65,7 +64,6 @@ interface SectionDateFilterProps {
 	/** The custom range as typed so far — takes over the picker once a start is chosen. */
 	draftStart: string;
 	draftEnd: string;
-	hasTheme: boolean;
 	getPresetLabel: (preset: DatePreset) => string;
 	startPlaceholder: string;
 	endPlaceholder: string;
@@ -82,7 +80,6 @@ const SectionDateFilter = ({
 	draftStart,
 	draftEnd,
 	effectiveEnd,
-	hasTheme,
 	getPresetLabel,
 	startPlaceholder,
 	endPlaceholder,
@@ -94,13 +91,7 @@ const SectionDateFilter = ({
 	// width and read as detached from the section they filter.
 	<div className='flex items-center justify-between gap-3 flex-wrap mb-5'>
 		{/* Preset Buttons */}
-		<div
-			className='flex items-center gap-1 rounded-lg p-1'
-			style={
-				hasTheme
-					? { backgroundColor: 'var(--portal-surface)', border: '1px solid var(--portal-border)' }
-					: { backgroundColor: 'white', border: '1px solid #E9E9E9' }
-			}>
+		<div className='flex items-center gap-1 rounded-lg border border-line bg-surface p-1'>
 			{usageGraphConfig.date_presets.map((preset) => {
 				const isActive = !useCustom && selectedPreset === preset;
 				return (
@@ -108,16 +99,9 @@ const SectionDateFilter = ({
 						key={preset}
 						onClick={() => onPresetClick(preset)}
 						className={cn(
-							'px-3 py-1.5 text-xs font-medium rounded-md transition-colors',
-							!hasTheme && (isActive ? 'bg-zinc-100 text-zinc-900 shadow-sm' : 'text-zinc-500 hover:text-zinc-700'),
-						)}
-						style={
-							hasTheme
-								? isActive
-									? { backgroundColor: 'var(--portal-primary)', color: 'white' }
-									: { color: 'var(--portal-text-secondary, #71717a)' }
-								: undefined
-						}>
+							'rounded-md px-3 py-1.5 text-xs font-medium transition-colors',
+							isActive ? 'bg-surface-subtle text-content shadow-sm' : 'text-content-secondary hover:text-content',
+						)}>
 						{getPresetLabel(preset)}
 					</button>
 				);
@@ -142,7 +126,7 @@ const SectionDateFilter = ({
 					onCustomEndChange(endDate ? new Date(endDate.getTime() + DAY_MS - 1).toISOString() : '');
 				}}
 				className='w-auto'
-				popoverTriggerClassName={`[&_button]:h-9 [&_button]:text-xs [&_button]:rounded-md${hasTheme ? ' [&_button]:bg-[var(--portal-surface)] [&_button]:border-[var(--portal-border)] [&_button]:text-[var(--portal-text-primary)]' : ''}`}
+				popoverTriggerClassName='[&_button]:h-9 [&_button]:text-xs [&_button]:rounded-md [&_button]:bg-surface [&_button]:border-line [&_button]:text-content'
 			/>
 		)}
 	</div>
@@ -160,8 +144,6 @@ const SectionDateFilter = ({
  */
 const SectionContent = ({ section }: SectionContentProps) => {
 	const { t } = useTranslation('customer-portal');
-	const { config } = usePortalConfig();
-	const hasTheme = !!config.theme;
 	const enabledTabs = useMemo(() => [...section.tabs.filter((t) => t.enabled)].sort((a, b) => a.order - b.order), [section.tabs]);
 
 	// ── Shared date filter state (hoisted to section level) ──────────────────
@@ -240,9 +222,7 @@ const SectionContent = ({ section }: SectionContentProps) => {
 	// onto nothing at all.
 	if (enabledTabs.length === 0) {
 		return (
-			<Card
-				className='rounded-xl p-6'
-				style={{ backgroundColor: 'var(--portal-surface, white)', border: '1px solid var(--portal-border, #E9E9E9)' }}>
+			<Card className='rounded-xl p-6 bg-surface border border-line'>
 				<EmptyState icon={<LayoutGrid />} title={t('section.emptyTitle')} description={t('section.emptyDescription')} />
 			</Card>
 		);
@@ -263,7 +243,6 @@ const SectionContent = ({ section }: SectionContentProps) => {
 					effectiveEnd={effectiveRange.end_time}
 					draftStart={customStart}
 					draftEnd={customEnd}
-					hasTheme={hasTheme}
 					getPresetLabel={(preset) => t(`datePreset.${preset}`)}
 					startPlaceholder={t('datePicker.startDate')}
 					endPlaceholder={t('datePicker.endDate')}

@@ -318,4 +318,22 @@ describe('TopUpWidget', () => {
 		// The default wins over declaration order.
 		expect(payload.checkout?.payment_provider).toBe('chargebee');
 	});
+
+	// Without checkout configured the request still raises an invoice and the
+	// response says so. Blocking the button told the customer about the tenant's
+	// payment setup — something they cannot act on — and stopped an action that works.
+	it('lets the customer pay when no gateway can host a checkout', async () => {
+		vi.mocked(CustomerPortalApi.getIntegrations).mockResolvedValue({ payment_integrations: [] } as never);
+		vi.mocked(CustomerPortalApi.topUpWallet).mockResolvedValue({} as never);
+
+		renderWidget();
+		await enterCredits('10');
+
+		const pay = screen.getByRole('button', { name: /pay now/i });
+		await waitFor(() => expect(pay).toBeEnabled());
+		expect(screen.queryByText(/online payment is not set up/i)).not.toBeInTheDocument();
+
+		await userEvent.click(pay);
+		await waitFor(() => expect(CustomerPortalApi.topUpWallet).toHaveBeenCalled());
+	});
 });

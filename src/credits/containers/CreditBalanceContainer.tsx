@@ -12,9 +12,9 @@ import CreditBalance from '../components/CreditBalance';
 
 interface CreditBalanceContainerProps {
 	className?: string;
-	/** Header-right slot — the secondary menu. */
+	/** Header-right slot, beside the wallet's name. */
 	actions?: ReactNode;
-	/** Beside the balance — the primary action on it. */
+	/** On the balance label's row, under the header rule. */
 	balanceAction?: ReactNode;
 }
 

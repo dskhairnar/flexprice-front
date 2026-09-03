@@ -19,16 +19,15 @@ export interface CreditBalanceData {
 
 export interface CreditBalanceProps {
 	/**
-	 * The action that belongs to the balance — topping it up. Rendered beside the
-	 * figure rather than in the header, where it competed with the wallet's name
-	 * for the same visual weight.
+	 * Rendered on the balance label's row, under the header rule. Whichever control
+	 * belongs with the figure rather than with the wallet's identity.
 	 */
 	balanceAction?: ReactNode;
 	/** null renders the empty state (no wallet set up). */
 	wallet: CreditBalanceData | null;
 	isLoading?: boolean;
 	className?: string;
-	/** Optional header-right slot, so consumers can surface a primary action (e.g. Top up). */
+	/** Header-right slot, beside the wallet's name. */
 	actions?: ReactNode;
 }
 

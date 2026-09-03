@@ -156,20 +156,16 @@ const AutoTopUpForm = ({ wallet, hasChargeableMethod, onAddPaymentMethod, onDone
 				</div>
 			)}
 
-			<div style={{ borderTop: '1px solid var(--portal-border, #E9E9E9)', paddingTop: '1rem' }}>
+			<div className='border-t border-line pt-4'>
 				{/* Sits directly above the button it explains. At the top of the form it
 				    was separated from the greyed-out Save by the whole configuration, and
 				    a second line under the button repeated it. */}
 				{enabled && !hasChargeableMethod && (
-					<div
-						className='flex items-start gap-2 rounded-lg border p-3 mb-3'
-						style={{ borderColor: 'var(--portal-border, #E9E9E9)', backgroundColor: 'var(--portal-bg, #fafafa)' }}>
-						<AlertCircle className='h-4 w-4 mt-0.5 shrink-0' style={{ color: 'rgb(var(--fp-danger))' }} />
+					<div className='mb-3 flex items-start gap-2 rounded-lg border border-line bg-surface-subtle p-3'>
+						<AlertCircle className='mt-0.5 h-4 w-4 shrink-0 text-danger' />
 						<div className='text-sm'>
-							<p style={{ color: 'var(--portal-text-primary, #09090b)' }}>{t('autoTopUp.noSavedCard')}</p>
-							<p className='text-xs mt-0.5' style={{ color: 'var(--portal-text-secondary, #a1a1aa)' }}>
-								{t('autoTopUp.needsCardHint')}
-							</p>
+							<p className='text-content'>{t('autoTopUp.noSavedCard')}</p>
+							<p className='text-xs mt-0.5 text-content-tertiary'>{t('autoTopUp.needsCardHint')}</p>
 							{onAddPaymentMethod && (
 								<button
 									type='button'

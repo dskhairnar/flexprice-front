@@ -43,14 +43,18 @@ describe('CreditBalance formatting', () => {
 		expect(screen.getByRole('button', { name: 'Top up' })).toBeInTheDocument();
 	});
 
-	// The primary action belongs beside the figure it changes, not up in the header
+	// The primary action belongs with the balance it changes, not up in the header
 	// competing with the wallet's name.
-	it('renders the balance action on the same row as the amount', () => {
+	it("renders the balance action on the balance label's row, above the amount", () => {
 		render(<CreditBalance wallet={wallet()} balanceAction={<button>Add credits</button>} />);
-		const amount = screen.getByText((_, el) => el?.tagName === 'P' && el.textContent === '$100.50');
+		const label = screen.getByText('Balance');
 		const button = screen.getByRole('button', { name: 'Add credits' });
-		// Siblings under the same row, rather than the button sitting in the header
-		// or stranded at the far edge of the card.
-		expect(amount.parentElement).toBe(button.closest('div')?.parentElement);
+
+		// Same row as the label, so it has the header rule to align against rather
+		// than floating in the empty right half of a full-width card.
+		expect(label.parentElement).toBe(button.closest('div')?.parentElement);
+		// And the amount reads below that row, not beside the button.
+		const amount = screen.getByText((_, el) => el?.tagName === 'P' && el.textContent === '$100.50');
+		expect(label.parentElement?.nextElementSibling).toBe(amount);
 	});
 });

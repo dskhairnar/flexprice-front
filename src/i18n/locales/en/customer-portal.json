@@ -131,7 +131,8 @@
 		"downloadInvoice": "Download invoice",
 		"notPayable": "This invoice is not awaiting payment.",
 		"notDownloadable": "Only finalized invoices can be downloaded.",
-		"rowActions": "Actions for invoice {{invoice}}"
+		"rowActions": "Actions for invoice {{invoice}}",
+		"title": "Invoices"
 	},
 	"wallet": {
 		"defaultName": "Wallet",
@@ -188,7 +189,6 @@
 		"useSavedMethod": "Pay with my saved card ({{method}})",
 		"useSavedMethodTitle": "Saved card",
 		"useSavedMethodHint": "Charge the card on file instead of opening a checkout page.",
-		"checkoutUnavailable": "Online payment is not set up for this account, so an invoice will be raised instead.",
 		"useSavedMethodEmptyLabel": "Use my saved card",
 		"savedMethodUnsupported": "Your payment provider does not support charging a saved card.",
 		"savedMethodNone": "No saved card yet — add one from the Payments tab.",

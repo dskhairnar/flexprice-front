@@ -9,6 +9,7 @@ import { formatDateShort, getCurrencySymbol } from '@/utils/common/helper_functi
 import { formatMoney } from '@/utils/common/formatBalance';
 import usePortalWallet from '../usePortalWallet';
 import TopUpButton from './TopUpButton';
+import { cn } from '@/lib/utils';
 
 interface AccountSummaryWidgetProps {
 	label?: string;
@@ -23,14 +24,8 @@ interface StatProps {
 /** One figure in the summary strip — a label/value pair, not a nested card. */
 const Stat = ({ label, value, tone = 'default' }: StatProps) => (
 	<div className='min-w-0'>
-		<p className='text-xs mb-1' style={{ color: 'var(--portal-text-secondary, #71717a)' }}>
-			{label}
-		</p>
-		<p
-			className='text-xl font-semibold truncate'
-			style={{ color: tone === 'danger' ? 'rgb(var(--fp-danger))' : 'var(--portal-text-primary, #09090b)' }}>
-			{value}
-		</p>
+		<p className='text-xs mb-1 text-content-secondary'>{label}</p>
+		<p className={cn('truncate text-xl font-semibold', tone === 'danger' ? 'text-danger' : 'text-content')}>{value}</p>
 	</div>
 );
 
@@ -77,9 +72,7 @@ const AccountSummaryWidget = ({ label }: AccountSummaryWidgetProps) => {
 
 	if (isLoading) {
 		return (
-			<Card
-				className='rounded-xl p-5'
-				style={{ backgroundColor: 'var(--portal-surface, white)', border: '1px solid var(--portal-border, #E9E9E9)' }}>
+			<Card className='rounded-xl p-5 bg-surface border border-line'>
 				<div className='animate-pulse grid gap-6 sm:grid-cols-3'>
 					{[1, 2, 3].map((i) => (
 						<div key={i} className='space-y-2'>
@@ -110,14 +103,8 @@ const AccountSummaryWidget = ({ label }: AccountSummaryWidgetProps) => {
 	const walletBalance = Number(wallet?.balance ?? 0);
 
 	return (
-		<Card
-			className='rounded-xl p-5'
-			style={{ backgroundColor: 'var(--portal-surface, white)', border: '1px solid var(--portal-border, #E9E9E9)' }}>
-			{label && (
-				<h3 className='text-sm font-medium mb-4' style={{ color: 'var(--portal-text-primary, #09090b)' }}>
-					{label}
-				</h3>
-			)}
+		<Card className='rounded-xl p-5 bg-surface border border-line'>
+			{label && <h3 className='text-sm font-medium mb-4 text-content'>{label}</h3>}
 			<div className='flex flex-wrap items-end justify-between gap-6'>
 				<div className='grid gap-6 grid-cols-2 sm:grid-cols-3 flex-1 min-w-0'>
 					{wallet && (

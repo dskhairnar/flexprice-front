@@ -79,8 +79,9 @@ const TabRenderer = ({ tab, subscriptions = [], usageData, analyticsParams }: Ta
 			{tab.type === 'usage_breakdown' && <UsageBreakdownContainer analyticsParams={analyticsParams} label={tab.label} />}
 			{tab.type === 'invoices' && <InvoicesWidget />}
 			{tab.type === 'account_summary' && <AccountSummaryWidget label={tab.label} />}
-			{/* Top up sits with the balance; the menu stays in the header beside the name. */}
-			{tab.type === 'wallet_balance' && <CreditBalanceContainer actions={<WalletActionsHeader />} balanceAction={<TopUpButton />} />}
+			{/* Top up leads, in the header beside the wallet's name; the menu drops to the
+			    balance row so the primary action is the first thing read. */}
+			{tab.type === 'wallet_balance' && <CreditBalanceContainer actions={<TopUpButton />} balanceAction={<WalletActionsHeader />} />}
 			{tab.type === 'wallet_transactions' && <CreditHistoryContainer />}
 			{tab.type === 'wallet_topup' && <TopUpWidget label={tab.label} />}
 			{tab.type === 'auto_topup' && <AutoTopUpWidget label={tab.label} />}

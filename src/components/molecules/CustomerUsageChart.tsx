@@ -7,6 +7,7 @@ import { formatCompactNumber } from '@/utils';
 import { GetUsageAnalyticsResponse } from '@/types/dto';
 import { UsageAnalyticItem } from '@/models/Analytics';
 import { useCustomerUsageChartT } from './CustomerUsageChart.i18n';
+import type { ReactNode } from 'react';
 
 // Configuration constants - adjust these values as needed
 const MAX_LEGEND_ITEMS = 5;
@@ -91,7 +92,8 @@ const normalizeUsageData = (items: UsageAnalyticItem[], getSeriesFallbackName: (
 
 interface CustomerUsageChartProps {
 	data: GetUsageAnalyticsResponse;
-	title?: string;
+	/** A node, not just a string, so a caller can badge it with a section icon. */
+	title?: ReactNode;
 	description?: string;
 	className?: string;
 	/** Portal primary color — defaults to indigo if not provided */

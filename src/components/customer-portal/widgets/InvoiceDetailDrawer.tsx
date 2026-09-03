@@ -9,6 +9,7 @@ import { PAYMENT_STATUS } from '@/constants/payment';
 import { formatDateShort, getCurrencySymbol } from '@/utils/common/helper_functions';
 import { portalInvoiceQueryKey } from '../queryKeys';
 import { isPayable } from '../invoiceStatus';
+import { cn } from '@/lib/utils';
 
 interface InvoiceDetailDrawerProps {
 	/** Row the drawer was opened from; used for an instant header before the full fetch lands. */
@@ -33,25 +34,15 @@ const StatusChip = ({ invoice }: { invoice: Invoice }) => {
 /** Compact label/value row — dividers instead of nested cards, per the portal's linear layout. */
 const MetaRow = ({ label, value }: { label: string; value: string }) => (
 	<div className='flex items-baseline justify-between gap-4 py-2'>
-		<span className='text-sm' style={{ color: 'var(--portal-text-secondary, #71717a)' }}>
-			{label}
-		</span>
-		<span className='text-sm text-end' style={{ color: 'var(--portal-text-primary, #09090b)' }}>
-			{value}
-		</span>
+		<span className='text-sm text-content-secondary'>{label}</span>
+		<span className='text-sm text-end text-content'>{value}</span>
 	</div>
 );
 
 const TotalRow = ({ label, value, emphasis = false }: { label: string; value: string; emphasis?: boolean }) => (
 	<div className='flex items-baseline justify-between gap-4 py-1.5'>
-		<span
-			className={emphasis ? 'text-sm font-medium' : 'text-sm'}
-			style={{ color: emphasis ? 'var(--portal-text-primary, #09090b)' : 'var(--portal-text-secondary, #71717a)' }}>
-			{label}
-		</span>
-		<span className={emphasis ? 'text-sm font-semibold' : 'text-sm'} style={{ color: 'var(--portal-text-primary, #09090b)' }}>
-			{value}
-		</span>
+		<span className={cn('text-sm', emphasis ? 'font-medium text-content' : 'text-content-secondary')}>{label}</span>
+		<span className={cn('text-sm text-content', emphasis && 'font-semibold')}>{value}</span>
 	</div>
 );
 
@@ -96,15 +87,15 @@ const InvoiceDetailDrawer = ({
 						<div className='flex items-center gap-3 mb-1'>
 							<StatusChip invoice={detail} />
 						</div>
-						<p className='text-3xl font-semibold' style={{ color: 'var(--portal-text-primary, #09090b)' }}>
+						<p className='text-3xl font-semibold text-content'>
 							{money(detail.amount_remaining > 0 ? detail.amount_remaining : detail.total)}
 						</p>
-						<p className='text-sm mt-1' style={{ color: 'var(--portal-text-secondary, #71717a)' }}>
+						<p className='text-sm mt-1 text-content-secondary'>
 							{detail.amount_remaining > 0 ? t('invoiceDetail.amountDue') : t('invoiceDetail.amountTotal')}
 						</p>
 					</div>
 
-					<div className='divide-y' style={{ borderColor: 'var(--portal-border, #E9E9E9)' }}>
+					<div className='divide-y border-line'>
 						{detail.period_start && detail.period_end && (
 							<MetaRow
 								label={t('invoiceDetail.billingPeriod')}
@@ -116,9 +107,7 @@ const InvoiceDetailDrawer = ({
 					</div>
 
 					<div>
-						<h4 className='text-sm font-medium mb-2' style={{ color: 'var(--portal-text-primary, #09090b)' }}>
-							{t('invoiceDetail.lineItems')}
-						</h4>
+						<h4 className='text-sm font-medium mb-2 text-content'>{t('invoiceDetail.lineItems')}</h4>
 						{isLoading && !data ? (
 							<div className='animate-pulse space-y-2'>
 								{[1, 2, 3].map((i) => (
@@ -126,33 +115,25 @@ const InvoiceDetailDrawer = ({
 								))}
 							</div>
 						) : detail.line_items?.length ? (
-							<div className='divide-y' style={{ borderColor: 'var(--portal-border, #E9E9E9)' }}>
+							<div className='divide-y border-line'>
 								{detail.line_items.map((item) => (
 									<div key={item.id} className='flex items-baseline justify-between gap-4 py-2'>
 										<div className='min-w-0'>
-											<p className='text-sm truncate' style={{ color: 'var(--portal-text-primary, #09090b)' }}>
-												{item.display_name || item.id}
-											</p>
+											<p className='text-sm truncate text-content'>{item.display_name || item.id}</p>
 											{item.quantity && (
-												<p className='text-xs' style={{ color: 'var(--portal-text-secondary, #71717a)' }}>
-													{t('invoiceDetail.quantity', { quantity: item.quantity })}
-												</p>
+												<p className='text-xs text-content-secondary'>{t('invoiceDetail.quantity', { quantity: item.quantity })}</p>
 											)}
 										</div>
-										<span className='text-sm shrink-0' style={{ color: 'var(--portal-text-primary, #09090b)' }}>
-											{money(item.amount)}
-										</span>
+										<span className='text-sm shrink-0 text-content'>{money(item.amount)}</span>
 									</div>
 								))}
 							</div>
 						) : (
-							<p className='text-sm py-2' style={{ color: 'var(--portal-text-secondary, #71717a)' }}>
-								{t('invoiceDetail.noLineItems')}
-							</p>
+							<p className='text-sm py-2 text-content-secondary'>{t('invoiceDetail.noLineItems')}</p>
 						)}
 					</div>
 
-					<div className='pt-4' style={{ borderTop: '1px solid var(--portal-border, #E9E9E9)' }}>
+					<div className='pt-4 border-t border-line'>
 						<TotalRow label={t('invoiceDetail.subtotal')} value={money(detail.subtotal)} />
 						{!!detail.total_discount && <TotalRow label={t('invoiceDetail.discount')} value={`−${money(detail.total_discount)}`} />}
 						{!!detail.total_tax && <TotalRow label={t('invoiceDetail.tax')} value={money(detail.total_tax)} />}
