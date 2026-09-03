@@ -70,10 +70,13 @@ const CreditBalance = ({ wallet: rawWallet, isLoading = false, className, action
 				{actions && <div className='shrink-0'>{actions}</div>}
 			</div>
 			{/* The action sits with the balance, not up beside the wallet's name: the
-			    question it answers is "I have this much — how do I add more?" */}
-			<div className='px-5 pb-4 flex items-end justify-between gap-4'>
-				<div className='min-w-0'>
-					<span className='text-sm block mb-1 text-content-secondary'>{t('creditWidgets.balance')}</span>
+			    question it answers is "I have this much — how do I add more?"
+			    Grouped against the figure rather than pushed to the card's edge — on a
+			    full-width card that left it stranded in empty space with nothing to
+			    align to, which read as an afterthought rather than the primary action. */}
+			<div className='px-5 pb-4'>
+				<span className='text-sm block mb-1 text-content-secondary'>{t('creditWidgets.balance')}</span>
+				<div className='flex flex-wrap items-center gap-x-4 gap-y-2'>
 					{/* Money leads: it is the figure a customer can act on. Credits follow as the unit detail.
 				    The sign sits outside the currency symbol so a negative reads as -$17,681.62. */}
 					<p className={cn('text-3xl font-semibold', isOverdrawn ? 'text-accent-rose' : 'text-content')}>
@@ -81,12 +84,12 @@ const CreditBalance = ({ wallet: rawWallet, isLoading = false, className, action
 						{currencySymbol}
 						{formatMoney(Math.abs(wallet.balance))}
 					</p>
-					<p className='text-sm mt-1 text-content-secondary'>
-						{formatCredits(wallet.creditBalance)} {t('creditWidgets.credits')}
-					</p>
-					{isOverdrawn && <p className='text-sm mt-3 text-accent-rose'>{t('creditWidgets.overdrawnHint')}</p>}
+					{balanceAction && <div className='shrink-0'>{balanceAction}</div>}
 				</div>
-				{balanceAction && <div className='shrink-0 pb-1'>{balanceAction}</div>}
+				<p className='text-sm mt-1 text-content-secondary'>
+					{formatCredits(wallet.creditBalance)} {t('creditWidgets.credits')}
+				</p>
+				{isOverdrawn && <p className='text-sm mt-3 text-accent-rose'>{t('creditWidgets.overdrawnHint')}</p>}
 			</div>
 		</Card>
 	);
