@@ -81,7 +81,18 @@ const InvoiceDetailDrawer = ({
 	// surface shows ₹2.00.
 	const money = (value?: number) => `${symbol}${formatMoney(value ?? 0)}`;
 
-	const title = detail ? detail.invoice_number || t('invoices.numberPrefix', { id: detail.id.slice(0, 8) }) : t('invoiceDetail.title');
+	const invoiceNumber = detail
+		? detail.invoice_number || t('invoices.numberPrefix', { id: detail.id.slice(0, 8) })
+		: t('invoiceDetail.title');
+
+	// The status belongs beside the number it describes, not stacked under it where
+	// it read as the first item of the body rather than part of the heading.
+	const title = (
+		<span className='flex flex-wrap items-center gap-3'>
+			{invoiceNumber}
+			{detail && <StatusChip invoice={detail} />}
+		</span>
+	);
 
 	return (
 		<Sheet isOpen={isOpen} onOpenChange={onOpenChange} title={title} size='md'>
@@ -92,8 +103,7 @@ const InvoiceDetailDrawer = ({
 				<div className='flex min-h-full flex-col'>
 					{/* Amount leads — the customer's first question is what they owe. */}
 					<div className='pb-5'>
-						<StatusChip invoice={detail} />
-						<p className='mt-3 text-3xl font-semibold text-content'>
+						<p className='text-3xl font-semibold text-content'>
 							{money(detail.amount_remaining > 0 ? detail.amount_remaining : detail.total)}
 						</p>
 						<p className='mt-1 text-xs text-content-tertiary'>
