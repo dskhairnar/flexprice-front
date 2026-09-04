@@ -469,6 +469,17 @@ const EditInvoicePage: FC = () => {
 							<div>{getStatusChip(invoice.invoice_status ?? '', t)}</div>
 							<div>{getPaymentStatusChip(invoice.payment_status ?? '', t)}</div>
 						</div>
+						<Spacer className='!my-4' />
+						<div className='w-full grid grid-cols-4 gap-4'>
+							<p className={cn(readonlyLabelClass, 'col-span-2')}>{t('invoices.edit.description')}</p>
+							<p className={readonlyLabelClass}>{t('invoices.edit.periodStart')}</p>
+							<p className={readonlyLabelClass}>{t('invoices.edit.periodEnd')}</p>
+						</div>
+						<div className='w-full grid grid-cols-4 gap-4 mt-1'>
+							<p className={cn(readonlyValueClass, 'col-span-2 break-words')}>{invoice.description || na}</p>
+							<p className={readonlyValueClass}>{invoice.period_start ? formatDate(invoice.period_start) : na}</p>
+							<p className={readonlyValueClass}>{invoice.period_end ? formatDate(invoice.period_end) : na}</p>
+						</div>
 					</div>
 
 					{!isEditable && (
@@ -495,6 +506,7 @@ const EditInvoicePage: FC = () => {
 								value={pdfUrl}
 								onChange={setPdfUrl}
 								placeholder={t('invoices.edit.pdfUrlPlaceholder')}
+								description={t('invoices.edit.pdfUrlHint')}
 								disabled={!isEditable}
 							/>
 							<Select
