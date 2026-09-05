@@ -69,7 +69,10 @@
 			"periodStart": "Period Start",
 			"periodEnd": "Period End",
 			"lineItemDescriptionPlaceholder": "Optional description",
-			"servicePeriod": "Service Period"
+			"servicePeriod": "Service Period",
+			"itemColumn": "Item",
+			"noLineItems": "No line items on this invoice yet.",
+			"newLineItem": "New line item"
 		},
 		"status": {
 			"void": "Void",

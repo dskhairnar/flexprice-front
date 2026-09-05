@@ -4,7 +4,7 @@ import { useNavigate, useParams } from 'react-router';
 import { useTranslation } from 'react-i18next';
 import toast from 'react-hot-toast';
 import { z } from 'zod';
-import { Trash2 } from 'lucide-react';
+import { Info, Trash2 } from 'lucide-react';
 import {
 	Button,
 	Checkbox,
@@ -38,7 +38,8 @@ import { RouteNames } from '@/core/routes/Routes';
 import { refetchQueries } from '@/core/services/tanstack/ReactQueryProvider';
 import { refetchInvoiceQueries } from '@/core/services/tanstack/queryKeys';
 import { useBreadcrumbsStore } from '@/store/useBreadcrumbsStore';
-import formatDate from '@/utils/common/format_date';
+import formatDate, { formatBillingPeriod } from '@/utils/common/format_date';
+import { getCurrencySymbol } from '@/utils/common/helper_functions';
 import { cn } from '@/lib/utils';
 
 interface MetadataRow {
@@ -151,6 +152,9 @@ const EditInvoicePage: FC = () => {
 	const [invoiceStatus, setInvoiceStatus] = useState('');
 	const [lineItemRows, setLineItemRows] = useState<LineItemRow[]>([]);
 	const [removedLineItemIds, setRemovedLineItemIds] = useState<string[]>([]);
+	// Rows render as a read-only table; clicking one expands it into an inline editor.
+	// The snapshot backs Cancel; isNew rows are discarded on Cancel instead of restored.
+	const [rowEditor, setRowEditor] = useState<{ index: number; snapshot: LineItemRow; isNew: boolean } | null>(null);
 	const [isVoidConfirmOpen, setIsVoidConfirmOpen] = useState(false);
 
 	const {
@@ -174,6 +178,7 @@ const EditInvoicePage: FC = () => {
 		setInvoiceStatus(invoice.invoice_status ?? '');
 		setLineItemRows(toLineItemRows(invoice));
 		setRemovedLineItemIds([]);
+		setRowEditor(null);
 	}, [invoice]);
 
 	useEffect(() => {
@@ -449,6 +454,30 @@ const EditInvoicePage: FC = () => {
 			if (row?.id) setRemovedLineItemIds((ids) => (ids.includes(row.id!) ? ids : [...ids, row.id!]));
 			return prev.filter((_, i) => i !== index);
 		});
+		// Indices shift after a removal, so any open editor would point at the wrong row.
+		setRowEditor(null);
+	};
+
+	// Opening a row (or switching rows) keeps whatever was typed in the previous editor —
+	// only an explicit Cancel restores its snapshot.
+	const handleOpenRowEditor = (index: number) => {
+		setRowEditor({ index, snapshot: { ...lineItemRows[index] }, isNew: false });
+	};
+
+	const handleAddLineItem = () => {
+		const blank: LineItemRow = { display_name: '', quantity: '1', amount: '0', description: '', period_start: '', period_end: '' };
+		setRowEditor({ index: lineItemRows.length, snapshot: { ...blank }, isNew: true });
+		setLineItemRows((prev) => [...prev, blank]);
+	};
+
+	const handleRowEditorCancel = () => {
+		if (!rowEditor) return;
+		if (rowEditor.isNew) {
+			setLineItemRows((prev) => prev.filter((_, i) => i !== rowEditor.index));
+		} else {
+			setLineItemRows((prev) => prev.map((row, i) => (i === rowEditor.index ? rowEditor.snapshot : row)));
+		}
+		setRowEditor(null);
 	};
 
 	if (isLoading) return <Loader />;
@@ -606,78 +635,157 @@ const EditInvoicePage: FC = () => {
 
 					<Divider className='my-4' />
 
-					{/* line items — editable for drafts and finalized invoices through the invoice modify API */}
+					{/* line items — editable for drafts and finalized invoices through the invoice modify API.
+					    Rows read as an invoice table; clicking a row expands it into an inline editor. */}
 					{isEditable ? (
 						<div className='p-4'>
-							<FormHeader title={t('invoices.edit.lineItemsTitle')} variant='sub-header' titleClassName='font-semibold' />
-							<p className='text-sm text-content-zinc-muted mt-1 mb-4'>
-								{isFinalized ? t('invoices.edit.finalizedEditHint') : t('invoices.edit.manualEditHint')}
-							</p>
-							<div className='min-w-0'>
-								{lineItemRows.map((row, index) => (
-									<div key={row.id ?? `new-${index}`} className='mb-4 grid grid-cols-12 items-end gap-3 min-w-0'>
-										<div className='col-span-12 min-w-0 sm:col-span-5'>
-											<Input
-												label={index === 0 ? t('createInvoice.itemName') : ''}
-												value={row.display_name}
-												onChange={(value) => handleLineItemChange(index, 'display_name', value)}
-												placeholder={t('createInvoice.itemNamePlaceholder')}
-											/>
-										</div>
-										<div className='col-span-4 min-w-0 sm:col-span-3'>
-											<Input
-												label={index === 0 ? t('createInvoice.quantity') : ''}
-												value={row.quantity}
-												onChange={(value) => handleLineItemChange(index, 'quantity', value)}
-												variant='integer'
-												placeholder='1'
-											/>
-										</div>
-										<div className='col-span-4 min-w-0 sm:col-span-3'>
-											<Input
-												label={index === 0 ? t('createInvoice.amount') : ''}
-												value={row.amount}
-												onChange={(value) => handleLineItemChange(index, 'amount', value)}
-												variant='formatted-number'
-												placeholder={t('creditNotes.amountPlaceholder')}
-											/>
-										</div>
-										<div className='col-span-1 flex items-end justify-end'>
-											<Button
-												variant='outline'
-												className='size-[42px] shrink-0'
-												aria-label={t('invoices.edit.removeLineItem')}
-												onClick={() => handleRemoveLineItemRow(index)}>
-												<Trash2 className='w-4 h-4' />
-											</Button>
-										</div>
-										<div className='col-span-12 min-w-0 sm:col-span-6'>
-											<Input
-												label={index === 0 ? t('invoices.edit.description') : ''}
-												value={row.description}
-												onChange={(value) => handleLineItemChange(index, 'description', value)}
-												placeholder={t('invoices.edit.lineItemDescriptionPlaceholder')}
-											/>
-										</div>
-										<div className='col-span-11 min-w-0 sm:col-span-5'>
-											<DateRangePicker
-												title={index === 0 ? t('invoices.edit.servicePeriod') : undefined}
-												startDate={row.period_start ? new Date(row.period_start) : undefined}
-												endDate={row.period_end ? new Date(row.period_end) : undefined}
-												onChange={(dates) => handleLineItemPeriodChange(index, dates)}
-											/>
-										</div>
-									</div>
-								))}
-								<AddChargesButton
-									onClick={() =>
-										setLineItemRows((prev) => [
-											...prev,
-											{ display_name: '', quantity: '1', amount: '0', description: '', period_start: '', period_end: '' },
-										])
-									}
-									label={t('createInvoice.addLineItem')}
-								/>
+							{isFinalized && (
+								<div className='mb-4 flex items-start gap-2.5 rounded-lg border border-line bg-muted/40 px-4 py-3'>
+									<Info className='mt-0.5 size-4 shrink-0 text-content-zinc-muted' />
+									<p className='text-sm text-content-zinc-muted'>{t('invoices.edit.finalizedEditHint')}</p>
+								</div>
+							)}
+							<FormHeader
+								title={t('invoices.edit.lineItemsTitle')}
+								subtitle={t('invoices.edit.manualEditHint')}
+								variant='sub-header'
+								titleClassName='font-semibold'
+								subtitleClassName='!mt-1 text-sm text-content-zinc-muted'
+							/>
+							<div className='mt-4 overflow-hidden rounded-lg border border-line'>
+								<div className='overflow-x-auto'>
+									<table className='w-full border-collapse'>
+										<thead>
+											<tr className='border-b border-line'>
+												<th className='py-2.5 px-4 text-start text-xs font-medium uppercase tracking-wide text-content-zinc-muted'>
+													{t('invoices.edit.itemColumn')}
+												</th>
+												<th className='py-2.5 px-4 text-end text-xs font-medium uppercase tracking-wide text-content-zinc-muted'>
+													{t('createInvoice.quantity')}
+												</th>
+												<th className='py-2.5 px-4 text-end text-xs font-medium uppercase tracking-wide text-content-zinc-muted'>
+													{t('createInvoice.amount')}
+												</th>
+												<th className='py-2.5 px-4 text-start text-xs font-medium uppercase tracking-wide text-content-zinc-muted'>
+													{t('invoices.edit.servicePeriod')}
+												</th>
+												<th className='w-12' />
+											</tr>
+										</thead>
+										<tbody>
+											{lineItemRows.length === 0 && (
+												<tr>
+													<td colSpan={5} className='py-6 px-4 text-center text-sm text-content-zinc-muted'>
+														{t('invoices.edit.noLineItems')}
+													</td>
+												</tr>
+											)}
+											{lineItemRows.map((row, index) =>
+												rowEditor?.index === index ? (
+													<tr key={row.id ?? `new-${index}`} className='border-b border-line-subtle bg-muted/20'>
+														<td colSpan={5} className='p-4'>
+															<div className='max-w-3xl'>
+																<div className='grid grid-cols-2 gap-4'>
+																	<Input
+																		label={t('createInvoice.itemName')}
+																		value={row.display_name}
+																		onChange={(value) => handleLineItemChange(index, 'display_name', value)}
+																		placeholder={t('createInvoice.itemNamePlaceholder')}
+																	/>
+																	<Input
+																		label={t('invoices.edit.description')}
+																		value={row.description}
+																		onChange={(value) => handleLineItemChange(index, 'description', value)}
+																		placeholder={t('invoices.edit.lineItemDescriptionPlaceholder')}
+																	/>
+																	<Input
+																		label={t('createInvoice.quantity')}
+																		value={row.quantity}
+																		onChange={(value) => handleLineItemChange(index, 'quantity', value)}
+																		variant='integer'
+																		placeholder='1'
+																	/>
+																	<Input
+																		label={t('createInvoice.amount')}
+																		value={row.amount}
+																		onChange={(value) => handleLineItemChange(index, 'amount', value)}
+																		variant='formatted-number'
+																		placeholder={t('creditNotes.amountPlaceholder')}
+																	/>
+																	<DateRangePicker
+																		title={t('invoices.edit.servicePeriod')}
+																		startDate={row.period_start ? new Date(row.period_start) : undefined}
+																		endDate={row.period_end ? new Date(row.period_end) : undefined}
+																		onChange={(dates) => handleLineItemPeriodChange(index, dates)}
+																	/>
+																</div>
+																<div className='mt-4 flex items-center justify-between'>
+																	<Button
+																		variant='ghost'
+																		className='text-content-zinc-muted'
+																		onClick={() => handleRemoveLineItemRow(index)}>
+																		<Trash2 className='me-2 size-4' />
+																		{t('invoices.edit.removeLineItem')}
+																	</Button>
+																	<div className='flex gap-3'>
+																		<Button variant='outline' onClick={handleRowEditorCancel}>
+																			{t('common:actions.cancel')}
+																		</Button>
+																		<Button onClick={() => setRowEditor(null)}>{t('common:actions.done')}</Button>
+																	</div>
+																</div>
+															</div>
+														</td>
+													</tr>
+												) : (
+													<tr
+														key={row.id ?? `new-${index}`}
+														tabIndex={0}
+														className='group cursor-pointer border-b border-line-subtle hover:bg-muted/30 focus-visible:bg-muted/30 focus-visible:outline-none'
+														onClick={() => handleOpenRowEditor(index)}
+														onKeyDown={(e) => {
+															if (e.key === 'Enter' || e.key === ' ') {
+																e.preventDefault();
+																handleOpenRowEditor(index);
+															}
+														}}>
+														<td className='py-3 px-4'>
+															<p className='text-sm text-content'>
+																{row.display_name || (
+																	<span className='italic text-content-zinc-muted'>{t('invoices.edit.newLineItem')}</span>
+																)}
+															</p>
+															{row.description && <p className='mt-0.5 text-xs text-content-zinc-muted'>{row.description}</p>}
+														</td>
+														<td className='py-3 px-4 text-end text-sm text-content'>{row.quantity || '1'}</td>
+														<td className='py-3 px-4 text-end text-sm text-content'>
+															{getCurrencySymbol(invoice.currency ?? '')}
+															{row.amount || '0'}
+														</td>
+														<td className='py-3 px-4 text-sm text-content-zinc-muted'>
+															{row.period_start && row.period_end ? formatBillingPeriod(row.period_start, row.period_end) : na}
+														</td>
+														<td className='py-3 px-2 text-end'>
+															<Button
+																variant='ghost'
+																className='size-8 opacity-0 transition-opacity group-hover:opacity-100 focus-visible:opacity-100'
+																aria-label={t('invoices.edit.removeLineItem')}
+																onClick={(e) => {
+																	e.stopPropagation();
+																	handleRemoveLineItemRow(index);
+																}}>
+																<Trash2 className='size-4' />
+															</Button>
+														</td>
+													</tr>
+												),
+											)}
+										</tbody>
+									</table>
+								</div>
+								<div className='px-2 py-1.5'>
+									<AddChargesButton onClick={handleAddLineItem} label={t('createInvoice.addLineItem')} />
+								</div>
 							</div>
 						</div>
 					) : (

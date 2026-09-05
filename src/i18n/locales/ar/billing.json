@@ -69,7 +69,10 @@
 			"periodStart": "بداية الفترة",
 			"periodEnd": "نهاية الفترة",
 			"lineItemDescriptionPlaceholder": "وصف اختياري",
-			"servicePeriod": "فترة الخدمة"
+			"servicePeriod": "فترة الخدمة",
+			"itemColumn": "البند",
+			"noLineItems": "لا توجد بنود في هذه الفاتورة بعد.",
+			"newLineItem": "بند جديد"
 		},
 		"status": {
 			"void": "مبطلة",
