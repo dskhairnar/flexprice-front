@@ -8,6 +8,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import toast from 'react-hot-toast';
 import CustomerPortalApi from '@/api/CustomerPortalApi';
+import { usePortalSettling } from '@/components/customer-portal/portalSettleState';
 import { WALLET_STATUS } from '@/models/Wallet';
 import usePagination, { PAGINATION_PREFIX } from '@/hooks/usePagination';
 import { adaptCreditTransactions, adaptWalletOptions } from '../adapters';
@@ -59,7 +60,10 @@ const CreditHistoryContainer = ({ className }: CreditHistoryContainerProps) => {
 		if (transactionsError) toast.error(t('errors.loadTransactions'));
 	}, [transactionsError, t]);
 
-	const isLoading = walletsLoading || (!!activeWallet?.id && transactionsLoading);
+	// Called unconditionally: inside the || chain below it would be skipped whenever
+	// an earlier term is true, changing the hook order between renders.
+	const isSettling = usePortalSettling();
+	const isLoading = walletsLoading || (!!activeWallet?.id && transactionsLoading) || isSettling;
 	const transactions = adaptCreditTransactions(transactionsData?.items ?? []);
 	const walletOptions = adaptWalletOptions(wallets ?? []);
 

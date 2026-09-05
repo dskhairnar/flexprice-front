@@ -6,6 +6,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import toast from 'react-hot-toast';
 import CustomerPortalApi from '@/api/CustomerPortalApi';
+import { usePortalSettling } from '@/components/customer-portal/portalSettleState';
 import { WALLET_STATUS } from '@/models/Wallet';
 import { adaptCreditBalance } from '../adapters';
 import CreditBalance from '../components/CreditBalance';
@@ -38,13 +39,18 @@ const CreditBalanceContainer = ({ className, actions, balanceAction }: CreditBal
 		enabled: !!wallet?.id,
 	});
 
+	// Settling counts as loading: after a payment the cached balance is stale but
+	// present, so without this the customer reads the pre-payment figure as final.
+	// Read before the early return below — it is a hook.
+	const isSettling = usePortalSettling();
+
 	useEffect(() => {
 		if (walletsError) toast.error(t('errors.loadWallet'));
 	}, [walletsError, t]);
 
 	if (walletsError) return null;
 
-	const isLoading = walletsLoading || (!!wallet?.id && balanceLoading);
+	const isLoading = walletsLoading || (!!wallet?.id && balanceLoading) || isSettling;
 	const data = wallet ? adaptCreditBalance(wallet, realtimeBalance) : null;
 
 	return <CreditBalance wallet={data} isLoading={isLoading} className={className} actions={actions} balanceAction={balanceAction} />;

@@ -7,6 +7,8 @@ import { PAYMENT_STATUS } from '@/constants/payment';
 import { SUBSCRIPTION_STATUS } from '@/models/Subscription';
 import { formatDateShort, getCurrencySymbol } from '@/utils/common/helper_functions';
 import { formatMoney } from '@/utils/common/formatBalance';
+import { PortalStatSkeleton } from '@/components/atoms/PortalSkeleton/PortalSkeleton';
+import { usePortalSettling } from '../portalSettleState';
 import usePortalWallet from '../usePortalWallet';
 import TopUpButton from './TopUpButton';
 import { cn } from '@/lib/utils';
@@ -68,17 +70,17 @@ const AccountSummaryWidget = ({ label }: AccountSummaryWidgetProps) => {
 		queryFn: () => CustomerPortalApi.getSubscriptions({ limit: 10, offset: 0 }),
 	});
 
-	const isLoading = walletLoading || invoicesLoading || subsLoading;
+	// Every figure here moves when a payment lands, so the strip goes back to
+	// skeletons while the settle refetch runs rather than showing pre-payment totals.
+	const isSettling = usePortalSettling();
+	const isLoading = walletLoading || invoicesLoading || subsLoading || isSettling;
 
 	if (isLoading) {
 		return (
 			<Card className='rounded-xl p-5 bg-surface border border-line'>
-				<div className='animate-pulse grid gap-6 sm:grid-cols-3'>
+				<div className='grid gap-6 sm:grid-cols-3'>
 					{[1, 2, 3].map((i) => (
-						<div key={i} className='space-y-2'>
-							<div className='h-3 bg-zinc-100 rounded w-16'></div>
-							<div className='h-6 bg-zinc-100 rounded w-24'></div>
-						</div>
+						<PortalStatSkeleton key={i} />
 					))}
 				</div>
 			</Card>

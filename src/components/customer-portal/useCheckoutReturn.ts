@@ -3,7 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import toast from 'react-hot-toast';
 import CustomerPortalApi from '@/api/CustomerPortalApi';
-import { refreshAfterPayment } from './refetchPortalQueries';
+import { refreshAfterFailedPayment, refreshAfterPayment } from './refetchPortalQueries';
 import { subscribeToCheckoutReturn } from './checkoutHandoff';
 import type { CheckoutStatus } from '@/types/dto/CustomerPortalBilling';
 
@@ -141,8 +141,10 @@ const useCheckoutReturn = () => {
 			void refreshAfterPayment();
 		} else if (status === 'expired') {
 			toast.error(t('checkoutReturn.expired'));
+			void refreshAfterFailedPayment();
 		} else {
 			toast.error(session.failure_reason || t('checkoutReturn.failed'));
+			void refreshAfterFailedPayment();
 		}
 
 		clearPendingCheckout();

@@ -5,6 +5,7 @@ import EmptyState from '../EmptyState';
 import AutoTopUpForm from './AutoTopUpForm';
 import useChargeableMethod from '../useChargeableMethod';
 import { Wallet } from 'lucide-react';
+import PortalSkeleton from '@/components/atoms/PortalSkeleton/PortalSkeleton';
 
 interface AutoTopUpWidgetProps {
 	label?: string;
@@ -18,9 +19,9 @@ const AutoTopUpWidget = ({ label }: AutoTopUpWidgetProps) => {
 	if (isLoading) {
 		return (
 			<Card className='rounded-xl p-5 bg-surface border border-line'>
-				<div className='animate-pulse space-y-3'>
-					<div className='h-4 bg-zinc-100 rounded w-32'></div>
-					<div className='h-8 bg-zinc-100 rounded w-full'></div>
+				<div className='space-y-3'>
+					<PortalSkeleton className='h-4 w-32' />
+					<PortalSkeleton className='h-8 w-full' />
 				</div>
 			</Card>
 		);

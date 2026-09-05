@@ -3,6 +3,8 @@ import { useQuery, useMutation } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import toast from 'react-hot-toast';
 import CustomerPortalApi from '@/api/CustomerPortalApi';
+import PortalSkeleton, { PortalRowsSkeleton } from '@/components/atoms/PortalSkeleton/PortalSkeleton';
+import { usePortalSettling } from '../portalSettleState';
 import { portalInvoicesQueryKey } from '@/components/customer-portal/queryKeys';
 import { Card, Chip } from '@/components/atoms';
 import { DropdownMenu } from '@/components/molecules';
@@ -178,17 +180,16 @@ const InvoicesWidget = () => {
 	};
 
 	const busyDownloadInvoiceId = isDownloading || isCsvExportPending ? (downloadTarget?.id ?? null) : null;
+	const isSettling = usePortalSettling();
 
-	if (isLoading) {
+	// A payment moves an invoice's status and amount due, so the list waits for the
+	// settle refetch instead of leaving the just-paid invoice showing as unpaid.
+	if (isLoading || isSettling) {
 		return (
 			<div className='space-y-6'>
-				<div className='h-10 bg-zinc-100 animate-pulse rounded-md'></div>
+				<PortalSkeleton className='h-10 w-full' />
 				<Card className='rounded-xl p-4 bg-surface border border-line'>
-					<div className='animate-pulse space-y-3'>
-						{[1, 2, 3, 4].map((i) => (
-							<div key={i} className='h-12 bg-zinc-100 rounded'></div>
-						))}
-					</div>
+					<PortalRowsSkeleton />
 				</Card>
 			</div>
 		);

@@ -6,6 +6,7 @@ import EmptyState from '../EmptyState';
 import TopUpForm from './TopUpForm';
 import CheckoutLinkDialog from './CheckoutLinkDialog';
 import { Wallet } from 'lucide-react';
+import PortalSkeleton from '@/components/atoms/PortalSkeleton/PortalSkeleton';
 
 interface TopUpWidgetProps {
 	label?: string;
@@ -20,9 +21,9 @@ const TopUpWidget = ({ label }: TopUpWidgetProps) => {
 	if (isLoading) {
 		return (
 			<Card className='rounded-xl p-5 bg-surface border border-line'>
-				<div className='animate-pulse space-y-3'>
-					<div className='h-4 bg-zinc-100 rounded w-24'></div>
-					<div className='h-10 bg-zinc-100 rounded w-full'></div>
+				<div className='space-y-3'>
+					<PortalSkeleton className='h-4 w-24' />
+					<PortalSkeleton className='h-10 w-full' />
 				</div>
 			</Card>
 		);

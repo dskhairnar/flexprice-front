@@ -1,4 +1,5 @@
 import { queryClient, refetchQueries } from '@/core/services/tanstack/ReactQueryProvider';
+import { beginSettle, endSettle } from './portalSettleState';
 import { PORTAL_BALANCE_QUERY_ROOTS, portalWalletsQueryKey } from './queryKeys';
 
 /**
@@ -50,9 +51,34 @@ export const refreshAfterPayment = async (extraKeys: string[] = []) => {
 	const before = walletSnapshot();
 	const keys = [...PORTAL_BALANCE_QUERY_ROOTS, ...extraKeys];
 
-	for (const delay of SETTLE_DELAYS_MS) {
-		if (delay) await wait(delay);
-		await refetchPortalQueries(keys);
-		if (before === null || walletSnapshot() !== before) return;
+	// Flagged for the whole window, not per round: the figures are stale until the
+	// backend catches up, and a flag cleared between rounds would flicker the
+	// skeletons back to the old numbers and then away again.
+	beginSettle();
+	try {
+		for (const delay of SETTLE_DELAYS_MS) {
+			if (delay) await wait(delay);
+			await refetchPortalQueries(keys);
+			if (before === null || walletSnapshot() !== before) return;
+		}
+	} finally {
+		endSettle();
+	}
+};
+
+/**
+ * Refresh after a payment that did not go through.
+ *
+ * One pass, no settle schedule: nothing new is expected to arrive, but the
+ * attempt still moved state the customer can see — a pending wallet transaction
+ * marked failed, an invoice back to unpaid — and leaving the old rows on screen
+ * reads as though the failed payment had worked.
+ */
+export const refreshAfterFailedPayment = async (extraKeys: string[] = []) => {
+	beginSettle();
+	try {
+		await refetchPortalQueries([...PORTAL_BALANCE_QUERY_ROOTS, ...extraKeys]);
+	} finally {
+		endSettle();
 	}
 };
