@@ -81,7 +81,6 @@ export interface LineItem extends BaseModel {
 	readonly price_unit?: string;
 	readonly price_unit_amount?: number;
 	readonly display_name?: string;
-	readonly description?: string;
 	readonly amount: number;
 	readonly quantity: string;
 	readonly currency: string;

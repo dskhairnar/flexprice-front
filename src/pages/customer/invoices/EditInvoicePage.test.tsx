@@ -315,7 +315,9 @@ describe('EditInvoicePage', () => {
 
 	it('sends line item description changes through the modify endpoint', async () => {
 		mockGetInvoiceById.mockResolvedValue(
-			makeInvoice({ line_items: [{ id: 'li_1', display_name: 'Consulting', quantity: '2', amount: 300, description: 'Old note' }] }),
+			makeInvoice({
+				line_items: [{ id: 'li_1', display_name: 'Consulting', quantity: '2', amount: 300, metadata: { description: 'Old note' } }],
+			}),
 		);
 		mockModifyInvoice.mockResolvedValue({ invoice: makeInvoice() });
 		const user = userEvent.setup();

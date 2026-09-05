@@ -71,7 +71,8 @@ const toLineItemRows = (invoice: Invoice): LineItemRow[] =>
 		display_name: li.display_name ?? '',
 		quantity: String(li.quantity ?? '1'),
 		amount: String(li.amount ?? '0'),
-		description: li.description ?? '',
+		// Line item descriptions live in metadata.description (billing engine + PDF convention).
+		description: (li.metadata?.description as string | undefined) ?? '',
 		period_start: li.period_start ?? '',
 		period_end: li.period_end ?? '',
 	}));
@@ -236,7 +237,7 @@ const EditInvoicePage: FC = () => {
 			if (row.display_name !== (original.display_name ?? '')) update.display_name = row.display_name;
 			if (row.amount !== String(original.amount ?? '0')) update.amount = row.amount;
 			if (row.quantity !== String(original.quantity ?? '1')) update.quantity = row.quantity;
-			if (row.description !== (original.description ?? '')) update.description = row.description;
+			if (row.description !== ((original.metadata?.description as string | undefined) ?? '')) update.description = row.description;
 			if (row.period_start !== (original.period_start ?? '')) update.period_start = row.period_start;
 			if (row.period_end !== (original.period_end ?? '')) update.period_end = row.period_end;
 			if (Object.keys(update).length > 0) updates.push({ line_item_id: row.id, update: update as InvoiceModifyUpdateLineItem });
