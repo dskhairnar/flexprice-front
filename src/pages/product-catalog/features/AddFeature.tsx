@@ -959,8 +959,10 @@ const AddFeaturePage = () => {
 			const meterRequest: CreateMeterRequest | undefined =
 				featureData.type === FEATURE_TYPE.METERED && featureData.meter
 					? {
-							name: featureData.meter.name || featureData.name || '',
-							event_name: featureData.meter.event_name || '',
+							name: (featureData.meter.name || featureData.name || '').trim(),
+							// event_name and the aggregation keys are looked up verbatim against
+							// event.properties on the backend — a stray space silently zeroes usage.
+							event_name: (featureData.meter.event_name || '').trim(),
 							aggregation: {
 								type: featureData.meter.aggregation?.type || METER_AGGREGATION_TYPE.SUM,
 								// XOR with field — the toggle handler clears the inactive side,
@@ -969,10 +971,12 @@ const AddFeaturePage = () => {
 									? { expression: featureData.meter.aggregation.expression.trim() }
 									: { field: featureData.meter.aggregation?.field?.trim() || '' }),
 								multiplier: featureData.meter.aggregation?.multiplier,
-								group_by: featureData.meter.aggregation?.group_by,
+								group_by: featureData.meter.aggregation?.group_by?.trim() || undefined,
 							},
 							reset_usage: featureData.meter.reset_usage || METER_USAGE_RESET_PERIOD.BILLING_PERIOD,
-							filters: featureData.meter.filters?.filter((filter) => filter.key !== '' && filter.values.length > 0),
+							filters: featureData.meter.filters
+								?.map((filter) => ({ ...filter, key: filter.key.trim() }))
+								.filter((filter) => filter.key !== '' && filter.values.length > 0),
 						}
 					: undefined;
 
