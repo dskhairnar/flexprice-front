@@ -67,7 +67,9 @@
 			"pdfUrlHint": "Overrides the generated invoice PDF. Leave empty to use the Flexprice document.",
 			"description": "Description",
 			"periodStart": "Period Start",
-			"periodEnd": "Period End"
+			"periodEnd": "Period End",
+			"lineItemDescriptionPlaceholder": "Optional description",
+			"servicePeriod": "Service Period"
 		},
 		"status": {
 			"void": "Void",

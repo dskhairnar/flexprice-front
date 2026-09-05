@@ -78,6 +78,9 @@ export interface InvoiceModifyAddLineItem {
 	display_name: string;
 	amount: string;
 	quantity: string;
+	description?: string;
+	period_start?: string;
+	period_end?: string;
 }
 
 type RequireAtLeastOne<T> = { [K in keyof T]-?: Required<Pick<T, K>> & Partial<Omit<T, K>> }[keyof T];
@@ -87,6 +90,9 @@ export type InvoiceModifyUpdateLineItem = RequireAtLeastOne<{
 	display_name: string;
 	amount: string;
 	quantity: string;
+	description: string;
+	period_start: string;
+	period_end: string;
 }>;
 
 /** Per-action params for the modify endpoint; each action carries only its own required fields. */

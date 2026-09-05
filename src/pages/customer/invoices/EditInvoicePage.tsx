@@ -8,6 +8,7 @@ import { Trash2 } from 'lucide-react';
 import {
 	Button,
 	Checkbox,
+	DateRangePicker,
 	DateTimePicker,
 	Dialog,
 	Divider,
@@ -51,6 +52,10 @@ interface LineItemRow {
 	display_name: string;
 	quantity: string;
 	amount: string;
+	description: string;
+	/** ISO strings; empty when unset. */
+	period_start: string;
+	period_end: string;
 }
 
 /** The line-item operations a save must execute through the modify endpoint. */
@@ -66,6 +71,9 @@ const toLineItemRows = (invoice: Invoice): LineItemRow[] =>
 		display_name: li.display_name ?? '',
 		quantity: String(li.quantity ?? '1'),
 		amount: String(li.amount ?? '0'),
+		description: li.description ?? '',
+		period_start: li.period_start ?? '',
+		period_end: li.period_end ?? '',
 	}));
 
 // Runtime guard for the parts of the response this page dereferences; the API
@@ -210,7 +218,14 @@ const EditInvoicePage: FC = () => {
 			if (!row.id) {
 				// A new row counts once the user typed anything meaningful into it.
 				if (row.display_name.trim() !== '' || parseFloat(row.amount || '0') !== 0) {
-					adds.push({ display_name: row.display_name.trim(), amount: row.amount || '0', quantity: row.quantity || '1' });
+					adds.push({
+						display_name: row.display_name.trim(),
+						amount: row.amount || '0',
+						quantity: row.quantity || '1',
+						description: row.description.trim() || undefined,
+						period_start: row.period_start || undefined,
+						period_end: row.period_end || undefined,
+					});
 				}
 				return;
 			}
@@ -221,6 +236,9 @@ const EditInvoicePage: FC = () => {
 			if (row.display_name !== (original.display_name ?? '')) update.display_name = row.display_name;
 			if (row.amount !== String(original.amount ?? '0')) update.amount = row.amount;
 			if (row.quantity !== String(original.quantity ?? '1')) update.quantity = row.quantity;
+			if (row.description !== (original.description ?? '')) update.description = row.description;
+			if (row.period_start !== (original.period_start ?? '')) update.period_start = row.period_start;
+			if (row.period_end !== (original.period_end ?? '')) update.period_end = row.period_end;
 			if (Object.keys(update).length > 0) updates.push({ line_item_id: row.id, update: update as InvoiceModifyUpdateLineItem });
 		});
 		return { removes, updates, adds };
@@ -398,10 +416,22 @@ const EditInvoicePage: FC = () => {
 		});
 	};
 
-	const handleLineItemChange = (index: number, field: 'display_name' | 'quantity' | 'amount', value: string) => {
+	const handleLineItemChange = (index: number, field: 'display_name' | 'quantity' | 'amount' | 'description', value: string) => {
 		setLineItemRows((prev) => {
 			const rows = [...prev];
 			rows[index] = { ...rows[index], [field]: value };
+			return rows;
+		});
+	};
+
+	const handleLineItemPeriodChange = (index: number, dates: { startDate?: Date; endDate?: Date }) => {
+		setLineItemRows((prev) => {
+			const rows = [...prev];
+			rows[index] = {
+				...rows[index],
+				period_start: dates.startDate ? dates.startDate.toISOString() : '',
+				period_end: dates.endDate ? dates.endDate.toISOString() : '',
+			};
 			return rows;
 		});
 	};
@@ -614,10 +644,31 @@ const EditInvoicePage: FC = () => {
 												<Trash2 className='w-4 h-4' />
 											</Button>
 										</div>
+										<div className='col-span-12 min-w-0 sm:col-span-6'>
+											<Input
+												label={index === 0 ? t('invoices.edit.description') : ''}
+												value={row.description}
+												onChange={(value) => handleLineItemChange(index, 'description', value)}
+												placeholder={t('invoices.edit.lineItemDescriptionPlaceholder')}
+											/>
+										</div>
+										<div className='col-span-11 min-w-0 sm:col-span-5'>
+											<DateRangePicker
+												title={index === 0 ? t('invoices.edit.servicePeriod') : undefined}
+												startDate={row.period_start ? new Date(row.period_start) : undefined}
+												endDate={row.period_end ? new Date(row.period_end) : undefined}
+												onChange={(dates) => handleLineItemPeriodChange(index, dates)}
+											/>
+										</div>
 									</div>
 								))}
 								<AddChargesButton
-									onClick={() => setLineItemRows((prev) => [...prev, { display_name: '', quantity: '1', amount: '0' }])}
+									onClick={() =>
+										setLineItemRows((prev) => [
+											...prev,
+											{ display_name: '', quantity: '1', amount: '0', description: '', period_start: '', period_end: '' },
+										])
+									}
 									label={t('createInvoice.addLineItem')}
 								/>
 							</div>

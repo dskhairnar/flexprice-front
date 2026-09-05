@@ -67,7 +67,9 @@
 			"pdfUrlHint": "يستبدل ملف PDF المُنشأ للفاتورة. اتركه فارغًا لاستخدام مستند Flexprice.",
 			"description": "الوصف",
 			"periodStart": "بداية الفترة",
-			"periodEnd": "نهاية الفترة"
+			"periodEnd": "نهاية الفترة",
+			"lineItemDescriptionPlaceholder": "وصف اختياري",
+			"servicePeriod": "فترة الخدمة"
 		},
 		"status": {
 			"void": "مبطلة",
