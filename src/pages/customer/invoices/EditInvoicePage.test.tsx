@@ -280,6 +280,8 @@ describe('EditInvoicePage', () => {
 		const user = userEvent.setup();
 		renderPage();
 
+		// Rows render read-only; clicking one expands the inline editor.
+		await user.click(await screen.findByText('Consulting'));
 		const nameInput = await screen.findByDisplayValue('Consulting');
 		await user.clear(nameInput);
 		await user.type(nameInput, 'Consulting hours');
@@ -299,6 +301,7 @@ describe('EditInvoicePage', () => {
 		const user = userEvent.setup();
 		renderPage();
 
+		await user.click(await screen.findByText('Consulting'));
 		const nameInput = await screen.findByDisplayValue('Consulting');
 		await user.clear(nameInput);
 		await user.type(nameInput, 'Consulting hours');
@@ -323,6 +326,8 @@ describe('EditInvoicePage', () => {
 		const user = userEvent.setup();
 		renderPage();
 
+		// The description shows as secondary text under the item name; clicking opens the editor.
+		await user.click(await screen.findByText('Old note'));
 		const descInput = await screen.findByDisplayValue('Old note');
 		await user.clear(descInput);
 		await user.type(descInput, 'September retainer');
@@ -344,8 +349,8 @@ describe('EditInvoicePage', () => {
 		const user = userEvent.setup();
 		renderPage();
 
-		// remove the existing row
-		await screen.findByDisplayValue('Consulting');
+		// remove the existing row via the row-level trash action
+		await screen.findByText('Consulting');
 		const removeButtons = screen.getAllByRole('button', { name: 'Remove line item' });
 		await user.click(removeButtons[removeButtons.length - 1]);
 
@@ -370,6 +375,40 @@ describe('EditInvoicePage', () => {
 		});
 	});
 
+	it('cancelling the row editor restores the original line item values', async () => {
+		mockGetInvoiceById.mockResolvedValue(
+			makeInvoice({ line_items: [{ id: 'li_1', display_name: 'Consulting', quantity: '2', amount: 300 }] }),
+		);
+		const user = userEvent.setup();
+		renderPage();
+
+		await user.click(await screen.findByText('Consulting'));
+		const nameInput = await screen.findByDisplayValue('Consulting');
+		await user.clear(nameInput);
+		await user.type(nameInput, 'Consulting hours');
+		// Two Cancel buttons exist here: the row editor's (first in DOM) and the page footer's.
+		await user.click(screen.getAllByRole('button', { name: 'Cancel' })[0]);
+
+		// The edit was rolled back: the display row shows the original name and save stays disabled.
+		expect(screen.getByText('Consulting')).toBeInTheDocument();
+		expect(screen.queryByDisplayValue('Consulting hours')).not.toBeInTheDocument();
+		expect(screen.getByRole('button', { name: 'Save Changes' })).toBeDisabled();
+	});
+
+	it('cancelling the editor of a freshly added row discards the row', async () => {
+		mockGetInvoiceById.mockResolvedValue(makeInvoice());
+		const user = userEvent.setup();
+		renderPage();
+
+		await user.click(await screen.findByRole('button', { name: 'Add Line Item' }));
+		await user.type(screen.getByPlaceholderText('Enter item name'), 'Setup fee');
+		// Two Cancel buttons exist here: the row editor's (first in DOM) and the page footer's.
+		await user.click(screen.getAllByRole('button', { name: 'Cancel' })[0]);
+
+		expect(screen.queryByText('Setup fee')).not.toBeInTheDocument();
+		expect(screen.getByRole('button', { name: 'Save Changes' })).toBeDisabled();
+	});
+
 	it('lets finalized invoices edit line items behind a void-and-recreate confirmation', async () => {
 		mockGetInvoiceById.mockResolvedValue(
 			makeInvoice({
@@ -381,6 +420,7 @@ describe('EditInvoicePage', () => {
 		const user = userEvent.setup();
 		renderPage();
 
+		await user.click(await screen.findByText('Consulting'));
 		const nameInput = await screen.findByDisplayValue('Consulting');
 		await user.clear(nameInput);
 		await user.type(nameInput, 'Consulting hours');
@@ -411,6 +451,7 @@ describe('EditInvoicePage', () => {
 		const user = userEvent.setup();
 		renderPage();
 
+		await user.click(await screen.findByText('Consulting'));
 		const nameInput = await screen.findByDisplayValue('Consulting');
 		await user.clear(nameInput);
 		await user.type(nameInput, 'Consulting hours');
@@ -442,6 +483,7 @@ describe('EditInvoicePage', () => {
 		const user = userEvent.setup();
 		renderPage();
 
+		await user.click(await screen.findByText('Consulting'));
 		const nameInput = await screen.findByDisplayValue('Consulting');
 		await user.clear(nameInput);
 		await user.type(nameInput, 'Consulting hours');
@@ -465,6 +507,7 @@ describe('EditInvoicePage', () => {
 		const user = userEvent.setup();
 		renderPage();
 
+		await user.click(await screen.findByText('Consulting'));
 		const nameInput = await screen.findByDisplayValue('Consulting');
 		await user.clear(nameInput);
 		await user.type(nameInput, 'Consulting hours');
