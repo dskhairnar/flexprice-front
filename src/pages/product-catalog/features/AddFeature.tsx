@@ -123,7 +123,7 @@ const EXPRESSION_SUPPORTED_TYPES: METER_AGGREGATION_TYPE[] = [
 
 // Validation schemas
 const FEATURE_SCHEMA = z.object({
-	name: z.string().nonempty('Feature name is required'),
+	name: z.string().trim().min(1, 'Feature name is required'),
 	description: z.string().optional(),
 	lookup_key: z.string().optional(),
 	type: z.enum([FEATURE_TYPE.BOOLEAN, FEATURE_TYPE.METERED, FEATURE_TYPE.STATIC, FEATURE_TYPE.CONFIG]).optional(),
@@ -902,6 +902,18 @@ const AggregationSection = ({
 	);
 };
 
+// Trimming lives here so the submitted payload and the copyable cURL preview
+// cannot drift. These keys are matched verbatim against event.properties on the
+// backend, so a preview that still rendered padded keys would teach users to
+// ingest exactly the events the meter can no longer match.
+const normalizeMeterKeys = (meter: Partial<CreateMeterRequest>) => ({
+	event_name: (meter.event_name || '').trim(),
+	field: meter.aggregation?.field?.trim() || '',
+	expression: meter.aggregation?.expression?.trim() || '',
+	group_by: meter.aggregation?.group_by?.trim() || '',
+	filters: (meter.filters || []).map((filter) => ({ ...filter, key: filter.key.trim() })).filter((filter) => filter.key !== ''),
+});
+
 // Code Preview Section Component
 const CodePreviewSection = ({ meter }: { meter: Partial<CreateMeterRequest> | undefined }) => {
 	const { t } = useTranslation(['catalog', 'common']);
@@ -918,12 +930,13 @@ const CodePreviewSection = ({ meter }: { meter: Partial<CreateMeterRequest> | un
 	const curlCommand = useMemo(() => {
 		if (!meter) return '';
 
-		const filterProperties = (meter.filters || [])
-			.filter((filter) => filter.key && filter.key.trim() !== '')
+		const normalized = normalizeMeterKeys(meter);
+
+		const filterProperties = normalized.filters
 			.map((filter) => `\n\t\t\t "${filter.key}" : "${filter.values[0] || 'FILTER_VALUE'}"`)
 			.join(',');
 
-		const aggregationField = meter.aggregation?.field ? `,\n\t\t\t "${meter.aggregation.field}":"__VALUE__"` : '';
+		const aggregationField = normalized.field ? `,\n\t\t\t "${normalized.field}":"__VALUE__"` : '';
 
 		return `curl --request POST \\
 	--url https://api.cloud.flexprice.io/v1/events \\
@@ -931,7 +944,7 @@ const CodePreviewSection = ({ meter }: { meter: Partial<CreateMeterRequest> | un
 	--header 'x-api-key: <your_api_key>' \\
 	--data '{
 		"event_id": "${staticEventId}",
-		"event_name": "${meter.event_name || '__MUST_BE_DEFINED__'}",
+		"event_name": "${normalized.event_name || '__MUST_BE_DEFINED__'}",
 		"external_customer_id": "__CUSTOMER_ID__",
 		"properties": {${filterProperties}${aggregationField}
 		},
@@ -956,27 +969,24 @@ const AddFeaturePage = () => {
 	const { isPending, mutate: createFeature } = useMutation({
 		mutationFn: async (featureData: FeatureFormData = data) => {
 			// Build CreateMeterRequest with proper structure if metered
+			const meter = featureData.type === FEATURE_TYPE.METERED ? featureData.meter : undefined;
+			const normalized = meter ? normalizeMeterKeys(meter) : undefined;
+
 			const meterRequest: CreateMeterRequest | undefined =
-				featureData.type === FEATURE_TYPE.METERED && featureData.meter
+				meter && normalized
 					? {
-							name: (featureData.meter.name || featureData.name || '').trim(),
-							// event_name and the aggregation keys are looked up verbatim against
-							// event.properties on the backend — a stray space silently zeroes usage.
-							event_name: (featureData.meter.event_name || '').trim(),
+							name: (meter.name || featureData.name || '').trim(),
+							event_name: normalized.event_name,
 							aggregation: {
-								type: featureData.meter.aggregation?.type || METER_AGGREGATION_TYPE.SUM,
+								type: meter.aggregation?.type || METER_AGGREGATION_TYPE.SUM,
 								// XOR with field — the toggle handler clears the inactive side,
 								// so at most one of these is populated at submit time.
-								...(featureData.meter.aggregation?.expression?.trim()
-									? { expression: featureData.meter.aggregation.expression.trim() }
-									: { field: featureData.meter.aggregation?.field?.trim() || '' }),
-								multiplier: featureData.meter.aggregation?.multiplier,
-								group_by: featureData.meter.aggregation?.group_by?.trim() || undefined,
+								...(normalized.expression ? { expression: normalized.expression } : { field: normalized.field }),
+								multiplier: meter.aggregation?.multiplier,
+								group_by: normalized.group_by || undefined,
 							},
-							reset_usage: featureData.meter.reset_usage || METER_USAGE_RESET_PERIOD.BILLING_PERIOD,
-							filters: featureData.meter.filters
-								?.map((filter) => ({ ...filter, key: filter.key.trim() }))
-								.filter((filter) => filter.key !== '' && filter.values.length > 0),
+							reset_usage: meter.reset_usage || METER_USAGE_RESET_PERIOD.BILLING_PERIOD,
+							filters: normalized.filters.filter((filter) => filter.values.length > 0),
 						}
 					: undefined;
 
@@ -998,7 +1008,7 @@ const AddFeaturePage = () => {
 					: undefined;
 
 			const sanitizedData: CreateFeatureRequest = {
-				name: featureData.name!,
+				name: featureData.name!.trim(),
 				description: featureData.description,
 				lookup_key: featureData.lookup_key,
 				type: featureData.type!,
