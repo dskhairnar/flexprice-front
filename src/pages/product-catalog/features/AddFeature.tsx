@@ -280,7 +280,9 @@ const FeatureDetailsSection = ({
 		(name: string) => {
 			onUpdateFeature({
 				name,
-				lookup_key: 'feat-' + name.replace(/\s/g, '-').toLowerCase(),
+				// Derive from the trimmed name: the submitted name is trimmed, so an
+				// untrimmed source here yields keys like "feat---api-calls--".
+				lookup_key: 'feat-' + name.trim().replace(/\s/g, '-').toLowerCase(),
 				meter: data.meter ? { ...data.meter, name } : undefined,
 			});
 		},
@@ -911,7 +913,11 @@ const sanitizeMeterKeys = (meter: Partial<CreateMeterRequest>) => ({
 	field: meter.aggregation?.field?.trim() || '',
 	expression: meter.aggregation?.expression?.trim() || '',
 	group_by: meter.aggregation?.group_by?.trim() || '',
-	filters: (meter.filters || []).map((filter) => ({ ...filter, key: filter.key.trim() })).filter((filter) => filter.key !== ''),
+	// Both predicates live here rather than at the call sites, so the preview
+	// cannot advertise a filter the submitted meter drops.
+	filters: (meter.filters || [])
+		.map((filter) => ({ ...filter, key: filter.key.trim() }))
+		.filter((filter) => filter.key !== '' && filter.values.length > 0),
 });
 
 // Code Preview Section Component
@@ -986,7 +992,7 @@ const AddFeaturePage = () => {
 								group_by: sanitized.group_by || undefined,
 							},
 							reset_usage: meter.reset_usage || METER_USAGE_RESET_PERIOD.BILLING_PERIOD,
-							filters: sanitized.filters.filter((filter) => filter.values.length > 0),
+							filters: sanitized.filters,
 						}
 					: undefined;
 
@@ -1010,7 +1016,7 @@ const AddFeaturePage = () => {
 			const sanitizedData: CreateFeatureRequest = {
 				name: featureData.name!.trim(),
 				description: featureData.description,
-				lookup_key: featureData.lookup_key,
+				lookup_key: featureData.lookup_key?.trim(),
 				type: featureData.type!,
 				meter: meterRequest,
 				metadata: featureData.metadata,
