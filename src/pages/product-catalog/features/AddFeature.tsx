@@ -906,7 +906,7 @@ const AggregationSection = ({
 // cannot drift. These keys are matched verbatim against event.properties on the
 // backend, so a preview that still rendered padded keys would teach users to
 // ingest exactly the events the meter can no longer match.
-const normalizeMeterKeys = (meter: Partial<CreateMeterRequest>) => ({
+const sanitizeMeterKeys = (meter: Partial<CreateMeterRequest>) => ({
 	event_name: (meter.event_name || '').trim(),
 	field: meter.aggregation?.field?.trim() || '',
 	expression: meter.aggregation?.expression?.trim() || '',
@@ -930,13 +930,13 @@ const CodePreviewSection = ({ meter }: { meter: Partial<CreateMeterRequest> | un
 	const curlCommand = useMemo(() => {
 		if (!meter) return '';
 
-		const normalized = normalizeMeterKeys(meter);
+		const sanitized = sanitizeMeterKeys(meter);
 
-		const filterProperties = normalized.filters
+		const filterProperties = sanitized.filters
 			.map((filter) => `\n\t\t\t "${filter.key}" : "${filter.values[0] || 'FILTER_VALUE'}"`)
 			.join(',');
 
-		const aggregationField = normalized.field ? `,\n\t\t\t "${normalized.field}":"__VALUE__"` : '';
+		const aggregationField = sanitized.field ? `,\n\t\t\t "${sanitized.field}":"__VALUE__"` : '';
 
 		return `curl --request POST \\
 	--url https://api.cloud.flexprice.io/v1/events \\
@@ -944,7 +944,7 @@ const CodePreviewSection = ({ meter }: { meter: Partial<CreateMeterRequest> | un
 	--header 'x-api-key: <your_api_key>' \\
 	--data '{
 		"event_id": "${staticEventId}",
-		"event_name": "${normalized.event_name || '__MUST_BE_DEFINED__'}",
+		"event_name": "${sanitized.event_name || '__MUST_BE_DEFINED__'}",
 		"external_customer_id": "__CUSTOMER_ID__",
 		"properties": {${filterProperties}${aggregationField}
 		},
@@ -970,23 +970,23 @@ const AddFeaturePage = () => {
 		mutationFn: async (featureData: FeatureFormData = data) => {
 			// Build CreateMeterRequest with proper structure if metered
 			const meter = featureData.type === FEATURE_TYPE.METERED ? featureData.meter : undefined;
-			const normalized = meter ? normalizeMeterKeys(meter) : undefined;
+			const sanitized = meter ? sanitizeMeterKeys(meter) : undefined;
 
 			const meterRequest: CreateMeterRequest | undefined =
-				meter && normalized
+				meter && sanitized
 					? {
 							name: (meter.name || featureData.name || '').trim(),
-							event_name: normalized.event_name,
+							event_name: sanitized.event_name,
 							aggregation: {
 								type: meter.aggregation?.type || METER_AGGREGATION_TYPE.SUM,
 								// XOR with field — the toggle handler clears the inactive side,
 								// so at most one of these is populated at submit time.
-								...(normalized.expression ? { expression: normalized.expression } : { field: normalized.field }),
+								...(sanitized.expression ? { expression: sanitized.expression } : { field: sanitized.field }),
 								multiplier: meter.aggregation?.multiplier,
-								group_by: normalized.group_by || undefined,
+								group_by: sanitized.group_by || undefined,
 							},
 							reset_usage: meter.reset_usage || METER_USAGE_RESET_PERIOD.BILLING_PERIOD,
-							filters: normalized.filters.filter((filter) => filter.values.length > 0),
+							filters: sanitized.filters.filter((filter) => filter.values.length > 0),
 						}
 					: undefined;
 
