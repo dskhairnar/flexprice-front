@@ -19,6 +19,7 @@ import {
 	Select,
 	Spacer,
 	Textarea,
+	Toggle,
 } from '@/components/atoms';
 import { InvoiceLineItemTable } from '@/components/molecules';
 import { AddChargesButton } from '@/components/organisms/PlanForm/SetupChargesSection';
@@ -155,6 +156,8 @@ const EditInvoicePage: FC = () => {
 	// Rows render as a read-only table; clicking one expands it into an inline editor.
 	// The snapshot backs Cancel; isNew rows are discarded on Cancel instead of restored.
 	const [rowEditor, setRowEditor] = useState<{ index: number; snapshot: LineItemRow; isNew: boolean } | null>(null);
+	// Matches the invoice preview: zero-amount rows are hidden until toggled on.
+	const [showZeroCharges, setShowZeroCharges] = useState(false);
 	const [isVoidConfirmOpen, setIsVoidConfirmOpen] = useState(false);
 
 	const {
@@ -470,6 +473,13 @@ const EditInvoicePage: FC = () => {
 		setLineItemRows((prev) => [...prev, blank]);
 	};
 
+	// The row being edited and unsaved new rows always stay visible so they can't
+	// vanish mid-edit; everything else follows the zero-charges toggle.
+	const isRowVisible = (row: LineItemRow, index: number): boolean =>
+		showZeroCharges || rowEditor?.index === index || !row.id || Number(row.amount || '0') !== 0;
+
+	const hiddenZeroChargeCount = lineItemRows.filter((row, index) => !isRowVisible(row, index)).length;
+
 	const handleRowEditorCancel = () => {
 		if (!rowEditor) return;
 		if (rowEditor.isNew) {
@@ -621,7 +631,11 @@ const EditInvoicePage: FC = () => {
 							/>
 						</div>
 						{isEditable && (
-							<div className='mt-6'>
+							<div
+								className={cn(
+									'mt-6 max-w-3xl rounded-lg border p-4 transition-colors',
+									applyDiscount ? 'border-primary bg-muted/40' : 'border-line hover:bg-muted/20',
+								)}>
 								<Checkbox
 									id='apply-discount'
 									checked={applyDiscount}
@@ -645,13 +659,21 @@ const EditInvoicePage: FC = () => {
 									<p className='text-sm text-content-zinc-muted'>{t('invoices.edit.finalizedEditHint')}</p>
 								</div>
 							)}
-							<FormHeader
-								title={t('invoices.edit.lineItemsTitle')}
-								subtitle={t('invoices.edit.manualEditHint')}
-								variant='sub-header'
-								titleClassName='font-semibold'
-								subtitleClassName='!mt-1 text-sm text-content-zinc-muted'
-							/>
+							<div className='flex items-start justify-between gap-4'>
+								<FormHeader
+									title={t('invoices.edit.lineItemsTitle')}
+									subtitle={t('invoices.edit.manualEditHint')}
+									variant='sub-header'
+									titleClassName='font-semibold'
+									subtitleClassName='!mt-1 text-sm text-content-zinc-muted'
+								/>
+								<Toggle
+									checked={showZeroCharges}
+									onChange={setShowZeroCharges}
+									label={t('invoices.details.showZeroCharges')}
+									className='shrink-0'
+								/>
+							</div>
 							<div className='mt-4 overflow-hidden rounded-lg border border-line'>
 								<div className='overflow-x-auto'>
 									<table className='w-full border-collapse'>
@@ -681,7 +703,7 @@ const EditInvoicePage: FC = () => {
 												</tr>
 											)}
 											{lineItemRows.map((row, index) =>
-												rowEditor?.index === index ? (
+												!isRowVisible(row, index) ? null : rowEditor?.index === index ? (
 													<tr key={row.id ?? `new-${index}`} className='border-b border-line-subtle bg-muted/20'>
 														<td colSpan={5} className='p-4'>
 															<div className='max-w-3xl'>
@@ -779,6 +801,13 @@ const EditInvoicePage: FC = () => {
 														</td>
 													</tr>
 												),
+											)}
+											{hiddenZeroChargeCount > 0 && (
+												<tr>
+													<td colSpan={5} className='py-2.5 px-4 text-center text-xs text-content-zinc-muted'>
+														{t('invoices.edit.zeroChargesHidden', { hidden: hiddenZeroChargeCount })}
+													</td>
+												</tr>
 											)}
 										</tbody>
 									</table>
