@@ -313,6 +313,29 @@ describe('EditInvoicePage', () => {
 		expect(mockUpdateInvoice).not.toHaveBeenCalled();
 	});
 
+	it('sends line item description changes through the modify endpoint', async () => {
+		mockGetInvoiceById.mockResolvedValue(
+			makeInvoice({
+				line_items: [{ id: 'li_1', display_name: 'Consulting', quantity: '2', amount: 300, metadata: { description: 'Old note' } }],
+			}),
+		);
+		mockModifyInvoice.mockResolvedValue({ invoice: makeInvoice() });
+		const user = userEvent.setup();
+		renderPage();
+
+		const descInput = await screen.findByDisplayValue('Old note');
+		await user.clear(descInput);
+		await user.type(descInput, 'September retainer');
+		await user.click(screen.getByRole('button', { name: 'Save Changes' }));
+
+		await waitFor(() =>
+			expect(mockModifyInvoice).toHaveBeenCalledWith('inv_1', {
+				type: 'line_item',
+				line_item_params: { action: 'update', line_item_id: 'li_1', update: { description: 'September retainer' } },
+			}),
+		);
+	});
+
 	it('adds and removes draft line items through the modify endpoint', async () => {
 		mockGetInvoiceById.mockResolvedValue(
 			makeInvoice({ line_items: [{ id: 'li_1', display_name: 'Consulting', quantity: '2', amount: 300 }] }),
