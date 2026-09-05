@@ -375,6 +375,28 @@ describe('EditInvoicePage', () => {
 		});
 	});
 
+	it('hides zero-amount line items behind the show-zero-charges toggle', async () => {
+		mockGetInvoiceById.mockResolvedValue(
+			makeInvoice({
+				line_items: [
+					{ id: 'li_1', display_name: 'Consulting', quantity: '2', amount: 300 },
+					{ id: 'li_2', display_name: 'Free tier', quantity: '1', amount: 0 },
+				],
+			}),
+		);
+		const user = userEvent.setup();
+		renderPage();
+
+		// Matches the invoice preview: zero-amount rows are hidden by default, with a count hint.
+		expect(await screen.findByText('Consulting')).toBeInTheDocument();
+		expect(screen.queryByText('Free tier')).not.toBeInTheDocument();
+		expect(screen.getByText('Zero-amount line items hidden (1)')).toBeInTheDocument();
+
+		await user.click(screen.getByRole('switch'));
+		expect(screen.getByText('Free tier')).toBeInTheDocument();
+		expect(screen.queryByText('Zero-amount line items hidden (1)')).not.toBeInTheDocument();
+	});
+
 	it('cancelling the row editor restores the original line item values', async () => {
 		mockGetInvoiceById.mockResolvedValue(
 			makeInvoice({ line_items: [{ id: 'li_1', display_name: 'Consulting', quantity: '2', amount: 300 }] }),

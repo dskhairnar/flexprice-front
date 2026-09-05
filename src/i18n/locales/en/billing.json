@@ -70,6 +70,7 @@
 			"periodEnd": "Period End",
 			"lineItemDescriptionPlaceholder": "Optional description",
 			"servicePeriod": "Service Period",
+			"zeroChargesHidden": "Zero-amount line items hidden ({{hidden}})",
 			"itemColumn": "Item",
 			"noLineItems": "No line items on this invoice yet.",
 			"newLineItem": "New line item"
