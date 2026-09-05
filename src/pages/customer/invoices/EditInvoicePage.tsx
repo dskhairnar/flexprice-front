@@ -65,16 +65,22 @@ interface LineItemOps {
 	adds: InvoiceModifyAddLineItem[];
 }
 
+/** The API client only type-asserts, so normalize loosely-typed fields before binding them to inputs. */
+const asString = (value: unknown): string => (typeof value === 'string' ? value : '');
+const asIsoDate = (value: unknown): string => (typeof value === 'string' && value && !isNaN(new Date(value).getTime()) ? value : '');
+
+// Line item descriptions live in metadata.description (billing engine + PDF convention).
+const lineItemDescription = (li: Invoice['line_items'][number]): string => asString(li.metadata?.description);
+
 const toLineItemRows = (invoice: Invoice): LineItemRow[] =>
 	(invoice.line_items ?? []).map((li) => ({
 		id: li.id,
 		display_name: li.display_name ?? '',
 		quantity: String(li.quantity ?? '1'),
 		amount: String(li.amount ?? '0'),
-		// Line item descriptions live in metadata.description (billing engine + PDF convention).
-		description: (li.metadata?.description as string | undefined) ?? '',
-		period_start: li.period_start ?? '',
-		period_end: li.period_end ?? '',
+		description: lineItemDescription(li),
+		period_start: asIsoDate(li.period_start),
+		period_end: asIsoDate(li.period_end),
 	}));
 
 // Runtime guard for the parts of the response this page dereferences; the API
@@ -132,7 +138,7 @@ const LoadErrorNotice: FC<{ message: string }> = ({ message }) => {
 };
 
 const EditInvoicePage: FC = () => {
-	const { t } = useTranslation(['billing', 'common']);
+	const { t, i18n } = useTranslation(['billing', 'common']);
 	const { invoiceId } = useParams<{ invoiceId: string }>();
 	const navigate = useNavigate();
 	const { updateBreadcrumb } = useBreadcrumbsStore();
@@ -237,9 +243,9 @@ const EditInvoicePage: FC = () => {
 			if (row.display_name !== (original.display_name ?? '')) update.display_name = row.display_name;
 			if (row.amount !== String(original.amount ?? '0')) update.amount = row.amount;
 			if (row.quantity !== String(original.quantity ?? '1')) update.quantity = row.quantity;
-			if (row.description !== ((original.metadata?.description as string | undefined) ?? '')) update.description = row.description;
-			if (row.period_start !== (original.period_start ?? '')) update.period_start = row.period_start;
-			if (row.period_end !== (original.period_end ?? '')) update.period_end = row.period_end;
+			if (row.description !== lineItemDescription(original)) update.description = row.description;
+			if (row.period_start !== asIsoDate(original.period_start)) update.period_start = row.period_start;
+			if (row.period_end !== asIsoDate(original.period_end)) update.period_end = row.period_end;
 			if (Object.keys(update).length > 0) updates.push({ line_item_id: row.id, update: update as InvoiceModifyUpdateLineItem });
 		});
 		return { removes, updates, adds };
@@ -488,7 +494,7 @@ const EditInvoicePage: FC = () => {
 							<RedirectCell redirectUrl={`${RouteNames.customers}/${invoice.customer_id}`}>
 								<p className={readonlyValueClass}>{invoice.customer?.name || na}</p>
 							</RedirectCell>
-							<p className={readonlyValueClass}>{invoice.issue_date ? formatDate(invoice.issue_date) : na}</p>
+							<p className={readonlyValueClass}>{invoice.issue_date ? formatDate(invoice.issue_date, i18n.language) : na}</p>
 							<p className={cn(readonlyValueClass, 'uppercase')}>{invoice.currency || na}</p>
 						</div>
 						<Spacer className='!my-4' />
@@ -508,8 +514,8 @@ const EditInvoicePage: FC = () => {
 						</div>
 						<div className='w-full grid grid-cols-4 gap-4 mt-1'>
 							<p className={cn(readonlyValueClass, 'col-span-2 break-words')}>{invoice.description || na}</p>
-							<p className={readonlyValueClass}>{invoice.period_start ? formatDate(invoice.period_start) : na}</p>
-							<p className={readonlyValueClass}>{invoice.period_end ? formatDate(invoice.period_end) : na}</p>
+							<p className={readonlyValueClass}>{invoice.period_start ? formatDate(invoice.period_start, i18n.language) : na}</p>
+							<p className={readonlyValueClass}>{invoice.period_end ? formatDate(invoice.period_end, i18n.language) : na}</p>
 						</div>
 					</div>
 
