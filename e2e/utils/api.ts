@@ -201,11 +201,16 @@ export class ApiClient {
 						console.warn(`Cleanup: terminate wallet ${wallet.id} returned ${res.status()}`);
 					}
 				} catch (error) {
-					console.warn(`Cleanup: terminate wallet ${wallet.id} threw`, error);
+					// A constant format string, with the id passed as its own argument rather
+					// than interpolated: Semgrep's unsafe-formatstring check flags a template
+					// literal used as console.warn's first argument alongside a second one,
+					// since a `%` in the interpolated value would otherwise be taken as a
+					// format specifier for that second argument.
+					console.warn('Cleanup: terminate wallet threw:', wallet.id, error);
 				}
 			}
 		} catch (error) {
-			console.warn(`Cleanup: could not list wallets for customer ${customerId}`, error);
+			console.warn('Cleanup: could not list wallets for customer:', customerId, error);
 		}
 	}
 

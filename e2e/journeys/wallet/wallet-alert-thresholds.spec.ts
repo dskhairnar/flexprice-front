@@ -35,7 +35,7 @@ test.describe.serial('Wallet creation and alert thresholds @critical', () => {
 		await api.deleteCustomer(customerId);
 	});
 
-	test('1. creates a USD wallet for the customer', async ({ customerWalletPage, app }) => {
+	test('1. creates a USD wallet for the customer', async ({ customerWalletPage, app, page }) => {
 		await customerWalletPage.goto(customerId);
 
 		await customerWalletPage.createWallet('USD');
@@ -43,7 +43,7 @@ test.describe.serial('Wallet creation and alert thresholds @critical', () => {
 		await app.expectToast('Wallet created successfully');
 		// Appears twice — the wallet selector and the details card both show the name —
 		// `.first()` is enough to prove the wallet actually landed.
-		await expect(customerWalletPage.page.getByText('Prepaid Wallet - USD', { exact: true }).first()).toBeVisible();
+		await expect(page.getByText('Prepaid Wallet - USD', { exact: true }).first()).toBeVisible();
 	});
 
 	test('2. enables alerts and saves an absolute critical threshold', async ({ customerWalletPage, app }) => {
@@ -95,7 +95,7 @@ test.describe.serial('Wallet creation and alert thresholds @critical', () => {
 		await customerWalletPage.alertDialog.getByRole('button', { name: 'Cancel', exact: true }).click();
 	});
 
-	test('4. rejects a percentage threshold outside 0-100 on save', async ({ customerWalletPage }) => {
+	test('4. rejects a percentage threshold outside 0-100 on save', async ({ customerWalletPage, app }) => {
 		await customerWalletPage.goto(customerId);
 		await customerWalletPage.openAlertSettings();
 
@@ -103,7 +103,7 @@ test.describe.serial('Wallet creation and alert thresholds @critical', () => {
 		await customerWalletPage.addThreshold('Critical Threshold', '150');
 		await customerWalletPage.saveAlertSettings();
 
-		await expect(customerWalletPage.page.getByText('Critical threshold must be between 0 and 100.')).toBeVisible();
+		await app.expectToast('Critical threshold must be between 0 and 100.');
 		// Rejected client-side before any request — the dialog stays open on the
 		// invalid value rather than silently discarding it.
 		await expect(customerWalletPage.alertDialog).toBeVisible();
