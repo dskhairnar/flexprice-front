@@ -1,15 +1,22 @@
 import React, { useState, useEffect } from 'react';
-import { Dialog, Button, Toggle } from '@/components/atoms';
+import { AlertTriangle } from 'lucide-react';
+import { Dialog, Button, SegmentedControl, Toggle, InfoIcon } from '@/components/atoms';
 import toast from 'react-hot-toast';
 import { WalletAlertThresholdCard } from '@/components/molecules';
 import type { WalletAlertThresholdCardLabels } from '@/components/molecules/WalletAlertThresholdCard';
-import { WalletAlertSettings, WalletAlertLevel } from '@/models/Wallet';
+import { WalletAlertSettings, WalletAlertLevel, WalletAlertThresholdType } from '@/models/Wallet';
 import {
 	addWalletAlertThreshold,
 	applyWalletAlertThresholdChange,
+	fromWalletAlertDraftForSave,
+	getActiveWalletAlertLevels,
 	getWalletAlertValidationErrorKey,
 	isWalletAlertConditionDisabled,
-	normalizeWalletAlertSettingsForSave,
+	setWalletAlertDraftEnabled,
+	setWalletAlertDraftThresholdType,
+	toWalletAlertDraft,
+	toWalletAlertSettingsForValidation,
+	updateWalletAlertDraftLevels,
 	updateWalletAlertThreshold,
 } from '@/utils/wallet/walletAlertUtils';
 import { useTranslation } from 'react-i18next';
@@ -26,31 +33,15 @@ const ALERT_LEVELS = [WalletAlertLevel.CRITICAL, WalletAlertLevel.WARNING, Walle
 
 const WalletAlertDialog: React.FC<WalletAlertDialogProps> = ({ open, alertSettings, onSave, onClose, currency }) => {
 	const { t } = useTranslation('billing');
-	const [localAlertSettings, setLocalAlertSettings] = useState<WalletAlertSettings>({
-		alert_enabled: false,
-		critical: null,
-		warning: null,
-		info: null,
-	});
+	const [draft, setDraft] = useState(() => toWalletAlertDraft(alertSettings));
 	const [isSaving, setIsSaving] = useState(false);
 
 	useEffect(() => {
-		if (alertSettings) {
-			setLocalAlertSettings({
-				alert_enabled: alertSettings.alert_enabled || false,
-				critical: alertSettings.critical || null,
-				warning: alertSettings.warning || null,
-				info: alertSettings.info || null,
-			});
-		} else {
-			setLocalAlertSettings({
-				alert_enabled: false,
-				critical: null,
-				warning: null,
-				info: null,
-			});
-		}
+		setDraft(toWalletAlertDraft(alertSettings));
 	}, [alertSettings]);
+
+	const activeLevels = getActiveWalletAlertLevels(draft);
+	const unit = draft.alert_threshold_type === 'percentage' ? '%' : (currency ?? '');
 
 	const getLevelLabels = (level: WalletAlertLevel): WalletAlertThresholdCardLabels => {
 		const titleKey = {
@@ -83,13 +74,13 @@ const WalletAlertDialog: React.FC<WalletAlertDialogProps> = ({ open, alertSettin
 		// Validate against the raw draft so invalid values (e.g. 'abc') produce
 		// the correct 'invalidXxxThreshold' error rather than 'atLeastOneThreshold'
 		// (normalization would silently drop NaN values before the validator sees them).
-		const validationErrorKey = getWalletAlertValidationErrorKey(localAlertSettings);
+		const validationErrorKey = getWalletAlertValidationErrorKey(toWalletAlertSettingsForValidation(draft));
 		if (validationErrorKey) {
 			toast.error(t(`wallet.alerts.validation.${validationErrorKey}`));
 			return;
 		}
 
-		const settingsToSave = normalizeWalletAlertSettingsForSave(localAlertSettings);
+		const settingsToSave = fromWalletAlertDraftForSave(draft);
 
 		try {
 			setIsSaving(true);
@@ -101,14 +92,7 @@ const WalletAlertDialog: React.FC<WalletAlertDialogProps> = ({ open, alertSettin
 
 	const handleClose = () => {
 		if (isSaving) return;
-		if (alertSettings) {
-			setLocalAlertSettings({
-				alert_enabled: alertSettings.alert_enabled || false,
-				critical: alertSettings.critical || null,
-				warning: alertSettings.warning || null,
-				info: alertSettings.info || null,
-			});
-		}
+		setDraft(toWalletAlertDraft(alertSettings));
 		onClose();
 	};
 
@@ -126,26 +110,55 @@ const WalletAlertDialog: React.FC<WalletAlertDialogProps> = ({ open, alertSettin
 					title={t('wallet.alerts.enableTitle')}
 					label={t('wallet.alerts.enableLabel')}
 					description={t('wallet.alerts.enableDescription')}
-					checked={localAlertSettings.alert_enabled || false}
-					onChange={(enabled) => setLocalAlertSettings((prev) => ({ ...prev, alert_enabled: enabled }))}
+					checked={draft.alert_enabled}
+					onChange={(enabled) => setDraft((prev) => setWalletAlertDraftEnabled(prev, enabled))}
 					disabled={isSaving}
 				/>
+
+				<div className='space-y-2'>
+					<div className='flex items-center gap-1.5'>
+						<span className='text-sm font-medium text-content'>{t('wallet.alerts.thresholdTypeLabel')}</span>
+						<InfoIcon
+							description={t('wallet.alerts.thresholdTypeTooltip')}
+							ariaLabel={t('wallet.alerts.thresholdTypeLabel')}
+							disabled={isSaving || !draft.alert_enabled}
+						/>
+					</div>
+					<SegmentedControl
+						aria-label={t('wallet.alerts.thresholdTypeLabel')}
+						className='w-fit'
+						options={[
+							{ label: t('wallet.alerts.thresholdTypeAbsolute'), value: 'absolute' as WalletAlertThresholdType },
+							{ label: t('wallet.alerts.thresholdTypePercentage'), value: 'percentage' as WalletAlertThresholdType },
+						]}
+						value={draft.alert_threshold_type}
+						onChange={(type) => setDraft((prev) => setWalletAlertDraftThresholdType(prev, type))}
+						disabled={isSaving || !draft.alert_enabled}
+					/>
+					{draft.alert_threshold_type === 'percentage' && (
+						<div className='flex max-w-[560px] items-start gap-1.5 text-warning'>
+							<AlertTriangle className='mt-0.5 h-3.5 w-3.5 shrink-0' />
+							<p className='text-[13px] leading-relaxed'>{t('wallet.alerts.percentageWarning')}</p>
+						</div>
+					)}
+				</div>
 
 				<div className='space-y-4'>
 					{ALERT_LEVELS.map((level) => (
 						<WalletAlertThresholdCard
 							key={level}
-							threshold={localAlertSettings[level]}
+							threshold={activeLevels[level]}
 							labels={getLevelLabels(level)}
-							conditionDisabled={isWalletAlertConditionDisabled(level, localAlertSettings)}
-							disabled={isSaving || !localAlertSettings.alert_enabled}
-							onAdd={() => setLocalAlertSettings((prev) => addWalletAlertThreshold(prev, level))}
-							onRemove={() => setLocalAlertSettings((prev) => updateWalletAlertThreshold(prev, level, null))}
+							unit={unit}
+							conditionDisabled={isWalletAlertConditionDisabled(level, activeLevels)}
+							disabled={isSaving || !draft.alert_enabled}
+							onAdd={() => setDraft((prev) => updateWalletAlertDraftLevels(prev, (levels) => addWalletAlertThreshold(levels, level)))}
+							onRemove={() => setDraft((prev) => updateWalletAlertDraftLevels(prev, (levels) => updateWalletAlertThreshold(levels, level, null)))}
 							onThresholdChange={(value) =>
-								setLocalAlertSettings((prev) => applyWalletAlertThresholdChange(prev, level, 'threshold', value))
+								setDraft((prev) => updateWalletAlertDraftLevels(prev, (levels) => applyWalletAlertThresholdChange(levels, level, 'threshold', value)))
 							}
 							onConditionChange={(value) =>
-								setLocalAlertSettings((prev) => applyWalletAlertThresholdChange(prev, level, 'condition', value))
+								setDraft((prev) => updateWalletAlertDraftLevels(prev, (levels) => applyWalletAlertThresholdChange(levels, level, 'condition', value)))
 							}
 						/>
 					))}
