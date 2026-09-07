@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { AlertTriangle } from 'lucide-react';
 import { Dialog, Button, SegmentedControl, Toggle, InfoIcon } from '@/components/atoms';
 import toast from 'react-hot-toast';
 import { WalletAlertThresholdCard } from '@/components/molecules';
@@ -138,10 +137,7 @@ const WalletAlertDialog: React.FC<WalletAlertDialogProps> = ({ open, alertSettin
 						disabled={isSaving || !draft.alert_enabled}
 					/>
 					{draft.alert_threshold_type === 'percentage' && (
-						<div className='flex max-w-[560px] items-start gap-1.5 text-warning'>
-							<AlertTriangle className='mt-0.5 h-3.5 w-3.5 shrink-0' />
-							<p className='text-[13px] leading-relaxed'>{t('wallet.alerts.percentageWarning')}</p>
-						</div>
+						<p className='max-w-[560px] text-[13px] leading-relaxed text-content-secondary'>{t('wallet.alerts.percentageWarning')}</p>
 					)}
 				</div>
 

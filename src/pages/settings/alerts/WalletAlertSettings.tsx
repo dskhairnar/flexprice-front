@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react';
-import { AlertTriangle } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useTranslation } from 'react-i18next';
 import { Button, Card, InfoIcon, Loader, SegmentedControl, Tooltip } from '@/components/atoms';
@@ -121,10 +120,9 @@ const WalletAlertSettingsSection = () => {
 							disabled={isDisabled}
 						/>
 						{draft.alert_threshold_type === 'percentage' && (
-							<div className='flex max-w-[560px] items-start gap-1.5 text-warning'>
-								<AlertTriangle className='mt-0.5 h-3.5 w-3.5 shrink-0' />
-								<p className='text-[13px] leading-relaxed'>{t('alerts.walletAlerts.percentageWarning')}</p>
-							</div>
+							<p className='max-w-[560px] text-[13px] leading-relaxed text-content-secondary'>
+								{t('alerts.walletAlerts.percentageWarning')}
+							</p>
 						)}
 					</div>
 					<div className='space-y-4'>
