@@ -1,4 +1,4 @@
-import { WalletAlertLevel, WalletAlertSettings, WalletAlertState, WalletAlertThreshold } from '@/models/Wallet';
+import { WalletAlertDraft, WalletAlertLevel, WalletAlertLevels, WalletAlertSettings, WalletAlertState, WalletAlertThreshold, WalletAlertThresholdType } from '@/models/Wallet';
 
 export interface WalletAlertStatusResult {
 	state: WalletAlertState;
@@ -15,6 +15,72 @@ const ALERT_LEVEL_CHECKS: Array<{ level: WalletAlertLevel; state: WalletAlertSta
 export function hasConfiguredWalletAlertThresholds(settings?: WalletAlertSettings | null): boolean {
 	if (!settings?.alert_enabled) return false;
 	return Boolean(settings.critical || settings.warning || settings.info);
+}
+
+/** Missing/undefined always means 'absolute' — matches the backend's own default. */
+export function getWalletAlertThresholdType(settings?: WalletAlertSettings | null): WalletAlertThresholdType {
+	return settings?.alert_threshold_type === 'percentage' ? 'percentage' : 'absolute';
+}
+
+const EMPTY_WALLET_ALERT_LEVELS: WalletAlertLevels = { critical: null, warning: null, info: null };
+
+/**
+ * Builds editing-time draft state from a saved (or absent) WalletAlertSettings. The saved
+ * values land on whichever side matches their actual mode; the other side starts empty — a
+ * wallet that has never used percentage mode must not have percentage fields pre-filled by
+ * whatever numbers happen to be in absolute mode.
+ */
+export function toWalletAlertDraft(settings?: WalletAlertSettings | null): WalletAlertDraft {
+	const type = getWalletAlertThresholdType(settings);
+	const levels: WalletAlertLevels = {
+		critical: settings?.critical ?? null,
+		warning: settings?.warning ?? null,
+		info: settings?.info ?? null,
+	};
+	return {
+		alert_enabled: settings?.alert_enabled ?? false,
+		alert_threshold_type: type,
+		absolute: type === 'absolute' ? levels : EMPTY_WALLET_ALERT_LEVELS,
+		percentage: type === 'percentage' ? levels : EMPTY_WALLET_ALERT_LEVELS,
+	};
+}
+
+export function getActiveWalletAlertLevels(draft: WalletAlertDraft): WalletAlertLevels {
+	return draft[draft.alert_threshold_type];
+}
+
+/** Changes only which side is active — never touches either side's values. */
+export function setWalletAlertDraftThresholdType(draft: WalletAlertDraft, type: WalletAlertThresholdType): WalletAlertDraft {
+	return { ...draft, alert_threshold_type: type };
+}
+
+export function setWalletAlertDraftEnabled(draft: WalletAlertDraft, enabled: boolean): WalletAlertDraft {
+	return { ...draft, alert_enabled: enabled };
+}
+
+/**
+ * Applies `updater` to only the currently-active side (absolute or percentage), leaving the
+ * other side's values completely untouched — this is what makes mode-switching non-destructive.
+ * `updater` is typically one of updateWalletAlertThreshold / applyWalletAlertThresholdChange /
+ * addWalletAlertThreshold, called with the active side's WalletAlertLevels.
+ */
+export function updateWalletAlertDraftLevels(draft: WalletAlertDraft, updater: (levels: WalletAlertLevels) => WalletAlertLevels): WalletAlertDraft {
+	return { ...draft, [draft.alert_threshold_type]: updater(getActiveWalletAlertLevels(draft)) };
+}
+
+/** Composes the active side + alert_enabled/alert_threshold_type, unnormalized — for validating raw (possibly invalid) input before save. */
+export function toWalletAlertSettingsForValidation(draft: WalletAlertDraft): WalletAlertSettings {
+	return {
+		alert_enabled: draft.alert_enabled,
+		alert_threshold_type: draft.alert_threshold_type,
+		...getActiveWalletAlertLevels(draft),
+	};
+}
+
+/** The payload to actually submit: only the active side's (normalized) values, plus alert_threshold_type. */
+export function fromWalletAlertDraftForSave(draft: WalletAlertDraft): WalletAlertSettings {
+	const raw = toWalletAlertSettingsForValidation(draft);
+	return { ...normalizeWalletAlertSettingsForSave(raw), alert_threshold_type: raw.alert_threshold_type };
 }
 
 export function isWalletAlertThresholdTriggered(balance: number, threshold: WalletAlertThreshold): boolean {
@@ -136,6 +202,9 @@ export type WalletAlertValidationErrorKey =
 	| 'invalidCriticalThreshold'
 	| 'invalidWarningThreshold'
 	| 'invalidInfoThreshold'
+	| 'criticalThresholdOutOfRange'
+	| 'warningThresholdOutOfRange'
+	| 'infoThresholdOutOfRange'
 	| 'criticalRequiredForWarning'
 	| 'warningMustBeLessThanCritical'
 	| 'warningMustBeGreaterThanCritical'
@@ -167,6 +236,21 @@ export function getWalletAlertValidationErrorKey(settings: WalletAlertSettings):
 		validateLevel(WalletAlertLevel.WARNING, 'invalidWarningThreshold') ??
 		validateLevel(WalletAlertLevel.INFO, 'invalidInfoThreshold');
 	if (valueError) return valueError;
+
+	if (getWalletAlertThresholdType(settings) === 'percentage') {
+		const validateRange = (level: WalletAlertLevel, errorKey: WalletAlertValidationErrorKey): WalletAlertValidationErrorKey | null => {
+			const threshold = settings[level];
+			if (!threshold) return null;
+			const value = parseWalletAlertThresholdValue(threshold);
+			if (value === null || value < 0 || value > 100) return errorKey;
+			return null;
+		};
+		const rangeError =
+			validateRange(WalletAlertLevel.CRITICAL, 'criticalThresholdOutOfRange') ??
+			validateRange(WalletAlertLevel.WARNING, 'warningThresholdOutOfRange') ??
+			validateRange(WalletAlertLevel.INFO, 'infoThresholdOutOfRange');
+		if (rangeError) return rangeError;
+	}
 
 	if (settings.warning && !settings.critical) return 'criticalRequiredForWarning';
 

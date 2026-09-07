@@ -1,12 +1,20 @@
 import { describe, expect, it } from 'vitest';
-import { WalletAlertLevel } from '@/models/Wallet';
+import { WalletAlertLevel, WalletAlertDraft } from '@/models/Wallet';
 import {
 	computeWalletAlertStatus,
+	fromWalletAlertDraftForSave,
+	getActiveWalletAlertLevels,
+	getWalletAlertThresholdType,
 	getWalletAlertValidationErrorKey,
 	hasActiveWalletAlertStatus,
 	hasConfiguredWalletAlertThresholds,
 	isWalletAlertThresholdTriggered,
 	normalizeWalletAlertSettingsForSave,
+	setWalletAlertDraftEnabled,
+	setWalletAlertDraftThresholdType,
+	toWalletAlertDraft,
+	toWalletAlertSettingsForValidation,
+	updateWalletAlertDraftLevels,
 	updateWalletAlertThreshold,
 } from './walletAlertUtils';
 
@@ -213,6 +221,228 @@ describe('walletAlertUtils', () => {
 					info: { threshold: '10', condition: 'below' },
 				}),
 			).toBe('infoMustBeGreaterThanWarning');
+		});
+	});
+
+	describe('getWalletAlertThresholdType', () => {
+		it('defaults to absolute when alert_threshold_type is undefined', () => {
+			expect(getWalletAlertThresholdType({ alert_enabled: true })).toBe('absolute');
+		});
+
+		it('defaults to absolute when settings is null/undefined', () => {
+			expect(getWalletAlertThresholdType(null)).toBe('absolute');
+			expect(getWalletAlertThresholdType(undefined)).toBe('absolute');
+		});
+
+		it('returns percentage when explicitly set', () => {
+			expect(getWalletAlertThresholdType({ alert_threshold_type: 'percentage' })).toBe('percentage');
+		});
+	});
+
+	describe('toWalletAlertDraft', () => {
+		it('seeds an empty draft (both sides empty, absolute active) when settings is absent', () => {
+			const draft = toWalletAlertDraft(undefined);
+			expect(draft.alert_threshold_type).toBe('absolute');
+			expect(draft.alert_enabled).toBe(false);
+			expect(draft.absolute).toEqual({ critical: null, warning: null, info: null });
+			expect(draft.percentage).toEqual({ critical: null, warning: null, info: null });
+		});
+
+		it('puts absolute-mode settings on the absolute side and leaves percentage empty', () => {
+			const draft = toWalletAlertDraft({
+				alert_enabled: true,
+				critical: { threshold: '10', condition: 'below' },
+				warning: null,
+				info: null,
+			});
+			expect(draft.alert_threshold_type).toBe('absolute');
+			expect(draft.absolute.critical).toEqual({ threshold: '10', condition: 'below' });
+			expect(draft.percentage).toEqual({ critical: null, warning: null, info: null });
+		});
+
+		it('puts percentage-mode settings on the percentage side and leaves absolute empty', () => {
+			const draft = toWalletAlertDraft({
+				alert_enabled: true,
+				alert_threshold_type: 'percentage',
+				critical: { threshold: '20', condition: 'below' },
+				warning: null,
+				info: null,
+			});
+			expect(draft.alert_threshold_type).toBe('percentage');
+			expect(draft.percentage.critical).toEqual({ threshold: '20', condition: 'below' });
+			expect(draft.absolute).toEqual({ critical: null, warning: null, info: null });
+		});
+	});
+
+	describe('getActiveWalletAlertLevels', () => {
+		it('returns the absolute side when active', () => {
+			const draft: WalletAlertDraft = {
+				alert_enabled: true,
+				alert_threshold_type: 'absolute',
+				absolute: { critical: { threshold: '10', condition: 'below' }, warning: null, info: null },
+				percentage: { critical: null, warning: null, info: null },
+			};
+			expect(getActiveWalletAlertLevels(draft)).toBe(draft.absolute);
+		});
+
+		it('returns the percentage side when active', () => {
+			const draft: WalletAlertDraft = {
+				alert_enabled: true,
+				alert_threshold_type: 'percentage',
+				absolute: { critical: null, warning: null, info: null },
+				percentage: { critical: { threshold: '20', condition: 'below' }, warning: null, info: null },
+			};
+			expect(getActiveWalletAlertLevels(draft)).toBe(draft.percentage);
+		});
+	});
+
+	describe('setWalletAlertDraftThresholdType / setWalletAlertDraftEnabled', () => {
+		const draft: WalletAlertDraft = {
+			alert_enabled: true,
+			alert_threshold_type: 'absolute',
+			absolute: { critical: { threshold: '10', condition: 'below' }, warning: null, info: null },
+			percentage: { critical: { threshold: '20', condition: 'below' }, warning: null, info: null },
+		};
+
+		it('switching threshold type changes only alert_threshold_type, preserving both sides', () => {
+			const next = setWalletAlertDraftThresholdType(draft, 'percentage');
+			expect(next.alert_threshold_type).toBe('percentage');
+			expect(next.absolute).toEqual(draft.absolute);
+			expect(next.percentage).toEqual(draft.percentage);
+		});
+
+		it('switching back restores the other side unchanged (round trip)', () => {
+			const toPercentage = setWalletAlertDraftThresholdType(draft, 'percentage');
+			const backToAbsolute = setWalletAlertDraftThresholdType(toPercentage, 'absolute');
+			expect(backToAbsolute.absolute).toEqual(draft.absolute);
+			expect(backToAbsolute.percentage).toEqual(draft.percentage);
+		});
+
+		it('setWalletAlertDraftEnabled changes only alert_enabled', () => {
+			const next = setWalletAlertDraftEnabled(draft, false);
+			expect(next.alert_enabled).toBe(false);
+			expect(next.absolute).toEqual(draft.absolute);
+			expect(next.percentage).toEqual(draft.percentage);
+		});
+	});
+
+	describe('updateWalletAlertDraftLevels', () => {
+		it('applies the updater only to the active side, leaving the inactive side untouched', () => {
+			const draft: WalletAlertDraft = {
+				alert_enabled: true,
+				alert_threshold_type: 'absolute',
+				absolute: { critical: null, warning: null, info: null },
+				percentage: { critical: { threshold: '20', condition: 'below' }, warning: null, info: null },
+			};
+			const next = updateWalletAlertDraftLevels(draft, (levels) => updateWalletAlertThreshold(levels, WalletAlertLevel.CRITICAL, { threshold: '10' }));
+			expect(next.absolute.critical).toEqual({ threshold: '10', condition: 'below' });
+			// The percentage side, which was not active, is byte-for-byte unchanged.
+			expect(next.percentage).toEqual(draft.percentage);
+		});
+	});
+
+	describe('toWalletAlertSettingsForValidation / fromWalletAlertDraftForSave', () => {
+		const draft: WalletAlertDraft = {
+			alert_enabled: true,
+			alert_threshold_type: 'percentage',
+			absolute: { critical: { threshold: '10', condition: 'below' }, warning: null, info: null },
+			percentage: { critical: { threshold: '20', condition: 'below' }, warning: null, info: null },
+		};
+
+		it('toWalletAlertSettingsForValidation composes the active side with alert_enabled/alert_threshold_type', () => {
+			const settings = toWalletAlertSettingsForValidation(draft);
+			expect(settings.alert_enabled).toBe(true);
+			expect(settings.alert_threshold_type).toBe('percentage');
+			expect(settings.critical).toEqual({ threshold: '20', condition: 'below' });
+		});
+
+		it('fromWalletAlertDraftForSave normalizes the active side and keeps alert_threshold_type', () => {
+			const saved = fromWalletAlertDraftForSave(draft);
+			expect(saved.alert_threshold_type).toBe('percentage');
+			expect(saved.critical).toEqual({ threshold: '20', condition: 'below' });
+			// The inactive (absolute) side never reaches the payload.
+			expect(saved).not.toHaveProperty('absolute');
+			expect(saved).not.toHaveProperty('percentage');
+		});
+
+		it('fromWalletAlertDraftForSave still drops an empty/unparseable threshold via the existing normalize logic', () => {
+			const draftWithBadValue: WalletAlertDraft = {
+				...draft,
+				percentage: { critical: { threshold: '', condition: 'below' }, warning: null, info: null },
+			};
+			const saved = fromWalletAlertDraftForSave(draftWithBadValue);
+			expect(saved.critical).toBeNull();
+		});
+	});
+
+	describe('getWalletAlertValidationErrorKey — percentage range', () => {
+		it('accepts 0 and 100 as valid boundary values', () => {
+			expect(
+				getWalletAlertValidationErrorKey({
+					alert_enabled: true,
+					alert_threshold_type: 'percentage',
+					critical: { threshold: '0', condition: 'below' },
+				}),
+			).toBeNull();
+			expect(
+				getWalletAlertValidationErrorKey({
+					alert_enabled: true,
+					alert_threshold_type: 'percentage',
+					critical: { threshold: '100', condition: 'above' },
+				}),
+			).toBeNull();
+		});
+
+		it('rejects a negative percentage', () => {
+			expect(
+				getWalletAlertValidationErrorKey({
+					alert_enabled: true,
+					alert_threshold_type: 'percentage',
+					critical: { threshold: '-1', condition: 'below' },
+				}),
+			).toBe('criticalThresholdOutOfRange');
+		});
+
+		it('rejects a percentage above 100', () => {
+			expect(
+				getWalletAlertValidationErrorKey({
+					alert_enabled: true,
+					alert_threshold_type: 'percentage',
+					warning: { threshold: '101', condition: 'below' },
+					critical: { threshold: '50', condition: 'below' },
+				}),
+			).toBe('warningThresholdOutOfRange');
+		});
+
+		it('never range-checks in absolute mode, even for a value > 100', () => {
+			expect(
+				getWalletAlertValidationErrorKey({
+					alert_enabled: true,
+					alert_threshold_type: 'absolute',
+					critical: { threshold: '5000', condition: 'below' },
+				}),
+			).toBeNull();
+		});
+
+		it('never range-checks in absolute mode when alert_threshold_type is entirely absent', () => {
+			expect(
+				getWalletAlertValidationErrorKey({
+					alert_enabled: true,
+					critical: { threshold: '5000', condition: 'below' },
+				}),
+			).toBeNull();
+		});
+
+		it('skips an unset (null) threshold rather than treating it as out of range', () => {
+			expect(
+				getWalletAlertValidationErrorKey({
+					alert_enabled: true,
+					alert_threshold_type: 'percentage',
+					critical: { threshold: '50', condition: 'below' },
+					warning: null,
+					info: null,
+				}),
+			).toBeNull();
 		});
 	});
 });
