@@ -10,6 +10,7 @@ import { BsThreeDots } from 'react-icons/bs';
 import SubscriptionApi from '@/api/SubscriptionApi';
 import { ADDON_ASSOCIATION_STATUS } from '@/models/AddonAssociation';
 import { AddonAssociationResponse, SubscriptionResponse } from '@/types/dto/Subscription';
+import { EXPAND } from '@/models';
 import { ADDON_PRORATION_BEHAVIOR } from '@/types/dto/Addon';
 import { BILLING_PERIOD } from '@/constants/constants';
 import { toSentenceCase, copyToClipboard } from '@/utils/common/helper_functions';
@@ -192,7 +193,7 @@ const SubscriptionAddonsSection: FC<SubscriptionAddonsSectionProps> = ({
 	// Fetch active addons (backend returns { items, pagination })
 	const {
 		data: addonAssociationsResponse,
-		isLoading,
+		isLoading: isLoadingAddons,
 		isError,
 	} = useQuery({
 		queryKey: ['subscriptionActiveAddons', subscriptionId],
@@ -211,6 +212,36 @@ const SubscriptionAddonsSection: FC<SubscriptionAddonsSectionProps> = ({
 		const response = addonAssociationsResponse as any;
 		return response.items ?? response ?? [];
 	}, [addonAssociationsResponse]);
+
+	// The Charges column must reflect each addon's actual subscription line items — which
+	// carry any per-subscription price override — rather than the addon's catalog default
+	// prices (`association.addon.prices`, which never change after an override). Fetched
+	// once for the whole subscription and grouped client-side to avoid one request per row.
+	// Query key matches what ConfigureAddonDialog already refetches on every line-item
+	// mutation (see its `invalidateAddonQueries`), so an override there updates this table too.
+	const { data: addonLineItemsResponse, isLoading: isLoadingAddonLineItems } = useQuery({
+		queryKey: ['subscriptionAddonLineItems', subscriptionId],
+		queryFn: async () =>
+			SubscriptionApi.searchSubscriptionLineItems({
+				subscription_ids: [subscriptionId],
+				active_filter: true,
+				expand: `${EXPAND.PRICES}.${EXPAND.METERS}`,
+				limit: 100,
+				offset: 0,
+			}),
+		enabled: !!subscriptionId,
+	});
+
+	const pricesByAddonAssociationId = useMemo<Record<string, Price[]>>(() => {
+		const grouped: Record<string, Price[]> = {};
+		for (const item of addonLineItemsResponse?.items ?? []) {
+			if (!item.addon_association_id || !item.price) continue;
+			(grouped[item.addon_association_id] ??= []).push(item.price);
+		}
+		return grouped;
+	}, [addonLineItemsResponse]);
+
+	const isLoading = isLoadingAddons || isLoadingAddonLineItems;
 
 	const processedAddonAssociations = useMemo<AddonAssociationWithStatus[]>(() => {
 		return addonAssociations.map((association) => {
@@ -310,7 +341,10 @@ const SubscriptionAddonsSection: FC<SubscriptionAddonsSectionProps> = ({
 			{
 				title: 'Charges',
 				render: (row) => {
-					const prices = row.addon?.prices || [];
+					// Falls back to the catalog default only if this association has no
+					// matching line items yet (e.g. a fetch error) — the common case reads
+					// the real, possibly-overridden line item prices grouped above.
+					const prices = pricesByAddonAssociationId[row.id] ?? row.addon?.prices ?? [];
 					return <span>{formatAddonCharges(prices)}</span>;
 				},
 			},
@@ -381,7 +415,7 @@ const SubscriptionAddonsSection: FC<SubscriptionAddonsSectionProps> = ({
 				},
 			},
 		],
-		[dropdownOpen, handleCancel, readOnly, canWriteAddon, t],
+		[dropdownOpen, handleCancel, readOnly, canWriteAddon, t, pricesByAddonAssociationId],
 	);
 
 	const addButton = readOnly ? undefined : canWriteAddon ? (
@@ -428,7 +462,9 @@ const SubscriptionAddonsSection: FC<SubscriptionAddonsSectionProps> = ({
 					billingPeriod={subscriptionDetails?.billing_period}
 					billingPeriodCount={
 						subscriptionBillingPeriodCount ??
-						(subscriptionContextResolved ? undefined : (subscriptionDetailsFetched as SubscriptionResponse | undefined)?.billing_period_count)
+						(subscriptionContextResolved
+							? undefined
+							: (subscriptionDetailsFetched as SubscriptionResponse | undefined)?.billing_period_count)
 					}
 					currency={subscriptionDetails?.currency}
 					currentPeriodEndIso={subscriptionDetails?.current_period_end}
