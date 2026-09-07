@@ -333,7 +333,7 @@
 		"walletAlerts": {
 			"title": "Wallet Alert Settings",
 			"description": "Monitor wallet balance against configured thresholds",
-			"thresholdValue": "Threshold Value ({{currency}})",
+			"thresholdValue": "Threshold Value",
 			"condition": "Condition",
 			"thresholdTypeLabel": "Threshold type",
 			"thresholdTypeTooltip": "Absolute: thresholds are measured in wallet currency. Percentage: thresholds are measured as a percentage of credits granted during the current billing period. If there is no active subscription, lifetime credits are used.",

@@ -60,7 +60,9 @@ const WalletAlertDialog: React.FC<WalletAlertDialogProps> = ({ open, alertSettin
 			description: t(descriptionKey[level]),
 			add: t('wallet.alerts.add'),
 			remove: t('wallet.alerts.remove'),
-			thresholdValue: t('wallet.alerts.thresholdValueLabel', { currencySuffix: currency ? ` (${currency})` : '' }),
+			thresholdValue: t('wallet.alerts.thresholdValueLabel', {
+				currencySuffix: draft.alert_threshold_type === 'percentage' ? '' : currency ? ` (${currency})` : '',
+			}),
 			condition: t('wallet.alerts.conditionLabel'),
 			conditionBelow: t('wallet.alerts.conditionBelow'),
 			conditionAbove: t('wallet.alerts.conditionAbove'),

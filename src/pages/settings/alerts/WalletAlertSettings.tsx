@@ -39,14 +39,14 @@ const WalletAlertSettingsSection = () => {
 	}, [settings]);
 
 	const activeLevels = getActiveWalletAlertLevels(draft);
-	const unit = draft.alert_threshold_type === 'percentage' ? '%' : 'USD';
+	const unit = draft.alert_threshold_type === 'percentage' ? '%' : '';
 
 	const getLevelLabels = (level: WalletAlertLevel): WalletAlertThresholdCardLabels => ({
 		title: t(`alerts.walletAlerts.levels.${level}`),
 		description: t(`alerts.walletAlerts.levelDescriptions.${level}`),
 		add: t('alerts.walletAlerts.add'),
 		remove: t('alerts.walletAlerts.remove'),
-		thresholdValue: t('alerts.walletAlerts.thresholdValue', { currency: 'USD' }),
+		thresholdValue: t('alerts.walletAlerts.thresholdValue'),
 		condition: t('alerts.walletAlerts.condition'),
 		conditionBelow: t('alerts.walletAlerts.conditions.below'),
 		conditionAbove: t('alerts.walletAlerts.conditions.above'),

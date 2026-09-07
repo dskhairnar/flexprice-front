@@ -22,7 +22,7 @@ export function getWalletAlertThresholdType(settings?: WalletAlertSettings | nul
 	return settings?.alert_threshold_type === 'percentage' ? 'percentage' : 'absolute';
 }
 
-const EMPTY_WALLET_ALERT_LEVELS: WalletAlertLevels = { critical: null, warning: null, info: null };
+const emptyWalletAlertLevels = (): WalletAlertLevels => ({ critical: null, warning: null, info: null });
 
 /**
  * Builds editing-time draft state from a saved (or absent) WalletAlertSettings. The saved
@@ -40,8 +40,8 @@ export function toWalletAlertDraft(settings?: WalletAlertSettings | null): Walle
 	return {
 		alert_enabled: settings?.alert_enabled ?? false,
 		alert_threshold_type: type,
-		absolute: type === 'absolute' ? levels : EMPTY_WALLET_ALERT_LEVELS,
-		percentage: type === 'percentage' ? levels : EMPTY_WALLET_ALERT_LEVELS,
+		absolute: type === 'absolute' ? levels : emptyWalletAlertLevels(),
+		percentage: type === 'percentage' ? levels : emptyWalletAlertLevels(),
 	};
 }
 
