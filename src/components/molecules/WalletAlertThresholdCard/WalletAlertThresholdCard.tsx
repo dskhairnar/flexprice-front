@@ -19,6 +19,8 @@ export interface WalletAlertThresholdCardProps {
 	labels: WalletAlertThresholdCardLabels;
 	conditionDisabled?: boolean;
 	disabled?: boolean;
+	/** Displayed as a suffix on the threshold input, e.g. '%' or a currency code. Purely visual — never part of the stored value. */
+	unit?: string;
 	onAdd: () => void;
 	onRemove: () => void;
 	onThresholdChange: (value: string) => void;
@@ -30,6 +32,7 @@ const WalletAlertThresholdCard = ({
 	labels,
 	conditionDisabled,
 	disabled,
+	unit,
 	onAdd,
 	onRemove,
 	onThresholdChange,
@@ -69,6 +72,7 @@ const WalletAlertThresholdCard = ({
 							type='number'
 							step='0.01'
 							disabled={disabled}
+							suffix={unit}
 						/>
 					</div>
 					<div className='space-y-1'>
