@@ -9,7 +9,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { BsThreeDots } from 'react-icons/bs';
 import SubscriptionApi from '@/api/SubscriptionApi';
 import { ADDON_ASSOCIATION_STATUS } from '@/models/AddonAssociation';
-import { AddonAssociationResponse, SubscriptionResponse } from '@/types/dto/Subscription';
+import { AddonAssociationResponse, SubscriptionLineItemListItem, SubscriptionResponse } from '@/types/dto/Subscription';
 import { EXPAND } from '@/models';
 import { ADDON_PRORATION_BEHAVIOR } from '@/types/dto/Addon';
 import { BILLING_PERIOD } from '@/constants/constants';
@@ -220,30 +220,45 @@ const SubscriptionAddonsSection: FC<SubscriptionAddonsSectionProps> = ({
 	// Query key matches what ConfigureAddonDialog already refetches on every line-item
 	// mutation (see its `invalidateAddonQueries`), so an override there updates this table too.
 	const {
-		data: addonLineItemsResponse,
+		data: addonLineItems,
 		isLoading: isLoadingAddonLineItems,
 		isError: isErrorAddonLineItems,
 	} = useQuery({
 		queryKey: ['subscriptionAddonLineItems', subscriptionId],
-		queryFn: async () =>
-			SubscriptionApi.searchSubscriptionLineItems({
-				subscription_ids: [subscriptionId],
-				active_filter: true,
-				expand: `${EXPAND.PRICES}.${EXPAND.METERS}`,
-				limit: 1000,
-				offset: 0,
-			}),
+		queryFn: async () => {
+			// A page size this large covers virtually every subscription in one request; the loop
+			// below only makes a second request on the rare subscription that actually exceeds it,
+			// so this stays a single round trip for the common case while still being correct for
+			// subscriptions with more active line items than fit on one page.
+			const pageSize = 1000;
+			const items: SubscriptionLineItemListItem[] = [];
+			let offset = 0;
+			while (true) {
+				const page = await SubscriptionApi.searchSubscriptionLineItems({
+					subscription_ids: [subscriptionId],
+					active_filter: true,
+					expand: `${EXPAND.PRICES}.${EXPAND.METERS}`,
+					limit: pageSize,
+					offset,
+				});
+				items.push(...page.items);
+				const total = page.pagination?.total ?? items.length;
+				if (items.length >= total || page.items.length === 0) break;
+				offset += pageSize;
+			}
+			return items;
+		},
 		enabled: !!subscriptionId,
 	});
 
 	const pricesByAddonAssociationId = useMemo<Record<string, Price[]>>(() => {
 		const grouped: Record<string, Price[]> = {};
-		for (const item of addonLineItemsResponse?.items ?? []) {
+		for (const item of addonLineItems ?? []) {
 			if (!item.addon_association_id || !item.price) continue;
 			(grouped[item.addon_association_id] ??= []).push(item.price);
 		}
 		return grouped;
-	}, [addonLineItemsResponse]);
+	}, [addonLineItems]);
 
 	const isLoading = isLoadingAddons || isLoadingAddonLineItems;
 
