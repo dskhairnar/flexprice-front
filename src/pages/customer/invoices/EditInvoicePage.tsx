@@ -622,7 +622,7 @@ const EditInvoicePage: FC = () => {
 												<th className='py-2.5 px-4 text-start text-xs font-medium uppercase tracking-wide text-content-zinc-muted'>
 													{t('invoices.edit.itemColumn')}
 												</th>
-												<th className='w-20 py-2.5 px-3 text-end text-xs font-medium uppercase tracking-wide text-content-zinc-muted'>
+												<th className='w-28 py-2.5 px-3 text-end text-xs font-medium uppercase tracking-wide text-content-zinc-muted'>
 													{t('createInvoice.quantity')}
 												</th>
 												<th className='w-28 py-2.5 px-4 text-end text-xs font-medium uppercase tracking-wide text-content-zinc-muted'>
@@ -647,7 +647,7 @@ const EditInvoicePage: FC = () => {
 													// The editing row keeps the table's own columns, so the header row doubles as the field labels.
 													<tr key={row.id ?? `new-${index}`} className='border-b border-line-subtle bg-muted/20'>
 														<td className='py-3 px-4 align-top'>
-															<div className='space-y-2'>
+															<div className='max-w-xs space-y-2'>
 																<Input
 																	value={row.display_name}
 																	onChange={(value) => handleLineItemChange(index, 'display_name', value)}
