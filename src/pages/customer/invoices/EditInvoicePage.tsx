@@ -4,7 +4,7 @@ import { useNavigate, useParams } from 'react-router';
 import { useTranslation } from 'react-i18next';
 import toast from 'react-hot-toast';
 import { z } from 'zod';
-import { Check, Info, Pencil, Trash2, X } from 'lucide-react';
+import { Check, Pencil, Trash2, X } from 'lucide-react';
 import {
 	Button,
 	Checkbox,
@@ -597,12 +597,6 @@ const EditInvoicePage: FC = () => {
 					    Rows read as an invoice table; clicking a row expands it into an inline editor. */}
 					{isEditable ? (
 						<div className='p-4'>
-							{isFinalized && (
-								<div className='mb-4 flex items-start gap-2.5 rounded-lg border border-line bg-muted/40 px-4 py-3'>
-									<Info className='mt-0.5 size-4 shrink-0 text-content-zinc-muted' />
-									<p className='text-sm text-content-zinc-muted'>{t('invoices.edit.finalizedEditHint')}</p>
-								</div>
-							)}
 							<div className='flex items-start justify-between gap-4'>
 								<FormHeader
 									title={t('invoices.edit.lineItemsTitle')}
@@ -620,19 +614,21 @@ const EditInvoicePage: FC = () => {
 							</div>
 							<div className='mt-4 overflow-hidden rounded-lg border border-line'>
 								<div className='overflow-x-auto'>
-									<table className='w-full border-collapse'>
+									{/* fixed layout: the header widths govern, so editor inputs can't widen
+									    columns and push the row actions out of the viewport */}
+									<table className='w-full table-fixed border-collapse'>
 										<thead>
 											<tr className='border-b border-line'>
 												<th className='py-2.5 px-4 text-start text-xs font-medium uppercase tracking-wide text-content-zinc-muted'>
 													{t('invoices.edit.itemColumn')}
 												</th>
-												<th className='py-2.5 px-4 text-end text-xs font-medium uppercase tracking-wide text-content-zinc-muted'>
+												<th className='w-20 py-2.5 px-3 text-end text-xs font-medium uppercase tracking-wide text-content-zinc-muted'>
 													{t('createInvoice.quantity')}
 												</th>
-												<th className='py-2.5 px-4 text-end text-xs font-medium uppercase tracking-wide text-content-zinc-muted'>
+												<th className='w-28 py-2.5 px-4 text-end text-xs font-medium uppercase tracking-wide text-content-zinc-muted'>
 													{t('createInvoice.amount')}
 												</th>
-												<th className='py-2.5 px-4 text-start text-xs font-medium uppercase tracking-wide text-content-zinc-muted'>
+												<th className='w-[210px] py-2.5 px-4 text-start text-xs font-medium uppercase tracking-wide text-content-zinc-muted'>
 													{t('invoices.edit.servicePeriod')}
 												</th>
 												<th className='w-20' />
@@ -651,7 +647,7 @@ const EditInvoicePage: FC = () => {
 													// The editing row keeps the table's own columns, so the header row doubles as the field labels.
 													<tr key={row.id ?? `new-${index}`} className='border-b border-line-subtle bg-muted/20'>
 														<td className='py-3 px-4 align-top'>
-															<div className='space-y-2 min-w-[180px]'>
+															<div className='space-y-2'>
 																<Input
 																	value={row.display_name}
 																	onChange={(value) => handleLineItemChange(index, 'display_name', value)}
@@ -670,7 +666,6 @@ const EditInvoicePage: FC = () => {
 																onChange={(value) => handleLineItemChange(index, 'quantity', value)}
 																variant='integer'
 																placeholder='1'
-																className='min-w-[72px]'
 															/>
 														</td>
 														<td className='py-3 px-4 align-top'>
@@ -679,7 +674,6 @@ const EditInvoicePage: FC = () => {
 																onChange={(value) => handleLineItemChange(index, 'amount', value)}
 																variant='formatted-number'
 																placeholder={t('creditNotes.amountPlaceholder')}
-																className='min-w-[96px]'
 															/>
 														</td>
 														<td className='py-3 px-4 align-top'>
@@ -687,7 +681,7 @@ const EditInvoicePage: FC = () => {
 																startDate={row.period_start ? new Date(row.period_start) : undefined}
 																endDate={row.period_end ? new Date(row.period_end) : undefined}
 																onChange={(dates) => handleLineItemPeriodChange(index, dates)}
-																className='w-full'
+																className='w-full min-w-0'
 																popoverTriggerClassName='w-full'
 															/>
 														</td>

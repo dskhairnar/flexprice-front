@@ -60,8 +60,11 @@ function Calendar({ className, classNames, showOutsideDays = true, timezone, onT
 							: '[&:has([aria-selected])]:rounded-[6px]',
 					),
 					day_button: cn(buttonVariants({ variant: 'ghost' }), 'h-8 w-8 p-0 font-normal aria-selected:opacity-100'),
-					range_start: 'day-range-start',
-					range_end: 'day-range-end',
+					// The ghost day button repaints itself light on hover, washing out the dark
+					// range endpoints (the modifier classes live on the td, the hover on the
+					// button). Pin the endpoint buttons' hover back to the selected colors.
+					range_start: 'day-range-start [&>button:hover]:bg-primary [&>button:hover]:text-primary-foreground',
+					range_end: 'day-range-end [&>button:hover]:bg-primary [&>button:hover]:text-primary-foreground',
 					selected:
 						'bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground focus:bg-primary focus:text-primary-foreground',
 					today: 'bg-accent text-accent-foreground',

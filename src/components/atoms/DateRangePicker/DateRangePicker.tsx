@@ -137,8 +137,9 @@ const DateRangePicker = ({
 								'transition-all duration-300 ease-in-out',
 								className,
 							)}>
-							<CalendarIcon className='mr-0 h-4 w-4' />
-							<span>{displayLabel}</span>
+							<CalendarIcon className='mr-0 h-4 w-4 shrink-0' />
+							{/* min-w-0 lets the flex item shrink so a long range ellipsizes instead of widening the trigger */}
+							<span className='min-w-0 truncate'>{displayLabel}</span>
 						</Button>
 					</PopoverTrigger>
 				</div>
