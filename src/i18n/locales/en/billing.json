@@ -45,7 +45,7 @@
 				"loadError": "Error loading invoice"
 			},
 			"lineItemsDraftOnlyNote": "Line items cannot be edited for this invoice status.",
-			"manualEditHint": "Editing line items marks the invoice as manually edited; automatic recomputation is disabled afterwards.",
+			"manualEditHint": "Editing line items marks this invoice as manually edited and turns off automatic recomputation.",
 			"lineItemInvalid": "Each line item needs a name and non-negative amount and quantity.",
 			"removeLineItem": "Remove line item",
 			"voidConfirm": {

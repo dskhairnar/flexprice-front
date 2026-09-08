@@ -810,7 +810,8 @@ const EditInvoicePage: FC = () => {
 					{/* metadata */}
 					<div className='p-4'>
 						<FormHeader title={t('invoices.edit.metadata')} variant='sub-header' titleClassName='font-semibold' />
-						<div className='mt-6 flex flex-col gap-4 max-w-3xl'>
+						{/* full width so the row's delete action lines up with the line-item table's edge */}
+						<div className='mt-6 flex flex-col gap-4'>
 							{metadataRows.map((row, index) => (
 								<div key={index} className='flex gap-2 items-start'>
 									<div className='flex-[3] min-w-0'>
