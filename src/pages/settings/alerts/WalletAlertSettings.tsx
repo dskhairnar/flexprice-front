@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
 import { useTranslation } from 'react-i18next';
-import { Button, Card, Loader, Tooltip } from '@/components/atoms';
+import { Button, Loader, Tooltip } from '@/components/atoms';
 import { SettingsCardHeader, WalletAlertThresholdSection } from '@/components/molecules';
 import type { WalletAlertThresholdSectionLabels } from '@/components/molecules/WalletAlertThresholdSection';
 import { Switch } from '@/components/ui/switch';
@@ -32,7 +32,6 @@ const WalletAlertSettingsSection = () => {
 	// No currency symbol here: these are tenant-wide defaults that apply to wallets in any
 	// currency, so the unit selector's "Currency" label is what identifies the mode.
 	const thresholdLabels: WalletAlertThresholdSectionLabels = {
-		thresholds: t('alerts.walletAlerts.thresholds'),
 		unit: t('alerts.walletAlerts.unitLabel'),
 		unitTooltip: (
 			<>
@@ -73,31 +72,31 @@ const WalletAlertSettingsSection = () => {
 	const isDisabled = !draft.alert_enabled || updateSettings.isPending;
 	const alertsTitle = t('alerts.walletAlerts.title');
 
+	// No card wrapper: the settings tab already provides the page structure, and nesting another
+	// bordered container inside it reads as a card-in-a-page-in-a-card.
 	return (
-		<Card variant='default' noPadding className='rounded-xl border-line bg-surface shadow-sm'>
-			<div className='px-6 pt-6'>
-				<SettingsCardHeader
-					title={alertsTitle}
-					infoDescription={t('alerts.walletAlerts.description')}
-					infoAriaLabel={t('info.ariaLabel', { field: alertsTitle })}
-					titleClassName='text-lg font-medium text-content-zinc-strong'
-					className='mb-2'
-					cta={
-						<Switch
-							checked={draft.alert_enabled}
-							onCheckedChange={(enabled) => setDraft((prev) => setWalletAlertDraftEnabled(prev, enabled))}
-							disabled={isLoading || updateSettings.isPending}
-							aria-label={alertsTitle}
-						/>
-					}
-				/>
-			</div>
+		<div className='space-y-5'>
+			<SettingsCardHeader
+				title={alertsTitle}
+				infoDescription={t('alerts.walletAlerts.description')}
+				infoAriaLabel={t('info.ariaLabel', { field: alertsTitle })}
+				titleClassName='text-lg font-medium text-content-zinc-strong'
+				className='mb-0'
+				cta={
+					<Switch
+						checked={draft.alert_enabled}
+						onCheckedChange={(enabled) => setDraft((prev) => setWalletAlertDraftEnabled(prev, enabled))}
+						disabled={isLoading || updateSettings.isPending}
+						aria-label={alertsTitle}
+					/>
+				}
+			/>
 			{isLoading ? (
-				<div className='flex min-h-[200px] items-center justify-center'>
+				<div className='flex min-h-[160px] items-center justify-center'>
 					<Loader />
 				</div>
 			) : (
-				<div className='space-y-6 px-6 pb-6 pt-6'>
+				<>
 					<WalletAlertThresholdSection draft={draft} labels={thresholdLabels} disabled={isDisabled} onChange={setDraft} />
 					<div className='flex justify-end'>
 						{canWriteAlertSettings ? (
@@ -112,9 +111,9 @@ const WalletAlertSettingsSection = () => {
 							</Tooltip>
 						)}
 					</div>
-				</div>
+				</>
 			)}
-		</Card>
+		</div>
 	);
 };
 

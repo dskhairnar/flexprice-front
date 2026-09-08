@@ -17,18 +17,19 @@ export interface ThresholdUnitSelectorProps {
 
 /**
  * Picks whether the sibling threshold rows are read as currency amounts or percentages.
- * A segmented control rather than a Select: it is a persistent two-state mode, and both
- * options should stay visible so the switch is one click.
+ * Label left, control right on a single line, so it reads as one more settings row rather
+ * than a titled subsection. A segmented control rather than a Select: it is a persistent
+ * two-state mode, and both options should stay visible so the switch is one click.
  */
 const ThresholdUnitSelector = ({ value, labels, disabled, onChange }: ThresholdUnitSelectorProps) => (
-	<div className='space-y-2'>
-		<div className='flex items-center gap-1.5'>
+	<div className='flex items-center justify-between gap-4 py-2.5'>
+		<div className='flex min-w-0 items-center gap-1.5'>
 			<span className='text-sm font-medium text-content'>{labels.unit}</span>
 			<InfoIcon description={labels.unitTooltip} ariaLabel={labels.unit} disabled={disabled} />
 		</div>
 		<SegmentedControl
 			aria-label={labels.unit}
-			className='w-fit'
+			className='shrink-0'
 			options={[
 				{ label: labels.currency, value: 'absolute' as WalletAlertThresholdType },
 				{ label: labels.percentage, value: 'percentage' as WalletAlertThresholdType },

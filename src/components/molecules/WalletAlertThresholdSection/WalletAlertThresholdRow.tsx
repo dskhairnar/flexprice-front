@@ -10,7 +10,7 @@ const THRESHOLD_FORMAT_OPTIONS = { allowNegative: true, allowDecimals: true, tho
 export interface WalletAlertThresholdRowProps {
 	/** Severity name, e.g. "Critical". */
 	title: string;
-	/** Fixed copy under the title, e.g. "Alert when balance falls below". */
+	/** Fixed condition copy, e.g. "Falls below". */
 	description: string;
 	/** Empty string means this severity has no threshold configured. */
 	value: string;
@@ -24,9 +24,9 @@ export interface WalletAlertThresholdRowProps {
 }
 
 /**
- * One severity's threshold as a settings-list row: label and fixed condition copy on the left,
- * a single value input on the right. There is no condition picker — wallet balance alerts
- * always fire on a falling balance.
+ * One severity as a single horizontal row: fixed-width severity column, condition copy, then the
+ * value input. The severity and input columns are fixed so the three rows line up as one block.
+ * There is no condition picker — wallet balance alerts always fire on a falling balance.
  */
 const WalletAlertThresholdRow = ({
 	title,
@@ -38,12 +38,10 @@ const WalletAlertThresholdRow = ({
 	disabled,
 	onChange,
 }: WalletAlertThresholdRowProps) => (
-	<div className={cn('flex items-center justify-between gap-6 py-4', disabled && 'opacity-50')}>
-		<div className='min-w-0 space-y-0.5'>
-			<div className='text-sm font-medium text-content'>{title}</div>
-			<div className='text-[13px] leading-relaxed text-content-secondary'>{description}</div>
-		</div>
-		<div className='w-[140px] shrink-0'>
+	<div className={cn('flex items-center gap-4 py-2', disabled && 'opacity-50')}>
+		<span className='w-24 shrink-0 text-sm font-medium text-content'>{title}</span>
+		<span className='min-w-0 flex-1 truncate text-sm text-content-secondary'>{description}</span>
+		<div className='w-[132px] shrink-0'>
 			<Input
 				aria-label={`${title} — ${description}`}
 				placeholder={placeholder}

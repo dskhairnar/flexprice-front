@@ -12,13 +12,11 @@ import WalletAlertThresholdRow from './WalletAlertThresholdRow';
 const ALERT_LEVELS = [WalletAlertLevel.CRITICAL, WalletAlertLevel.WARNING, WalletAlertLevel.INFO] as const;
 
 export interface WalletAlertThresholdSectionLabels {
-	/** Heading above the unit selector. */
-	thresholds: string;
 	unit: string;
 	unitTooltip: React.ReactNode;
 	unitCurrency: string;
 	unitPercentage: string;
-	/** Fixed copy on every row, e.g. "Alert when balance falls below". */
+	/** Fixed condition copy on every row, e.g. "Falls below". */
 	rowDescription: string;
 	amountPlaceholder: string;
 	levels: Record<WalletAlertLevel, string>;
@@ -49,9 +47,7 @@ const WalletAlertThresholdSection = ({ draft, labels, disabled, currency, onChan
 		onChange(updateWalletAlertDraftLevels(draft, (current) => setWalletAlertThresholdValue(current, level, value)));
 
 	return (
-		<div className='space-y-4'>
-			<div className='text-sm font-medium text-content'>{labels.thresholds}</div>
-
+		<div>
 			<ThresholdUnitSelector
 				value={draft.alert_threshold_type}
 				labels={{
@@ -64,7 +60,7 @@ const WalletAlertThresholdSection = ({ draft, labels, disabled, currency, onChan
 				onChange={handleUnitChange}
 			/>
 
-			<div className='divide-y divide-line border-t border-line'>
+			<div className='divide-y divide-line'>
 				{ALERT_LEVELS.map((level) => (
 					<WalletAlertThresholdRow
 						key={level}

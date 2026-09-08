@@ -6,12 +6,11 @@ import { toWalletAlertDraft } from '@/utils/wallet/walletAlertUtils';
 import WalletAlertThresholdSection, { type WalletAlertThresholdSectionLabels } from './WalletAlertThresholdSection';
 
 const labels: WalletAlertThresholdSectionLabels = {
-	thresholds: 'Thresholds',
-	unit: 'Unit',
+	unit: 'Threshold unit',
 	unitTooltip: 'Currency or percentage',
 	unitCurrency: 'Currency',
 	unitPercentage: 'Percentage',
-	rowDescription: 'Alert when balance falls below',
+	rowDescription: 'Falls below',
 	amountPlaceholder: '0.00',
 	levels: {
 		[WalletAlertLevel.CRITICAL]: 'Critical',
@@ -26,7 +25,7 @@ const Harness = ({ initial, currency }: { initial?: WalletAlertDraft; currency?:
 	return <WalletAlertThresholdSection draft={draft} labels={labels} currency={currency} onChange={setDraft} />;
 };
 
-const rowInput = (level: string) => screen.getByLabelText(`${level} — Alert when balance falls below`) as HTMLInputElement;
+const rowInput = (level: string) => screen.getByLabelText(`${level} — Falls below`) as HTMLInputElement;
 
 describe('WalletAlertThresholdSection', () => {
 	it('renders one row per severity with the fixed falls-below copy and no condition picker', () => {
@@ -35,10 +34,31 @@ describe('WalletAlertThresholdSection', () => {
 		expect(screen.getByText('Critical')).toBeInTheDocument();
 		expect(screen.getByText('Warning')).toBeInTheDocument();
 		expect(screen.getByText('Info')).toBeInTheDocument();
-		expect(screen.getAllByText('Alert when balance falls below')).toHaveLength(3);
+		expect(screen.getAllByText('Falls below')).toHaveLength(3);
 		// The Above/Below dropdown is gone — wallet alerts always fire on a falling balance.
 		expect(screen.queryByText('Above')).not.toBeInTheDocument();
 		expect(screen.queryByRole('combobox')).not.toBeInTheDocument();
+	});
+
+	it('has no standalone Thresholds heading and keeps the unit label beside its control', () => {
+		render(<Harness />);
+
+		expect(screen.queryByText('Thresholds')).not.toBeInTheDocument();
+		// Label and segmented control share one row, so they have the same parent.
+		const label = screen.getByText('Threshold unit');
+		const control = screen.getByRole('group', { name: 'Threshold unit' });
+		expect(label.parentElement?.parentElement).toBe(control.parentElement);
+	});
+
+	it('gives all three rows an identically sized severity and input column', () => {
+		render(<Harness currency='USD' />);
+
+		const inputWrappers = ['Critical', 'Warning', 'Info'].map((level) => rowInput(level).closest('div')?.parentElement);
+		const widths = new Set(inputWrappers.map((el) => el?.className));
+		expect(widths.size).toBe(1);
+
+		const severityWidths = new Set(['Critical', 'Warning', 'Info'].map((level) => screen.getByText(level).className));
+		expect(severityWidths.size).toBe(1);
 	});
 
 	it('shows the currency symbol in currency mode and % in percentage mode', () => {

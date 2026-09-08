@@ -31,7 +31,6 @@ const WalletAlertDialog: React.FC<WalletAlertDialogProps> = ({ open, alertSettin
 	}, [alertSettings]);
 
 	const thresholdLabels: WalletAlertThresholdSectionLabels = {
-		thresholds: t('wallet.alerts.thresholds'),
 		unit: t('wallet.alerts.unitLabel'),
 		unitTooltip: (
 			<>
@@ -87,7 +86,7 @@ const WalletAlertDialog: React.FC<WalletAlertDialogProps> = ({ open, alertSettin
 			}}
 			title={t('wallet.alerts.dialogTitle')}
 			showCloseButton>
-			<div className='flex min-w-[600px] flex-col gap-6'>
+			<div className='flex min-w-[600px] flex-col gap-5'>
 				<Toggle
 					title={t('wallet.alerts.enableTitle')}
 					label={t('wallet.alerts.enableLabel')}
@@ -105,7 +104,7 @@ const WalletAlertDialog: React.FC<WalletAlertDialogProps> = ({ open, alertSettin
 					onChange={setDraft}
 				/>
 
-				<div className='mt-6 flex justify-end gap-2'>
+				<div className='flex justify-end gap-2'>
 					<Button variant='outline' onClick={handleClose} disabled={isSaving}>
 						{t('wallet.alerts.cancel')}
 					</Button>
