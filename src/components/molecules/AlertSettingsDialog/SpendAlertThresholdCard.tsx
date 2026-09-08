@@ -2,7 +2,13 @@ import { Button, InfoIcon, Input, Select } from '@/components/atoms';
 import type { WalletAlertThreshold } from '@/models/Wallet';
 import { cn } from '@/lib/utils';
 
-export interface WalletAlertThresholdCardLabels {
+/**
+ * The add/remove threshold card used by subscription and line-item spend alerts. Wallet balance
+ * alerts moved to WalletAlertThresholdSection's row layout; spend alerts keep this shape because
+ * their thresholds stay individually addable and their condition is fixed to 'above'.
+ */
+
+export interface SpendAlertThresholdCardLabels {
 	title: string;
 	description: string;
 	add: string;
@@ -14,30 +20,27 @@ export interface WalletAlertThresholdCardLabels {
 	amountPlaceholder: string;
 }
 
-export interface WalletAlertThresholdCardProps {
+export interface SpendAlertThresholdCardProps {
 	threshold: WalletAlertThreshold | null | undefined;
-	labels: WalletAlertThresholdCardLabels;
+	labels: SpendAlertThresholdCardLabels;
 	conditionDisabled?: boolean;
 	disabled?: boolean;
-	/** Displayed as a suffix on the threshold input, e.g. '%' or a currency code. Purely visual — never part of the stored value. */
-	unit?: string;
 	onAdd: () => void;
 	onRemove: () => void;
 	onThresholdChange: (value: string) => void;
 	onConditionChange: (value: 'above' | 'below') => void;
 }
 
-const WalletAlertThresholdCard = ({
+const SpendAlertThresholdCard = ({
 	threshold,
 	labels,
 	conditionDisabled,
 	disabled,
-	unit,
 	onAdd,
 	onRemove,
 	onThresholdChange,
 	onConditionChange,
-}: WalletAlertThresholdCardProps) => {
+}: SpendAlertThresholdCardProps) => {
 	const conditionOptions = [
 		{ label: labels.conditionBelow, value: 'below' },
 		{ label: labels.conditionAbove, value: 'above' },
@@ -72,7 +75,6 @@ const WalletAlertThresholdCard = ({
 							type='number'
 							step='0.01'
 							disabled={disabled}
-							suffix={unit}
 						/>
 					</div>
 					<div className='space-y-1'>
@@ -90,4 +92,4 @@ const WalletAlertThresholdCard = ({
 	);
 };
 
-export default WalletAlertThresholdCard;
+export default SpendAlertThresholdCard;

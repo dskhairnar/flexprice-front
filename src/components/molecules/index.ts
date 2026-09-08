@@ -89,7 +89,7 @@ export { default as TopupCard } from './WalletTopupCard';
 export { default as DebitCard } from './WalletDebitCard';
 export { default as WalletAlertDialog } from './WalletAlertDialog';
 export { default as AlertSettingsDialog } from './AlertSettingsDialog';
-export { default as WalletAlertThresholdCard } from './WalletAlertThresholdCard';
+export { default as WalletAlertThresholdSection } from './WalletAlertThresholdSection';
 export { default as WalletAutoTopup } from './WalletAutoTopup';
 export { default as TerminateWalletModal } from './TerminateWalletModal';
 

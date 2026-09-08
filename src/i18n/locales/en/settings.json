@@ -333,15 +333,6 @@
 		"walletAlerts": {
 			"title": "Wallet Alert Settings",
 			"description": "Monitor wallet balance against configured thresholds",
-			"thresholdValue": "Threshold Value",
-			"condition": "Condition",
-			"thresholdTypeLabel": "Threshold type",
-			"thresholdTypeTooltip": "Absolute: thresholds are measured in wallet currency. Percentage: thresholds are measured as a percentage of credits granted during the current billing period. If there is no active subscription, lifetime credits are used.",
-			"thresholdTypeAbsolute": "Absolute",
-			"thresholdTypePercentage": "Percentage",
-			"percentageWarning": "Percentage alerts apply only to ongoing balance. Credit-balance alerts are not evaluated in Percentage mode.",
-			"remove": "Remove",
-			"add": "Add",
 			"amountPlaceholder": "0.00",
 			"saveChanges": "Save changes",
 			"saveSuccess": "Wallet alert settings saved",
@@ -350,15 +341,6 @@
 				"critical": "Critical",
 				"warning": "Warning",
 				"info": "Info"
-			},
-			"levelDescriptions": {
-				"critical": "Alert at critical level",
-				"warning": "Alert at warning level",
-				"info": "Alert at info level"
-			},
-			"conditions": {
-				"below": "Below",
-				"above": "Above"
 			},
 			"validation": {
 				"atLeastOneThreshold": "Please configure at least one threshold level when alerts are enabled",
@@ -369,13 +351,17 @@
 				"warningThresholdOutOfRange": "Warning threshold must be between 0 and 100.",
 				"infoThresholdOutOfRange": "Info threshold must be between 0 and 100.",
 				"criticalRequiredForWarning": "A critical threshold is required when a warning threshold is set",
-				"warningMustBeLessThanCritical": "For \"Above\" alerts, the warning threshold must be less than the critical threshold",
-				"warningMustBeGreaterThanCritical": "For \"Below\" alerts, the warning threshold must be greater than the critical threshold",
-				"infoMustBeLessThanWarning": "For \"Above\" alerts, the info threshold must be less than the warning threshold",
-				"infoMustBeGreaterThanWarning": "For \"Below\" alerts, the info threshold must be greater than the warning threshold",
-				"infoMustBeLessThanCritical": "For \"Above\" alerts, the info threshold must be less than the critical threshold",
-				"infoMustBeGreaterThanCritical": "For \"Below\" alerts, the info threshold must be greater than the critical threshold"
-			}
+				"warningMustBeGreaterThanCritical": "The warning threshold must be greater than the critical threshold",
+				"infoMustBeGreaterThanWarning": "The info threshold must be greater than the warning threshold",
+				"infoMustBeGreaterThanCritical": "The info threshold must be greater than the critical threshold"
+			},
+			"thresholds": "Thresholds",
+			"unitLabel": "Unit",
+			"unitCurrency": "Currency",
+			"unitPercentage": "Percentage",
+			"unitTooltipCurrency": "Currency: Alerts are based on a fixed wallet balance amount.",
+			"unitTooltipPercentage": "Percentage: Alerts are based on the percentage of credits granted during the current billing period. If there is no active subscription, lifetime credits are used.",
+			"rowDescription": "Alert when balance falls below"
 		}
 	},
 	"appearance": {

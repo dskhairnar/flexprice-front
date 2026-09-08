@@ -15,7 +15,7 @@ import {
 	toWalletAlertDraft,
 	toWalletAlertSettingsForValidation,
 	updateWalletAlertDraftLevels,
-	updateWalletAlertThreshold,
+	setWalletAlertThresholdValue,
 } from './walletAlertUtils';
 
 describe('walletAlertUtils', () => {
@@ -125,21 +125,29 @@ describe('walletAlertUtils', () => {
 		});
 	});
 
-	describe('updateWalletAlertThreshold', () => {
-		it('syncs condition across all configured levels', () => {
-			const updated = updateWalletAlertThreshold(
-				{
-					alert_enabled: true,
-					critical: { threshold: '0', condition: 'below' },
-					warning: { threshold: '10', condition: 'below' },
-					info: null,
-				},
-				WalletAlertLevel.WARNING,
-				{ condition: 'above' },
-			);
+	describe('setWalletAlertThresholdValue', () => {
+		const levels = { critical: { threshold: '10', condition: 'below' as const }, warning: null, info: null };
 
-			expect(updated.critical?.condition).toBe('above');
-			expect(updated.warning?.condition).toBe('above');
+		it('writes the value with condition below', () => {
+			const next = setWalletAlertThresholdValue(levels, WalletAlertLevel.WARNING, '25');
+			expect(next.warning).toEqual({ threshold: '25', condition: 'below' });
+		});
+
+		it('rewrites a legacy above threshold to below when edited', () => {
+			const legacy = { critical: { threshold: '10', condition: 'above' as const }, warning: null, info: null };
+			const next = setWalletAlertThresholdValue(legacy, WalletAlertLevel.CRITICAL, '12');
+			expect(next.critical).toEqual({ threshold: '12', condition: 'below' });
+		});
+
+		it('clears the level to null for a blank value rather than storing an empty string', () => {
+			expect(setWalletAlertThresholdValue(levels, WalletAlertLevel.CRITICAL, '').critical).toBeNull();
+			expect(setWalletAlertThresholdValue(levels, WalletAlertLevel.CRITICAL, '   ').critical).toBeNull();
+		});
+
+		it('leaves the other levels untouched', () => {
+			const next = setWalletAlertThresholdValue(levels, WalletAlertLevel.INFO, '50');
+			expect(next.critical).toBe(levels.critical);
+			expect(next.warning).toBeNull();
 		});
 	});
 
@@ -163,21 +171,27 @@ describe('walletAlertUtils', () => {
 
 		it('rejects above condition when warning is greater than critical', () => {
 			expect(
-				getWalletAlertValidationErrorKey({
-					alert_enabled: true,
-					critical: { threshold: '10', condition: 'above' },
-					warning: { threshold: '12', condition: 'above' },
-				}),
+				getWalletAlertValidationErrorKey(
+					{
+						alert_enabled: true,
+						critical: { threshold: '10', condition: 'above' },
+						warning: { threshold: '12', condition: 'above' },
+					},
+					'above',
+				),
 			).toBe('warningMustBeLessThanCritical');
 		});
 
 		it('accepts above condition when warning is less than critical', () => {
 			expect(
-				getWalletAlertValidationErrorKey({
-					alert_enabled: true,
-					critical: { threshold: '12', condition: 'above' },
-					warning: { threshold: '10', condition: 'above' },
-				}),
+				getWalletAlertValidationErrorKey(
+					{
+						alert_enabled: true,
+						critical: { threshold: '12', condition: 'above' },
+						warning: { threshold: '10', condition: 'above' },
+					},
+					'above',
+				),
 			).toBeNull();
 		});
 
@@ -203,12 +217,15 @@ describe('walletAlertUtils', () => {
 
 		it('rejects above info threshold greater than warning', () => {
 			expect(
-				getWalletAlertValidationErrorKey({
-					alert_enabled: true,
-					critical: { threshold: '20', condition: 'above' },
-					warning: { threshold: '10', condition: 'above' },
-					info: { threshold: '15', condition: 'above' },
-				}),
+				getWalletAlertValidationErrorKey(
+					{
+						alert_enabled: true,
+						critical: { threshold: '20', condition: 'above' },
+						warning: { threshold: '10', condition: 'above' },
+						info: { threshold: '15', condition: 'above' },
+					},
+					'above',
+				),
 			).toBe('infoMustBeLessThanWarning');
 		});
 
@@ -221,6 +238,32 @@ describe('walletAlertUtils', () => {
 					info: { threshold: '10', condition: 'below' },
 				}),
 			).toBe('infoMustBeGreaterThanWarning');
+		});
+	});
+
+	describe('getWalletAlertValidationErrorKey — condition parameter', () => {
+		const settings = {
+			alert_enabled: true,
+			critical: { threshold: '10', condition: 'below' as const },
+			warning: { threshold: '25', condition: 'below' as const },
+		};
+
+		it('defaults to below, so ascending thresholds are valid', () => {
+			expect(getWalletAlertValidationErrorKey(settings)).toBeNull();
+		});
+
+		it('rejects the same ascending thresholds when the caller asks for above (spend alerts)', () => {
+			expect(getWalletAlertValidationErrorKey(settings, 'above')).toBe('warningMustBeLessThanCritical');
+		});
+	});
+
+	describe('normalizeWalletAlertSettingsForSave — condition parameter', () => {
+		it('writes above when the caller asks for it', () => {
+			const normalized = normalizeWalletAlertSettingsForSave(
+				{ alert_enabled: true, critical: { threshold: '10', condition: 'below' } },
+				'above',
+			);
+			expect(normalized.critical).toEqual({ threshold: '10', condition: 'above' });
 		});
 	});
 
@@ -334,7 +377,7 @@ describe('walletAlertUtils', () => {
 				absolute: { critical: null, warning: null, info: null },
 				percentage: { critical: { threshold: '20', condition: 'below' }, warning: null, info: null },
 			};
-			const next = updateWalletAlertDraftLevels(draft, (levels) => updateWalletAlertThreshold(levels, WalletAlertLevel.CRITICAL, { threshold: '10' }));
+			const next = updateWalletAlertDraftLevels(draft, (levels) => setWalletAlertThresholdValue(levels, WalletAlertLevel.CRITICAL, '10'));
 			expect(next.absolute.critical).toEqual({ threshold: '10', condition: 'below' });
 			// The percentage side, which was not active, is byte-for-byte unchanged.
 			expect(next.percentage).toEqual(draft.percentage);

@@ -1,4 +1,12 @@
-import { WalletAlertDraft, WalletAlertLevel, WalletAlertLevels, WalletAlertSettings, WalletAlertState, WalletAlertThreshold, WalletAlertThresholdType } from '@/models/Wallet';
+import {
+	WalletAlertDraft,
+	WalletAlertLevel,
+	WalletAlertLevels,
+	WalletAlertSettings,
+	WalletAlertState,
+	WalletAlertThreshold,
+	WalletAlertThresholdType,
+} from '@/models/Wallet';
 
 export interface WalletAlertStatusResult {
 	state: WalletAlertState;
@@ -61,10 +69,12 @@ export function setWalletAlertDraftEnabled(draft: WalletAlertDraft, enabled: boo
 /**
  * Applies `updater` to only the currently-active side (absolute or percentage), leaving the
  * other side's values completely untouched — this is what makes mode-switching non-destructive.
- * `updater` is typically one of updateWalletAlertThreshold / applyWalletAlertThresholdChange /
- * addWalletAlertThreshold, called with the active side's WalletAlertLevels.
+ * `updater` is typically setWalletAlertThresholdValue, called with the active side's WalletAlertLevels.
  */
-export function updateWalletAlertDraftLevels(draft: WalletAlertDraft, updater: (levels: WalletAlertLevels) => WalletAlertLevels): WalletAlertDraft {
+export function updateWalletAlertDraftLevels(
+	draft: WalletAlertDraft,
+	updater: (levels: WalletAlertLevels) => WalletAlertLevels,
+): WalletAlertDraft {
 	return { ...draft, [draft.alert_threshold_type]: updater(getActiveWalletAlertLevels(draft)) };
 }
 
@@ -107,94 +117,27 @@ export function hasActiveWalletAlertStatus(balance: number, settings?: WalletAle
 	return status !== null && status.state !== 'ok';
 }
 
-export function getMasterWalletAlertCondition(settings: WalletAlertSettings): 'above' | 'below' | undefined {
-	if (settings.critical) return settings.critical.condition;
-	if (settings.warning) return settings.warning.condition;
-	if (settings.info) return settings.info.condition;
-	return undefined;
-}
+/**
+ * Wallet balance alerts only ever fire on a falling balance, so every threshold is stored with
+ * condition 'below'. The field is retained because the backend contract still carries it (and
+ * legacy rows may hold 'above', which computeWalletAlertStatus still evaluates correctly), but
+ * the UI no longer offers a choice and every value written from here is 'below'.
+ */
+export type WalletAlertCondition = WalletAlertThreshold['condition'];
 
-export function isWalletAlertConditionDisabled(level: WalletAlertLevel, settings: WalletAlertSettings): boolean {
-	const threshold = settings[level];
-	if (!threshold) return false;
+export const WALLET_ALERT_CONDITION: WalletAlertCondition = 'below';
 
-	if (level !== WalletAlertLevel.CRITICAL && settings.critical) {
-		return true;
+/**
+ * Writes one level's threshold from raw input. A blank value clears the level to null rather
+ * than storing an empty string, so an intentionally-unset optional threshold is never reported
+ * as an invalid number by getWalletAlertValidationErrorKey.
+ */
+export function setWalletAlertThresholdValue(levels: WalletAlertLevels, level: WalletAlertLevel, value: string): WalletAlertLevels {
+	if (value.trim() === '') {
+		return { ...levels, [level]: null };
 	}
 
-	if (level === WalletAlertLevel.INFO && settings.warning && !settings.critical) {
-		return true;
-	}
-
-	if (level === WalletAlertLevel.WARNING && settings.info && !settings.critical) {
-		return true;
-	}
-
-	return false;
-}
-
-export function applyWalletAlertThresholdChange(
-	settings: WalletAlertSettings,
-	level: WalletAlertLevel,
-	field: 'threshold' | 'condition',
-	value: string,
-): WalletAlertSettings {
-	const currentThreshold = settings[level] || { threshold: '0', condition: 'below' as const };
-
-	if (field === 'condition') {
-		const newCondition = value as 'above' | 'below';
-		return {
-			...settings,
-			critical: settings.critical ? { ...settings.critical, condition: newCondition } : null,
-			warning: settings.warning ? { ...settings.warning, condition: newCondition } : null,
-			info: settings.info ? { ...settings.info, condition: newCondition } : null,
-		};
-	}
-
-	return {
-		...settings,
-		[level]: {
-			...currentThreshold,
-			[field]: value,
-		},
-	};
-}
-
-export function updateWalletAlertThreshold(
-	settings: WalletAlertSettings,
-	level: WalletAlertLevel,
-	patch: { threshold?: string; condition?: 'above' | 'below' } | null,
-): WalletAlertSettings {
-	if (patch === null) {
-		return { ...settings, [level]: null };
-	}
-
-	if (patch.condition !== undefined) {
-		return applyWalletAlertThresholdChange(settings, level, 'condition', patch.condition);
-	}
-
-	const masterCondition = getMasterWalletAlertCondition(settings) ?? 'below';
-	const currentThreshold = settings[level] ?? { threshold: '', condition: masterCondition };
-
-	return {
-		...settings,
-		[level]: {
-			threshold: patch.threshold ?? currentThreshold.threshold,
-			condition: currentThreshold.condition,
-		},
-	};
-}
-
-export function addWalletAlertThreshold(settings: WalletAlertSettings, level: WalletAlertLevel): WalletAlertSettings {
-	const masterCondition = getMasterWalletAlertCondition(settings) ?? 'below';
-
-	return {
-		...settings,
-		[level]: {
-			threshold: '0',
-			condition: masterCondition,
-		},
-	};
+	return { ...levels, [level]: { threshold: value, condition: WALLET_ALERT_CONDITION } };
 }
 
 export type WalletAlertValidationErrorKey =
@@ -218,7 +161,15 @@ function parseWalletAlertThresholdValue(threshold: WalletAlertThreshold): number
 	return Number.isNaN(value) ? null : value;
 }
 
-export function getWalletAlertValidationErrorKey(settings: WalletAlertSettings): WalletAlertValidationErrorKey | null {
+/**
+ * `condition` is supplied by the caller rather than read from the thresholds: wallet balance
+ * alerts are always 'below' (their picker is gone), while subscription/line-item spend alerts are
+ * always 'above'. It decides which way the critical/warning/info ordering must run.
+ */
+export function getWalletAlertValidationErrorKey(
+	settings: WalletAlertSettings,
+	condition: WalletAlertCondition = WALLET_ALERT_CONDITION,
+): WalletAlertValidationErrorKey | null {
 	if (!settings.alert_enabled) return null;
 
 	const hasAnyThreshold = settings.critical || settings.warning || settings.info;
@@ -254,7 +205,7 @@ export function getWalletAlertValidationErrorKey(settings: WalletAlertSettings):
 
 	if (settings.warning && !settings.critical) return 'criticalRequiredForWarning';
 
-	const condition = getMasterWalletAlertCondition(settings) ?? 'below';
+	// 'below' thresholds ascend (critical < warning < info); 'above' thresholds descend.
 	const criticalValue = settings.critical ? parseWalletAlertThresholdValue(settings.critical) : null;
 	const warningValue = settings.warning ? parseWalletAlertThresholdValue(settings.warning) : null;
 	const infoValue = settings.info ? parseWalletAlertThresholdValue(settings.info) : null;
@@ -277,15 +228,21 @@ export function getWalletAlertValidationErrorKey(settings: WalletAlertSettings):
 	return null;
 }
 
-export function normalizeWalletAlertSettingsForSave(settings: WalletAlertSettings): WalletAlertSettings {
-	const masterCondition = getMasterWalletAlertCondition(settings) ?? 'below';
-
+/**
+ * Every surviving threshold is written with `condition`, so a saved set is always internally
+ * consistent. Wallet alerts take the 'below' default — rewriting any legacy 'above' row the first
+ * time it is saved — while spend alerts pass 'above'.
+ */
+export function normalizeWalletAlertSettingsForSave(
+	settings: WalletAlertSettings,
+	condition: WalletAlertCondition = WALLET_ALERT_CONDITION,
+): WalletAlertSettings {
 	const normalizeLevel = (level: WalletAlertLevel): WalletAlertThreshold | null => {
 		const threshold = settings[level];
 		if (!threshold || threshold.threshold.trim() === '') return null;
 		const value = parseFloat(threshold.threshold);
 		if (Number.isNaN(value)) return null;
-		return { threshold: threshold.threshold, condition: masterCondition };
+		return { threshold: threshold.threshold, condition };
 	};
 
 	return {

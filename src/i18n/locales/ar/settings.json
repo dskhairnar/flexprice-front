@@ -339,15 +339,6 @@
 		"walletAlerts": {
 			"title": "إعدادات تنبيه المحفظة",
 			"description": "راقب رصيد المحفظة مقابل العتبات المُعدّة",
-			"thresholdValue": "قيمة العتبة",
-			"condition": "الشرط",
-			"thresholdTypeLabel": "نوع العتبة",
-			"thresholdTypeTooltip": "مطلق: تُقاس العتبات بعملة المحفظة. نسبة مئوية: تُقاس العتبات كنسبة مئوية من الأرصدة الممنوحة خلال فترة الفوترة الحالية. في حال عدم وجود اشتراك نشط، يُستخدم إجمالي الأرصدة الممنوحة طوال الوقت.",
-			"thresholdTypeAbsolute": "مطلق",
-			"thresholdTypePercentage": "نسبة مئوية",
-			"percentageWarning": "تنطبق تنبيهات النسبة المئوية على الرصيد الجاري فقط. لا يتم تقييم تنبيهات رصيد الائتمان في وضع النسبة المئوية.",
-			"remove": "إزالة",
-			"add": "إضافة",
 			"amountPlaceholder": "0.00",
 			"saveChanges": "حفظ التغييرات",
 			"saveSuccess": "تم حفظ إعدادات تنبيه المحفظة",
@@ -356,15 +347,6 @@
 				"critical": "حرج",
 				"warning": "تحذير",
 				"info": "معلومات"
-			},
-			"levelDescriptions": {
-				"critical": "تنبيه عند المستوى الحرج",
-				"warning": "تنبيه عند مستوى التحذير",
-				"info": "تنبيه عند مستوى المعلومات"
-			},
-			"conditions": {
-				"below": "أقل من",
-				"above": "أكبر من"
 			},
 			"validation": {
 				"atLeastOneThreshold": "يرجى تكوين مستوى عتبة واحد على الأقل عند تفعيل التنبيهات",
@@ -375,13 +357,17 @@
 				"warningThresholdOutOfRange": "يجب أن تكون عتبة التحذير بين 0 و100.",
 				"infoThresholdOutOfRange": "يجب أن تكون عتبة المعلومات بين 0 و100.",
 				"criticalRequiredForWarning": "عتبة حرجة مطلوبة عند تعيين عتبة تحذير",
-				"warningMustBeLessThanCritical": "لتنبيهات \"أكبر من\"، يجب أن تكون عتبة التحذير أقل من العتبة الحرجة",
-				"warningMustBeGreaterThanCritical": "لتنبيهات \"أقل من\"، يجب أن تكون عتبة التحذير أكبر من العتبة الحرجة",
-				"infoMustBeLessThanWarning": "لتنبيهات \"أكبر من\"، يجب أن تكون عتبة المعلومات أقل من عتبة التحذير",
-				"infoMustBeGreaterThanWarning": "لتنبيهات \"أقل من\"، يجب أن تكون عتبة المعلومات أكبر من عتبة التحذير",
-				"infoMustBeLessThanCritical": "لتنبيهات \"أكبر من\"، يجب أن تكون عتبة المعلومات أقل من العتبة الحرجة",
-				"infoMustBeGreaterThanCritical": "لتنبيهات \"أقل من\"، يجب أن تكون عتبة المعلومات أكبر من العتبة الحرجة"
-			}
+				"warningMustBeGreaterThanCritical": "يجب أن تكون عتبة التحذير أكبر من العتبة الحرجة",
+				"infoMustBeGreaterThanWarning": "يجب أن تكون عتبة المعلومات أكبر من عتبة التحذير",
+				"infoMustBeGreaterThanCritical": "يجب أن تكون عتبة المعلومات أكبر من العتبة الحرجة"
+			},
+			"thresholds": "العتبات",
+			"unitLabel": "الوحدة",
+			"unitCurrency": "العملة",
+			"unitPercentage": "نسبة مئوية",
+			"unitTooltipCurrency": "العملة: تعتمد التنبيهات على مبلغ ثابت لرصيد المحفظة.",
+			"unitTooltipPercentage": "نسبة مئوية: تعتمد التنبيهات على النسبة المئوية من الأرصدة الممنوحة خلال فترة الفوترة الحالية. في حال عدم وجود اشتراك نشط، يُستخدم إجمالي الأرصدة الممنوحة طوال الوقت.",
+			"rowDescription": "تنبيه عند انخفاض الرصيد عن"
 		}
 	},
 	"appearance": {
