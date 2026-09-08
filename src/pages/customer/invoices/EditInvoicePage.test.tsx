@@ -434,8 +434,8 @@ describe('EditInvoicePage', () => {
 		const nameInput = await screen.findByDisplayValue('Consulting');
 		await user.clear(nameInput);
 		await user.type(nameInput, 'Consulting hours');
-		// The page-level Cancel lives in the heading; the editor's cross is inside the table.
-		await user.click(within(screen.getByRole('table')).getByRole('button', { name: 'Cancel' }));
+		// Two Cancel buttons exist here: the row editor's (first in DOM) and the page footer's.
+		await user.click(screen.getAllByRole('button', { name: 'Cancel' })[0]);
 
 		// The edit was rolled back: the display row shows the original name and save stays disabled.
 		expect(screen.getByText('Consulting')).toBeInTheDocument();
@@ -450,8 +450,8 @@ describe('EditInvoicePage', () => {
 
 		await user.click(await screen.findByRole('button', { name: 'Add Line Item' }));
 		await user.type(screen.getByPlaceholderText('Enter item name'), 'Setup fee');
-		// The page-level Cancel lives in the heading; the editor's cross is inside the table.
-		await user.click(within(screen.getByRole('table')).getByRole('button', { name: 'Cancel' }));
+		// Two Cancel buttons exist here: the row editor's (first in DOM) and the page footer's.
+		await user.click(screen.getAllByRole('button', { name: 'Cancel' })[0]);
 
 		expect(screen.queryByText('Setup fee')).not.toBeInTheDocument();
 		expect(screen.getByRole('button', { name: 'Save Changes' })).toBeDisabled();
