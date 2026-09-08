@@ -647,7 +647,7 @@ const EditInvoicePage: FC = () => {
 													// The editing row keeps the table's own columns, so the header row doubles as the field labels.
 													<tr key={row.id ?? `new-${index}`} className='border-b border-line-subtle bg-muted/20'>
 														<td className='py-3 px-4 align-top'>
-															<div className='max-w-xs space-y-2'>
+															<div className='max-w-sm space-y-2'>
 																<Input
 																	value={row.display_name}
 																	onChange={(value) => handleLineItemChange(index, 'display_name', value)}
