@@ -32,15 +32,15 @@ const WalletAlertDialog: React.FC<WalletAlertDialogProps> = ({ open, alertSettin
 	}, [alertSettings]);
 
 	const thresholdLabels: WalletAlertThresholdSectionLabels = {
-		unit: t('wallet.alerts.unitLabel'),
-		unitTooltip: (
+		thresholdType: t('wallet.alerts.thresholdTypeLabel'),
+		thresholdTypeTooltip: (
 			<>
-				<span className='block'>{t('wallet.alerts.unitTooltipCurrency')}</span>
-				<span className='mt-1.5 block'>{t('wallet.alerts.unitTooltipPercentage')}</span>
+				<span className='block'>{t('wallet.alerts.thresholdTypeTooltipAbsolute')}</span>
+				<span className='mt-1.5 block'>{t('wallet.alerts.thresholdTypeTooltipPercentage')}</span>
 			</>
 		),
-		unitCurrency: t('wallet.alerts.unitCurrency'),
-		unitPercentage: t('wallet.alerts.unitPercentage'),
+		thresholdTypeAbsolute: t('wallet.alerts.thresholdTypeAbsolute'),
+		thresholdTypePercentage: t('wallet.alerts.thresholdTypePercentage'),
 		rowDescription: t('wallet.alerts.rowDescription'),
 		amountPlaceholder: t('wallet.alerts.amountPlaceholder'),
 		levels: {

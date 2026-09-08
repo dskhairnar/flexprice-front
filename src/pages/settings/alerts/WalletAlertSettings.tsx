@@ -32,15 +32,15 @@ const WalletAlertSettingsSection = () => {
 	// No currency symbol here: these are tenant-wide defaults that apply to wallets in any
 	// currency, so the unit selector's "Currency" label is what identifies the mode.
 	const thresholdLabels: WalletAlertThresholdSectionLabels = {
-		unit: t('alerts.walletAlerts.unitLabel'),
-		unitTooltip: (
+		thresholdType: t('alerts.walletAlerts.thresholdTypeLabel'),
+		thresholdTypeTooltip: (
 			<>
-				<span className='block'>{t('alerts.walletAlerts.unitTooltipCurrency')}</span>
-				<span className='mt-1.5 block'>{t('alerts.walletAlerts.unitTooltipPercentage')}</span>
+				<span className='block'>{t('alerts.walletAlerts.thresholdTypeTooltipAbsolute')}</span>
+				<span className='mt-1.5 block'>{t('alerts.walletAlerts.thresholdTypeTooltipPercentage')}</span>
 			</>
 		),
-		unitCurrency: t('alerts.walletAlerts.unitCurrency'),
-		unitPercentage: t('alerts.walletAlerts.unitPercentage'),
+		thresholdTypeAbsolute: t('alerts.walletAlerts.thresholdTypeAbsolute'),
+		thresholdTypePercentage: t('alerts.walletAlerts.thresholdTypePercentage'),
 		rowDescription: t('alerts.walletAlerts.rowDescription'),
 		amountPlaceholder: t('alerts.walletAlerts.amountPlaceholder'),
 		levels: {

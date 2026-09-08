@@ -978,12 +978,12 @@
 				"infoMustBeLessThanWarning": "The info threshold must be less than the warning threshold",
 				"infoMustBeLessThanCritical": "The info threshold must be less than the critical threshold"
 			},
-			"unitLabel": "Threshold unit",
-			"unitCurrency": "Currency",
-			"unitPercentage": "Percentage",
-			"unitTooltipCurrency": "Currency: Alerts trigger based on a fixed wallet balance.",
-			"unitTooltipPercentage": "Percentage: Alerts trigger based on the configured percentage threshold.",
-			"rowDescription": "Falls below"
+			"rowDescription": "Balance below",
+			"thresholdTypeLabel": "Threshold type",
+			"thresholdTypeAbsolute": "Absolute",
+			"thresholdTypePercentage": "Percentage",
+			"thresholdTypeTooltipAbsolute": "Absolute: alerts trigger when the wallet balance falls below a fixed amount.",
+			"thresholdTypeTooltipPercentage": "Percentage: alerts trigger on the ongoing balance, measured as a percentage of the credits granted during the current billing period. If there is no active subscription, lifetime credits are used."
 		},
 		"autoTopup": {
 			"dialogTitle": "Auto Top-Up Settings",

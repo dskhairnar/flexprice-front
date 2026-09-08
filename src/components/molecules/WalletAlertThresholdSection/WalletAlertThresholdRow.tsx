@@ -9,7 +9,7 @@ const THRESHOLD_FORMAT_OPTIONS = { allowNegative: true, allowDecimals: true, tho
 export interface WalletAlertThresholdRowProps {
 	/** Severity name, e.g. "Critical". */
 	title: string;
-	/** Fixed condition copy, e.g. "Falls below". */
+	/** Fixed condition copy, e.g. "Balance below". */
 	description: string;
 	/** Empty string means this severity has no threshold configured. */
 	value: string;

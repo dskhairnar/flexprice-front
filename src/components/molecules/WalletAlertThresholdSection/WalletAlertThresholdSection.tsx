@@ -6,17 +6,17 @@ import {
 	updateWalletAlertDraftLevels,
 } from '@/utils/wallet/walletAlertUtils';
 import { getCurrencySymbol } from '@/utils/common/helper_functions';
-import ThresholdUnitSelector from './ThresholdUnitSelector';
+import ThresholdTypeSelector from './ThresholdTypeSelector';
 import WalletAlertThresholdRow from './WalletAlertThresholdRow';
 
 const ALERT_LEVELS = [WalletAlertLevel.CRITICAL, WalletAlertLevel.WARNING, WalletAlertLevel.INFO] as const;
 
 export interface WalletAlertThresholdSectionLabels {
-	unit: string;
-	unitTooltip: React.ReactNode;
-	unitCurrency: string;
-	unitPercentage: string;
-	/** Fixed condition copy on every row, e.g. "Falls below". */
+	thresholdType: string;
+	thresholdTypeTooltip: React.ReactNode;
+	thresholdTypeAbsolute: string;
+	thresholdTypePercentage: string;
+	/** Fixed condition copy on every row, e.g. "Balance below". */
 	rowDescription: string;
 	amountPlaceholder: string;
 	levels: Record<WalletAlertLevel, string>;
@@ -41,23 +41,23 @@ const WalletAlertThresholdSection = ({ draft, labels, disabled, currency, onChan
 	const isPercentage = draft.alert_threshold_type === 'percentage';
 	const symbol = !isPercentage && currency ? getCurrencySymbol(currency) : undefined;
 
-	const handleUnitChange = (type: WalletAlertThresholdType) => onChange(setWalletAlertDraftThresholdType(draft, type));
+	const handleTypeChange = (type: WalletAlertThresholdType) => onChange(setWalletAlertDraftThresholdType(draft, type));
 
 	const handleThresholdChange = (level: WalletAlertLevel, value: string) =>
 		onChange(updateWalletAlertDraftLevels(draft, (current) => setWalletAlertThresholdValue(current, level, value)));
 
 	return (
 		<div>
-			<ThresholdUnitSelector
+			<ThresholdTypeSelector
 				value={draft.alert_threshold_type}
 				labels={{
-					unit: labels.unit,
-					unitTooltip: labels.unitTooltip,
-					currency: labels.unitCurrency,
-					percentage: labels.unitPercentage,
+					thresholdType: labels.thresholdType,
+					thresholdTypeTooltip: labels.thresholdTypeTooltip,
+					absolute: labels.thresholdTypeAbsolute,
+					percentage: labels.thresholdTypePercentage,
 				}}
 				disabled={disabled}
-				onChange={handleUnitChange}
+				onChange={handleTypeChange}
 			/>
 
 			<div className='divide-y divide-line'>

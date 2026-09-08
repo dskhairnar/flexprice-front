@@ -6,11 +6,11 @@ import { toWalletAlertDraft } from '@/utils/wallet/walletAlertUtils';
 import WalletAlertThresholdSection, { type WalletAlertThresholdSectionLabels } from './WalletAlertThresholdSection';
 
 const labels: WalletAlertThresholdSectionLabels = {
-	unit: 'Threshold unit',
-	unitTooltip: 'Currency or percentage',
-	unitCurrency: 'Currency',
-	unitPercentage: 'Percentage',
-	rowDescription: 'Falls below',
+	thresholdType: 'Threshold type',
+	thresholdTypeTooltip: 'Absolute or percentage',
+	thresholdTypeAbsolute: 'Absolute',
+	thresholdTypePercentage: 'Percentage',
+	rowDescription: 'Balance below',
 	amountPlaceholder: '0.00',
 	levels: {
 		[WalletAlertLevel.CRITICAL]: 'Critical',
@@ -25,7 +25,7 @@ const Harness = ({ initial, currency }: { initial?: WalletAlertDraft; currency?:
 	return <WalletAlertThresholdSection draft={draft} labels={labels} currency={currency} onChange={setDraft} />;
 };
 
-const rowInput = (level: string) => screen.getByLabelText(`${level} — Falls below`) as HTMLInputElement;
+const rowInput = (level: string) => screen.getByLabelText(`${level} — Balance below`) as HTMLInputElement;
 
 describe('WalletAlertThresholdSection', () => {
 	it('renders one row per severity with the fixed falls-below copy and no condition picker', () => {
@@ -34,19 +34,19 @@ describe('WalletAlertThresholdSection', () => {
 		expect(screen.getByText('Critical')).toBeInTheDocument();
 		expect(screen.getByText('Warning')).toBeInTheDocument();
 		expect(screen.getByText('Info')).toBeInTheDocument();
-		expect(screen.getAllByText('Falls below')).toHaveLength(3);
+		expect(screen.getAllByText('Balance below')).toHaveLength(3);
 		// The Above/Below dropdown is gone — wallet alerts always fire on a falling balance.
 		expect(screen.queryByText('Above')).not.toBeInTheDocument();
 		expect(screen.queryByRole('combobox')).not.toBeInTheDocument();
 	});
 
-	it('has no standalone Thresholds heading and keeps the unit label beside its control', () => {
+	it('has no standalone Thresholds heading and keeps the type label beside its control', () => {
 		render(<Harness />);
 
 		expect(screen.queryByText('Thresholds')).not.toBeInTheDocument();
 		// Label and segmented control share one row, so they have the same parent.
-		const label = screen.getByText('Threshold unit');
-		const control = screen.getByRole('group', { name: 'Threshold unit' });
+		const label = screen.getByText('Threshold type');
+		const control = screen.getByRole('group', { name: 'Threshold type' });
 		expect(label.parentElement?.parentElement).toBe(control.parentElement);
 	});
 
@@ -61,7 +61,7 @@ describe('WalletAlertThresholdSection', () => {
 		expect(severityWidths.size).toBe(1);
 	});
 
-	it('shows the currency symbol in currency mode and % in percentage mode', () => {
+	it('shows the currency symbol in absolute mode and % in percentage mode', () => {
 		render(<Harness currency='USD' />);
 		expect(screen.getAllByText('$')).toHaveLength(3);
 		expect(screen.queryByText('%')).not.toBeInTheDocument();
@@ -71,18 +71,18 @@ describe('WalletAlertThresholdSection', () => {
 		expect(screen.queryByText('$')).not.toBeInTheDocument();
 	});
 
-	it('keeps each unit’s values independent across a switch and back', () => {
+	it('keeps each threshold type’s values independent across a switch and back', () => {
 		render(<Harness currency='USD' />);
 
 		fireEvent.change(rowInput('Critical'), { target: { value: '10' } });
 		fireEvent.change(rowInput('Warning'), { target: { value: '25' } });
 
 		fireEvent.click(screen.getByRole('button', { name: 'Percentage' }));
-		// Percentage starts empty rather than inheriting the currency amounts.
+		// Percentage starts empty rather than inheriting the absolute amounts.
 		expect(rowInput('Critical').value).toBe('');
 		fireEvent.change(rowInput('Critical'), { target: { value: '5' } });
 
-		fireEvent.click(screen.getByRole('button', { name: 'Currency' }));
+		fireEvent.click(screen.getByRole('button', { name: 'Absolute' }));
 		expect(rowInput('Critical').value).toBe('10');
 		expect(rowInput('Warning').value).toBe('25');
 
