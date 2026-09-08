@@ -11,8 +11,6 @@ import {
 	DateRangePicker,
 	DateTimePicker,
 	Dialog,
-	Divider,
-	FormHeader,
 	Input,
 	Loader,
 	Page,
@@ -42,6 +40,7 @@ import { refetchInvoiceQueries } from '@/core/services/tanstack/queryKeys';
 import { useBreadcrumbsStore } from '@/store/useBreadcrumbsStore';
 import formatDate, { formatBillingPeriod } from '@/utils/common/format_date';
 import { getCurrencySymbol } from '@/utils/common/helper_functions';
+import { getTypographyClass } from '@/lib/typography';
 import { cn } from '@/lib/utils';
 
 interface MetadataRow {
@@ -469,8 +468,22 @@ const EditInvoicePage: FC = () => {
 	const readonlyValueClass = 'text-content-zinc-muted text-sm';
 
 	return (
-		<Page documentTitle={t('invoices.edit.pageTitle')} heading={t('invoices.edit.pageTitle')}>
-			<div className='space-y-6'>
+		<Page
+			documentTitle={t('invoices.edit.pageTitle')}
+			heading={t('invoices.edit.pageTitle')}
+			headingCTA={
+				<div className='flex items-center gap-3'>
+					<Button variant='outline' onClick={handleCancel}>
+						{t('common:actions.cancel')}
+					</Button>
+					{isEditable && (
+						<Button onClick={handleSave} disabled={!hasChanges || isPending}>
+							{isPending ? t('invoices.edit.saving') : t('invoices.edit.saveChanges')}
+						</Button>
+					)}
+				</div>
+			}>
+			<div className='mt-6 space-y-10'>
 				<Dialog
 					isOpen={isVoidConfirmOpen}
 					onOpenChange={setIsVoidConfirmOpen}
@@ -485,385 +498,357 @@ const EditInvoicePage: FC = () => {
 						</Button>
 					</div>
 				</Dialog>
-				<div className='rounded-xl border border-line bg-transparent p-6'>
-					{/* invoice details — the editing surface: read-only fields render as plain
-					    text, and only genuinely editable fields render controls */}
-					<div className='p-4'>
-						<FormHeader className='!mb-0' title={t('invoices.edit.detailsTitle')} variant='sub-header' titleClassName='font-semibold' />
-						<Spacer className='!my-6' />
-						<div className='grid grid-cols-3 gap-x-6 gap-y-5 max-w-4xl items-start'>
-							<div>
-								<p className={readonlyLabelClass}>{t('invoices.edit.invoiceNumber')}</p>
-								<p className={cn(readonlyValueClass, 'mt-1')}>{invoice.invoice_number || na}</p>
-							</div>
-							<div>
-								<p className={readonlyLabelClass}>{t('invoices.edit.customer')}</p>
-								<RedirectCell redirectUrl={`${RouteNames.customers}/${invoice.customer_id}`}>
-									<p className={cn(readonlyValueClass, 'mt-1')}>{invoice.customer?.name || na}</p>
-								</RedirectCell>
-							</div>
-							<div>
-								<p className={readonlyLabelClass}>{t('invoices.edit.issueDate')}</p>
-								<p className={cn(readonlyValueClass, 'mt-1')}>{invoice.issue_date ? formatDate(invoice.issue_date, i18n.language) : na}</p>
-							</div>
-							<div>
-								<p className={readonlyLabelClass}>{t('invoices.edit.invoiceStatus')}</p>
-								{isInvoiceStatusEditable ? (
-									<div className='mt-1'>
-										<Select
-											value={invoiceStatus}
-											options={[
-												{
-													value: INVOICE_STATUS.DRAFT,
-													label: t('invoices.status.draft'),
-													disabled: invoice.invoice_status !== INVOICE_STATUS.DRAFT,
-												},
-												{
-													value: INVOICE_STATUS.FINALIZED,
-													label: t('invoices.status.finalized'),
-													disabled: invoice.invoice_status !== INVOICE_STATUS.FINALIZED && !canFinalize,
-												},
-												{
-													value: INVOICE_STATUS.VOIDED,
-													label: t('invoices.status.void'),
-													disabled: !canVoid,
-												},
-											]}
-											onChange={setInvoiceStatus}
-											description={
-												invoiceStatus === INVOICE_STATUS.VOIDED && invoiceStatusChanged ? t('invoices.edit.voidOnSaveHint') : undefined
-											}
-										/>
-									</div>
-								) : (
-									<div className='mt-1.5'>{getStatusChip(invoice.invoice_status ?? '', t)}</div>
-								)}
-							</div>
-							<div>
-								<p className={readonlyLabelClass}>{t('invoices.edit.paymentStatus')}</p>
-								{isPaymentStatusEditable ? (
-									<div className='mt-1'>
-										<Select
-											value={paymentStatus}
-											options={[
-												{ value: PAYMENT_STATUS.PENDING, label: t('invoices.details.paymentStatusModal.pendingLabel') },
-												{ value: PAYMENT_STATUS.SUCCEEDED, label: t('invoices.details.paymentStatusModal.succeededLabel') },
-												{ value: PAYMENT_STATUS.FAILED, label: t('invoices.details.paymentStatusModal.failedLabel') },
-											]}
-											onChange={setPaymentStatus}
-										/>
-									</div>
-								) : (
-									<div className='mt-1.5'>{getPaymentStatusChip(invoice.payment_status ?? '', t)}</div>
-								)}
-							</div>
-							<div>
-								<p className={readonlyLabelClass}>{t('invoices.edit.currency')}</p>
-								<p className={cn(readonlyValueClass, 'mt-1 uppercase')}>{invoice.currency || na}</p>
-							</div>
-							<div>
-								<p className={readonlyLabelClass}>{t('invoices.edit.dueDate')}</p>
-								{isEditable ? (
-									<div className='mt-1'>
-										<DateTimePicker date={dueDate} setDate={setDueDate} placeholder={t('invoices.edit.dueDatePlaceholder')} />
-									</div>
-								) : (
-									<p className={cn(readonlyValueClass, 'mt-1')}>{invoice.due_date ? formatDate(invoice.due_date, i18n.language) : na}</p>
-								)}
-							</div>
-							<div>
-								<p className={readonlyLabelClass}>{t('invoices.edit.period')}</p>
-								<p className={cn(readonlyValueClass, 'mt-1')}>
-									{invoice.period_start && invoice.period_end ? formatBillingPeriod(invoice.period_start, invoice.period_end) : na}
-								</p>
-							</div>
-							<div />
-							<div className='col-span-3'>
-								<p className={readonlyLabelClass}>{t('invoices.edit.description')}</p>
-								<p className={cn(readonlyValueClass, 'mt-1 break-words')}>{invoice.description || na}</p>
-							</div>
+				{/* invoice details — the editing surface: read-only fields render as plain
+				    text, and only genuinely editable fields render controls */}
+				<section>
+					<h3 className={getTypographyClass('card-header') + ' !text-[16px]'}>{t('invoices.edit.detailsTitle')}</h3>
+					<Spacer className='!h-4' />
+					<div className='grid grid-cols-3 gap-x-8 gap-y-5 items-start'>
+						<div>
+							<p className={readonlyLabelClass}>{t('invoices.edit.invoiceNumber')}</p>
+							<p className={cn(readonlyValueClass, 'mt-1')}>{invoice.invoice_number || na}</p>
 						</div>
-					</div>
-
-					{!isEditable && (
-						<div className='mx-4 mb-2 rounded-lg border border-line bg-muted/40 p-4'>
-							<p className='text-sm text-content-zinc-muted'>{t('invoices.edit.notEditable')}</p>
+						<div>
+							<p className={readonlyLabelClass}>{t('invoices.edit.customer')}</p>
+							<RedirectCell redirectUrl={`${RouteNames.customers}/${invoice.customer_id}`}>
+								<p className={cn(readonlyValueClass, 'mt-1')}>{invoice.customer?.name || na}</p>
+							</RedirectCell>
 						</div>
-					)}
-
-					<Divider className='my-4' />
-
-					{/* line items — editable for drafts and finalized invoices through the invoice modify API.
-					    Rows read as an invoice table; clicking a row expands it into an inline editor. */}
-					{isEditable ? (
-						<div className='p-4'>
-							<div className='flex items-start justify-between gap-4'>
-								<FormHeader
-									title={t('invoices.edit.lineItemsTitle')}
-									subtitle={t('invoices.edit.manualEditHint')}
-									variant='sub-header'
-									titleClassName='font-semibold'
-									subtitleClassName='!mt-1 text-sm text-content-zinc-muted'
-								/>
-								<Toggle
-									checked={showZeroCharges}
-									onChange={setShowZeroCharges}
-									label={t('invoices.details.showZeroCharges')}
-									className='shrink-0'
-								/>
-							</div>
-							<div className='mt-4 overflow-hidden rounded-lg border border-line'>
-								<div className='overflow-x-auto'>
-									{/* fixed layout: the header widths govern, so editor inputs can't widen
-									    columns and push the row actions out of the viewport */}
-									<table className='w-full table-fixed border-collapse'>
-										<thead>
-											<tr className='border-b border-line'>
-												<th className='py-2.5 px-4 text-start text-xs font-medium uppercase tracking-wide text-content-zinc-muted'>
-													{t('invoices.edit.itemColumn')}
-												</th>
-												<th className='w-28 py-2.5 px-3 text-end text-xs font-medium uppercase tracking-wide text-content-zinc-muted'>
-													{t('createInvoice.quantity')}
-												</th>
-												<th className='w-28 py-2.5 px-4 text-end text-xs font-medium uppercase tracking-wide text-content-zinc-muted'>
-													{t('createInvoice.amount')}
-												</th>
-												<th className='w-[210px] py-2.5 px-4 text-start text-xs font-medium uppercase tracking-wide text-content-zinc-muted'>
-													{t('invoices.edit.servicePeriod')}
-												</th>
-												<th className='w-20' />
-											</tr>
-										</thead>
-										<tbody>
-											{lineItemRows.length === 0 && (
-												<tr>
-													<td colSpan={5} className='py-6 px-4 text-center text-sm text-content-zinc-muted'>
-														{t('invoices.edit.noLineItems')}
-													</td>
-												</tr>
-											)}
-											{lineItemRows.map((row, index) =>
-												!isRowVisible(row, index) ? null : rowEditor?.index === index ? (
-													// The editing row keeps the table's own columns, so the header row doubles as the field labels.
-													<tr key={row.id ?? `new-${index}`} className='border-b border-line-subtle bg-muted/20'>
-														<td className='py-3 px-4 align-top'>
-															<div className='max-w-sm space-y-2'>
-																<Input
-																	value={row.display_name}
-																	onChange={(value) => handleLineItemChange(index, 'display_name', value)}
-																	placeholder={t('createInvoice.itemNamePlaceholder')}
-																/>
-																<Input
-																	value={row.description}
-																	onChange={(value) => handleLineItemChange(index, 'description', value)}
-																	placeholder={t('invoices.edit.lineItemDescriptionPlaceholder')}
-																/>
-															</div>
-														</td>
-														<td className='py-3 px-4 align-top'>
-															<Input
-																value={row.quantity}
-																onChange={(value) => handleLineItemChange(index, 'quantity', value)}
-																variant='integer'
-																placeholder='1'
-															/>
-														</td>
-														<td className='py-3 px-4 align-top'>
-															<Input
-																value={row.amount}
-																onChange={(value) => handleLineItemChange(index, 'amount', value)}
-																variant='formatted-number'
-																placeholder={t('creditNotes.amountPlaceholder')}
-															/>
-														</td>
-														<td className='py-3 px-4 align-top'>
-															<DateRangePicker
-																startDate={row.period_start ? new Date(row.period_start) : undefined}
-																endDate={row.period_end ? new Date(row.period_end) : undefined}
-																onChange={(dates) => handleLineItemPeriodChange(index, dates)}
-																className='w-full min-w-0'
-																popoverTriggerClassName='w-full'
-															/>
-														</td>
-														<td className='py-3 px-2 align-top'>
-															<div className='flex justify-end gap-1'>
-																<Button
-																	variant='ghost'
-																	className='size-8'
-																	aria-label={t('common:actions.done')}
-																	onClick={() => setRowEditor(null)}>
-																	<Check className='size-4' />
-																</Button>
-																<Button
-																	variant='ghost'
-																	className='size-8'
-																	aria-label={t('common:actions.cancel')}
-																	onClick={handleRowEditorCancel}>
-																	<X className='size-4' />
-																</Button>
-															</div>
-														</td>
-													</tr>
-												) : (
-													<tr
-														key={row.id ?? `new-${index}`}
-														tabIndex={0}
-														className='group cursor-pointer border-b border-line-subtle hover:bg-muted/30 focus-visible:bg-muted/30 focus-visible:outline-none'
-														onClick={() => handleOpenRowEditor(index)}
-														onKeyDown={(e) => {
-															if (e.key === 'Enter' || e.key === ' ') {
-																e.preventDefault();
-																handleOpenRowEditor(index);
-															}
-														}}>
-														<td className='py-3 px-4'>
-															<p className='text-sm text-content'>
-																{row.display_name || (
-																	<span className='italic text-content-zinc-muted'>{t('invoices.edit.newLineItem')}</span>
-																)}
-															</p>
-															{row.description && <p className='mt-0.5 text-xs text-content-zinc-muted'>{row.description}</p>}
-														</td>
-														<td className='py-3 px-4 text-end text-sm text-content'>{row.quantity || '1'}</td>
-														<td className='py-3 px-4 text-end text-sm text-content'>
-															{getCurrencySymbol(invoice.currency ?? '')}
-															{row.amount || '0'}
-														</td>
-														<td className='py-3 px-4 text-sm text-content-zinc-muted'>
-															{row.period_start && row.period_end ? formatBillingPeriod(row.period_start, row.period_end) : na}
-														</td>
-														<td className='py-3 px-2 text-end'>
-															<div className='flex justify-end gap-1'>
-																<Button
-																	variant='ghost'
-																	className='size-8 opacity-0 transition-opacity group-hover:opacity-100 focus-visible:opacity-100'
-																	aria-label={t('invoices.edit.editLineItem')}
-																	onClick={(e) => {
-																		e.stopPropagation();
-																		handleOpenRowEditor(index);
-																	}}>
-																	<Pencil className='size-4' />
-																</Button>
-																<Button
-																	variant='ghost'
-																	className='size-8 opacity-0 transition-opacity group-hover:opacity-100 focus-visible:opacity-100'
-																	aria-label={t('invoices.edit.removeLineItem')}
-																	onClick={(e) => {
-																		e.stopPropagation();
-																		handleRemoveLineItemRow(index);
-																	}}>
-																	<Trash2 className='size-4' />
-																</Button>
-															</div>
-														</td>
-													</tr>
-												),
-											)}
-											{hiddenZeroChargeCount > 0 && (
-												<tr>
-													<td colSpan={5} className='py-2.5 px-4 text-center text-xs text-content-zinc-muted'>
-														{t('invoices.edit.zeroChargesHidden', { hidden: hiddenZeroChargeCount })}
-													</td>
-												</tr>
-											)}
-										</tbody>
-									</table>
-								</div>
-								<div className='px-2 py-1.5'>
-									<AddChargesButton onClick={handleAddLineItem} label={t('createInvoice.addLineItem')} />
-								</div>
-								{/* discount reapplication belongs with the line-item math, so it lives in this card */}
-								<div className={cn('border-t border-line px-4 py-4 transition-colors', applyDiscount && 'bg-muted/30')}>
-									<Checkbox
-										id='apply-discount'
-										checked={applyDiscount}
-										onCheckedChange={(checked) => setApplyDiscount(!!checked)}
-										label={t('invoices.edit.applyDiscount')}
-										description={t('invoices.edit.applyDiscountDescription')}
+						<div>
+							<p className={readonlyLabelClass}>{t('invoices.edit.issueDate')}</p>
+							<p className={cn(readonlyValueClass, 'mt-1')}>{invoice.issue_date ? formatDate(invoice.issue_date, i18n.language) : na}</p>
+						</div>
+						<div>
+							<p className={readonlyLabelClass}>{t('invoices.edit.invoiceStatus')}</p>
+							{isInvoiceStatusEditable ? (
+								<div className='mt-1'>
+									<Select
+										value={invoiceStatus}
+										options={[
+											{
+												value: INVOICE_STATUS.DRAFT,
+												label: t('invoices.status.draft'),
+												disabled: invoice.invoice_status !== INVOICE_STATUS.DRAFT,
+											},
+											{
+												value: INVOICE_STATUS.FINALIZED,
+												label: t('invoices.status.finalized'),
+												disabled: invoice.invoice_status !== INVOICE_STATUS.FINALIZED && !canFinalize,
+											},
+											{
+												value: INVOICE_STATUS.VOIDED,
+												label: t('invoices.status.void'),
+												disabled: !canVoid,
+											},
+										]}
+										onChange={setInvoiceStatus}
+										description={
+											invoiceStatus === INVOICE_STATUS.VOIDED && invoiceStatusChanged ? t('invoices.edit.voidOnSaveHint') : undefined
+										}
 									/>
 								</div>
-							</div>
-						</div>
-					) : (
-						<div className='px-4 pb-4'>
-							<p className='text-sm text-content-zinc-muted mb-2'>{t('invoices.edit.lineItemsDraftOnlyNote')}</p>
-							<InvoiceLineItemTable
-								title={t('invoices.edit.lineItemsTitle')}
-								data={invoice.line_items ?? []}
-								subtotal={invoice.subtotal}
-								total={invoice.total}
-								total_prepaid_credits_applied={invoice.total_prepaid_credits_applied}
-								discount={invoice.total_discount}
-								total_tax={invoice.total_tax}
-								amount_paid={invoice.amount_paid}
-								overpaid_amount={invoice.overpaid_amount}
-								amount_remaining={Number(invoice.amount_remaining)}
-								amount_due={invoice.amount_due}
-								currency={invoice.currency}
-								invoiceType={invoice.invoice_type as INVOICE_TYPE}
-							/>
-						</div>
-					)}
-
-					<Divider className='my-4' />
-
-					{/* metadata */}
-					<div className='p-4'>
-						<FormHeader title={t('invoices.edit.metadata')} variant='sub-header' titleClassName='font-semibold' />
-						{/* full width so the row's delete action lines up with the line-item table's edge */}
-						<div className='mt-6 flex flex-col gap-4'>
-							{metadataRows.map((row, index) => (
-								<div key={index} className='flex gap-2 items-start'>
-									<div className='flex-[3] min-w-0'>
-										<Input
-											placeholder={t('common:form.key')}
-											value={row.key}
-											onChange={(value) => handleMetadataChange(index, 'key', value)}
-											disabled={!isEditable}
-										/>
-									</div>
-									<div className='flex-[5] min-w-0'>
-										<Textarea
-											placeholder={t('common:form.value')}
-											value={row.value}
-											onChange={(value) => handleMetadataChange(index, 'value', value)}
-											textAreaClassName='min-h-6 h-6 rounded-md'
-											className='rounded-md'
-											disabled={!isEditable}
-										/>
-									</div>
-									<Button
-										variant='ghost'
-										className='size-10'
-										onClick={() => setMetadataRows((prev) => prev.filter((_, i) => i !== index))}
-										disabled={!isEditable}
-										aria-label={t('common:form.remove')}>
-										<Trash2 className='size-5' />
-									</Button>
-								</div>
-							))}
-							{isEditable && (
-								<div>
-									<AddChargesButton
-										onClick={() => setMetadataRows((prev) => [...prev, { key: '', value: '' }])}
-										label={t('common:form.addAnotherItem')}
-									/>
-								</div>
+							) : (
+								<div className='mt-1.5'>{getStatusChip(invoice.invoice_status ?? '', t)}</div>
 							)}
 						</div>
+						<div>
+							<p className={readonlyLabelClass}>{t('invoices.edit.paymentStatus')}</p>
+							{isPaymentStatusEditable ? (
+								<div className='mt-1'>
+									<Select
+										value={paymentStatus}
+										options={[
+											{ value: PAYMENT_STATUS.PENDING, label: t('invoices.details.paymentStatusModal.pendingLabel') },
+											{ value: PAYMENT_STATUS.SUCCEEDED, label: t('invoices.details.paymentStatusModal.succeededLabel') },
+											{ value: PAYMENT_STATUS.FAILED, label: t('invoices.details.paymentStatusModal.failedLabel') },
+										]}
+										onChange={setPaymentStatus}
+									/>
+								</div>
+							) : (
+								<div className='mt-1.5'>{getPaymentStatusChip(invoice.payment_status ?? '', t)}</div>
+							)}
+						</div>
+						<div>
+							<p className={readonlyLabelClass}>{t('invoices.edit.currency')}</p>
+							<p className={cn(readonlyValueClass, 'mt-1 uppercase')}>{invoice.currency || na}</p>
+						</div>
+						<div>
+							<p className={readonlyLabelClass}>{t('invoices.edit.dueDate')}</p>
+							{isEditable ? (
+								<div className='mt-1'>
+									<DateTimePicker date={dueDate} setDate={setDueDate} placeholder={t('invoices.edit.dueDatePlaceholder')} />
+								</div>
+							) : (
+								<p className={cn(readonlyValueClass, 'mt-1')}>{invoice.due_date ? formatDate(invoice.due_date, i18n.language) : na}</p>
+							)}
+						</div>
+						<div>
+							<p className={readonlyLabelClass}>{t('invoices.edit.period')}</p>
+							<p className={cn(readonlyValueClass, 'mt-1')}>
+								{invoice.period_start && invoice.period_end ? formatBillingPeriod(invoice.period_start, invoice.period_end) : na}
+							</p>
+						</div>
+						<div />
+						<div className='col-span-3'>
+							<p className={readonlyLabelClass}>{t('invoices.edit.description')}</p>
+							<p className={cn(readonlyValueClass, 'mt-1 break-words')}>{invoice.description || na}</p>
+						</div>
 					</div>
-				</div>
+					{!isEditable && <p className='mt-4 text-sm text-content-zinc-muted'>{t('invoices.edit.notEditable')}</p>}
+				</section>
 
-				<div className='flex justify-end p-4'>
-					<Button variant='outline' className='mr-4' onClick={handleCancel}>
-						{t('common:actions.cancel')}
-					</Button>
-					{isEditable && (
-						<Button onClick={handleSave} disabled={!hasChanges || isPending}>
-							{isPending ? t('invoices.edit.saving') : t('invoices.edit.saveChanges')}
-						</Button>
-					)}
-				</div>
+				{/* line items — editable for drafts and finalized invoices through the invoice modify API.
+					    Rows read as an invoice table; clicking a row expands it into an inline editor. */}
+				{isEditable ? (
+					<section>
+						<div className='flex items-center justify-between gap-4'>
+							<h3 className={getTypographyClass('card-header') + ' !text-[16px]'}>{t('invoices.edit.lineItemsTitle')}</h3>
+							<Toggle
+								checked={showZeroCharges}
+								onChange={setShowZeroCharges}
+								label={t('invoices.details.showZeroCharges')}
+								className='shrink-0'
+							/>
+						</div>
+						<p className='mt-1 text-sm text-content-zinc-muted'>{t('invoices.edit.manualEditHint')}</p>
+						<div className='mt-4 overflow-hidden rounded-lg border border-line'>
+							<div className='overflow-x-auto'>
+								{/* fixed layout: the header widths govern, so editor inputs can't widen
+									    columns and push the row actions out of the viewport */}
+								<table className='w-full table-fixed border-collapse'>
+									<thead>
+										<tr className='border-b border-line'>
+											<th className='py-2.5 px-4 text-start text-xs font-medium uppercase tracking-wide text-content-zinc-muted'>
+												{t('invoices.edit.itemColumn')}
+											</th>
+											<th className='w-28 py-2.5 px-3 text-end text-xs font-medium uppercase tracking-wide text-content-zinc-muted'>
+												{t('createInvoice.quantity')}
+											</th>
+											<th className='w-28 py-2.5 px-4 text-end text-xs font-medium uppercase tracking-wide text-content-zinc-muted'>
+												{t('createInvoice.amount')}
+											</th>
+											<th className='w-[210px] py-2.5 px-4 text-start text-xs font-medium uppercase tracking-wide text-content-zinc-muted'>
+												{t('invoices.edit.servicePeriod')}
+											</th>
+											<th className='w-20' />
+										</tr>
+									</thead>
+									<tbody>
+										{lineItemRows.length === 0 && (
+											<tr>
+												<td colSpan={5} className='py-6 px-4 text-center text-sm text-content-zinc-muted'>
+													{t('invoices.edit.noLineItems')}
+												</td>
+											</tr>
+										)}
+										{lineItemRows.map((row, index) =>
+											!isRowVisible(row, index) ? null : rowEditor?.index === index ? (
+												// The editing row keeps the table's own columns, so the header row doubles as the field labels.
+												<tr key={row.id ?? `new-${index}`} className='border-b border-line-subtle bg-muted/20'>
+													<td className='py-3 px-4 align-top'>
+														<div className='max-w-sm space-y-2'>
+															<Input
+																value={row.display_name}
+																onChange={(value) => handleLineItemChange(index, 'display_name', value)}
+																placeholder={t('createInvoice.itemNamePlaceholder')}
+															/>
+															<Input
+																value={row.description}
+																onChange={(value) => handleLineItemChange(index, 'description', value)}
+																placeholder={t('invoices.edit.lineItemDescriptionPlaceholder')}
+															/>
+														</div>
+													</td>
+													<td className='py-3 px-4 align-top'>
+														<Input
+															value={row.quantity}
+															onChange={(value) => handleLineItemChange(index, 'quantity', value)}
+															variant='integer'
+															placeholder='1'
+														/>
+													</td>
+													<td className='py-3 px-4 align-top'>
+														<Input
+															value={row.amount}
+															onChange={(value) => handleLineItemChange(index, 'amount', value)}
+															variant='formatted-number'
+															placeholder={t('creditNotes.amountPlaceholder')}
+														/>
+													</td>
+													<td className='py-3 px-4 align-top'>
+														<DateRangePicker
+															startDate={row.period_start ? new Date(row.period_start) : undefined}
+															endDate={row.period_end ? new Date(row.period_end) : undefined}
+															onChange={(dates) => handleLineItemPeriodChange(index, dates)}
+															className='w-full min-w-0'
+															popoverTriggerClassName='w-full'
+														/>
+													</td>
+													<td className='py-3 px-2 align-top'>
+														<div className='flex justify-end gap-1'>
+															<Button
+																variant='ghost'
+																className='size-8'
+																aria-label={t('common:actions.done')}
+																onClick={() => setRowEditor(null)}>
+																<Check className='size-4' />
+															</Button>
+															<Button
+																variant='ghost'
+																className='size-8'
+																aria-label={t('common:actions.cancel')}
+																onClick={handleRowEditorCancel}>
+																<X className='size-4' />
+															</Button>
+														</div>
+													</td>
+												</tr>
+											) : (
+												<tr
+													key={row.id ?? `new-${index}`}
+													tabIndex={0}
+													className='group cursor-pointer border-b border-line-subtle hover:bg-muted/30 focus-visible:bg-muted/30 focus-visible:outline-none'
+													onClick={() => handleOpenRowEditor(index)}
+													onKeyDown={(e) => {
+														if (e.key === 'Enter' || e.key === ' ') {
+															e.preventDefault();
+															handleOpenRowEditor(index);
+														}
+													}}>
+													<td className='py-3 px-4'>
+														<p className='text-sm text-content'>
+															{row.display_name || <span className='italic text-content-zinc-muted'>{t('invoices.edit.newLineItem')}</span>}
+														</p>
+														{row.description && <p className='mt-0.5 text-xs text-content-zinc-muted'>{row.description}</p>}
+													</td>
+													<td className='py-3 px-4 text-end text-sm text-content'>{row.quantity || '1'}</td>
+													<td className='py-3 px-4 text-end text-sm text-content'>
+														{getCurrencySymbol(invoice.currency ?? '')}
+														{row.amount || '0'}
+													</td>
+													<td className='py-3 px-4 text-sm text-content-zinc-muted'>
+														{row.period_start && row.period_end ? formatBillingPeriod(row.period_start, row.period_end) : na}
+													</td>
+													<td className='py-3 px-2 text-end'>
+														<div className='flex justify-end gap-1'>
+															<Button
+																variant='ghost'
+																className='size-8 opacity-0 transition-opacity group-hover:opacity-100 focus-visible:opacity-100'
+																aria-label={t('invoices.edit.editLineItem')}
+																onClick={(e) => {
+																	e.stopPropagation();
+																	handleOpenRowEditor(index);
+																}}>
+																<Pencil className='size-4' />
+															</Button>
+															<Button
+																variant='ghost'
+																className='size-8 opacity-0 transition-opacity group-hover:opacity-100 focus-visible:opacity-100'
+																aria-label={t('invoices.edit.removeLineItem')}
+																onClick={(e) => {
+																	e.stopPropagation();
+																	handleRemoveLineItemRow(index);
+																}}>
+																<Trash2 className='size-4' />
+															</Button>
+														</div>
+													</td>
+												</tr>
+											),
+										)}
+										{hiddenZeroChargeCount > 0 && (
+											<tr>
+												<td colSpan={5} className='py-2.5 px-4 text-center text-xs text-content-zinc-muted'>
+													{t('invoices.edit.zeroChargesHidden', { hidden: hiddenZeroChargeCount })}
+												</td>
+											</tr>
+										)}
+									</tbody>
+								</table>
+							</div>
+							<div className='px-2 py-1.5'>
+								<AddChargesButton onClick={handleAddLineItem} label={t('createInvoice.addLineItem')} />
+							</div>
+							{/* discount reapplication belongs with the line-item math, so it lives in this card */}
+							<div className={cn('border-t border-line px-4 py-4 transition-colors', applyDiscount && 'bg-muted/30')}>
+								<Checkbox
+									id='apply-discount'
+									checked={applyDiscount}
+									onCheckedChange={(checked) => setApplyDiscount(!!checked)}
+									label={t('invoices.edit.applyDiscount')}
+									description={t('invoices.edit.applyDiscountDescription')}
+								/>
+							</div>
+						</div>
+					</section>
+				) : (
+					<section>
+						<p className='text-sm text-content-zinc-muted mb-2'>{t('invoices.edit.lineItemsDraftOnlyNote')}</p>
+						<InvoiceLineItemTable
+							title={t('invoices.edit.lineItemsTitle')}
+							data={invoice.line_items ?? []}
+							subtotal={invoice.subtotal}
+							total={invoice.total}
+							total_prepaid_credits_applied={invoice.total_prepaid_credits_applied}
+							discount={invoice.total_discount}
+							total_tax={invoice.total_tax}
+							amount_paid={invoice.amount_paid}
+							overpaid_amount={invoice.overpaid_amount}
+							amount_remaining={Number(invoice.amount_remaining)}
+							amount_due={invoice.amount_due}
+							currency={invoice.currency}
+							invoiceType={invoice.invoice_type as INVOICE_TYPE}
+						/>
+					</section>
+				)}
+
+				{/* metadata */}
+				<section>
+					<h3 className={getTypographyClass('card-header') + ' !text-[16px]'}>{t('invoices.edit.metadata')}</h3>
+					{metadataRows.length === 0 && <p className='mt-1 text-sm text-content-zinc-muted'>{t('invoices.edit.noMetadata')}</p>}
+					{/* full width so the row's delete action lines up with the line-item table's edge */}
+					<div className='mt-4 flex flex-col gap-4'>
+						{metadataRows.map((row, index) => (
+							<div key={index} className='flex gap-2 items-start'>
+								<div className='flex-[3] min-w-0'>
+									<Input
+										placeholder={t('common:form.key')}
+										value={row.key}
+										onChange={(value) => handleMetadataChange(index, 'key', value)}
+										disabled={!isEditable}
+									/>
+								</div>
+								<div className='flex-[5] min-w-0'>
+									<Textarea
+										placeholder={t('common:form.value')}
+										value={row.value}
+										onChange={(value) => handleMetadataChange(index, 'value', value)}
+										textAreaClassName='min-h-6 h-6 rounded-md'
+										className='rounded-md'
+										disabled={!isEditable}
+									/>
+								</div>
+								<Button
+									variant='ghost'
+									className='size-10'
+									onClick={() => setMetadataRows((prev) => prev.filter((_, i) => i !== index))}
+									disabled={!isEditable}
+									aria-label={t('common:form.remove')}>
+									<Trash2 className='size-5' />
+								</Button>
+							</div>
+						))}
+						{isEditable && (
+							<div>
+								<AddChargesButton
+									onClick={() => setMetadataRows((prev) => [...prev, { key: '', value: '' }])}
+									label={t('common:form.addAnotherItem')}
+								/>
+							</div>
+						)}
+					</div>
+				</section>
 			</div>
 		</Page>
 	);

@@ -64,6 +64,7 @@
 			"zeroChargesHidden": "Zero-amount line items hidden ({{hidden}})",
 			"itemColumn": "Item",
 			"noLineItems": "No line items on this invoice yet.",
+			"noMetadata": "No metadata on this invoice yet.",
 			"newLineItem": "New line item"
 		},
 		"status": {
