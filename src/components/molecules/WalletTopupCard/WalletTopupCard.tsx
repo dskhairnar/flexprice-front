@@ -245,7 +245,7 @@ const TopupCard: FC<TopupCardProps> = ({ walletId, currency, conversion_rate = 1
 	};
 
 	return (
-		<DialogContent className='bg-white sm:max-w-[600px]'>
+		<DialogContent className='bg-surface sm:max-w-[600px]'>
 			<PaymentUrlSuccessDialog
 				isOpen={checkoutPopup.isOpen}
 				paymentUrl={checkoutPopup.paymentUrl}
