@@ -25,7 +25,8 @@ const ThresholdUnitSelector = ({ value, labels, disabled, onChange }: ThresholdU
 	<div className='flex items-center justify-between gap-4 py-2.5'>
 		<div className='flex min-w-0 items-center gap-1.5'>
 			<span className='text-sm font-medium text-content'>{labels.unit}</span>
-			<InfoIcon description={labels.unitTooltip} ariaLabel={labels.unit} disabled={disabled} />
+			{/* Never dimmed: the tooltip explains what the muted controls below will do once enabled. */}
+			<InfoIcon description={labels.unitTooltip} ariaLabel={labels.unit} />
 		</div>
 		<SegmentedControl
 			aria-label={labels.unit}

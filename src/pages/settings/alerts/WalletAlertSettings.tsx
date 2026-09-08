@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
 import { useTranslation } from 'react-i18next';
-import { Button, Loader, Tooltip } from '@/components/atoms';
+import { Button, Card, Loader, Tooltip } from '@/components/atoms';
 import { SettingsCardHeader, WalletAlertThresholdSection } from '@/components/molecules';
 import type { WalletAlertThresholdSectionLabels } from '@/components/molecules/WalletAlertThresholdSection';
 import { Switch } from '@/components/ui/switch';
@@ -72,48 +72,50 @@ const WalletAlertSettingsSection = () => {
 	const isDisabled = !draft.alert_enabled || updateSettings.isPending;
 	const alertsTitle = t('alerts.walletAlerts.title');
 
-	// No card wrapper: the settings tab already provides the page structure, and nesting another
-	// bordered container inside it reads as a card-in-a-page-in-a-card.
+	// Same Card chrome as every sibling settings section (Theme, Customer Portal, SAML SSO) so the
+	// tabs match; the compact interior spacing is what keeps it from feeling like a nested card.
 	return (
-		<div className='space-y-5'>
-			<SettingsCardHeader
-				title={alertsTitle}
-				infoDescription={t('alerts.walletAlerts.description')}
-				infoAriaLabel={t('info.ariaLabel', { field: alertsTitle })}
-				titleClassName='text-lg font-medium text-content-zinc-strong'
-				className='mb-0'
-				cta={
-					<Switch
-						checked={draft.alert_enabled}
-						onCheckedChange={(enabled) => setDraft((prev) => setWalletAlertDraftEnabled(prev, enabled))}
-						disabled={isLoading || updateSettings.isPending}
-						aria-label={alertsTitle}
-					/>
-				}
-			/>
-			{isLoading ? (
-				<div className='flex min-h-[160px] items-center justify-center'>
-					<Loader />
-				</div>
-			) : (
-				<>
-					<WalletAlertThresholdSection draft={draft} labels={thresholdLabels} disabled={isDisabled} onChange={setDraft} />
-					<div className='flex justify-end'>
-						{canWriteAlertSettings ? (
-							<Button onClick={handleSave} isLoading={updateSettings.isPending} disabled={updateSettings.isPending}>
-								{t('alerts.walletAlerts.saveChanges')}
-							</Button>
-						) : (
-							<Tooltip content={t('superAdmin.writeDeniedTooltip')}>
-								<span tabIndex={0} className='inline-block'>
-									<Button disabled>{t('alerts.walletAlerts.saveChanges')}</Button>
-								</span>
-							</Tooltip>
-						)}
+		<Card variant='default' noPadding className='rounded-xl border-line bg-surface shadow-sm'>
+			<div className='space-y-5 p-6'>
+				<SettingsCardHeader
+					title={alertsTitle}
+					infoDescription={t('alerts.walletAlerts.description')}
+					infoAriaLabel={t('info.ariaLabel', { field: alertsTitle })}
+					titleClassName='text-lg font-medium text-content-zinc-strong'
+					className='mb-0'
+					cta={
+						<Switch
+							checked={draft.alert_enabled}
+							onCheckedChange={(enabled) => setDraft((prev) => setWalletAlertDraftEnabled(prev, enabled))}
+							disabled={isLoading || updateSettings.isPending}
+							aria-label={alertsTitle}
+						/>
+					}
+				/>
+				{isLoading ? (
+					<div className='flex min-h-[160px] items-center justify-center'>
+						<Loader />
 					</div>
-				</>
-			)}
-		</div>
+				) : (
+					<>
+						<WalletAlertThresholdSection draft={draft} labels={thresholdLabels} disabled={isDisabled} onChange={setDraft} />
+						<div className='flex justify-end'>
+							{canWriteAlertSettings ? (
+								<Button onClick={handleSave} isLoading={updateSettings.isPending} disabled={updateSettings.isPending}>
+									{t('alerts.walletAlerts.saveChanges')}
+								</Button>
+							) : (
+								<Tooltip content={t('superAdmin.writeDeniedTooltip')}>
+									<span tabIndex={0} className='inline-block'>
+										<Button disabled>{t('alerts.walletAlerts.saveChanges')}</Button>
+									</span>
+								</Tooltip>
+							)}
+						</div>
+					</>
+				)}
+			</div>
+		</Card>
 	);
 };
 

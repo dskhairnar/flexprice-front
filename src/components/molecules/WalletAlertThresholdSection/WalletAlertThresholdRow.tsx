@@ -1,5 +1,4 @@
 import { Input } from '@/components/atoms';
-import { cn } from '@/lib/utils';
 
 /**
  * Negatives are accepted rather than blocked: post-paid wallets legitimately sit below zero, and
@@ -38,7 +37,7 @@ const WalletAlertThresholdRow = ({
 	disabled,
 	onChange,
 }: WalletAlertThresholdRowProps) => (
-	<div className={cn('flex items-center gap-4 py-2', disabled && 'opacity-50')}>
+	<div className='flex items-center gap-4 py-2'>
 		<span className='w-24 shrink-0 text-sm font-medium text-content'>{title}</span>
 		<span className='min-w-0 flex-1 truncate text-sm text-content-secondary'>{description}</span>
 		<div className='w-[132px] shrink-0'>

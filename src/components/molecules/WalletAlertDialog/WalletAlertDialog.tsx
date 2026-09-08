@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Dialog, Button, Toggle } from '@/components/atoms';
+import { Dialog, Button } from '@/components/atoms';
+import { Switch } from '@/components/ui/switch';
 import toast from 'react-hot-toast';
 import { WalletAlertThresholdSection } from '@/components/molecules';
 import type { WalletAlertThresholdSectionLabels } from '@/components/molecules/WalletAlertThresholdSection';
@@ -87,14 +88,23 @@ const WalletAlertDialog: React.FC<WalletAlertDialogProps> = ({ open, alertSettin
 			title={t('wallet.alerts.dialogTitle')}
 			showCloseButton>
 			<div className='flex min-w-[600px] flex-col gap-5'>
-				<Toggle
-					title={t('wallet.alerts.enableTitle')}
-					label={t('wallet.alerts.enableLabel')}
-					description={t('wallet.alerts.enableDescription')}
-					checked={draft.alert_enabled}
-					onChange={(enabled) => setDraft((prev) => setWalletAlertDraftEnabled(prev, enabled))}
-					disabled={isSaving}
-				/>
+				{/*
+				 * A settings row rather than the Toggle atom: the switch belongs on the far right, level
+				 * with the label it controls, with the explanation underneath — not stacked under a
+				 * separate heading with the switch off to the left.
+				 */}
+				<div className='space-y-1'>
+					<div className='flex items-center justify-between gap-4'>
+						<span className='text-sm font-medium text-content'>{t('wallet.alerts.enableTitle')}</span>
+						<Switch
+							checked={draft.alert_enabled}
+							onCheckedChange={(enabled) => setDraft((prev) => setWalletAlertDraftEnabled(prev, enabled))}
+							disabled={isSaving}
+							aria-label={t('wallet.alerts.enableTitle')}
+						/>
+					</div>
+					<p className='max-w-[440px] text-sm text-content-secondary'>{t('wallet.alerts.enableDescription')}</p>
+				</div>
 
 				<WalletAlertThresholdSection
 					draft={draft}

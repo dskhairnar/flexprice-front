@@ -90,6 +90,16 @@ describe('WalletAlertThresholdSection', () => {
 		expect(rowInput('Critical').value).toBe('5');
 	});
 
+	it('mutes only the controls when disabled — severity labels stay readable', () => {
+		const draft = toWalletAlertDraft({ alert_enabled: false });
+		render(<WalletAlertThresholdSection draft={draft} labels={labels} disabled onChange={() => {}} />);
+
+		// The row itself is not faded; the disabled input carries the muting.
+		const row = screen.getByText('Critical').parentElement;
+		expect(row?.className).not.toContain('opacity');
+		expect(rowInput('Critical')).toBeDisabled();
+	});
+
 	it('omits the currency symbol when no currency applies (tenant-wide defaults)', () => {
 		render(<Harness />);
 		expect(screen.queryByText('$')).not.toBeInTheDocument();
