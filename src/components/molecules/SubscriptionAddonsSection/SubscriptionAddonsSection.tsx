@@ -219,14 +219,18 @@ const SubscriptionAddonsSection: FC<SubscriptionAddonsSectionProps> = ({
 	// once for the whole subscription and grouped client-side to avoid one request per row.
 	// Query key matches what ConfigureAddonDialog already refetches on every line-item
 	// mutation (see its `invalidateAddonQueries`), so an override there updates this table too.
-	const { data: addonLineItemsResponse, isLoading: isLoadingAddonLineItems } = useQuery({
+	const {
+		data: addonLineItemsResponse,
+		isLoading: isLoadingAddonLineItems,
+		isError: isErrorAddonLineItems,
+	} = useQuery({
 		queryKey: ['subscriptionAddonLineItems', subscriptionId],
 		queryFn: async () =>
 			SubscriptionApi.searchSubscriptionLineItems({
 				subscription_ids: [subscriptionId],
 				active_filter: true,
 				expand: `${EXPAND.PRICES}.${EXPAND.METERS}`,
-				limit: 100,
+				limit: 1000,
 				offset: 0,
 			}),
 		enabled: !!subscriptionId,
@@ -341,10 +345,12 @@ const SubscriptionAddonsSection: FC<SubscriptionAddonsSectionProps> = ({
 			{
 				title: 'Charges',
 				render: (row) => {
-					// Falls back to the catalog default only if this association has no
-					// matching line items yet (e.g. a fetch error) — the common case reads
-					// the real, possibly-overridden line item prices grouped above.
-					const prices = pricesByAddonAssociationId[row.id] ?? row.addon?.prices ?? [];
+					// Falls back to the catalog default only if this association genuinely has no
+					// matching line items — the common case reads the real, possibly-overridden line
+					// item prices grouped above. When the line-items fetch itself failed, showing the
+					// catalog price would silently pass off a possibly-stale number as current, so
+					// show nothing instead.
+					const prices = pricesByAddonAssociationId[row.id] ?? (isErrorAddonLineItems ? [] : row.addon?.prices) ?? [];
 					return <span>{formatAddonCharges(prices)}</span>;
 				},
 			},
@@ -415,7 +421,7 @@ const SubscriptionAddonsSection: FC<SubscriptionAddonsSectionProps> = ({
 				},
 			},
 		],
-		[dropdownOpen, handleCancel, readOnly, canWriteAddon, t, pricesByAddonAssociationId],
+		[dropdownOpen, handleCancel, readOnly, canWriteAddon, t, pricesByAddonAssociationId, isErrorAddonLineItems],
 	);
 
 	const addButton = readOnly ? undefined : canWriteAddon ? (
