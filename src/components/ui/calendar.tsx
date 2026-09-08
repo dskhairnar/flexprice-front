@@ -12,9 +12,11 @@ export type CalendarTimezone = 'local' | 'utc';
 export type CalendarProps = React.ComponentProps<typeof DayPicker> & {
 	timezone?: CalendarTimezone;
 	onTimezoneChange?: (tz: CalendarTimezone) => void;
+	/** Renders a "Clear" action in the footer; pass it only while there is a selection to clear. */
+	onClear?: () => void;
 };
 
-function Calendar({ className, classNames, showOutsideDays = true, timezone, onTimezoneChange, ...props }: CalendarProps) {
+function Calendar({ className, classNames, showOutsideDays = true, timezone, onTimezoneChange, onClear, ...props }: CalendarProps) {
 	const { t } = useTranslation('common');
 	const showTimezone = timezone !== undefined || onTimezoneChange !== undefined;
 	const currentTz = timezone ?? 'local';
@@ -79,29 +81,42 @@ function Calendar({ className, classNames, showOutsideDays = true, timezone, onT
 				}}
 				{...props}
 			/>
-			{showTimezone && (
+			{(showTimezone || onClear) && (
 				<div className='mt-3 pt-3 border-t border-border px-3 pb-2.5' role='group' aria-label={t('dateTime.timezoneSectionAriaLabel')}>
 					<div className='flex items-center justify-between gap-3'>
-						<span className='text-xs text-muted-foreground font-normal'>{t('dateTime.timezoneSectionLabel')}</span>
-						{isInteractive ? (
-							<Select value={currentTz} onValueChange={(value) => onTimezoneChange(value as CalendarTimezone)}>
-								<SelectTrigger className='h-8 min-w-[84px] w-[84px] border-border bg-background px-2.5 text-xs font-normal shadow-none focus:ring-2 focus:ring-ring focus:ring-offset-1 [&>svg]:h-3.5 [&>svg]:w-3.5'>
-									<SelectValue />
-								</SelectTrigger>
-								<SelectContent align='end' side='top' className='z-[70]'>
-									<SelectItem value='local' className='text-xs'>
-										{t('dateTime.timezoneLocal')}
-									</SelectItem>
-									<SelectItem value='utc' className='text-xs'>
-										{t('dateTime.timezoneUtc')}
-									</SelectItem>
-								</SelectContent>
-							</Select>
-						) : (
-							<span className='text-xs text-foreground font-medium'>
-								{currentTz === 'local' ? t('dateTime.timezoneLocal') : t('dateTime.timezoneUtc')}
-							</span>
-						)}
+						<div className='flex items-center gap-3'>
+							{showTimezone && <span className='text-xs text-muted-foreground font-normal'>{t('dateTime.timezoneSectionLabel')}</span>}
+							{showTimezone && !isInteractive && (
+								<span className='text-xs text-foreground font-medium'>
+									{currentTz === 'local' ? t('dateTime.timezoneLocal') : t('dateTime.timezoneUtc')}
+								</span>
+							)}
+						</div>
+						<div className='flex items-center gap-3'>
+							{showTimezone && isInteractive && (
+								<Select value={currentTz} onValueChange={(value) => onTimezoneChange(value as CalendarTimezone)}>
+									<SelectTrigger className='h-8 min-w-[84px] w-[84px] border-border bg-background px-2.5 text-xs font-normal shadow-none focus:ring-2 focus:ring-ring focus:ring-offset-1 [&>svg]:h-3.5 [&>svg]:w-3.5'>
+										<SelectValue />
+									</SelectTrigger>
+									<SelectContent align='end' side='top' className='z-[70]'>
+										<SelectItem value='local' className='text-xs'>
+											{t('dateTime.timezoneLocal')}
+										</SelectItem>
+										<SelectItem value='utc' className='text-xs'>
+											{t('dateTime.timezoneUtc')}
+										</SelectItem>
+									</SelectContent>
+								</Select>
+							)}
+							{onClear && (
+								<button
+									type='button'
+									onClick={onClear}
+									className='text-xs font-medium text-muted-foreground underline-offset-2 hover:text-foreground hover:underline'>
+									{t('dateTime.clear')}
+								</button>
+							)}
+						</div>
 					</div>
 				</div>
 			)}

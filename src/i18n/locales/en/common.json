@@ -285,7 +285,7 @@
 		"timezoneUtc": "UTC",
 		"timezoneSectionAriaLabel": "Timezone",
 		"timezoneSectionLabel": "Timezone",
-		"clear": "Clear date"
+		"clear": "Clear"
 	},
 	"breadcrumb": {
 		"navAriaLabel": "breadcrumb",

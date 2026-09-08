@@ -267,7 +267,7 @@
 		"timezoneUtc": "UTC",
 		"timezoneSectionAriaLabel": "المنطقة الزمنية",
 		"timezoneSectionLabel": "المنطقة الزمنية",
-		"clear": "مسح التاريخ"
+		"clear": "مسح"
 	},
 	"breadcrumb": {
 		"navAriaLabel": "مسار التنقل",
