@@ -97,9 +97,9 @@ const AlertSettingsDialog: React.FC<AlertSettingsDialogProps> = ({ open, onClose
 
 	const getLevelLabels = (level: WalletAlertLevel): SpendAlertThresholdCardLabels => {
 		const titleKey = {
-			[WalletAlertLevel.CRITICAL]: 'wallet.alerts.criticalTitle',
-			[WalletAlertLevel.WARNING]: 'wallet.alerts.warningTitle',
-			[WalletAlertLevel.INFO]: 'wallet.alerts.infoTitle',
+			[WalletAlertLevel.CRITICAL]: 'spendAlerts.criticalTitle',
+			[WalletAlertLevel.WARNING]: 'spendAlerts.warningTitle',
+			[WalletAlertLevel.INFO]: 'spendAlerts.infoTitle',
 		} as const;
 		const descriptionKey = {
 			[WalletAlertLevel.CRITICAL]: 'spendAlerts.criticalDescription',
@@ -110,13 +110,13 @@ const AlertSettingsDialog: React.FC<AlertSettingsDialogProps> = ({ open, onClose
 		return {
 			title: t(titleKey[level]),
 			description: t(descriptionKey[level]),
-			add: t('wallet.alerts.add'),
-			remove: t('wallet.alerts.remove'),
-			thresholdValue: t('wallet.alerts.thresholdValueLabel', { currencySuffix: currency ? ` (${currency})` : '' }),
-			condition: t('wallet.alerts.conditionLabel'),
-			conditionBelow: t('wallet.alerts.conditionBelow'),
-			conditionAbove: t('wallet.alerts.conditionAbove'),
-			amountPlaceholder: t('wallet.alerts.amountPlaceholder'),
+			add: t('spendAlerts.add'),
+			remove: t('spendAlerts.remove'),
+			thresholdValue: t('spendAlerts.thresholdValueLabel', { currencySuffix: currency ? ` (${currency})` : '' }),
+			condition: t('spendAlerts.conditionLabel'),
+			conditionBelow: t('spendAlerts.conditionBelow'),
+			conditionAbove: t('spendAlerts.conditionAbove'),
+			amountPlaceholder: t('spendAlerts.amountPlaceholder'),
 		};
 	};
 
@@ -146,6 +146,9 @@ const AlertSettingsDialog: React.FC<AlertSettingsDialogProps> = ({ open, onClose
 
 		const validationErrorKey = getWalletAlertValidationErrorKey(localConfig, SPEND_ALERT_CONDITION);
 		if (validationErrorKey) {
+			// Validation copy is shared with wallet alerts on purpose — the rules and their error
+			// keys come from the same helper. Every other label here lives under `spendAlerts`, so
+			// wallet-side copy changes cannot blank out this dialog again.
 			toast.error(t(`wallet.alerts.validation.${validationErrorKey}`));
 			return;
 		}

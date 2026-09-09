@@ -1085,6 +1085,7 @@
 		"saving": "Saving...",
 		"saveChanges": "Save Changes",
 		"saveSuccess": "Alert settings saved successfully",
-		"saveError": "Failed to save alert settings"
+		"saveError": "Failed to save alert settings",
+		"conditionBelow": "Below"
 	}
 }
