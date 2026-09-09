@@ -772,17 +772,16 @@ const EditInvoicePage: FC = () => {
 								<div className='px-2 py-1.5'>
 									<AddChargesButton onClick={handleAddLineItem} label={t('createInvoice.addLineItem')} />
 								</div>
-								{/* discount reapplication belongs with the line-item math, so it lives in this card */}
-								<div className={cn('border-t border-line px-4 py-4 transition-colors', applyDiscount && 'bg-muted/30')}>
-									<Checkbox
-										id='apply-discount'
-										checked={applyDiscount}
-										onCheckedChange={(checked) => setApplyDiscount(!!checked)}
-										label={t('invoices.edit.applyDiscount')}
-										description={t('invoices.edit.applyDiscountDescription')}
-									/>
-								</div>
 							</div>
+							{/* discount reapplication sits below the table, separated by its own rule */}
+							<Divider className='my-5' />
+							<Checkbox
+								id='apply-discount'
+								checked={applyDiscount}
+								onCheckedChange={(checked) => setApplyDiscount(!!checked)}
+								label={t('invoices.edit.applyDiscount')}
+								description={t('invoices.edit.applyDiscountDescription')}
+							/>
 						</div>
 					) : (
 						<div className='px-4 pb-4'>
