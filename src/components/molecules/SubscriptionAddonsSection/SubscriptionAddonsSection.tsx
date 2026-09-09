@@ -7,7 +7,7 @@ import { FlexpriceTable, ColumnData } from '@/components/molecules';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { BsThreeDots } from 'react-icons/bs';
 import SubscriptionApi from '@/api/SubscriptionApi';
-import { AddonAssociationResponse, SubscriptionResponse } from '@/types/dto/Subscription';
+import { AddonAssociationResponse, SubscriptionLineItemListItem, SubscriptionResponse } from '@/types/dto/Subscription';
 import { EXPAND } from '@/models';
 import { ADDON_PRORATION_BEHAVIOR } from '@/types/dto/Addon';
 import { BILLING_PERIOD } from '@/constants/constants';
@@ -113,22 +113,41 @@ const SubscriptionAddonsSection: FC<SubscriptionAddonsSectionProps> = ({
 	// once for the whole subscription and grouped client-side to avoid one request per row.
 	// Query key matches what ConfigureAddonDialog already refetches on every line-item
 	// mutation (see its `invalidateAddonQueries`), so an override there updates this table too.
-	const { data: addonLineItemsResponse, isLoading: isLoadingAddonLineItems } = useQuery({
+	const {
+		data: addonLineItems,
+		isLoading: isLoadingAddonLineItems,
+		isError: isErrorAddonLineItems,
+	} = useQuery({
 		queryKey: ['subscriptionAddonLineItems', subscriptionId],
-		queryFn: async () =>
-			SubscriptionApi.searchSubscriptionLineItems({
-				subscription_ids: [subscriptionId],
-				active_filter: true,
-				expand: `${EXPAND.PRICES}.${EXPAND.METERS}`,
-				limit: 100,
-				offset: 0,
-			}),
+		queryFn: async () => {
+			// A page size this large covers virtually every subscription in one request; the loop
+			// below only makes a second request on the rare subscription that actually exceeds it,
+			// so this stays a single round trip for the common case while still being correct for
+			// subscriptions with more active line items than fit on one page.
+			const pageSize = 1000;
+			const items: SubscriptionLineItemListItem[] = [];
+			let offset = 0;
+			while (true) {
+				const page = await SubscriptionApi.searchSubscriptionLineItems({
+					subscription_ids: [subscriptionId],
+					active_filter: true,
+					expand: `${EXPAND.PRICES}.${EXPAND.METERS}`,
+					limit: pageSize,
+					offset,
+				});
+				items.push(...page.items);
+				const total = page.pagination?.total ?? items.length;
+				if (items.length >= total || page.items.length === 0) break;
+				offset += pageSize;
+			}
+			return items;
+		},
 		enabled: !!subscriptionId,
 	});
 
 	const chargeLinesByAddonAssociationId = useMemo<Record<string, AttachedAddonChargeLine[]>>(() => {
 		const grouped: Record<string, AttachedAddonChargeLine[]> = {};
-		for (const item of addonLineItemsResponse?.items ?? []) {
+		for (const item of addonLineItems ?? []) {
 			if (!item.addon_association_id || !item.price) continue;
 			const unitAmount = parseFloat(getCurrentPriceAmount(item.price, {}));
 			(grouped[item.addon_association_id] ??= []).push({
@@ -141,7 +160,7 @@ const SubscriptionAddonsSection: FC<SubscriptionAddonsSectionProps> = ({
 			});
 		}
 		return grouped;
-	}, [addonLineItemsResponse]);
+	}, [addonLineItems]);
 
 	const isLoading = isLoadingAddons || isLoadingAddonLineItems;
 
@@ -151,9 +170,16 @@ const SubscriptionAddonsSection: FC<SubscriptionAddonsSectionProps> = ({
 			if (lines) {
 				return attachedAddonLinesToDisplayInput(lines);
 			}
+			// Falls back to the catalog default only if this association genuinely has no matching
+			// line items. When the line-items fetch itself failed we cannot tell the two apart, and
+			// showing the catalog price would pass off a possibly-stale number as current — so show
+			// nothing instead.
+			if (isErrorAddonLineItems) {
+				return { prices: [], overrideLineItems: [] };
+			}
 			return { prices: association.addon?.prices ?? [], overrideLineItems: [] };
 		},
-		[chargeLinesByAddonAssociationId],
+		[chargeLinesByAddonAssociationId, isErrorAddonLineItems],
 	);
 
 	const chargeLabels = useMemo(
