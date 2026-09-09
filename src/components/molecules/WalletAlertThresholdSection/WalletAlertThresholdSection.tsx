@@ -1,5 +1,6 @@
 import { WalletAlertLevel, type WalletAlertDraft, type WalletAlertThresholdType } from '@/models/Wallet';
 import {
+	WALLET_ALERT_CONDITION,
 	getActiveWalletAlertLevels,
 	setWalletAlertDraftThresholdType,
 	setWalletAlertThresholdValue,
@@ -16,8 +17,9 @@ export interface WalletAlertThresholdSectionLabels {
 	thresholdTypeTooltip: React.ReactNode;
 	thresholdTypeAbsolute: string;
 	thresholdTypePercentage: string;
-	/** Fixed condition copy on every row, e.g. "Balance below". */
-	rowDescription: string;
+	/** Labels for the (locked) condition picker on every row. */
+	conditionBelow: string;
+	conditionAbove: string;
 	amountPlaceholder: string;
 	levels: Record<WalletAlertLevel, string>;
 }
@@ -65,7 +67,11 @@ const WalletAlertThresholdSection = ({ draft, labels, disabled, currency, onChan
 					<WalletAlertThresholdRow
 						key={level}
 						title={labels.levels[level]}
-						description={labels.rowDescription}
+						condition={WALLET_ALERT_CONDITION}
+						conditionLabels={{ below: labels.conditionBelow, above: labels.conditionAbove }}
+						// Wallet balance alerts only ever fire on a falling balance, so the picker is
+						// shown for clarity but never editable.
+						conditionDisabled
 						value={levels[level]?.threshold ?? ''}
 						placeholder={labels.amountPlaceholder}
 						symbol={symbol}

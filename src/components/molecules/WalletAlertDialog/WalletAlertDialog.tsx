@@ -41,7 +41,8 @@ const WalletAlertDialog: React.FC<WalletAlertDialogProps> = ({ open, alertSettin
 		),
 		thresholdTypeAbsolute: t('wallet.alerts.thresholdTypeAbsolute'),
 		thresholdTypePercentage: t('wallet.alerts.thresholdTypePercentage'),
-		rowDescription: t('wallet.alerts.rowDescription'),
+		conditionBelow: t('wallet.alerts.conditionBelow'),
+		conditionAbove: t('wallet.alerts.conditionAbove'),
 		amountPlaceholder: t('wallet.alerts.amountPlaceholder'),
 		levels: {
 			[WalletAlertLevel.CRITICAL]: t('wallet.alerts.criticalTitle'),

@@ -359,14 +359,18 @@
 				"criticalRequiredForWarning": "عتبة حرجة مطلوبة عند تعيين عتبة تحذير",
 				"warningMustBeGreaterThanCritical": "يجب أن تكون عتبة التحذير أكبر من العتبة الحرجة",
 				"infoMustBeGreaterThanWarning": "يجب أن تكون عتبة المعلومات أكبر من عتبة التحذير",
-				"infoMustBeGreaterThanCritical": "يجب أن تكون عتبة المعلومات أكبر من العتبة الحرجة"
+				"infoMustBeGreaterThanCritical": "يجب أن تكون عتبة المعلومات أكبر من العتبة الحرجة",
+				"warningMustBeLessThanCritical": "يجب أن تكون عتبة التحذير أقل من العتبة الحرجة",
+				"infoMustBeLessThanWarning": "يجب أن تكون عتبة المعلومات أقل من عتبة التحذير",
+				"infoMustBeLessThanCritical": "يجب أن تكون عتبة المعلومات أقل من العتبة الحرجة"
 			},
-			"rowDescription": "الرصيد أقل من",
 			"thresholdTypeLabel": "نوع العتبة",
 			"thresholdTypeAbsolute": "مطلق",
 			"thresholdTypePercentage": "نسبة مئوية",
 			"thresholdTypeTooltipAbsolute": "مطلق: تُفعَّل التنبيهات عند انخفاض رصيد المحفظة عن مبلغ ثابت.",
-			"thresholdTypeTooltipPercentage": "نسبة مئوية: تُفعَّل التنبيهات على الرصيد الجاري، مقيسًا كنسبة مئوية من الأرصدة الممنوحة خلال فترة الفوترة الحالية. في حال عدم وجود اشتراك نشط، يُستخدم إجمالي الأرصدة الممنوحة طوال الوقت."
+			"thresholdTypeTooltipPercentage": "نسبة مئوية: تُفعَّل التنبيهات على الرصيد الجاري، مقيسًا كنسبة مئوية من الأرصدة الممنوحة خلال فترة الفوترة الحالية. في حال عدم وجود اشتراك نشط، يُستخدم إجمالي الأرصدة الممنوحة طوال الوقت.",
+			"conditionBelow": "أقل من",
+			"conditionAbove": "أكبر من"
 		}
 	},
 	"appearance": {

@@ -978,7 +978,6 @@
 				"infoMustBeLessThanWarning": "The info threshold must be less than the warning threshold",
 				"infoMustBeLessThanCritical": "The info threshold must be less than the critical threshold"
 			},
-			"rowDescription": "Balance below",
 			"thresholdTypeLabel": "Threshold type",
 			"thresholdTypeAbsolute": "Absolute",
 			"thresholdTypePercentage": "Percentage",
@@ -1083,6 +1082,7 @@
 		"saving": "Saving...",
 		"saveChanges": "Save Changes",
 		"saveSuccess": "Alert settings saved successfully",
-		"saveError": "Failed to save alert settings"
+		"saveError": "Failed to save alert settings",
+		"conditionBelow": "Below"
 	}
 }
