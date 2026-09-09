@@ -980,7 +980,6 @@
 				"infoMustBeLessThanWarning": "The info threshold must be less than the warning threshold",
 				"infoMustBeLessThanCritical": "The info threshold must be less than the critical threshold"
 			},
-			"rowDescription": "Balance below",
 			"thresholdTypeLabel": "Threshold type",
 			"thresholdTypeAbsolute": "Absolute",
 			"thresholdTypePercentage": "Percentage",

@@ -41,7 +41,8 @@ const WalletAlertSettingsSection = () => {
 		),
 		thresholdTypeAbsolute: t('alerts.walletAlerts.thresholdTypeAbsolute'),
 		thresholdTypePercentage: t('alerts.walletAlerts.thresholdTypePercentage'),
-		rowDescription: t('alerts.walletAlerts.rowDescription'),
+		conditionBelow: t('alerts.walletAlerts.conditionBelow'),
+		conditionAbove: t('alerts.walletAlerts.conditionAbove'),
 		amountPlaceholder: t('alerts.walletAlerts.amountPlaceholder'),
 		levels: {
 			[WalletAlertLevel.CRITICAL]: t('alerts.walletAlerts.levels.critical'),

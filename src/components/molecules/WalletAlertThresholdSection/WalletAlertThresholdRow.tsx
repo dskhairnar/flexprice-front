@@ -1,4 +1,5 @@
-import { Input } from '@/components/atoms';
+import { Input, Select } from '@/components/atoms';
+import type { WalletAlertCondition } from '@/utils/wallet/walletAlertUtils';
 
 /**
  * Negatives are accepted rather than blocked: post-paid wallets legitimately sit below zero, and
@@ -9,8 +10,15 @@ const THRESHOLD_FORMAT_OPTIONS = { allowNegative: true, allowDecimals: true, tho
 export interface WalletAlertThresholdRowProps {
 	/** Severity name, e.g. "Critical". */
 	title: string;
-	/** Fixed condition copy, e.g. "Balance below". */
-	description: string;
+	/** Currently selected comparison. Wallet balance alerts are always 'below'. */
+	condition: WalletAlertCondition;
+	conditionLabels: { below: string; above: string };
+	/**
+	 * Locks the condition picker. It stays visible so the comparison is explicit, but wallet
+	 * balance alerts only ever fire on a falling balance, so there is nothing to choose.
+	 */
+	conditionDisabled?: boolean;
+	onConditionChange?: (condition: WalletAlertCondition) => void;
 	/** Empty string means this severity has no threshold configured. */
 	value: string;
 	placeholder: string;
@@ -23,13 +31,16 @@ export interface WalletAlertThresholdRowProps {
 }
 
 /**
- * One severity as a single horizontal row: fixed-width severity column, condition copy, then the
- * value input. The severity and input columns are fixed so the three rows line up as one block.
- * There is no condition picker — wallet balance alerts always fire on a falling balance.
+ * One severity as a single horizontal row: fixed-width severity column, the comparison, then the
+ * value input. The severity, condition and input columns are fixed so the three rows line up as
+ * one block.
  */
 const WalletAlertThresholdRow = ({
 	title,
-	description,
+	condition,
+	conditionLabels,
+	conditionDisabled,
+	onConditionChange,
 	value,
 	placeholder,
 	symbol,
@@ -39,10 +50,22 @@ const WalletAlertThresholdRow = ({
 }: WalletAlertThresholdRowProps) => (
 	<div className='flex items-center gap-4 py-2'>
 		<span className='w-24 shrink-0 text-sm font-medium text-content'>{title}</span>
-		<span className='min-w-0 flex-1 truncate text-sm text-content-secondary'>{description}</span>
+		<div className='w-[150px] shrink-0'>
+			<Select
+				ariaLabel={`${title} condition`}
+				options={[
+					{ label: conditionLabels.below, value: 'below' },
+					{ label: conditionLabels.above, value: 'above' },
+				]}
+				value={condition}
+				onChange={(next) => onConditionChange?.(next as WalletAlertCondition)}
+				disabled={disabled || conditionDisabled}
+			/>
+		</div>
+		<div className='flex-1' />
 		<div className='w-[132px] shrink-0'>
 			<Input
-				aria-label={`${title} — ${description}`}
+				aria-label={`${title} threshold`}
 				placeholder={placeholder}
 				value={value}
 				onChange={onChange}

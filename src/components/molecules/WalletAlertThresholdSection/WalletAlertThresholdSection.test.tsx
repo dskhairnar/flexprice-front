@@ -10,7 +10,8 @@ const labels: WalletAlertThresholdSectionLabels = {
 	thresholdTypeTooltip: 'Absolute or percentage',
 	thresholdTypeAbsolute: 'Absolute',
 	thresholdTypePercentage: 'Percentage',
-	rowDescription: 'Balance below',
+	conditionBelow: 'Below',
+	conditionAbove: 'Above',
 	amountPlaceholder: '0.00',
 	levels: {
 		[WalletAlertLevel.CRITICAL]: 'Critical',
@@ -25,19 +26,18 @@ const Harness = ({ initial, currency }: { initial?: WalletAlertDraft; currency?:
 	return <WalletAlertThresholdSection draft={draft} labels={labels} currency={currency} onChange={setDraft} />;
 };
 
-const rowInput = (level: string) => screen.getByLabelText(`${level} — Balance below`) as HTMLInputElement;
+const rowInput = (level: string) => screen.getByLabelText(`${level} threshold`) as HTMLInputElement;
 
 describe('WalletAlertThresholdSection', () => {
-	it('renders one row per severity with the fixed falls-below copy and no condition picker', () => {
+	it('renders one row per severity with a condition picker locked to Below', () => {
 		render(<Harness />);
 
 		expect(screen.getByText('Critical')).toBeInTheDocument();
 		expect(screen.getByText('Warning')).toBeInTheDocument();
 		expect(screen.getByText('Info')).toBeInTheDocument();
-		expect(screen.getAllByText('Balance below')).toHaveLength(3);
-		// The Above/Below dropdown is gone — wallet alerts always fire on a falling balance.
-		expect(screen.queryByText('Above')).not.toBeInTheDocument();
-		expect(screen.queryByRole('combobox')).not.toBeInTheDocument();
+		// Every row shows the comparison as a picker, locked to Below.
+		expect(screen.getAllByText('Below')).toHaveLength(3);
+		screen.getAllByRole('combobox').forEach((c) => expect(c).toBeDisabled());
 	});
 
 	it('has no standalone Thresholds heading and keeps the type label beside its control', () => {

@@ -824,7 +824,7 @@
 		"alerts": {
 			"amountPlaceholder": "0.00",
 			"conditionBelow": "أقل من",
-			"conditionAbove": "أعلى من",
+			"conditionAbove": "أكبر من",
 			"dialogTitle": "إعدادات تنبيه المحفظة",
 			"enableTitle": "تفعيل تنبيهات المحفظة",
 			"enableDescription": "احصل على إشعار عند انخفاض رصيد محفظتك عن العتبات المُعدّة.",
@@ -851,7 +851,6 @@
 				"infoMustBeLessThanWarning": "يجب أن تكون عتبة المعلومات أقل من عتبة التحذير",
 				"infoMustBeLessThanCritical": "يجب أن تكون عتبة المعلومات أقل من العتبة الحرجة"
 			},
-			"rowDescription": "الرصيد أقل من",
 			"thresholdTypeLabel": "نوع العتبة",
 			"thresholdTypeAbsolute": "مطلق",
 			"thresholdTypePercentage": "نسبة مئوية",
