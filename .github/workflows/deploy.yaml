@@ -176,10 +176,14 @@ jobs:
 
               # Report the deployment to GitHub so `deployment_status` fires and
               # E2E (post-deploy smoke) picks it up - it tests this exact URL, no rebuild.
+              # Limited to develop while the suite is still earning trust: every other
+              # branch deploys exactly as before and simply reports no deployment.
               # Every target reports under the same fixed "e2e-fe" environment (not
               # $name/deployment_name) so repeated pushes reuse one Environment entry in
               # GitHub Settings instead of minting a new one per deploy.
-              if [ -z "${GH_TOKEN:-}" ]; then
+              if [ "${GITHUB_REF_NAME}" != "develop" ]; then
+                echo "::notice::Post-deploy E2E is limited to develop for now - not reporting a deployment status for ${name} on ${GITHUB_REF_NAME}. The deploy itself is unaffected."
+              elif [ -z "${GH_TOKEN:-}" ]; then
                 echo "::notice::DEPLOYMENT_STATUS_TOKEN is not set - skipping deployment status reporting for ${name}. E2E (post-deploy smoke) will not trigger, but the deploy itself is unaffected."
               else
                 deploy_url="$(tail -n 1 "$deploy_url_file" | tr -d '[:space:]')"
