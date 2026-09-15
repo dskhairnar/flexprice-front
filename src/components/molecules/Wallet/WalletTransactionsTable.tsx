@@ -35,7 +35,14 @@ const WalletTransactionsTable: FC<Props> = ({ data, chrome = 'dashboard' }) => {
 			status?: string;
 		}) => {
 			const isPending = status?.toLowerCase() === 'pending';
-			const colorClass = isPending ? 'text-accent-yellow-brand' : type === 'credit' ? 'text-accent-teal-brand' : 'text-content-zinc-bold';
+			const isFailed = status?.toLowerCase() === 'failed';
+			const colorClass = isFailed
+				? 'text-danger'
+				: isPending
+					? 'text-accent-yellow-brand'
+					: type === 'credit'
+						? 'text-accent-teal-brand'
+						: 'text-content-zinc-bold';
 			const sign = type === 'credit' ? '+' : '-';
 
 			// Raw amounts carry full float precision and must be rounded before display.

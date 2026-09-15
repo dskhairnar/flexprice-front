@@ -31,7 +31,14 @@ const CustomerWalletTransactionsTable: FC<Props> = ({ data }) => {
 			status?: string;
 		}) => {
 			const isPending = status?.toLowerCase() === 'pending';
-			const colorClass = isPending ? 'text-accent-yellow-brand' : type === 'credit' ? 'text-accent-teal-brand' : 'text-content-zinc-bold';
+			const isFailed = status?.toLowerCase() === 'failed';
+			const colorClass = isFailed
+				? 'text-danger'
+				: isPending
+					? 'text-accent-yellow-brand'
+					: type === 'credit'
+						? 'text-accent-teal-brand'
+						: 'text-content-zinc-bold';
 
 			return (
 				<span className={cn(colorClass, className)}>

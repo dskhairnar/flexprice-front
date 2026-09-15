@@ -95,4 +95,33 @@ describe('WalletTransactionsTable', () => {
 		expect(container.querySelector('.text-accent-yellow-brand')).toBeNull();
 		expect(container.querySelector('.text-accent-teal-brand')).not.toBeNull();
 	});
+
+	it('colors a failed credit transaction red, not teal (regression test: failed transactions must not look successful)', () => {
+		const { container } = render(
+			<WalletTransactionsTable
+				data={[
+					{
+						amount: 50,
+						balance_after: 100,
+						balance_before: 100,
+						created_at: '2026-01-01T00:00:00Z',
+						description: '',
+						id: 'tx_failed',
+						metadata: {},
+						reference_id: '',
+						reference_type: '',
+						transaction_status: 'failed',
+						type: 'credit',
+						wallet_id: 'w1',
+						credit_amount: 50,
+						transaction_reason: WALLET_TRANSACTION_REASON.PURCHASED_CREDIT_INVOICED,
+						expiry_date: '',
+						currency: 'USD',
+					},
+				]}
+			/>,
+		);
+		expect(container.querySelector('.text-danger')).not.toBeNull();
+		expect(container.querySelector('.text-accent-teal-brand')).toBeNull();
+	});
 });
