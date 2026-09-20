@@ -213,6 +213,7 @@
 		"windowNone": "—",
 		"windowOpen": "open",
 		"windowsButton": "السجل",
+		"windowsAriaLabel": "سجل الاستخدام لـ {{feature}}",
 		"windowsDialogDescription": "تُقاس كل نافذة وتُفوتر على حدة.",
 		"windowsColumnPeriod": "النافذة",
 		"windowsColumnUsage": "المستخدم"
