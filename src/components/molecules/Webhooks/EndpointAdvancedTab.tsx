@@ -158,11 +158,15 @@ const CustomHeaders: FC<{ endpointId: string }> = ({ endpointId }) => {
 			<div className='flex flex-col gap-2'>
 				{rows.map((row) => (
 					<div key={row.key} className='flex items-center gap-2 text-sm'>
-						<span className='flex-1 font-mono text-xs bg-surface-subtle border border-border rounded px-2 py-1.5 truncate'>{row.key}</span>
+						{/* min-w-0 lets a cell shrink past its content so `truncate` engages; without it a long
+						    header name widens the row instead of ellipsing inside the card. */}
+						<span className='min-w-0 flex-1 font-mono text-xs bg-surface-subtle border border-border rounded px-2 py-1.5 truncate'>
+							{row.key}
+						</span>
 						<span
 							title={row.sensitive ? t('webhooks.endpoints.detail.headerValueHiddenHint') : undefined}
 							className={cn(
-								'flex-1 font-mono text-xs bg-surface-subtle border border-border rounded px-2 py-1.5 truncate',
+								'min-w-0 flex-1 font-mono text-xs bg-surface-subtle border border-border rounded px-2 py-1.5 truncate',
 								row.sensitive && 'italic text-content-muted',
 							)}>
 							{row.sensitive ? t('webhooks.endpoints.detail.headerValueHidden') : row.value}
@@ -170,6 +174,7 @@ const CustomHeaders: FC<{ endpointId: string }> = ({ endpointId }) => {
 						<Button
 							variant='outline'
 							size='sm'
+							className='shrink-0'
 							disabled={isSaving}
 							aria-label={t('webhooks.endpoints.detail.removeHeader', { key: row.key })}
 							onClick={() => handleRemove(row.key)}>
@@ -178,11 +183,19 @@ const CustomHeaders: FC<{ endpointId: string }> = ({ endpointId }) => {
 					</div>
 				))}
 				<div className='flex items-center gap-2'>
-					<Input placeholder={t('webhooks.endpoints.detail.headerKeyPlaceholder')} value={newKey} onChange={setNewKey} />
-					<Input placeholder={t('webhooks.endpoints.detail.headerValuePlaceholder')} value={newValue} onChange={setNewValue} />
+					{/* `Input` renders a `w-full` wrapper, so two side by side each ask for the whole row and
+					    spill past the card once the gaps and button are added. A shrinkable cell around each
+					    makes them share the width at any screen size. */}
+					<div className='min-w-0 flex-1'>
+						<Input placeholder={t('webhooks.endpoints.detail.headerKeyPlaceholder')} value={newKey} onChange={setNewKey} />
+					</div>
+					<div className='min-w-0 flex-1'>
+						<Input placeholder={t('webhooks.endpoints.detail.headerValuePlaceholder')} value={newValue} onChange={setNewValue} />
+					</div>
 					<Button
 						variant='outline'
 						size='sm'
+						className='shrink-0'
 						disabled={!newKey || isSaving}
 						isLoading={isSaving}
 						aria-label={t('webhooks.endpoints.detail.addHeader')}
